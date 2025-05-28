@@ -1,58 +1,54 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9446019D071;
-	Wed, 28 May 2025 10:58:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59A431DFD8B
+	for <linux-unionfs@vger.kernel.org>; Wed, 28 May 2025 11:47:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748429937; cv=none; b=ubyUNrVcKEiycN4ujpHHexTANI+eMYIRUhCoLJXl87gE84/7VQ4eKpt1wzxICm+xRute8soYkE5U8xatoyBf2sd+NkLRpjBJgnd0gG8p22ZkKcoZAsNR2OpVJ7mlukQB8Im92cATv0zBk6oRog80o1PYxjtjdAlpw/X+YrBg1Hc=
+	t=1748432871; cv=none; b=HANJKHHi0M+9sqwNKTBFjB//+NhuAE0+Ea+uR0tn99/X60FoXxqwxJscXWftgEUhkySM+usOmq/00RBI+/h8KNA4f+6mj/yMtOvJB+lHFzlfnY5lv0p1aVjtexGegwoheBJQoO99UdMtqpl1MjADQVwsoSToXtqjarCwfdAS+j0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748429937; c=relaxed/simple;
-	bh=C6ysBc+MPDOEWw9EEwaiQIBiSZ1Uc/oT0aNe+2bwsik=;
+	s=arc-20240116; t=1748432871; c=relaxed/simple;
+	bh=TTy22rgWBPKbjZSTe4uWPN+pN85sITjqdiiRx8uuXRo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=XhVyUgcaIwPYJR1K++PMMDklOUb6VFcsitY6i5ocUmCf6QFW6U7ZA5zm0o7PjsvuuZ40rf8PmxuDg+q63eHutfT7XpkFx60nzmhcq/fcnqGGChTv5FZKI6umpFVhhFLM1v/kgkZNZ03j5hhc7SxSnAmI92kFe7QN1DIwMtw50GU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jeAJg7br; arc=none smtp.client-ip=209.85.218.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=G0YGe4avjq7hqJXIh/z1TGlXXHB7ENZlSFqJD8eV3vFYgle2NTLTBdxEwQ6soFrDImRO3UGtK/7IUOZwUz1Qm4PmeD0gCpISRmVxDWFp0RY30cqQA1Ab9ZSgvuiEtdALR79DiNWG96vu7JPzLxEqWnoSBaVam7Fg1qbLTuA5+Tc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=DyWzg/NQ; arc=none smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jeAJg7br"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-ad5740dd20eso667467866b.0;
-        Wed, 28 May 2025 03:58:55 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="DyWzg/NQ"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-476a1acf61eso37344541cf.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 28 May 2025 04:47:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1748429934; x=1749034734; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wNGm+XVL2Zfl7NbTSS+bsZrVa2OnUVpDRUOiJOgQUQ4=;
-        b=jeAJg7br0BtNMgnO4i+q8m6pxGv6xaL2hmd2QzfrtpqYrewUuhkLhZH5A4rYEizVMj
-         zIHbTKZ3v5D8g88lLvtkn5FlkWJ2QO4co2jscaUM9P2ggd1WpkowAdtGF/QLk72HemfJ
-         gyyQFxk63eN6dB6AbKR3d9A5FTBOaOvFOWfe0OMKtExCGNFj+1DJ7PL1x5qM4jBMRL0l
-         mv62l46iZDN4OvnCN1REHqsxYBlJ2KUOl0F2o26EUnmQvV+gmww/JBNvxn2tXz1+genS
-         F1xx8hQnBXB1YjEyEa/RKaN0zlO5POs7O9m0w8NZCi+AEEFn3QMV/GwQHMKksof9h7Oa
-         3PNg==
+        d=szeredi.hu; s=google; t=1748432868; x=1749037668; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=TTy22rgWBPKbjZSTe4uWPN+pN85sITjqdiiRx8uuXRo=;
+        b=DyWzg/NQryUaWnXZ1a9i97aiUzETKk9mCYJm4NokxCMBDndk3vAXcZq4UzPq0MdH6m
+         6Edi3Ya5b1of56EQNXx0Qq4rdrUwcNu+D4/eUvDyUnr89VtI6K0gzkROkHyWvWrMC7vR
+         3PSAgMLFlpKsZxl5X8kGUh803h/SWxBcxCRVA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748429934; x=1749034734;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=wNGm+XVL2Zfl7NbTSS+bsZrVa2OnUVpDRUOiJOgQUQ4=;
-        b=HZ0HelzG3ryG0+RcnvzXR+s4h0pPrAxdQ/w2BwvOo7bjNNDQ2M+Gj8bzpqtCcMVfZ8
-         7/N6oXB0sqwv90pQTjmIuc/CuVNSE8xlZbVYDO0d3EJ6AfeR3Yuey8zOk6K9XXsK7KAy
-         pkVxG4DnokKe2khfpT/HLKDd5V6xr4K/Ecgp2so/nxbiMLqrYqqhcAj/SGT4EZWuxDvn
-         qYYGIqz+DElmj0zzYtBs1WB/Q2/8UvJ0jMIE7dNAJaTczZYiJiwDWrGKHYI4mEXvBeBv
-         VnUtRMjw2FyRzp7H8agAAEfDPZS05uhp+BBsupfGboOOkMdreFsm9XeNeTY1ZFoHi2f3
-         A+GA==
-X-Forwarded-Encrypted: i=1; AJvYcCV6O/76hg2QKx2Y0wLuAURRusWLG8n1jRVlKnUGwkzGicxrmas7Zb7sObp/h5dhoWz4BUSuaKhc@vger.kernel.org, AJvYcCXJIhb+tywMaaPV5iAhZA4wAiYb6PPV5+dlCWttflftlFjnNQTwNWsBRt8xbac6q0iO8mkxaprEktSD0Ov4DA==@vger.kernel.org
-X-Gm-Message-State: AOJu0YwywLBiEWknJNIdNkHZkV805JE87L41BrwVObKDsstysfjQYwzL
-	kvjxhmspm/WBfk4ja3qQqzdEqwl16HE+Uv23QY1Xw8ru834q+BdVELTNiWz0iXkp/zCKdfi7pNF
-	ojnDDi6JVkz2MxZLl59UtGdmMr1hnoncFXSNt2w0=
-X-Gm-Gg: ASbGnctXKYraOSZ8WssQ5cG+arJoLJ7sziQY8ltQFTg/8WQRo/vwOWzoNX/eGPqW6If
-	SBHqS/s85+PmrKOljAu0YQQaIiIxNtlNaPgSg75grCsbKdGjoTWnHSlVAyJpK0yd9hVTOvGOe3R
-	Au4r5c+bIm37fopd11w1bl6X9Io+/SgW5N
-X-Google-Smtp-Source: AGHT+IEWEc+aTjbATn+MWeDvxPGpQYWxE3FT9Qp+aPuGkXf+GOtXZcyVKIyrgwnrYZFruwElcKYBFkBbPGP4q6A4ecc=
-X-Received: by 2002:a17:907:25c7:b0:ad6:4e8e:1883 with SMTP id
- a640c23a62f3a-ad85b0a7809mr1552755366b.3.1748429933592; Wed, 28 May 2025
- 03:58:53 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1748432868; x=1749037668;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=TTy22rgWBPKbjZSTe4uWPN+pN85sITjqdiiRx8uuXRo=;
+        b=IyO3D5ED/sKEYbTa9N/C+E2378NMXd6srp5AsbRWSGsrDh+8bBr/xr7EFlHjD+/Z3d
+         0qMj78hmQuwqBxwKY9qxf4Gn+k2upRcExdgklG3hd6nDV4qH+DVkgrOgyxIBzxgPRxcu
+         syHN3AGk8e1dzg0V+2gzf94/deB6nu/87Xcnag3vVRNGk7NayE6inGEtEVv1WYE854gK
+         gs4hf4DFEMhUPEHVoW9gBlph8SdQHIFVwevq0VFtlLRLqGCoXjPSwUcmj9uqPsFx4AAg
+         vhgJPmJLlKbC1Tzz3XIUEiR0pqAk/9DwuTl+DBoOPrelSxA8JI0XRBhXzFws9HdG7HQJ
+         ekAw==
+X-Forwarded-Encrypted: i=1; AJvYcCUd6HSPqxOr1Mc3M69mfDeMxlP2m1ZjwHopftMGSMJXhMjB2BdQlokjO2VK5BqCo3qwZRUrBg6dcIuqSSel@vger.kernel.org
+X-Gm-Message-State: AOJu0YyK/3zpo6sc0NsKpea4jRZElE8Q18LaCpo4VbRCkNeDd7kVf22y
+	nBwyPPUQ8hwRLy5eNv8IVVxQ8hR2mw4CirHH9QUTdgaqEE4E3a/FZUWGo5Zt0wtE1+M6ZgnsSW0
+	NxFNKtm3kZOrPHWOW8RKHBWXmAL2a4fDpajtvjnegyA==
+X-Gm-Gg: ASbGncsjv0qxX/IIStf7t3c76Ev2L307/rXsYqE2Ny/yREKuX9xs5207bELk7JTPKu8
+	iowSzMGH2xPoo5gueT/0QA1taQVUFXmv+4gadL7/jZOlQjAVRrPxBx08hB4ScfcsNlqDnZ5iyd9
+	NjLtlaoNgsRTo/+yv+TC7ixvqQQxKsIY3ju7Q=
+X-Google-Smtp-Source: AGHT+IE+3pNaJ+H5/u/9c4yjQaWkOWYwsiGhi+DlHJjO4epJsVha4CJwHyPCYXCzT0i6Nujm1AMi0Orm5s3x0tUFcW0=
+X-Received: by 2002:a05:622a:c87:b0:48e:1f6c:227b with SMTP id
+ d75a77b69052e-49f46e306ddmr293044501cf.26.1748432868268; Wed, 28 May 2025
+ 04:47:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -62,69 +58,37 @@ MIME-Version: 1.0
 References: <20250526143500.1520660-1-amir73il@gmail.com> <20250526143500.1520660-2-amir73il@gmail.com>
  <CAJfpegtYTpJXYOiyckcfQA=YTVXcLQZRGV4=sjueLenJpTp7Lw@mail.gmail.com>
  <CAOQ4uxjh9u3DE_HKExa=kK08efzDsxVuCVuA0tUMjwSeLX=jnQ@mail.gmail.com>
- <rjqagpvze4mwnil6tck6jnyqfbcgqszy5bjgu4fqzdtq7e3idq@uizmifogsqyf> <CAJfpegtJ3SDKmC80B4AfWiC3JmtWdW2+78fRZVtsuhe-wSRPvg@mail.gmail.com>
-In-Reply-To: <CAJfpegtJ3SDKmC80B4AfWiC3JmtWdW2+78fRZVtsuhe-wSRPvg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 28 May 2025 12:58:40 +0200
-X-Gm-Features: AX0GCFvJzp-2padslxisj0BL98U_mizL0YISvumQhJokEjJTj2Mxd0sT_hFOq0Y
-Message-ID: <CAOQ4uxj45_DdENOxpbz68rBRTA-Crq7OwpJ5VqGs=DScSr9AQQ@mail.gmail.com>
+ <rjqagpvze4mwnil6tck6jnyqfbcgqszy5bjgu4fqzdtq7e3idq@uizmifogsqyf>
+ <CAJfpegtJ3SDKmC80B4AfWiC3JmtWdW2+78fRZVtsuhe-wSRPvg@mail.gmail.com> <urxghfhdccjg6v47h63btu77kyxnsxbrmxdbhb7kx3oiqz23og@plyznhi36omp>
+In-Reply-To: <urxghfhdccjg6v47h63btu77kyxnsxbrmxdbhb7kx3oiqz23og@plyznhi36omp>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 28 May 2025 13:47:37 +0200
+X-Gm-Features: AX0GCFvbR3_g0iNsB3oltQqJIifcokeo5YRw04-1DG41L2BTc5h2Moj8NrIcUV8
+Message-ID: <CAJfpegv9Evti_MmWR72Gg13s9XYsxJHQ3WSJRwLrBy5O8aVHaQ@mail.gmail.com>
 Subject: Re: [PATCH 1/4] overlay: workaround libmount failure to remount,ro
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Karel Zak <kzak@redhat.com>, Zorro Lang <zlang@redhat.com>, linux-unionfs@vger.kernel.org, 
+To: Karel Zak <kzak@redhat.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Zorro Lang <zlang@redhat.com>, linux-unionfs@vger.kernel.org, 
 	fstests@vger.kernel.org, =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 28, 2025 at 11:57=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu>=
- wrote:
->
-> On Wed, 28 May 2025 at 10:47, Karel Zak <kzak@redhat.com> wrote:
->
-> > Anyway, I agree that this semantics sucks, and from my point of view,
-> > the best approach would be to introduce a new mount(8) command line
-> > semantics to reflect the new kernel API, something like:
-> >
-> >    mount modify [--clear noexec] [--set nodev,ro] [--make-private] [--r=
-ecursive] /mnt
-> >    mount reconfigure data=3Djournal,errors=3Dcontinue,foo,bar /mnt
-> >
-> > and do not include options from fstab in this by default.
->
-> But there's no fstab entry in the testcase.  The no-fstab case likely
-> gets way more use in real life then remounting something in fstab.
-> And this should not need to get the current options from the kernel,
-> since the kernel is the source of the current options.
->
-> With the KISS principle in mind the non-fstab "mount -oremount,ro
-> /mnt/foo" should just be translated into:
->
-> fd =3D fspick(AT_FDCWD, "/mnt/foo", 0);
-> fsconfig(fd, FSCONFIG_SET_FLAG, "ro", NULL, 0);
-> fsconfig(fd, FSCONFIG_CMD_RECONFIGURE, NULL, NULL, 0);
->
+On Wed, 28 May 2025 at 12:55, Karel Zak <kzak@redhat.com> wrote:
 
-+1
+> Why is it fine for mount(2) but wrong for fsconfig()? This is the
+> question. There is an incompatibility between the APIs.
 
-> and the kernel should take care of the rest.  I assume this doesn't
-> generally work, which is a pity, but I'd still think about salvaging
-> the concept.
->
-> > So, you do not need LIBMOUNT_FORCE_MOUNT2=3D workaround, use
-> > "--options-mode ignore" or source and target ;-)
->
-> Yeah, that's definitely a better workaround.
->
+Where is it documented that the fsconfig(2) shall have the same
+replace semantics as mount(2)?
 
-Agree. I will use a different workaround for fstest.
+When I reviewed the new API, I certainly didn't think that it should
+have these semantics, and I'm not even sure it did have it back then.
+But of course I may have missed it.
+
+I think this is just a bad accident, and I'm wondering if this could
+still be fixed in a way that doesn't introduce more hackery.
+
+One idea is to introduce a flag (e.g. FSPICK_REPLACE_ONLY) that makes
+the filesystem initialize the fs_context with the current options.
+That would work, no?
 
 Thanks,
-Amir.
-
-
-> I wouldn't call it a fix, since "mount -oremount,ro /overlay" still
-> doesn't work the way it is supposed to, and the thought of adding code
-> to the kernel to work around the current libmount behavior makes me go
-> bleah.
->
-> Thanks,
-> Miklos
+Miklos
