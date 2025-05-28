@@ -1,114 +1,116 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 049312868BA
-	for <linux-unionfs@vger.kernel.org>; Wed, 28 May 2025 13:13:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44350286D61
+	for <linux-unionfs@vger.kernel.org>; Wed, 28 May 2025 13:28:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748438012; cv=none; b=Nt9n5H2AI3TxdrCQI1MCaX3lEF485HfksPH9YTI7HNg4XEJQ0WZ+Ry1afNVlJ2mQpT7v/OzW1p4N3fHAxxMPk58w3HnmkayqHvSEYvrNuMqHOWZI9E0CTkbEIRRTMFn3i/pMz80LET9CU7b9mufQbdtYu1vWhHw+1z1Tok7st1w=
+	t=1748438890; cv=none; b=pqK71FX2NqIWiu74AouEKM/EkymMSIQelZ+x7aws6F5bBlzD00GTHQxoOqc5JY/fvtsc5GjY5ahBNheyY8LAaCZ5AdwqyL0Kgm18TA0uaaA6IlNUTi12/zrQtKjKvJ4SajKghfP8ZtHiScMD8rCqjFh7S97KReZdfagWGOvBfhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748438012; c=relaxed/simple;
-	bh=OHDm+BZLVGDxerXVngTYwRrLJRHqZOWH97NiVEZD5CY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m956WE6rIpDgSKlzIt6iGijTn1i7/XIeEEZORzcFmNNqfzgursn2Cs9Vu9GC0U9Zv4m18x9inVHqjf0tGJFALUoLJl228FCm0o/12pNeAFwiJmJQwRDTE1MALe1ubNfjtG9w3MWpoLWNgvJUwWMTolC/q22d9K+InkbXatEfVXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=I5sUtacm; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1748438890; c=relaxed/simple;
+	bh=AO0qheCg3pvTADmYgLIyl+58wRbI9XkllfAHkyyMNTA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=W79Mitj2yA97XgpIDVoGDTA0n2Eru7fc7A3cJ9Ukm6qaSGLr7l1FJ+8rw0QesguBfqjXURMaBP7lqQXogRHb4ioeBHAEeKPjsdp2DJ1WztAncVQ4pUw9fIdjd6adAEfv/anMIVBRkAzx1puBbLTNBO+A5CT7YtGeayq40yDgFUA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=DhFskK+y; arc=none smtp.client-ip=209.85.160.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="I5sUtacm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1748438009;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=g9O/bnxtzeHjXuwYHhDVDwwVycr/Ty9A6s076ZqDm5A=;
-	b=I5sUtacmUbC8vw0CfzSFHJilhWRjsOuLR5RKfQK/ecinyIrmCrM9kDkqFmN0MQmBQGP6qK
-	w7maz6UqfLV3U7UN4gtfgTYYXe2ShBH8Qe9faF+/NwXd+lMqi2Ovc8XwsC6DLFLPxKfKr6
-	5kISPonYX5h0BzV9Frh8sHIrRA7I0EE=
-Received: from mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-500-RnfcvIsCOY-z1mjNmEGIzw-1; Wed,
- 28 May 2025 09:13:26 -0400
-X-MC-Unique: RnfcvIsCOY-z1mjNmEGIzw-1
-X-Mimecast-MFC-AGG-ID: RnfcvIsCOY-z1mjNmEGIzw_1748438005
-Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 0586B19560B1;
-	Wed, 28 May 2025 13:13:24 +0000 (UTC)
-Received: from ws.net.home (unknown [10.45.225.54])
-	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id DF85930001B1;
-	Wed, 28 May 2025 13:13:21 +0000 (UTC)
-Date: Wed, 28 May 2025 15:13:18 +0200
-From: Karel Zak <kzak@redhat.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Amir Goldstein <amir73il@gmail.com>, Zorro Lang <zlang@redhat.com>, 
-	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org, 
-	=?utf-8?B?QW5kcsOp?= Almeida <andrealmeid@igalia.com>
-Subject: Re: [PATCH 1/4] overlay: workaround libmount failure to remount,ro
-Message-ID: <u6gsk65mznw3gisnr4btpxvooa7czbhiei4exbsgc5swdbgtf7@c5hx27plyu6e>
-References: <20250526143500.1520660-1-amir73il@gmail.com>
- <20250526143500.1520660-2-amir73il@gmail.com>
- <CAJfpegtYTpJXYOiyckcfQA=YTVXcLQZRGV4=sjueLenJpTp7Lw@mail.gmail.com>
- <CAOQ4uxjh9u3DE_HKExa=kK08efzDsxVuCVuA0tUMjwSeLX=jnQ@mail.gmail.com>
- <rjqagpvze4mwnil6tck6jnyqfbcgqszy5bjgu4fqzdtq7e3idq@uizmifogsqyf>
- <CAJfpegtJ3SDKmC80B4AfWiC3JmtWdW2+78fRZVtsuhe-wSRPvg@mail.gmail.com>
- <urxghfhdccjg6v47h63btu77kyxnsxbrmxdbhb7kx3oiqz23og@plyznhi36omp>
- <CAJfpegv9Evti_MmWR72Gg13s9XYsxJHQ3WSJRwLrBy5O8aVHaQ@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="DhFskK+y"
+Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-47691d82bfbso86565771cf.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 28 May 2025 06:28:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1748438888; x=1749043688; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=n7m0M+12DLMVTqHyfHZk/+HgGWNzdFOV6XWjPa7hJe0=;
+        b=DhFskK+yKypFng0juscoGXtfMAMHKSpKArpx9f3XR10kqQNGCEJefxYPn62KB/OnBG
+         R/USvChspgTwTSe+zhuPlzjr9HT8tRrgWF0BvAvnbHjYLx8bLpkXdIU13R7z8bfjxfK5
+         onaP+sRQXMJEBJ/nb+0YOFwZqFR0KK0Ew1tpE=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1748438888; x=1749043688;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=n7m0M+12DLMVTqHyfHZk/+HgGWNzdFOV6XWjPa7hJe0=;
+        b=ApbuipHTDnJks79WMqNSpE8XfsgJL4tKTh5QBnYsfiV2AxayxynNTq6LGhCDqSxKbE
+         1avzI7h66rPoLEyP/n4tThTMgapI/5kGPua9HzR5nvYP7M9CtzSt3EZcgARCicczEN1s
+         qkXwVH73voBb3fdHk9+8h6U7QY4mCbLwkE9lnSse8pzveq8Zf8sUF82s7twfQsAyRgri
+         DtYZLT5V0Aoe0stUngkqqNUw2ywyMBDJ1O1mwgkjtkA6UJ4DzjXpsQNUn9eKhXoteehh
+         XZZNLarH+msm+j0EKLz7YcOGqUbDIg3lGQ3WJPFIL9giiwSfmS8Lb/lqb1hitznZ4s/D
+         FKuQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVBnTwJyyPWdlwzl/G3ZXTXhTDeAlUnMIxtPTWusA3D7udEnsf9OKkfOJAJUxCzfMAybaHGkNFJTtjr5RI8@vger.kernel.org
+X-Gm-Message-State: AOJu0YwphxIixDDZON9ywT/C92eDH+IpqrBixL7QIKtHslMoybIoETUE
+	nx/vRM8rZlb2pABhMhxDm64CKGA40EW+wEXwYBShb/lfykqG8BXrKJ9xYs1jUT1Uzu2o08F26tF
+	5NDyqKtCYhqSxLlmNdyhL0jPLNwPdUNWAl3W1Dwu+qw==
+X-Gm-Gg: ASbGncuL5TYnzM4gpq+DuUDiYY+Bfu/Ep7U1aI5xsVQtHn1lT8AF49MO11Yaw29DPVM
+	+b0G8B/TY7159nfjAcSAC/tXFEJy/7UfvTDIzWiwaelBIFnugJMfebqwk5T6qDaMaO2ASj1Yrsh
+	p7c5fbkSSO0cUzGGdpT+J9OwoURw/ZtfPOTa4=
+X-Google-Smtp-Source: AGHT+IHm3UyI3GsTSNsOcmNUM2LgeYCbmnHvKfVAM/h0ttlHAq7mvwVbjaumTPITV3jsHGjFO80GNSXr4wONGrFBvTs=
+X-Received: by 2002:a05:622a:250e:b0:4a3:ebb6:6a62 with SMTP id
+ d75a77b69052e-4a3ebb66ae9mr26275171cf.31.1748438888232; Wed, 28 May 2025
+ 06:28:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJfpegv9Evti_MmWR72Gg13s9XYsxJHQ3WSJRwLrBy5O8aVHaQ@mail.gmail.com>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
+References: <20250526143500.1520660-1-amir73il@gmail.com> <20250526143500.1520660-2-amir73il@gmail.com>
+ <CAJfpegtYTpJXYOiyckcfQA=YTVXcLQZRGV4=sjueLenJpTp7Lw@mail.gmail.com>
+ <CAOQ4uxjh9u3DE_HKExa=kK08efzDsxVuCVuA0tUMjwSeLX=jnQ@mail.gmail.com>
+ <rjqagpvze4mwnil6tck6jnyqfbcgqszy5bjgu4fqzdtq7e3idq@uizmifogsqyf>
+ <CAJfpegtJ3SDKmC80B4AfWiC3JmtWdW2+78fRZVtsuhe-wSRPvg@mail.gmail.com>
+ <urxghfhdccjg6v47h63btu77kyxnsxbrmxdbhb7kx3oiqz23og@plyznhi36omp>
+ <CAJfpegv9Evti_MmWR72Gg13s9XYsxJHQ3WSJRwLrBy5O8aVHaQ@mail.gmail.com> <u6gsk65mznw3gisnr4btpxvooa7czbhiei4exbsgc5swdbgtf7@c5hx27plyu6e>
+In-Reply-To: <u6gsk65mznw3gisnr4btpxvooa7czbhiei4exbsgc5swdbgtf7@c5hx27plyu6e>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 28 May 2025 15:27:57 +0200
+X-Gm-Features: AX0GCFtyfJbR5X2Eo_sUl6uSNhcPhnDrTNwNM82qWTZ4obdARXYZN6KSC1XhdMQ
+Message-ID: <CAJfpegsd1SyyojcrY0dekKiYFP_ZaL4pe7sKaq57xEyx8RsPqQ@mail.gmail.com>
+Subject: Re: [PATCH 1/4] overlay: workaround libmount failure to remount,ro
+To: Karel Zak <kzak@redhat.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Zorro Lang <zlang@redhat.com>, linux-unionfs@vger.kernel.org, 
+	fstests@vger.kernel.org, =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, May 28, 2025 at 01:47:37PM +0200, Miklos Szeredi wrote:
-> On Wed, 28 May 2025 at 12:55, Karel Zak <kzak@redhat.com> wrote:
-> 
-> > Why is it fine for mount(2) but wrong for fsconfig()? This is the
-> > question. There is an incompatibility between the APIs.
-> 
-> Where is it documented that the fsconfig(2) shall have the same
-> replace semantics as mount(2)?
+On Wed, 28 May 2025 at 15:13, Karel Zak <kzak@redhat.com> wrote:
 
-Okay, fair enough, but you understand that userspace needs to adapt to
-the new API, and ideally, changes should not be introduced to
-end-users.
+> Why can't filesystems silently ignore fsconfig() requests that do not
+> introduce a change? For example, if the current setting is foo=123 and
+> fsconfig() is used to change it to foo=123, why is it reported as an
+> error? It's stupid, but just no op.
 
-Frankly, I already have a private TODO file for libmount2 because I
-feel we need to move forward, simplify things, move away from the
-mount(2) syscall, and fully adapt to the new kernel API, which
-provides features we do not yet support on the command line. The
-current mount(8) command line and semantics are based on the mount(2)
-era. The remount with all the obscure options (like MS_REMOUNT|MS_BIND)
-is the worst legacy.
+It's a workaround for legacy behavior.   For overlayfs it doesn't make
+sense to specify "lowerdir=" option for reconfigure and as such it is
+rejected.  What you suggest is a hack, which if there was no other way
+I'd accept, but I think there are better ways to fix this.
 
-> I think this is just a bad accident, and I'm wondering if this could
-> still be fixed in a way that doesn't introduce more hackery.
+> I'm not sure I understand how it will affect userspace. Do you mean
+> that with the flag, the kernel will assume a completely new set of
+> options from userspace, and the filesystem will adapt (if possible) to
+> the new settings?
 
-Why can't filesystems silently ignore fsconfig() requests that do not
-introduce a change? For example, if the current setting is foo=123 and
-fsconfig() is used to change it to foo=123, why is it reported as an
-error? It's stupid, but just no op.
+Maybe the naming wasn't good.
 
-> One idea is to introduce a flag (e.g. FSPICK_REPLACE_ONLY) that makes
-> the filesystem initialize the fs_context with the current options.
-> That would work, no?
+I meant the opposite of what you describe: the kernel would guarantee
+that only the supplied options change.  This is already what sane
+filesystems do and they would not have to be changed at all to support
+this flag.
 
-I'm not sure I understand how it will affect userspace. Do you mean
-that with the flag, the kernel will assume a completely new set of
-options from userspace, and the filesystem will adapt (if possible) to
-the new settings?
+Or maybe all filesystems do this?  I haven't checked, but I assumed
+that libmount does the "append to current options" even for the new
+API because without it some fs are broke.
 
-    Karel
+Thanks,
+Miklos
 
--- 
- Karel Zak  <kzak@redhat.com>
- http://karelzak.blogspot.com
 
+
+
+>
+>     Karel
+>
+> --
+>  Karel Zak  <kzak@redhat.com>
+>  http://karelzak.blogspot.com
+>
