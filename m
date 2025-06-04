@@ -1,146 +1,251 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 858F11B0F2C;
-	Tue,  3 Jun 2025 10:07:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A487238152
+	for <linux-unionfs@vger.kernel.org>; Wed,  4 Jun 2025 04:43:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748945282; cv=none; b=R6mojZuN7KrPDb9tiyLPrafJQ4x/Nc596K3unJuzgkn9q99dHCIVF9YzFZniBLLWb8fajs3c9NDHwa5BVP6VuTFq2vE3aFldnX0l8AULZRWLHXh9F7NhBQS3Jyc8DhBOVZwYEWcUar7o7RsI9l39Hoj64vFNagKrny5+DUzCdkc=
+	t=1749012239; cv=none; b=Luqhijc7nbn7uCv8WJzjU/nQYwiLGJot7UfCi72d4YV98WA/s4b7X4lBR27DHJcSUv3p73SEATMt/0yKoMDEzzexSB1UsKCy/3D3k3Btf3mJg6rNkn3lXuRf0ahp0lWgti6ZDeih9A34R1lVi/H8wk0tyvCuopQ9KdjTkYRXIQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748945282; c=relaxed/simple;
-	bh=WCLIpJWaM0k+1KD++wWwH+7OVKapdVNwV912RO5ISvk=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eMn+Aw6eVO/o09ZG0EVWHwlWh4JZKIfx8NT6ruaxTowu1kf0EyE89gGmr3PNp9KqQJi3AnCWVef1WnS867Y7n+H8sqZKcPDvfObicazaef7mUrbQoCZOIl/RaqD9AAAHt1bD+9hH3cDIMqLzvyTJ/8lsdez9i9qERnj/Mj8YNao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dOEpRDw7; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1749012239; c=relaxed/simple;
+	bh=XhzwIRurZkYyWEwOyZnbEDyk82dQjwS259RrNEn38cs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YC1b3qArjuMTfgqeOVN/MsdPgX+5D0G4wTYs6+hS9qVlWNi+QBd64NL8+DjqQItyMuwdTT5dFRIDNaJMl7GW6WtRVE11KUqdmOaiUkca2GjvXz6pGgISMseP3bFjFLcDe+gj7enF/4kziHWHMh1HtXgO85qT7p4bJhdkTEwlhAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ddtig1ze; arc=none smtp.client-ip=91.218.175.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dOEpRDw7"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-43edecbfb46so39966945e9.0;
-        Tue, 03 Jun 2025 03:07:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1748945278; x=1749550078; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=OXfac7FAkhysP6c6kOczkwQlpkEZ3PyuXloCtwF7cko=;
-        b=dOEpRDw76oC+1TNOiq6mYTuVgemiiT+VwuoocdW1fnf28VNOAKbPaVRrljNTbQ6uBv
-         AlzxT1Tawmpt1K4ncrbNy58xJrzCPgdbzCOip/3dEKkPhZxx4QyNBKzN4HPEb+4AkdCg
-         MvCtwBmJ7tPsn0EsHUAWA2eNxdcj7zR0KHXQZi5tQEpdt+dax2gF9GF66KbevgUQnMru
-         geAKdVXN6I4WJV3oOJqKsLiXH2Bd2Y5+q37evdhcmtlR1pJn3pgYMZW7n8oYx2ACWk2T
-         ax2tqfrPfquwLu45RWF1EAGKe6s5ILjp35H1HPJszJc+HdZEL/UVMsOhZiYH/ws8u1YV
-         c1wg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748945278; x=1749550078;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=OXfac7FAkhysP6c6kOczkwQlpkEZ3PyuXloCtwF7cko=;
-        b=PYIPAeTs1EY9b2uAu9qNL0jZBBGQxnsmTcoEsDmoYv5liQu9TyOV7nyLvVFrjfvXxt
-         U1BNahDyMjf5zZlAXfiJ6Jp/vpKvQm38xn3Hoxapj7vFGpigbSQMIPr/SAAR6hn03w0U
-         tcN0nmxrSSKe3ZiWLPyrV9+F4xzsWdBPXC+v2imCx5bNZA17R+tZNOLBvfg06VL1hlU1
-         Z0RPpuLlt7QtZJ1b/JACEmfzbFYlx2Kfju3KmdIRnkOEQPNn+CLYSQHaTj7SwUQ3QGdA
-         hCyrjlzsrxVKq5CnNNBGpQgsXVfRzdkNDUqD4FgjXM3kJ2zZY1VjJgPPM2guSMtFm7XR
-         L4bQ==
-X-Forwarded-Encrypted: i=1; AJvYcCV2G/L51ZXiDL6zJd4AaJMJwlVEonumHpk20hN7wigq57iGqRRgMha2zSVbq8+EB65NIrF8cM7u@vger.kernel.org, AJvYcCWaZ1YOe+iaZoSbsSdwy6i0/yT3LEWOR64wlWOs/l7QrP2aD6UyjdiBNhsIxUxT+fQr6KyCG2jNHHJSRo++Uw==@vger.kernel.org
-X-Gm-Message-State: AOJu0YyiEyx9YHaTgq/BdnaIBYZ/l9ugOo6YwKE9IHCkfmXWm2LHXmLu
-	u5Ohw/5PfNfeL7bAy8/KRS5Xqv0RTC8/5L/gBCoKk/FAFNBYBdSTl3NJ
-X-Gm-Gg: ASbGncuUTub2E2vqmnJfMZV2lKY1hoQRDayeLVRiiHAfnfqZitFXkziIlT32whDsoYs
-	1f5h/pWia8XqE0Y54TkYp3UnzPkjMrAJFqtRnDW0x58u3mUVNom0DtJpYievDnopP2jfoNLLnUX
-	MwVE9Ajsq6VPeF845P3wIWz2iYbcdqJoXEeE7UkptvF2gMJyXx87XiZT5RBXe+Ls9+S7hD1KCu4
-	FlzFsH/OOf08V5DkCGwWEyMuvHblyR287W8lBm/L6eMXMjOh3kQaCCna4Sn2JRrltHNbEMBNo3g
-	XtUyR3uvHV0+lmWP7jBoDI2kJIdPxIXLbhnDLOxyYEiPYbYn+pEX/ZUJoh5TLyGxM62ydEAzgS+
-	H4prctjzQUub5zFJre2R8DeU3R7HBmGAwqSTDQnEo6Z+ttbHRkNpNsasHLmyiJ1h/aHdurw==
-X-Google-Smtp-Source: AGHT+IFplTaTcuBH8sJAS/1LYV5qNfo060iaS1w0B0QENMi0Uhuc1xDWl+rnvR0zqY+3uhmvWNuUUQ==
-X-Received: by 2002:a05:600c:8206:b0:442:f4a3:9388 with SMTP id 5b1f17b1804b1-450d8874ca9mr122778795e9.19.1748945277447;
-        Tue, 03 Jun 2025 03:07:57 -0700 (PDT)
-Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-450d7fa24c6sm157191525e9.12.2025.06.03.03.07.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Jun 2025 03:07:56 -0700 (PDT)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Zorro Lang <zlang@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
-	linux-unionfs@vger.kernel.org,
-	fstests@vger.kernel.org
-Subject: [PATCH v2 6/6] generic/699: fix failure with MOUNT_OPTIONS
-Date: Tue,  3 Jun 2025 12:07:45 +0200
-Message-Id: <20250603100745.2022891-7-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250603100745.2022891-1-amir73il@gmail.com>
-References: <20250603100745.2022891-1-amir73il@gmail.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ddtig1ze"
+Date: Wed, 4 Jun 2025 00:43:47 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1749012230;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/qBak1RL9RSBzIoGDReLWOn6k/RJqKbVgrygIfQlFlE=;
+	b=ddtig1zeKBB5HGtAyjNhWDHMf/H/eRUf5utse8QAw9iLiNg3kfsb2w3TFWTgb7NEXKls6I
+	KDgVwIiw2SnxpIwSPhQPeacV/nEaNoRfqqJwLXKd/NnTd5ChL3NYMjt+UxX12at+2qWHCj
+	YQUIxLpNba0x2C7AC6ImX5KGpCb4ZPo=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Kent Overstreet <kent.overstreet@linux.dev>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v3] ovl: support layers on case-folding capable
+ filesystems
+Message-ID: <wj2n4gnyqj46ohfcwlfdginc2ulropbljrx5e6xmnrexnbaafp@y2ygcwsdoa5o>
+References: <20250602171702.1941891-1-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250602171702.1941891-1-amir73il@gmail.com>
+X-Migadu-Flow: FLOW_OUT
 
-generic/699 uses overalyfs helper _overlay_mount_dirs, which is meant to
-be used by overlayfs tests, where MOUNT_OPTIONS refer to overalyfs mount
-options.
+On Mon, Jun 02, 2025 at 07:17:02PM +0200, Amir Goldstein wrote:
+> Case folding is often applied to subtrees and not on an entire
+> filesystem.
+> 
+> Disallowing layers from filesystems that support case folding is over
+> limiting.
+> 
+> Replace the rule that case-folding capable are not allowed as layers
+> with a rule that case folded directories are not allowed in a merged
+> directory stack.
+> 
+> Should case folding be enabled on an underlying directory while
+> overlayfs is mounted the outcome is generally undefined.
+> 
+> Specifically in ovl_lookup(), we check the base underlying directory
+> and fail with -ESTALE and write a warning to kmsg if an underlying
+> directory case folding is enabled.
+> 
+> Suggested-by: Kent Overstreet <kent.overstreet@linux.dev>
+> Link: https://lore.kernel.org/linux-fsdevel/20250520051600.1903319-1-kent.overstreet@linux.dev/
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Miklos,
+> 
+> This is my solution to Kent's request to allow overlayfs mount on
+> bcachefs subtrees that do not have casefolding enabled, while other
+> subtrees do have casefolding enabled.
+> 
+> I have written a test to cover the change of behavior [1].
+> This test does not run on old kernel's where the mount always fails
+> with casefold capable layers.
+> 
+> Let me know what you think.
+> 
+> Kent,
+> 
+> I have tested this on ext4.
+> Please test on bcachefs.
 
-Using this helper from a generic test when FSTYP is not overlay is
-causing undesired results. For example, when MOUNT_OPTIONS is defined
-and includes a mount option not supported by overalyfs (e.g. 'acl'),
-the test is notrun because of:
+This one fails with the proper error message in dmesg, and no other
+errors :)
 
-mount: /vdc/ovl-merge: fsconfig() failed: overlay: Unknown parameter 'acl'.
+Reviewed-by: Kent Overstreet <kent.overstreet@linux.dev>
 
-There is no other generic test that includes the common/overlay helpers
-and uses them, so remove this practice from generic/699 as well.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/generic/699 | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
-
-diff --git a/tests/generic/699 b/tests/generic/699
-index 620a40aa..2a6f857d 100755
---- a/tests/generic/699
-+++ b/tests/generic/699
-@@ -8,7 +8,6 @@
- # mounts specifically.
- #
- . ./common/preamble
--. ./common/overlay
- _begin_fstest auto quick perms attr idmapped mount
- 
- # Override the default cleanup function.
-@@ -96,20 +95,24 @@ reset_ownership()
- 	stat -c '%u:%g' $path
- }
- 
-+setup_overlayfs()
-+{
-+	mkdir -p $upper $work $merge
-+	_mount -t overlay -o lowerdir=$lower,upperdir=$upper,workdir=$work \
-+		overlay $merge $*
-+}
-+
- # Prepare overlayfs with metacopy turned off.
- setup_overlayfs_idmapped_lower_metacopy_off()
- {
--	mkdir -p $upper $work $merge
--	_overlay_mount_dirs $lower $upper $work \
--			    overlay $merge -ometacopy=off || \
--			    _notrun "overlayfs doesn't support idmappped layers"
-+	setup_overlayfs -ometacopy=off || \
-+	    _notrun "overlayfs doesn't support idmappped layers"
- }
- 
- # Prepare overlayfs with metacopy turned on.
- setup_overlayfs_idmapped_lower_metacopy_on()
- {
--	mkdir -p $upper $work $merge
--	_overlay_mount_dirs $lower $upper $work overlay $merge -ometacopy=on
-+	setup_overlayfs -ometacopy=on
- }
- 
- reset_overlayfs()
--- 
-2.34.1
-
+> 
+> Thanks,
+> Amir.
+> 
+> Changes since v1,v2:
+> - Add ratelimited warnings for the lookup error cases
+> - Add helper ovl_dentry_casefolded()
+> - Write fstest [1]
+> 
+> [1] https://github.com/amir73il/xfstests/commits/ovl-casefold/
+> 
+>  fs/overlayfs/namei.c     | 31 ++++++++++++++++++++++++++++---
+>  fs/overlayfs/overlayfs.h |  6 ++++++
+>  fs/overlayfs/params.c    | 10 ++++------
+>  fs/overlayfs/util.c      | 15 +++++++++++----
+>  4 files changed, 49 insertions(+), 13 deletions(-)
+> 
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index d489e80feb6f..733beef7b810 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -230,13 +230,26 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+>  			     struct dentry **ret, bool drop_negative)
+>  {
+>  	struct ovl_fs *ofs = OVL_FS(d->sb);
+> -	struct dentry *this;
+> +	struct dentry *this = NULL;
+> +	const char *warn;
+>  	struct path path;
+>  	int err;
+>  	bool last_element = !post[0];
+>  	bool is_upper = d->layer->idx == 0;
+>  	char val;
+>  
+> +	/*
+> +	 * We allow filesystems that are case-folding capable but deny composing
+> +	 * ovl stack from case-folded directories. If someone has enabled case
+> +	 * folding on a directory on underlying layer, the warranty of the ovl
+> +	 * stack is voided.
+> +	 */
+> +	if (ovl_dentry_casefolded(base)) {
+> +		warn = "case folded parent";
+> +		err = -ESTALE;
+> +		goto out_warn;
+> +	}
+> +
+>  	this = ovl_lookup_positive_unlocked(d, name, base, namelen, drop_negative);
+>  	if (IS_ERR(this)) {
+>  		err = PTR_ERR(this);
+> @@ -246,10 +259,17 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+>  		goto out_err;
+>  	}
+>  
+> +	if (ovl_dentry_casefolded(this)) {
+> +		warn = "case folded child";
+> +		err = -EREMOTE;
+> +		goto out_warn;
+> +	}
+> +
+>  	if (ovl_dentry_weird(this)) {
+>  		/* Don't support traversing automounts and other weirdness */
+> +		warn = "unsupported object type";
+>  		err = -EREMOTE;
+> -		goto out_err;
+> +		goto out_warn;
+>  	}
+>  
+>  	path.dentry = this;
+> @@ -283,8 +303,9 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+>  	} else {
+>  		if (ovl_lookup_trap_inode(d->sb, this)) {
+>  			/* Caught in a trap of overlapping layers */
+> +			warn = "overlapping layers";
+>  			err = -ELOOP;
+> -			goto out_err;
+> +			goto out_warn;
+>  		}
+>  
+>  		if (last_element)
+> @@ -316,6 +337,10 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+>  	this = NULL;
+>  	goto out;
+>  
+> +out_warn:
+> +	pr_warn_ratelimited("failed lookup in %s (%pd2, name='%.*s', err=%i): %s\n",
+> +			    is_upper ? "upper" : "lower", base,
+> +			    namelen, name, err, warn);
+>  out_err:
+>  	dput(this);
+>  	return err;
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index aef942a758ce..6c51103d9305 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -446,6 +446,12 @@ void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry,
+>  void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
+>  			   struct ovl_entry *oe, unsigned int mask);
+>  bool ovl_dentry_weird(struct dentry *dentry);
+> +
+> +static inline bool ovl_dentry_casefolded(struct dentry *dentry)
+> +{
+> +	return sb_has_encoding(dentry->d_sb) && IS_CASEFOLDED(d_inode(dentry));
+> +}
+> +
+>  enum ovl_path_type ovl_path_type(struct dentry *dentry);
+>  void ovl_path_upper(struct dentry *dentry, struct path *path);
+>  void ovl_path_lower(struct dentry *dentry, struct path *path);
+> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> index f42488c01957..2b9b31524c38 100644
+> --- a/fs/overlayfs/params.c
+> +++ b/fs/overlayfs/params.c
+> @@ -282,13 +282,11 @@ static int ovl_mount_dir_check(struct fs_context *fc, const struct path *path,
+>  		return invalfc(fc, "%s is not a directory", name);
+>  
+>  	/*
+> -	 * Root dentries of case-insensitive capable filesystems might
+> -	 * not have the dentry operations set, but still be incompatible
+> -	 * with overlayfs.  Check explicitly to prevent post-mount
+> -	 * failures.
+> +	 * Allow filesystems that are case-folding capable but deny composing
+> +	 * ovl stack from case-folded directories.
+>  	 */
+> -	if (sb_has_encoding(path->mnt->mnt_sb))
+> -		return invalfc(fc, "case-insensitive capable filesystem on %s not supported", name);
+> +	if (ovl_dentry_casefolded(path->dentry))
+> +		return invalfc(fc, "case-insensitive directory on %s not supported", name);
+>  
+>  	if (ovl_dentry_weird(path->dentry))
+>  		return invalfc(fc, "filesystem on %s not supported", name);
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index dcccb4b4a66c..593c4da107d6 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -206,10 +206,17 @@ bool ovl_dentry_weird(struct dentry *dentry)
+>  	if (!d_can_lookup(dentry) && !d_is_file(dentry) && !d_is_symlink(dentry))
+>  		return true;
+>  
+> -	return dentry->d_flags & (DCACHE_NEED_AUTOMOUNT |
+> -				  DCACHE_MANAGE_TRANSIT |
+> -				  DCACHE_OP_HASH |
+> -				  DCACHE_OP_COMPARE);
+> +	if (dentry->d_flags & (DCACHE_NEED_AUTOMOUNT | DCACHE_MANAGE_TRANSIT))
+> +		return true;
+> +
+> +	/*
+> +	 * Allow filesystems that are case-folding capable but deny composing
+> +	 * ovl stack from case-folded directories.
+> +	 */
+> +	if (sb_has_encoding(dentry->d_sb))
+> +		return IS_CASEFOLDED(d_inode(dentry));
+> +
+> +	return dentry->d_flags & (DCACHE_OP_HASH | DCACHE_OP_COMPARE);
+>  }
+>  
+>  enum ovl_path_type ovl_path_type(struct dentry *dentry)
+> -- 
+> 2.34.1
+> 
