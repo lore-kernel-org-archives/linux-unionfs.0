@@ -1,186 +1,154 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29A591E519
-	for <linux-unionfs@vger.kernel.org>; Thu,  5 Jun 2025 17:24:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6309113B2A4
+	for <linux-unionfs@vger.kernel.org>; Thu,  5 Jun 2025 17:32:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749144252; cv=none; b=Lz53svfVnlWBAXiZ3f0bLCMMaiV8eTbNUqyRbTSixklQavXnf73ApoaalLDNbXrIAhjcrzcsQ01z50VoVw4bohIWtTk+Opg+b5MJ1dIfGy9KXYpE35Og9OJ2kYRL3nyK3C70+JX4oyNe2VJ/UPNzJms8bz9QBYtEj943rYLx1Q0=
+	t=1749144767; cv=none; b=UW09n0h972ss4vYrcEJX67FkFKgHd9DbK31Qxu7KuUQbibA14Gh2an4AfjWFX2qsaJ2EQLqj+d6QcmoQ9rQA/hBBMPDAoe6P6YRUSciZxVFhLMxiDYR6WeouKVAbRuwBZAKRt1QQoACJQ6/ifKzvoeK4XyWJMvkCCMfYSPKmF/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749144252; c=relaxed/simple;
-	bh=RyvXdEJbqyUl9kAT21DMLDdXQJ5KeRBFWaOc/9QQQBI=;
+	s=arc-20240116; t=1749144767; c=relaxed/simple;
+	bh=ZrgYdKtEEmMov1IXq8Qvd/Cd4gvh0W8IsZWoEUS6lOs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DUR/qJ+U4yoADAh/oaggTri+uSThiFLH7fPiB8hSFQGZLFDgqXn51LK3YZ5tJblSwEUmpjgA+BBN2PHMpbGwExOtuW6Q3Yl+2ceP938YMDHkZPkjR6PyDKn1LChTy6oIIUa/88ZQ0Zfsm78DNng/F2EkZbbe9D+Jdm3eGxuei4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=O0AOYoLi; arc=none smtp.client-ip=170.10.129.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=g+0+Xao4f58+wjdInEeahIhSWhA2OjtmuSW6/fvYxyFlyCfP8bhng07iwG/UGAG9mRvXmogISCQeTu8ryQf5lP5quLeZ2IQmPihlneBe/8YPqAIzM1vB9aOB4g//wzvbjHopMzSm19PZsw+xpl2ms1iBv/vEacf8oswVLLY0gaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=V6Tk/5d7; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="O0AOYoLi"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="V6Tk/5d7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1749144250;
+	s=mimecast20190719; t=1749144763;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=NilGyannDkSG1qdzHF1/Z/9qZ2bbYcqHW2ABfSOqUNg=;
-	b=O0AOYoLiSTAfpPVb+bPMvTSdEpIlZj/v7vjwHLCtL2Vtnnuhc6a9+xqhf2JqGAQRvoFqCO
-	au+VPlIcD9x/UmvxWePHg4f6zNf34rWuhhVOxas+PTjXzk6oaKNICWFGuXKwq0Hu9Ljjv/
-	SJouUF899I1DjFbqIZ2whYgsEjCyGI0=
-Received: from mail-pf1-f198.google.com (mail-pf1-f198.google.com
- [209.85.210.198]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=SbqvG8bC3Lf/tJ1TxTXVtxh04QlkVtdqv1xGSMI3+W8=;
+	b=V6Tk/5d7ybfN1AvAqKeYrTAtao8ZQ7Rj3QM85pAkPyUULRAQtqMxiORZQbQv99mG7WISU5
+	AXWe4jyc6QR0yOGOZ/FVYyDP8ynlOO82Ejy/SZvGEOWDh7RpWvF8m4Bhce6vB9rXXhfePw
+	WPoBwwThUMn2Hc0pCweT93aAE8Oepf0=
+Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com
+ [209.85.215.200]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-301-NDUfdS8uODC0KhQ9uSCnMA-1; Thu, 05 Jun 2025 13:24:08 -0400
-X-MC-Unique: NDUfdS8uODC0KhQ9uSCnMA-1
-X-Mimecast-MFC-AGG-ID: NDUfdS8uODC0KhQ9uSCnMA_1749144247
-Received: by mail-pf1-f198.google.com with SMTP id d2e1a72fcca58-7377139d8b1so1183779b3a.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Jun 2025 10:24:07 -0700 (PDT)
+ us-mta-29-kXjsyWFZNaWpzU0utzjSjA-1; Thu, 05 Jun 2025 13:32:40 -0400
+X-MC-Unique: kXjsyWFZNaWpzU0utzjSjA-1
+X-Mimecast-MFC-AGG-ID: kXjsyWFZNaWpzU0utzjSjA_1749144759
+Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-b2ede156ec4so1416058a12.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 05 Jun 2025 10:32:39 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749144247; x=1749749047;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NilGyannDkSG1qdzHF1/Z/9qZ2bbYcqHW2ABfSOqUNg=;
-        b=VkRaSsDyNihhSaYNmKRqmQXZ2FphjWscHAl9WP6ZH6pY4SkM/4DNEiWEG6S/BIb09Q
-         vVY1G5fJvg1IDF8Cq6WIEwL+P0VHRZ+wZYZuDDdd/R7wMwLlP3v88P6q+ElfetPMjnqx
-         51s8rgidJv9wGIazHk134urMiW7dUbc7in4s/vCfuMKj+Q25mADWFSUQ2fgB4Pvdmv0K
-         V63Fawut2t/ewrZWre1pHZJHLteDAIMogVkXiEnqqf2DYqYlFZ/ocBNQlRScfrKHVIb/
-         6pRSQwecSwXC07VIynHv7waext884lODTbBWS6ocgl8zmV811fNRODAi53/W6zKegm59
-         KNyw==
-X-Forwarded-Encrypted: i=1; AJvYcCVhWUAribKR7l5CtMr69Prl7ZorLirP3ix3cyVFXSBBT+Ezr8Dk8pU8HTcsHKQUyrHpnPQLf07CGk3YWRdf@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywzv8+hVePGhRNKNfudK9M3NeBHrkO/Ypj0YEkN5y2c2TW0iTJ1
-	1dj//w5Hy72ueUhTO5NkVORspgh3utgggAcykeVFLh0x5jEUz7J+zWvOo0aTQfoZ7mOYKPyZlkv
-	RjefBBg9ddNzcyVv9/CCUKfKqVTxUy3tU/9vUT1UARRVWUslwQwZNyKmWp2SEowEBnSB5+/CSDk
-	0o2w==
-X-Gm-Gg: ASbGncsW/zT9cblFsTjHOP/rmwv31cw/AnnQlT+kmIDDmq1aLm10rpONVAeVyK2iN8K
-	+6kDSZT1/GiaHBzjeJuei1UHCmzfwViwLFbIE9AgrwtFHl0D5mHbPUn60pguMucfpVLEuEszNzv
-	g+xcTZmVvZSpQl+iMsIBE3hqoLosyQv7IJZgEm+NhCQV/QUI28z0nUXfHXZtucpCFaZc8qmveGa
-	DW2HTdKrhb/uvjy8iFj2ClN0voMr61AxBMLVRr8iQlUuEdvkLp4KYql5MeD/fW9+1Mya7xAZdz3
-	zxuMCwXk88DVgBYP6Tm13ZN8wgvpHlu1/tUV1RtMpvN4o1kIl3qe
-X-Received: by 2002:a05:6a00:882:b0:740:b3d9:c889 with SMTP id d2e1a72fcca58-74827f309acmr683755b3a.22.1749144246791;
-        Thu, 05 Jun 2025 10:24:06 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEFSQoVwsczuKqqBTzijzTKvkEvwy43OL6IAzBrfLN/FFYyL4P4R/+ZLi56/LOch2dVUXhGGQ==
-X-Received: by 2002:a05:6a00:882:b0:740:b3d9:c889 with SMTP id d2e1a72fcca58-74827f309acmr683725b3a.22.1749144246404;
-        Thu, 05 Jun 2025 10:24:06 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1749144759; x=1749749559;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=SbqvG8bC3Lf/tJ1TxTXVtxh04QlkVtdqv1xGSMI3+W8=;
+        b=jeHSUp3d/kfK+h2G6E9kPpf5KB7vxfU6j+D9oIEyPQdrcOcj4RVcyY+pMoSwih54RU
+         m7pga0KKMfta8Kgtw3ybhL0/yvhDwIunKjxLlaOXnbbzTsHFxTP5Jj2lXdoz53phWYhM
+         3gKIpw14W7NJufc9m1eFXoy5BPAgRv5JsnRSSbn0PtRLDI5kg+7Pn9qM0v2k8uVLufJV
+         T4B1vYq3Zi1GUPiDpUbYIgAwR66R0bcrhY5Tiezp7Ayp0blHQLywn+xB/CAtTyxLEYq2
+         iB/OmvgvSGVVBOqie5Qrhs0AXeLZHOlAFLUrguFg1uPYP4z/lsNQ0SdtPT4mJdhCz7Cv
+         17yQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXW96QUtelzJnokFHW+VewBzPoq8qzFBsxt7l8mD1MawVYo/tGb8dbk8gHa5wSNDlkfjQOGUNyu6J5/lPhj@vger.kernel.org
+X-Gm-Message-State: AOJu0YxBpXOe3svIZCoI+1T/ZNn/bodSqkyHox1ihdoZao0laeLW/Jsr
+	0qDgpFGVozVxMkCoQXGfEy+mffrj/JApQybY+0MI7cR1Mm6bV9Cr+1uaO2/GeDOgqhhe4Bni0iq
+	G0/z+y26sPFBAXdXwlhWi6sOqkNLTVOiQfUSC4l8ieBv+isUqS7iEU3tcwCWvthbcVgA=
+X-Gm-Gg: ASbGncvSx3MUWe52Vt4oN6hR6rQOkb3bniVJWMvibjGsAfNin7D9Op9PGv6aj7EH3ZJ
+	V2F1ScE9xOLz5UnQX4HhK+AQ3zVbiPr1/m37+ssI8BX4ktFnh+asWpO5YN85ZjFeXesbp9hkpGL
+	h+IybqL8U7niM44+mrba+TmvIidpui0f9VZrRq+FISBg0rmfkv/IfxLjk7UM8065DjLFH1nB4mn
+	RZw2cXprP0OKY/Ekky//q9YD0iZivcw8yzej5/TSe6q6IqSjSX8QS5R+AcVHErRr1CbLPpcZhVd
+	IDfK4zs75WgsA+5bnxfhw3KwpeMES9gOf5wRPlX0WsA8qzBQIVMd
+X-Received: by 2002:a17:902:e88a:b0:235:ec11:f0ee with SMTP id d9443c01a7336-23601cf96d6mr3497135ad.14.1749144758971;
+        Thu, 05 Jun 2025 10:32:38 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFyFzj8ca92j9Fblwdd1kTqgenHF8POiDPCuqyb6y5JQYt5dJJLLdZNGS70UdvPO9qCqUCaNA==
+X-Received: by 2002:a17:902:e88a:b0:235:ec11:f0ee with SMTP id d9443c01a7336-23601cf96d6mr3496765ad.14.1749144758613;
+        Thu, 05 Jun 2025 10:32:38 -0700 (PDT)
 Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([209.132.188.88])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-747afff7407sm13428524b3a.178.2025.06.05.10.24.03
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23506cf53a9sm122147345ad.196.2025.06.05.10.32.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Jun 2025 10:24:06 -0700 (PDT)
-Date: Fri, 6 Jun 2025 01:24:01 +0800
+        Thu, 05 Jun 2025 10:32:38 -0700 (PDT)
+Date: Fri, 6 Jun 2025 01:32:33 +0800
 From: Zorro Lang <zlang@redhat.com>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>,
 	=?utf-8?B?QW5kcsOp?= Almeida <andrealmeid@igalia.com>,
-	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org,
-	Yang Xu <xuyang2018.jy@fujitsu.com>,
-	Anthony Iliopoulos <ailiop@suse.com>,
-	David Disseldorp <ddiss@suse.de>
-Subject: Re: [PATCH v2 5/6] generic: remove incorrect
- _require_idmapped_mounts checks
-Message-ID: <20250605172401.v7lpervaq6bbxgn2@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Subject: Re: [PATCH v2 4/6] generic/623: do not run with overlayfs
+Message-ID: <20250605173233.ndqsjo77ds3e35p5@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
 References: <20250603100745.2022891-1-amir73il@gmail.com>
- <20250603100745.2022891-6-amir73il@gmail.com>
+ <20250603100745.2022891-5-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20250603100745.2022891-6-amir73il@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250603100745.2022891-5-amir73il@gmail.com>
 
-On Tue, Jun 03, 2025 at 12:07:44PM +0200, Amir Goldstein wrote:
-> commit f5661920 ("generic: add missed _require_idmapped_mounts check")
-> wrongly adds _require_idmapped_mounts to tests that do not require
-> idmapped mounts support.
+On Tue, Jun 03, 2025 at 12:07:43PM +0200, Amir Goldstein wrote:
+> This test performs shutdown via xfs_io -c shutdown.
 > 
-> The added _require_idmapped_mounts in test generic/633 goes against
-> commit d8dee122 ("idmapped-mounts: always run generic vfs tests")
-> that intentionally removed this requirement from the generic tests.
+> Overlayfs tests can use _scratch_shutdown, but they cannot use
+> "-c shutdown" xfs_io command without jumping through hoops, so by
+> default we do not support it.
 > 
-> The added _require_idmapped_mounts in tests generic/69{6,7} causes
-> those tests not to run with overlayfs, which does not support idmapped
-> mounts. However, those tests are regression tests to kernel commit
-> 1639a49ccdce ("fs: move S_ISGID stripping into the vfs_*() helpers")
-> which is documented as also solving a correction issue with overlayfs,
-> so removing this test converage is very much undesired.
+> Add this condition to _require_xfs_io_command and add the require
+> statement to test generic/623 so it wont run with overlayfs.
 > 
-> Remove the incorrectly added _require_idmapped_mounts checks.
-> Also fix the log in _require_idmapped_mounts to say that
-> "idmapped mounts not support by $FSTYP", which is what the helper
-> checks instead of "vfstests not support by $FSTYP" which is incorrect.
-> 
-> Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
-> Cc: Anthony Iliopoulos <ailiop@suse.com>
-> Cc: David Disseldorp <ddiss@suse.de>
-> Fixes: commit f5661920 ("generic: add missed _require_idmapped_mounts check")
+> Reported-by: André Almeida <andrealmeid@igalia.com>
+> Tested-by: André Almeida <andrealmeid@igalia.com>
+> Link: https://lore.kernel.org/linux-fsdevel/20250521-ovl_ro-v1-1-2350b1493d94@igalia.com/
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
+>  common/rc         | 8 ++++++++
+>  tests/generic/623 | 1 +
+>  2 files changed, 9 insertions(+)
+> 
+> diff --git a/common/rc b/common/rc
+> index d8ee8328..bffd576a 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -3033,6 +3033,14 @@ _require_xfs_io_command()
+>  		touch $testfile
+>  		testio=`$XFS_IO_PROG -c "syncfs" $testfile 2>&1`
+>  		;;
+> +	"shutdown")
+> +		if [ $FSTYP = "overlay" ]; then
+> +			# Overlayfs tests can use _scratch_shutdown, but they
+> +			# cannot use "-c shutdown" xfs_io command without jumping
+> +			# through hoops, so by default we do not support it.
+> +			_notrun "xfs_io $command not supported on $FSTYP"
+> +		fi
+> +		;;
 
-Is this one changed anything from this ?
-https://lore.kernel.org/fstests/20250526175437.1528310-1-amir73il@gmail.com/
+Hmm... I'm not sure this's a good way.
+For example, overlay/087 does xfs_io shutdown too, generally it should calls
+_require_xfs_io_command "shutdown" although it doesn't. If someone overlay
+test case hope to test as o/087 does, and it calls _require_xfs_io_command "shutdown",
+then it'll be _notrun.
 
-Due to above link has been reviewed by Christian Brauner, do you want to
-add his RVB to this version?
+If g/623 is not suitable for overlay, how about skip it for overlay clearly, by
+`_exclude_fs overlay` ?
 
 Thanks,
 Zorro
 
->  common/rc         | 2 +-
->  tests/generic/633 | 1 -
->  tests/generic/696 | 1 -
->  tests/generic/697 | 1 -
->  4 files changed, 1 insertion(+), 4 deletions(-)
-> 
-> diff --git a/common/rc b/common/rc
-> index bffd576a..96d65d1c 100644
-> --- a/common/rc
-> +++ b/common/rc
-> @@ -2639,7 +2639,7 @@ _require_idmapped_mounts()
->  		--fstype "$FSTYP"
+>  	*)
+>  		testio=`$XFS_IO_PROG -c "help $command" 2>&1`
+>  	esac
+> diff --git a/tests/generic/623 b/tests/generic/623
+> index b97e2adb..4e36daaf 100755
+> --- a/tests/generic/623
+> +++ b/tests/generic/623
+> @@ -16,6 +16,7 @@ _begin_fstest auto quick shutdown mmap
 >  
->  	if [ $? -ne 0 ]; then
-> -		_notrun "vfstest not support by $FSTYP"
-> +		_notrun "idmapped mounts not support by $FSTYP"
->  	fi
->  }
+>  _require_scratch_nocheck
+>  _require_scratch_shutdown
+> +_require_xfs_io_command "shutdown"
 >  
-> diff --git a/tests/generic/633 b/tests/generic/633
-> index f58dbbf5..b683c427 100755
-> --- a/tests/generic/633
-> +++ b/tests/generic/633
-> @@ -12,7 +12,6 @@ _begin_fstest auto quick atime attr cap idmapped io_uring mount perms rw unlink
->  # Import common functions.
->  . ./common/filter
->  
-> -_require_idmapped_mounts
->  _require_test
->  
->  echo "Silence is golden"
-> diff --git a/tests/generic/696 b/tests/generic/696
-> index d2e86c96..48b3aea0 100755
-> --- a/tests/generic/696
-> +++ b/tests/generic/696
-> @@ -17,7 +17,6 @@ _begin_fstest auto quick cap idmapped mount perms rw unlink
->  # Import common functions.
->  . ./common/filter
->  
-> -_require_idmapped_mounts
->  _require_test
->  _require_scratch
->  _fixed_by_kernel_commit ac6800e279a2 \
-> diff --git a/tests/generic/697 b/tests/generic/697
-> index 1ce673f7..66444a95 100755
-> --- a/tests/generic/697
-> +++ b/tests/generic/697
-> @@ -17,7 +17,6 @@ _begin_fstest auto quick cap acl idmapped mount perms rw unlink
->  . ./common/filter
->  . ./common/attr
->  
-> -_require_idmapped_mounts
->  _require_test
->  _require_acls
->  _fixed_by_kernel_commit 1639a49ccdce \
+>  _scratch_mkfs &>> $seqres.full
+>  _scratch_mount
 > -- 
 > 2.34.1
 > 
