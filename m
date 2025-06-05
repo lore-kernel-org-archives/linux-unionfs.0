@@ -1,251 +1,123 @@
-Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A487238152
-	for <linux-unionfs@vger.kernel.org>; Wed,  4 Jun 2025 04:43:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E8C17FAC2
+	for <linux-unionfs@vger.kernel.org>; Thu,  5 Jun 2025 14:51:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749012239; cv=none; b=Luqhijc7nbn7uCv8WJzjU/nQYwiLGJot7UfCi72d4YV98WA/s4b7X4lBR27DHJcSUv3p73SEATMt/0yKoMDEzzexSB1UsKCy/3D3k3Btf3mJg6rNkn3lXuRf0ahp0lWgti6ZDeih9A34R1lVi/H8wk0tyvCuopQ9KdjTkYRXIQU=
+	t=1749135100; cv=none; b=YJ2vSo4awhsHhPss8ohdw0/Q/n28gI8vkczuTXksAjTXF4oLj+KHrdHhDB9u8Vma+NB80lrtWDAlwwP9TmYSGk8Passam/rZMxF+z0NMyZOvRc0y3h4RcWI6AJTf8QVf3RrvVXwwEYBwa1f81q8iCVxWe+j9Xa3KdXOeOahtXi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749012239; c=relaxed/simple;
-	bh=XhzwIRurZkYyWEwOyZnbEDyk82dQjwS259RrNEn38cs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YC1b3qArjuMTfgqeOVN/MsdPgX+5D0G4wTYs6+hS9qVlWNi+QBd64NL8+DjqQItyMuwdTT5dFRIDNaJMl7GW6WtRVE11KUqdmOaiUkca2GjvXz6pGgISMseP3bFjFLcDe+gj7enF/4kziHWHMh1HtXgO85qT7p4bJhdkTEwlhAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ddtig1ze; arc=none smtp.client-ip=91.218.175.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1749135100; c=relaxed/simple;
+	bh=8opYR/RLHE+c4NG9PfiIatcqdYIIGlAtUPp/Y7mK/SA=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=WfCQwpyyCK8qt27sIFKjsDCycu0sv03iKbwPYZbyOPBWwU6XnI3GVTsqL/HoYLp/3jEqnlqgi6Er7ga/iKMKbsmPEk81f8MtVV9+nzHb/cAhOpnn4Mq8efiMQgShdXqi4Sn//G8yBJpEXOaN+Y4VjKq7KkkOGP8w5nJQ8R2lcBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=ePrt0JgV; arc=none smtp.client-ip=209.85.214.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ddtig1ze"
-Date: Wed, 4 Jun 2025 00:43:47 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1749012230;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/qBak1RL9RSBzIoGDReLWOn6k/RJqKbVgrygIfQlFlE=;
-	b=ddtig1zeKBB5HGtAyjNhWDHMf/H/eRUf5utse8QAw9iLiNg3kfsb2w3TFWTgb7NEXKls6I
-	KDgVwIiw2SnxpIwSPhQPeacV/nEaNoRfqqJwLXKd/NnTd5ChL3NYMjt+UxX12at+2qWHCj
-	YQUIxLpNba0x2C7AC6ImX5KGpCb4ZPo=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Kent Overstreet <kent.overstreet@linux.dev>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v3] ovl: support layers on case-folding capable
- filesystems
-Message-ID: <wj2n4gnyqj46ohfcwlfdginc2ulropbljrx5e6xmnrexnbaafp@y2ygcwsdoa5o>
-References: <20250602171702.1941891-1-amir73il@gmail.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="ePrt0JgV"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-22d95f0dda4so14147585ad.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 05 Jun 2025 07:51:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1749135097; x=1749739897; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=0qZIyhLNfUK8aRt0IjyGDdUz2kW/fFohhjPr9dq+tBQ=;
+        b=ePrt0JgVhqfQYTTmoGYfMpd1fOibsM7Po0g2kPJYRRsNT7UxFnpvyd8X4lb1e3ID4o
+         plEOfYieBq9opx8nkCVgSTtZGqFZAdlDqQ+exp3nQH5O9RJNif77JxJrzFJh70+HB8++
+         m+V0GxDUWiyCWwqyzBou2ouYZ+tSpOEuV1/mM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749135097; x=1749739897;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=0qZIyhLNfUK8aRt0IjyGDdUz2kW/fFohhjPr9dq+tBQ=;
+        b=g1NCSEG9564sAgHu86MuarInBM9JnBfQbixi6itFLfYpiQW1nwLZYJJFkctjnzvhvK
+         zUbN8miz3KrznztYyjEZtQ3rAFDEbLNKr1T3t9NuwIo9jt08gCO14bahTeFxumhg1e3Y
+         I9b7xbxBE4wyuTj6bCuMmxBn7djsMQkvRieYrAH3uSPtss+k4E4JDdGch9ktEJYAIJAD
+         4fefK3ZwiMxFEHBIrINu0InQNV4sUGOaMW5mFnljGPKCDJQtfe2taRYLNRo0uxJnHZB5
+         9qIke1TNchSo8a+o7Vdy0Zqa6djSpq/Mvl1v6tDPCiG7xcr0W98xpqma8ewzc1odGHdA
+         EmtQ==
+X-Gm-Message-State: AOJu0Yzinchtp8cEgRMCTNyj7K1fGx5eFBZTQSxDk8nYWJn0mPy0JaeT
+	eueF3zNyNCY/p69rajb8vRKOifRLhFOevnESERlpZRXV+6XuOw0Gu0z2ZA7UUc/lIn/lONh54Mg
+	/6a60yuUUf2jUGywVkTykr6jAb1sbiWJVkZzcoAtXxtKeLv94CtKoQhrnZw==
+X-Gm-Gg: ASbGncsv7yeD/efjo9whUMUqSyomxb9+DEJ5tbN6PSw0dOiY9E2mhV81t9JuyM6hEha
+	koxaezyueVlh1xVnoD46ES8SVIpk9AqbvFBO3WiDAFvm28UUWxlsqXKvxpjzzGsbPuFRvkffbsh
+	C72RoNKnySKQhvNWURHfjzZILzkS+OTnY=
+X-Google-Smtp-Source: AGHT+IHAbJn7akHP0pYrJh9k1QTBH4AMnJ3AUW68Wk+P5THmWTp3kCTbbGZ2EV9/S5oBNPTKOCVGI0vam2239o4+gmA=
+X-Received: by 2002:a05:622a:5a0f:b0:476:7e6b:d297 with SMTP id
+ d75a77b69052e-4a5a581c203mr125679031cf.41.1749135086307; Thu, 05 Jun 2025
+ 07:51:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250602171702.1941891-1-amir73il@gmail.com>
-X-Migadu-Flow: FLOW_OUT
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Thu, 5 Jun 2025 16:51:15 +0200
+X-Gm-Features: AX0GCFsTY9gN9NDJLz1wYsjKjFbqBwGH61myZEfMvmbdvIDQuo4OYyMlmpHjQd8
+Message-ID: <CAJfpegvB3At5Mm54eDuNVspuNtkhoJwPH+HcOCWm7j-CSQ1jbw@mail.gmail.com>
+Subject: [GIT PULL] overlayfs update for 6.16
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 02, 2025 at 07:17:02PM +0200, Amir Goldstein wrote:
-> Case folding is often applied to subtrees and not on an entire
-> filesystem.
-> 
-> Disallowing layers from filesystems that support case folding is over
-> limiting.
-> 
-> Replace the rule that case-folding capable are not allowed as layers
-> with a rule that case folded directories are not allowed in a merged
-> directory stack.
-> 
-> Should case folding be enabled on an underlying directory while
-> overlayfs is mounted the outcome is generally undefined.
-> 
-> Specifically in ovl_lookup(), we check the base underlying directory
-> and fail with -ESTALE and write a warning to kmsg if an underlying
-> directory case folding is enabled.
-> 
-> Suggested-by: Kent Overstreet <kent.overstreet@linux.dev>
-> Link: https://lore.kernel.org/linux-fsdevel/20250520051600.1903319-1-kent.overstreet@linux.dev/
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
-> 
-> Miklos,
-> 
-> This is my solution to Kent's request to allow overlayfs mount on
-> bcachefs subtrees that do not have casefolding enabled, while other
-> subtrees do have casefolding enabled.
-> 
-> I have written a test to cover the change of behavior [1].
-> This test does not run on old kernel's where the mount always fails
-> with casefold capable layers.
-> 
-> Let me know what you think.
-> 
-> Kent,
-> 
-> I have tested this on ext4.
-> Please test on bcachefs.
+Hi Linus,
 
-This one fails with the proper error message in dmesg, and no other
-errors :)
+Please pull from:
 
-Reviewed-by: Kent Overstreet <kent.overstreet@linux.dev>
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
+tags/ovl-update-6.16
 
-> 
-> Thanks,
-> Amir.
-> 
-> Changes since v1,v2:
-> - Add ratelimited warnings for the lookup error cases
-> - Add helper ovl_dentry_casefolded()
-> - Write fstest [1]
-> 
-> [1] https://github.com/amir73il/xfstests/commits/ovl-casefold/
-> 
->  fs/overlayfs/namei.c     | 31 ++++++++++++++++++++++++++++---
->  fs/overlayfs/overlayfs.h |  6 ++++++
->  fs/overlayfs/params.c    | 10 ++++------
->  fs/overlayfs/util.c      | 15 +++++++++++----
->  4 files changed, 49 insertions(+), 13 deletions(-)
-> 
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index d489e80feb6f..733beef7b810 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -230,13 +230,26 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
->  			     struct dentry **ret, bool drop_negative)
->  {
->  	struct ovl_fs *ofs = OVL_FS(d->sb);
-> -	struct dentry *this;
-> +	struct dentry *this = NULL;
-> +	const char *warn;
->  	struct path path;
->  	int err;
->  	bool last_element = !post[0];
->  	bool is_upper = d->layer->idx == 0;
->  	char val;
->  
-> +	/*
-> +	 * We allow filesystems that are case-folding capable but deny composing
-> +	 * ovl stack from case-folded directories. If someone has enabled case
-> +	 * folding on a directory on underlying layer, the warranty of the ovl
-> +	 * stack is voided.
-> +	 */
-> +	if (ovl_dentry_casefolded(base)) {
-> +		warn = "case folded parent";
-> +		err = -ESTALE;
-> +		goto out_warn;
-> +	}
-> +
->  	this = ovl_lookup_positive_unlocked(d, name, base, namelen, drop_negative);
->  	if (IS_ERR(this)) {
->  		err = PTR_ERR(this);
-> @@ -246,10 +259,17 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
->  		goto out_err;
->  	}
->  
-> +	if (ovl_dentry_casefolded(this)) {
-> +		warn = "case folded child";
-> +		err = -EREMOTE;
-> +		goto out_warn;
-> +	}
-> +
->  	if (ovl_dentry_weird(this)) {
->  		/* Don't support traversing automounts and other weirdness */
-> +		warn = "unsupported object type";
->  		err = -EREMOTE;
-> -		goto out_err;
-> +		goto out_warn;
->  	}
->  
->  	path.dentry = this;
-> @@ -283,8 +303,9 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
->  	} else {
->  		if (ovl_lookup_trap_inode(d->sb, this)) {
->  			/* Caught in a trap of overlapping layers */
-> +			warn = "overlapping layers";
->  			err = -ELOOP;
-> -			goto out_err;
-> +			goto out_warn;
->  		}
->  
->  		if (last_element)
-> @@ -316,6 +337,10 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
->  	this = NULL;
->  	goto out;
->  
-> +out_warn:
-> +	pr_warn_ratelimited("failed lookup in %s (%pd2, name='%.*s', err=%i): %s\n",
-> +			    is_upper ? "upper" : "lower", base,
-> +			    namelen, name, err, warn);
->  out_err:
->  	dput(this);
->  	return err;
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index aef942a758ce..6c51103d9305 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -446,6 +446,12 @@ void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry,
->  void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
->  			   struct ovl_entry *oe, unsigned int mask);
->  bool ovl_dentry_weird(struct dentry *dentry);
-> +
-> +static inline bool ovl_dentry_casefolded(struct dentry *dentry)
-> +{
-> +	return sb_has_encoding(dentry->d_sb) && IS_CASEFOLDED(d_inode(dentry));
-> +}
-> +
->  enum ovl_path_type ovl_path_type(struct dentry *dentry);
->  void ovl_path_upper(struct dentry *dentry, struct path *path);
->  void ovl_path_lower(struct dentry *dentry, struct path *path);
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index f42488c01957..2b9b31524c38 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -282,13 +282,11 @@ static int ovl_mount_dir_check(struct fs_context *fc, const struct path *path,
->  		return invalfc(fc, "%s is not a directory", name);
->  
->  	/*
-> -	 * Root dentries of case-insensitive capable filesystems might
-> -	 * not have the dentry operations set, but still be incompatible
-> -	 * with overlayfs.  Check explicitly to prevent post-mount
-> -	 * failures.
-> +	 * Allow filesystems that are case-folding capable but deny composing
-> +	 * ovl stack from case-folded directories.
->  	 */
-> -	if (sb_has_encoding(path->mnt->mnt_sb))
-> -		return invalfc(fc, "case-insensitive capable filesystem on %s not supported", name);
-> +	if (ovl_dentry_casefolded(path->dentry))
-> +		return invalfc(fc, "case-insensitive directory on %s not supported", name);
->  
->  	if (ovl_dentry_weird(path->dentry))
->  		return invalfc(fc, "filesystem on %s not supported", name);
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index dcccb4b4a66c..593c4da107d6 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -206,10 +206,17 @@ bool ovl_dentry_weird(struct dentry *dentry)
->  	if (!d_can_lookup(dentry) && !d_is_file(dentry) && !d_is_symlink(dentry))
->  		return true;
->  
-> -	return dentry->d_flags & (DCACHE_NEED_AUTOMOUNT |
-> -				  DCACHE_MANAGE_TRANSIT |
-> -				  DCACHE_OP_HASH |
-> -				  DCACHE_OP_COMPARE);
-> +	if (dentry->d_flags & (DCACHE_NEED_AUTOMOUNT | DCACHE_MANAGE_TRANSIT))
-> +		return true;
-> +
-> +	/*
-> +	 * Allow filesystems that are case-folding capable but deny composing
-> +	 * ovl stack from case-folded directories.
-> +	 */
-> +	if (sb_has_encoding(dentry->d_sb))
-> +		return IS_CASEFOLDED(d_inode(dentry));
-> +
-> +	return dentry->d_flags & (DCACHE_OP_HASH | DCACHE_OP_COMPARE);
->  }
->  
->  enum ovl_path_type ovl_path_type(struct dentry *dentry)
-> -- 
-> 2.34.1
-> 
+- Fix a regression in getting the path of an open file (e.g.  in
+/proc/PID/maps) for a nested overlayfs setup  (Andr=C3=A9 Almeida)
+
+- The above fix contains a cast to non-const, which is not actually
+needed.  So add the necessary helpers postfixed with _c that allow the
+cast to be removed (touches vfs files but only in trivial ways)
+
+- Support data-only layers and verity in a user namespace
+(unprivileged composefs use case)
+
+- Fix a gcc warning (Kees)
+
+- Cleanups
+
+Thanks,
+Miklos
+
+---
+Andr=C3=A9 Almeida (1):
+      ovl: Fix nested backing file paths
+
+Kees Cook (1):
+      ovl: Check for NULL d_inode() in ovl_dentry_upper()
+
+Miklos Szeredi (4):
+      ovl: make redirect/metacopy rejection consistent
+      ovl: relax redirect/metacopy requirements for lower -> data redirect
+      ovl: don't require "metacopy=3Don" for "verity"
+      vfs: change 'struct file *' argument to 'const struct file *'
+where possible
+
+Thorsten Blum (4):
+      ovl: Use str_on_off() helper in ovl_show_options()
+      ovl: Replace offsetof() with struct_size() in ovl_cache_entry_new()
+      ovl: Replace offsetof() with struct_size() in ovl_stack_free()
+      ovl: Annotate struct ovl_entry with __counted_by()
+
+---
+ Documentation/filesystems/overlayfs.rst |  7 +++
+ fs/file_table.c                         | 10 ++--
+ fs/internal.h                           |  1 +
+ fs/overlayfs/file.c                     |  4 +-
+ fs/overlayfs/namei.c                    | 98 ++++++++++++++++++++---------=
+----
+ fs/overlayfs/ovl_entry.h                |  2 +-
+ fs/overlayfs/params.c                   | 40 ++------------
+ fs/overlayfs/readdir.c                  |  4 +-
+ fs/overlayfs/util.c                     |  9 ++-
+ include/linux/fs.h                      | 12 ++--
+ 10 files changed, 97 insertions(+), 90 deletions(-)
