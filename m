@@ -1,81 +1,81 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A4E41FF1A0
-	for <linux-unionfs@vger.kernel.org>; Thu,  5 Jun 2025 17:47:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36941DFF8
+	for <linux-unionfs@vger.kernel.org>; Thu,  5 Jun 2025 17:51:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749145659; cv=none; b=Ll2Ijg0C/Fnhu46T2+EONcLx1fyqc6OSJIby0Hs51WJcaoLDQCO8RY0zzNbUgbeHsZTp9sgK1NoQ+gaGfl4o+MF5GkIyIf1V+6YsnfgZNBbtsWsI5sE0vxKYiaMpyL98dyIoA0KDQot6bxwv8pw3Che00DK3tpp4RASX/YhXUx0=
+	t=1749145900; cv=none; b=SzvjC3CDHiM+fdfw9DStFRdi/sbEXrZZIAp5hyyS7QNVRg47Eyf2mG08nvil5zJWsfjaS7HhCue5rVsC0CutPGbUhiIvDYRerclOt9tEPw3QB8109SODPgDKczqHPzf52sL49msNSPop1/FVmXgldAaYbSbCxsxjc8B9jot8JqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749145659; c=relaxed/simple;
-	bh=0+4mGifBSZ1EUI6m4L7viLeZiFAuPEG/1VNn01841fE=;
+	s=arc-20240116; t=1749145900; c=relaxed/simple;
+	bh=0J9chlP5tDg8YEyWbh7M3smk/tq+nOwbobfR8qPBNqM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cvLeK+if1ouO8sFpb6siIhW+XBhtAgP9RnnEb47sTldsWVAe7fWW25Nq9haX6rnMlyc0P3Tp5Jq5eaZivlGR1MIzG2k2qRKAXl7bOB6U3kUF/daohOxIfieeYa9CaPsuGSsaa3rzJZ3eZllC1Q/6THoIYijS35xG1TtOZQJgBVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=IC016rBo; arc=none smtp.client-ip=170.10.129.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=EU9DSc7ooBXW0DS3z66U9rHtWPEBvMQVaX+wW7Cv31Y09kBPw/p/gWpJzl1OKEcIxLob2G4FBTVN5zO9FubHxsnNecrdTxKB/eQ3WHlygRDkKhmLSEchyohAbPWweyoEzDmaRkguI0AQpr0pFnEodK6mXUvnaEePDDIKmWMrJV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GdrUkX2R; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="IC016rBo"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GdrUkX2R"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1749145656;
+	s=mimecast20190719; t=1749145897;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=dBYDgkCaHV8aab0ys3GOL9Tm4EBDoblxVnSYokg/638=;
-	b=IC016rBowHoCv9XChQZNjL4sKtHAhK/ybUrht8HPIkjMNA7G1uLFtzQ4cX8p7qd735Roc8
-	WLz9AXM+JvhYvlttHPe8hnTbeYrO7vfW4Ykb1Xf4y7R2a/UdN5wpYwrMg6fpMx+X0tqU7A
-	7vyX/MWbnscx73X8gqJQoFDUTOv86g8=
-Received: from mail-pl1-f198.google.com (mail-pl1-f198.google.com
- [209.85.214.198]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=+IpwJtqPomB8YxZ1KT/uYnIZYN4FYMqOD3S9Ak+nbpA=;
+	b=GdrUkX2Rd9tp1wHt5Lpzj41N6dMwELhl5j6Z21OrBrRU5b08tY2jfCzHvmElGd6ixrjOyk
+	5pAJYZ/Jb5sl19og/biniDda/fy9zPD8+DA4b07IuRajvDbz5iXtsqUG6Ehnvcwbh0ljjy
+	0LK/jXKmTZKgsFeEHr1Kn5ujzF7W5YQ=
+Received: from mail-pl1-f197.google.com (mail-pl1-f197.google.com
+ [209.85.214.197]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-395-lWW9OCMqM6aWoytE7D0vBg-1; Thu, 05 Jun 2025 13:47:35 -0400
-X-MC-Unique: lWW9OCMqM6aWoytE7D0vBg-1
-X-Mimecast-MFC-AGG-ID: lWW9OCMqM6aWoytE7D0vBg_1749145654
-Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-2358ddcb1e3so17122995ad.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Jun 2025 10:47:35 -0700 (PDT)
+ us-mta-330-YsYKGIMTOoSC8Dsc_CnnyA-1; Thu, 05 Jun 2025 13:51:36 -0400
+X-MC-Unique: YsYKGIMTOoSC8Dsc_CnnyA-1
+X-Mimecast-MFC-AGG-ID: YsYKGIMTOoSC8Dsc_CnnyA_1749145895
+Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-2358ddcb1e3so17180385ad.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 05 Jun 2025 10:51:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749145654; x=1749750454;
+        d=1e100.net; s=20230601; t=1749145895; x=1749750695;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:from:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=dBYDgkCaHV8aab0ys3GOL9Tm4EBDoblxVnSYokg/638=;
-        b=HeBvu9UufWqWIXNn+kyorBV1Bpk4vM6P0a4Q6ZEHIwW38ne8ZzC3ydAiNMH2T5Z8Jo
-         V5AnOYxNrNLIv4Tnf5+rJTJUkUAnuOnAtLR0GllIGUTGb3ggYS/9eJyj1n2Dz8/eRKpJ
-         Zt+1ZAtrEUzA0hmelOSCFPZuKBJwHcRxzztVnTwUIOf8clL6RDVbYm1COoreeZg3pjam
-         F5CJDAduIMxwXJuhSEnhubP+3Fp9up08u6IU5u+B+uII47zIje1oM/pSzBA6WQqYIkJw
-         Uu5D4m8gQ1M8W1T5EDZxwfVOGzp584g2b3b/Vu3FwH+fhjONo7X/+mdhy/ADneVnC/b/
-         DaNg==
-X-Forwarded-Encrypted: i=1; AJvYcCUA7nhM/TieaV1SPK7o5LTVD/+ydxunDnBNT/FHY6F5aSBUrTBVbIVM+hpORsSCMXQU4nQ1zR3wl4QHjL89@vger.kernel.org
-X-Gm-Message-State: AOJu0YwgN29qbnwYuR1oIdTEQSk4mdkx/O30F0Wl/oxOYDYxE2+U74gz
-	dqRWyMPqo0/XZA5t/zmU+UKRckOZ9MaV322beLIMenl8Hgocm2fqGddW4y/cKkaafT9WwGVXCVd
-	ryM9OpBcuOIi0uqRtO2UyEJpbUzMOXgz2L7rc478rSeTXLEKOEb4JOEW9j5nWIkBsIUc=
-X-Gm-Gg: ASbGnctAeBuoKZmNayVMe2XrJCLdAX4cPbu511mHL9Rb5yD9wrH9zl6cBNaNZ+kLiI+
-	6Dn/RZ8RQd2TeB/pKKNcQoNnadj8EB2izlt7/ONWX+VkV5Aqec/WU9CNGsRtr1dPc5i65w5/iOS
-	AN//jTjllqhN7Yu48YTWWIHvJ3U/DkDJDigDy9NUpkMAXYofn3TL0ds+etjp3X7JykvWpzOArsn
-	KK/zyuN/SOTVJXdC4mlSCNSwvzbGxyx7cIouQI+DQ09zvic9rc8uBxFtYlGUg/MHLEQxU2jiO9M
-	59AMRrz+0exGD4/IJJ9xnRO0a0dTHJe4+kkHvx3zqMO1RSxay+AIwRando0n0WI=
-X-Received: by 2002:a17:903:1c2:b0:22e:5d9b:2ec3 with SMTP id d9443c01a7336-23601d15070mr3398665ad.30.1749145654212;
-        Thu, 05 Jun 2025 10:47:34 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHntklI8byJnLAxFpamewVIn9BIYz/sV/5rQcCOncdhNXAit1fPuWdjcLRw8hmQSV6bhC5qvQ==
-X-Received: by 2002:a17:903:1c2:b0:22e:5d9b:2ec3 with SMTP id d9443c01a7336-23601d15070mr3398455ad.30.1749145653887;
-        Thu, 05 Jun 2025 10:47:33 -0700 (PDT)
+        bh=+IpwJtqPomB8YxZ1KT/uYnIZYN4FYMqOD3S9Ak+nbpA=;
+        b=epZMUdWl7ZeKI+cuK/DkIteOaHHCxIsA8OpykdccIViNVVSqNpZpjqbo8kn0X26HMm
+         yzYnecMo8HVjitk/8dHgP+nzaGS1GdgDkm34jZwwMmPaG45wY64S66Eblm08v6f9nhZL
+         xQ1ys+JlGKN3bw5m1XeWiYMCeqz+WDq18gQGs8d5x9NUki/In1tGrzB+/mga6SYxgRXU
+         6NFU/4jZHgybihtEvmjJp2Vsos1amzXwB5omYfAsiKLqVEwkey/Nm4eJjPM96EKWXBnN
+         0xWvemWUMDQKXy2/oeqRZwfpRjeYT2U8mb+W5S/2AW0IJCW5nE3DJlviwt2PaYpuxlwa
+         R5Sw==
+X-Forwarded-Encrypted: i=1; AJvYcCX+Hly/l7hPQq9Sp6jCrV7MJt2TZCxVjEfPfI2fjN7YeoQJP2rw8FDZXN5ECZhDV8EyqiAmyi+ucWE2aoSw@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzr5my2kGbUbfepnfDXdYUKJ69IjivOCaQpPQb1YukT1/dCR2EH
+	2g9QkBEWaHk9QnulYCi/kIQiUrxsWcIsiDd2/Uzd6CkcNb9S80coT4S3rpa1wBUpInc0stVvIxN
+	8uBcActeMB89vAFD1+lETuWz8wcZMG8o1807dkgxbM2Ig2fRm9IG5EF9z4awlwe9h+2k=
+X-Gm-Gg: ASbGncvXFlzlHt0muzcCaTieHAgJPnmFJNYccbeFjemih6BFqFA4Zen4Q8GfoHMBKAc
+	6vCV75RvWl3vTrwJiXfueFAEklVoGNvhheHa+OfAQ5N+1TRs3TKvaP6w24bxFs87F+HSFEPEZQN
+	gjIdITtxHD+Fn3gmgF/9clDHf4kpoYeQ3ZXpbhRmu4/xWYRM/fqvmvWvM4GqZhZvzRXrNAxb53n
+	1BLUzOPCu8V0jJy5NCSpmIiKEYZtGKIPun6C9LWHA8e3qon8Om9l+dpPHChzd0iX6FaYzp34JK2
+	dLZerM1CHPmpYORVAUt6anX2OGV5anXJjteapXMtlgOl2qqQjeG3cyULUyYOOhs=
+X-Received: by 2002:a17:903:2450:b0:235:cbcb:48b7 with SMTP id d9443c01a7336-23601d71149mr3693535ad.34.1749145895239;
+        Thu, 05 Jun 2025 10:51:35 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGz1HOmtlmXTiVqSyNhQCCc3bRAxq/KZSlTjgwMDukMGwOL1j4gDyin5NheDuIMZk9fKjzD2Q==
+X-Received: by 2002:a17:903:2450:b0:235:cbcb:48b7 with SMTP id d9443c01a7336-23601d71149mr3693105ad.34.1749145894652;
+        Thu, 05 Jun 2025 10:51:34 -0700 (PDT)
 Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([209.132.188.88])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b2ecebb4e99sm9075455a12.65.2025.06.05.10.47.31
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23506d14cbdsm122350395ad.221.2025.06.05.10.51.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Jun 2025 10:47:33 -0700 (PDT)
-Date: Fri, 6 Jun 2025 01:47:29 +0800
+        Thu, 05 Jun 2025 10:51:34 -0700 (PDT)
+Date: Fri, 6 Jun 2025 01:51:29 +0800
 From: Zorro Lang <zlang@redhat.com>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>,
 	=?utf-8?B?QW5kcsOp?= Almeida <andrealmeid@igalia.com>,
-	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Subject: Re: [PATCH v2 2/6] overlay: fix regression in
- _repair_overlay_scratch_fs
-Message-ID: <20250605174729.klfoqsct36v6e6lt@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org,
+	Karel Zak <kzak@redhat.com>
+Subject: Re: [PATCH v2 1/6] overlay: workaround libmount failure to remount,ro
+Message-ID: <20250605175129.oqqzr5qluxv52m6b@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
 References: <20250603100745.2022891-1-amir73il@gmail.com>
- <20250603100745.2022891-3-amir73il@gmail.com>
+ <20250603100745.2022891-2-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -85,66 +85,70 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250603100745.2022891-3-amir73il@gmail.com>
+In-Reply-To: <20250603100745.2022891-2-amir73il@gmail.com>
 
-On Tue, Jun 03, 2025 at 12:07:41PM +0200, Amir Goldstein wrote:
-> _repair_overlay_scratch_fs assumed that the base fs is mounted.
-> This was a wrong assumption to make, and that was exposed by commit
-> 4c6bc456 ("fstests: clean up mount and unmount operations") that
-> converted open coded umount in generic/332 to _scratch_unmount.
+On Tue, Jun 03, 2025 at 12:07:40PM +0200, Amir Goldstein wrote:
+> libmount >= v1.39 calls several unneeded fsconfig() calls to reconfigure
+> lowerdir/upperdir when user requests only -o remount,ro.
 > 
-> After this change, there errors were observed when running generic/332
-> if fsck.overlay is installed:
+> Those calls fail because overlayfs does not allow making any config
+> changes with new mount api, besides MS_RDONLY.
 > 
->      Check for damage
->     +fsck.overlay:[Error]: Faile to resolve upperdir:/vdf/ovl-upper:
->                            No such file or directory
->     +fsck.overlay failed, err=8
->     +umount: /vdf: not mounted.
+> We workaround this problem with --options-mode ignore.
 > 
-> Fix this by making sure that base fs is mounted before running the
-> layers check and fix test generic/330 to conform with the umount
-> conversion patch.
-> 
-> Fixes: 4c6bc456 ("fstests: clean up mount and unmount operations")
-> Tested-by: André Almeida <andrealmeid@igalia.com>
+> Reported-by: André Almeida <andrealmeid@igalia.com>
+> Suggested-by: Karel Zak <kzak@redhat.com>
+> Link: https://lore.kernel.org/linux-fsdevel/20250521-ovl_ro-v1-1-2350b1493d94@igalia.com/
+> Link: https://lore.kernel.org/fstests/CAJfpegtJ3SDKmC80B4AfWiC3JmtWdW2+78fRZVtsuhe-wSRPvg@mail.gmail.com/
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
+> 
+> Changes since v1 [1]:
+> - Change workaround from LIBMOUNT_FORCE_MOUNT2 to --options-mode=ignore
+> 
+> [1] https://lore.kernel.org/fstests/20250526143500.1520660-1-amir73il@gmail.com/
 
-Thanks for this regression fix from overlay.
+I'm not sure if I understand clearly. Does overlay list are fixing this issue
+on kernel side, then providing a workaround to fstests to avoid the issue be
+triggered too?
 
-Reviewed-by: Zorro Lang <zlang@redhat.com>
+Thanks,
+Zorro
 
->  common/overlay    | 2 ++
->  tests/generic/330 | 2 +-
->  2 files changed, 3 insertions(+), 1 deletion(-)
+> 
+>  common/overlay    | 5 ++++-
+>  tests/overlay/035 | 2 +-
+>  2 files changed, 5 insertions(+), 2 deletions(-)
 > 
 > diff --git a/common/overlay b/common/overlay
-> index 0fad6e70..0be943b1 100644
+> index 01b6622f..0fad6e70 100644
 > --- a/common/overlay
 > +++ b/common/overlay
-> @@ -434,6 +434,8 @@ _check_overlay_scratch_fs()
->  
->  _repair_overlay_scratch_fs()
+> @@ -127,7 +127,10 @@ _overlay_base_scratch_mount()
+>  _overlay_scratch_mount()
 >  {
-> +	# Base fs needs to be mounted for overlayfs check
-> +	_overlay_base_scratch_mount
->  	_overlay_fsck_dirs $OVL_BASE_SCRATCH_MNT/$OVL_LOWER \
->  		$OVL_BASE_SCRATCH_MNT/$OVL_UPPER \
->  		$OVL_BASE_SCRATCH_MNT/$OVL_WORK -y
-> diff --git a/tests/generic/330 b/tests/generic/330
-> index c67defc4..901b17b1 100755
-> --- a/tests/generic/330
-> +++ b/tests/generic/330
-> @@ -61,7 +61,7 @@ md5sum $testdir/file1 | _filter_scratch
->  md5sum $testdir/file2 | _filter_scratch
+>  	if echo "$*" | grep -q remount; then
+> -		$MOUNT_PROG $SCRATCH_MNT $*
+> +		# By default, libmount merges remount options with old mount options.
+> +		# overlayfs does not support re-configuring the same mount options.
+> +		# We workaround this problem with --options-mode ignore.
+> +		$MOUNT_PROG $SCRATCH_MNT --options-mode ignore $*
+>  		return
+>  	fi
 >  
->  echo "Check for damage"
-> -umount $SCRATCH_MNT
-> +_scratch_unmount
->  _repair_scratch_fs >> $seqres.full
+> diff --git a/tests/overlay/035 b/tests/overlay/035
+> index 0b3257c4..2a4df99a 100755
+> --- a/tests/overlay/035
+> +++ b/tests/overlay/035
+> @@ -42,7 +42,7 @@ mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
+>  # Verify that overlay is mounted read-only and that it cannot be remounted rw.
+>  _overlay_scratch_mount_opts -o"lowerdir=$lowerdir2:$lowerdir1"
+>  touch $SCRATCH_MNT/foo 2>&1 | _filter_scratch
+> -$MOUNT_PROG -o remount,rw $SCRATCH_MNT 2>&1 | _filter_ro_mount
+> +_scratch_remount rw 2>&1 | _filter_ro_mount
+>  $UMOUNT_PROG $SCRATCH_MNT
 >  
->  # success, all done
+>  # Make workdir immutable to prevent workdir re-create on mount
 > -- 
 > 2.34.1
 > 
