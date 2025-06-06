@@ -1,272 +1,153 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9331D24EABC;
-	Fri,  6 Jun 2025 07:23:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D73D97FD;
+	Fri,  6 Jun 2025 07:35:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749194622; cv=none; b=czVcvvBECfrLmwhVgiPlXnKMkr3jdHkhIAI5TGjxUactlrG0zUZuN+KOxb0y4gbD9ZSyLFVTk7azHLGx6Sr/1QeZCF4oQI8hzAP8IgwzHy7Rik5T563sIq//vSqUzrnEHItDkAd4dvAmMh0DMgPsDKq7VfGaVCKKZcJeTFPEl3Y=
+	t=1749195351; cv=none; b=jGPYgASgtXjvEg8HZ4ryFdhZB+yO/xZlOsUKPu+bL4mZ657MaMVerUeGOJiXyKBYXxHtP4gKUrqxPwRILHH8zESbtc2y/PEaCoNehj2T3glb3Sudnkbt7oHkxlO9pJ3HOwjRUl6byQrqWK3TVDXxIKjEJCOoAGLaUu+VLeYEpzY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749194622; c=relaxed/simple;
-	bh=oxhqFwSDTF8M4a6vNQ7DguBA5noSoiOQBslF2mArsOc=;
+	s=arc-20240116; t=1749195351; c=relaxed/simple;
+	bh=v9N8q6JVteMfHnV2OA+O1dSqPVkTZrNmhLQGENDC1Io=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ib881Wme0LjNenswX4KA/Vff5BCqlwWj+GtBT34kGfzBEyuMec41n1CiPDuArYqfsblhIQM+1PR0xov6WTEi2v99UGLbsMJXLlTHR98hMWKW5oRsFt/KuMlu8p1zie9yepAoXf5OA3gZEkYeUwG8tlTEh5d65xa/jsLBkJOKnP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Gu2EpcZn; arc=none smtp.client-ip=209.85.208.41
+	 To:Cc:Content-Type; b=stV+MK2B70Gf6/ZwKw28ADC7xKDj8UaTenv3Eamw9Jasg13aDTBuwKOD5CZtIZs6hZyyi1BLrlvCxrzi6kWiPx+DZe4bXntWjxEZEGs0+aXPVSg183Pg6eqvQNiSnLBEVzWr3E0wzQMia/zwX0istb6xdocpD4MgArFIbclZ6z0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F0V3//D9; arc=none smtp.client-ip=209.85.218.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Gu2EpcZn"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-60766191202so1261108a12.1;
-        Fri, 06 Jun 2025 00:23:40 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F0V3//D9"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-adb4e36904bso340456266b.1;
+        Fri, 06 Jun 2025 00:35:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1749194619; x=1749799419; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=V8/7ikf28rMiVd/A+RTwj3YheLrl5lqUjWzBM5dHf7A=;
-        b=Gu2EpcZnEPh/gcxXEsMEecRR9gT+yxe+6eeClHOyfzffjIhl/BqibWcAjYc9Qm7GXj
-         zqTPtsoZc8a9X5tcTs9nlV2lkIrHD3eCf/lxtgPOeIb+cMFpdZdj9T51Y/hfqpAMghHL
-         LIK1TIU/3ZWFDsBt44imr2bEhflzdvc0DAJLOY2L7unIcD+uOATw55J2tAt5Viju1BB6
-         mGbTusPKHsFObm3FFWdVtuKZuhpdyKFY9UNGCjeex9Hn+ekhmLcYjjwpyKuC6LfXHsyu
-         i+etMG1+lqUNnfbi4D3c1Kvj+ZwZfNau8n/5Sa7K+2u5X96wey+2LyddR9mR0gmWHyp9
-         29bw==
+        d=gmail.com; s=20230601; t=1749195348; x=1749800148; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3B44Arf5QXlToAOOYVpVALNJFgCEDJr8URLaNgTSe24=;
+        b=F0V3//D9vE87zQ35B/aDU+acbkHQy96c0hlgJ7Ll5sS4I2pwEQt6+PPFleYD28CIam
+         q41gxrwLYhRmWr6LxhfJ+aRUkalxG9NM8O1oureDIY2TLuGdIYAmJuRinghfQZqFLJiM
+         7kJGvsEFpSws6gmvseUn/pnpnmPdjfRb7c7ETZ481q2JZ0Tiz7YfU3j/C3Edb3AoWQ5A
+         FGusOI7p9uPS4+LozwV8vGKTQxgab/rHmvpkBuNvUAeb8sZF+2OnnM7AXEv+WC58fkn+
+         6Yki1BFMUwbruoZ9lAYDu/YdXNyKaiOAlefxUXuo7eFBRlS78pnek6DE3kghPbx+Ne8/
+         2XNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749194619; x=1749799419;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=V8/7ikf28rMiVd/A+RTwj3YheLrl5lqUjWzBM5dHf7A=;
-        b=QrMGR1bM9nNs8M0oMWMTj0oVbw56VUZcxUoP6r8gUeUml9ysgK0JeKz/bV18BhoEfk
-         oVKiB5/WkKxBsg1vk8G0f1akD1Fksu4EU6W3hmpWohKTf/TIdjHlNvb/E4ni0FyxrFo8
-         +L3DYHixSJU+tekuE/Nz/4SLxM6YPv+DFQarrYzCwgqxHOv3r4q4dCtoMafVbqweVZU3
-         XG2XTCEOP2Hh0wmFkkTF9/hpQZRcLL3lwfZ/3Z9vCx6Sed+NZRQVPYgkhpmzjurgOAvO
-         +5yU2YLY+894zAF8tYf8VRe44fbOQ07SimvTagXpIrWuu1uDXoHGPFIvaK2JVt1H+H7P
-         ctnQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWZ6BSotNHnbsYQ1jJ6dmhmXIJywp+dppiyxo9QJX1Wx+PZdh8BJAEJIGqJ3Sk4m6DSTcldCV8b@vger.kernel.org, AJvYcCXy2I87Bc9vZsdgBUIPEl0pUNiNyF4Yt91AMPwodfpSgw+rFUx1PScLzBSLGiUexgikFLseLDpbhk6o1vk6Uw==@vger.kernel.org
-X-Gm-Message-State: AOJu0YwyN41tEvfUi6RGRLWnTEwsjoxljp4BplaI2nXq8wXhDpwaYmgQ
-	FctcmVta8GsJF4uCfUVhHSwHaW3474qoa7huDWz7SY0WuDt2xFVOMwYcm0UnLsXzpdTeaM1/5pS
-	5sxv7YhY2s4A4QPp6y88fgnNib+td4jg=
-X-Gm-Gg: ASbGncu4cxiJX7eQ/518bHy1T650sgBQCVbbJBmRPkaMePXYGfLpf5u+qnC0BnqFPvO
-	9HsHiXtifhPWdde3j9yZ680NTHMDx8T3zhIxEEueQvZgOERGdFWTZD5IfZ8tcIfaUmiu8x/KbpI
-	jcZ9OUnVhNs9cCJfr/NS9/SL9LPU39OVLsr+sdssTWZnI=
-X-Google-Smtp-Source: AGHT+IFkL1gqjXw9SGtwmJkYISz6AkEJnRogJCUpO4pq7FaNisj2ilSlCr59jzPTr0IjlkcCg2yYgvmSP5sMjHzpXkw=
-X-Received: by 2002:a17:907:3f24:b0:ad5:43eb:d927 with SMTP id
- a640c23a62f3a-ade1a909706mr201675766b.23.1749194618269; Fri, 06 Jun 2025
- 00:23:38 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1749195348; x=1749800148;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=3B44Arf5QXlToAOOYVpVALNJFgCEDJr8URLaNgTSe24=;
+        b=w88cZbSkpQfUyn/B+k8WaLfwsLcV6iE9NqyblUbi1JQFHugrdN3Yr/M9lhI+oTOnP5
+         1bnvaDxTgkvC7VGBug3cWdMM/trh9j40+7LwF8qICskJmRNg+SEP3j/njeHIqW7kDp2E
+         v7JihGtQO+t6y4pbU1YEi7B655s44Vq2Xm+53vTwnKqPKy/W6x3yFcalBK/BdJcKlbrc
+         1ivCeE8AevIdNmxKCPRO4n5gVDwgIPteHW3QpbJrb673RT65DtYrp0FC2Q2RgFV+98aI
+         Hdjq1gvl/Y+CS3W7CUtRgQIK2g5hnKnX5a8sGKjBNxlHMC/2YPK8rZlG/EfE1wHAgbUp
+         4bIA==
+X-Forwarded-Encrypted: i=1; AJvYcCWmeRJcRnmqOYp85jUFT9sA2R8LGVKZiPhf/acDPSrgPXEuO1+4P+1smSBV2wIKNdDvHlrGOif6@vger.kernel.org, AJvYcCX1PyjHCU8DnOfaSHfDZHcY57e01JGILKNXblHcI4UdwbrlC//pWTf2i9ohPVkqhoEsgw9LC6+0i844qvbv3Q==@vger.kernel.org
+X-Gm-Message-State: AOJu0YzLuhMcLWrnui6Yg7SRXmZQ28bc0njjPnQ1Zn8LL+I9j3er8yzb
+	JymEVDdPoPRpRcQaiyHLXr1RW9c+4SRONiTThedQJ6Az2N5/oFD7VxRGGkZkCZaoiIMRecEc6g6
+	Q7sXvZUa6Stn8MufmhjIXa+S19RdtwI94g6EYpiM=
+X-Gm-Gg: ASbGncsS0FngZX+Jh06tN/8Zh9XlzQEm8UY2VVRPULKq3g+yZ0Ty/gMvLIFCCJ9E+ZO
+	ainocm9nu5tVzOS56VmZaycRspZ7u101BTlzzt7wUrQsAj9mCm34zuooHn/8mPfjt6Cg7dJejU+
+	vH3TGsBqB+NoiTcu6WLxPJ2nJ1iR0bzX4GlMj6uJUiFj8=
+X-Google-Smtp-Source: AGHT+IFab66mhYRxNZ86NFKf4CX41HwrnccLYskoEwH3USdpcoC/vMeZcxBwhrf1SFF0iZCCrQSV/s/3BAkwouB73Jw=
+X-Received: by 2002:a17:907:7f0b:b0:ad8:9257:5724 with SMTP id
+ a640c23a62f3a-ade1a9061f1mr194996366b.24.1749195347585; Fri, 06 Jun 2025
+ 00:35:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250603100745.2022891-1-amir73il@gmail.com> <20250603100745.2022891-5-amir73il@gmail.com>
- <20250605173233.ndqsjo77ds3e35p5@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxgQi6ciXtoKV7Nrw5_ECBOwS_m8h2KXT-ieJ4x4t04qag@mail.gmail.com> <20250606014531.d5t4gwx4iymqiqlo@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20250606014531.d5t4gwx4iymqiqlo@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20250603100745.2022891-1-amir73il@gmail.com> <20250603100745.2022891-2-amir73il@gmail.com>
+ <20250605175129.oqqzr5qluxv52m6b@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxg2D-ED3vy=jedEKbpEJvWBLD=QYtfp=DCU3pQGGCaGog@mail.gmail.com> <20250606011223.gx6xearyoqae5byp@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+In-Reply-To: <20250606011223.gx6xearyoqae5byp@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 6 Jun 2025 09:23:26 +0200
-X-Gm-Features: AX0GCFt0B9iYGgBFTZsNmG-xQD_zmMHOYmh1ZZ_3O-DtM-ImXF9q_FAGtt13tJI
-Message-ID: <CAOQ4uxj_rshiLUUrCVS6RO+KhCeLrrgxNH+me3K38Nhc0Byqzw@mail.gmail.com>
-Subject: Re: [PATCH v2 4/6] generic/623: do not run with overlayfs
+Date: Fri, 6 Jun 2025 09:35:36 +0200
+X-Gm-Features: AX0GCFvZyPcHgbDSY5goMTstXhSylJtLDmHkmu25qbDsIGGzT7Rm38XHVVWLMfo
+Message-ID: <CAOQ4uxh9b285dnw+SO2h6HqtNC5Xog0TQSqhFAQaV1brBnVxVQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/6] overlay: workaround libmount failure to remount,ro
 To: Zorro Lang <zlang@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
 	=?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
-	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Content-Type: multipart/mixed; boundary="000000000000ddb7350636e21b9b"
-
---000000000000ddb7350636e21b9b
+	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org, 
+	Karel Zak <kzak@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jun 6, 2025 at 3:45=E2=80=AFAM Zorro Lang <zlang@redhat.com> wrote:
+On Fri, Jun 6, 2025 at 3:12=E2=80=AFAM Zorro Lang <zlang@redhat.com> wrote:
 >
-> On Thu, Jun 05, 2025 at 08:38:30PM +0200, Amir Goldstein wrote:
-> > On Thu, Jun 5, 2025 at 7:32=E2=80=AFPM Zorro Lang <zlang@redhat.com> wr=
+> On Thu, Jun 05, 2025 at 08:30:53PM +0200, Amir Goldstein wrote:
+> > On Thu, Jun 5, 2025 at 7:51=E2=80=AFPM Zorro Lang <zlang@redhat.com> wr=
 ote:
 > > >
-> > > On Tue, Jun 03, 2025 at 12:07:43PM +0200, Amir Goldstein wrote:
-> > > > This test performs shutdown via xfs_io -c shutdown.
+> > > On Tue, Jun 03, 2025 at 12:07:40PM +0200, Amir Goldstein wrote:
+> > > > libmount >=3D v1.39 calls several unneeded fsconfig() calls to reco=
+nfigure
+> > > > lowerdir/upperdir when user requests only -o remount,ro.
 > > > >
-> > > > Overlayfs tests can use _scratch_shutdown, but they cannot use
-> > > > "-c shutdown" xfs_io command without jumping through hoops, so by
-> > > > default we do not support it.
+> > > > Those calls fail because overlayfs does not allow making any config
+> > > > changes with new mount api, besides MS_RDONLY.
 > > > >
-> > > > Add this condition to _require_xfs_io_command and add the require
-> > > > statement to test generic/623 so it wont run with overlayfs.
+> > > > We workaround this problem with --options-mode ignore.
 > > > >
 > > > > Reported-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> > > > Tested-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> > > > Suggested-by: Karel Zak <kzak@redhat.com>
 > > > > Link: https://lore.kernel.org/linux-fsdevel/20250521-ovl_ro-v1-1-23=
 50b1493d94@igalia.com/
+> > > > Link: https://lore.kernel.org/fstests/CAJfpegtJ3SDKmC80B4AfWiC3JmtW=
+dW2+78fRZVtsuhe-wSRPvg@mail.gmail.com/
 > > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > > > > ---
-> > > >  common/rc         | 8 ++++++++
-> > > >  tests/generic/623 | 1 +
-> > > >  2 files changed, 9 insertions(+)
 > > > >
-> > > > diff --git a/common/rc b/common/rc
-> > > > index d8ee8328..bffd576a 100644
-> > > > --- a/common/rc
-> > > > +++ b/common/rc
-> > > > @@ -3033,6 +3033,14 @@ _require_xfs_io_command()
-> > > >               touch $testfile
-> > > >               testio=3D`$XFS_IO_PROG -c "syncfs" $testfile 2>&1`
-> > > >               ;;
-> > > > +     "shutdown")
-> > > > +             if [ $FSTYP =3D "overlay" ]; then
-> > > > +                     # Overlayfs tests can use _scratch_shutdown, =
-but they
-> > > > +                     # cannot use "-c shutdown" xfs_io command wit=
-hout jumping
-> > > > +                     # through hoops, so by default we do not supp=
-ort it.
-> > > > +                     _notrun "xfs_io $command not supported on $FS=
-TYP"
-> > > > +             fi
-> > > > +             ;;
+> > > > Changes since v1 [1]:
+> > > > - Change workaround from LIBMOUNT_FORCE_MOUNT2 to --options-mode=3D=
+ignore
+> > > >
+> > > > [1] https://lore.kernel.org/fstests/20250526143500.1520660-1-amir73=
+il@gmail.com/
 > > >
-> > > Hmm... I'm not sure this's a good way.
-> > > For example, overlay/087 does xfs_io shutdown too,
+> > > I'm not sure if I understand clearly. Does overlay list are fixing th=
+is issue
+> > > on kernel side, then providing a workaround to fstests to avoid the i=
+ssue be
+> > > triggered too?
+> > >
 > >
-> > Yes it does but look at the effort needed to do that properly:
-> >
-> > $XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c 'shutdown -f
-> > ' -c close -c syncfs $SCRATCH_MNT | \
-> >         grep -vF '[00'
-> >
-> > > generally it should calls
-> > > _require_xfs_io_command "shutdown" although it doesn't. If someone ov=
-erlay
-> > > test case hope to test as o/087 does, and it calls _require_xfs_io_co=
-mmand "shutdown",
-> > > then it'll be _notrun.
-> >
-> > If someone knows enough to perform the dance above with _scratch_shutdo=
-wn_handle
-> > then that someone should know enough not to call
-> > _require_xfs_io_command "shutdown".
-> > OTOH, if someone doesn't know then default is to not run.
+> > Noone agreed to fix it on the kernel side.
+> > At least not yet.
 >
-> Sure, I can understand that, just this logic is a bit *obscure* :) It sou=
-nds like:
-> "If an overlay test case wants to do xfs_io shutdown, it shouldn't call
-> _require_xfs_io_command "shutdown". Or call that to skip a shutdown test
-> on overlay :)"
->
-> And the expected result of _require_xfs_io_command "shutdown" will be tot=
-ally
-> opposite with _require_scratch_shutdown on overlay, that might be confuse=
-d.
-> Can we have a clearer way to deal with that?
->
+> If so, I have two questions:)
+> 1) Will overlay fix it on kernel or mount util side?
 
-I don't really understand the confusion.
+This is not known at this time.
 
-_require_xfs_io_command "shutdown"
+> 2) Do you plan to keep this workaround until the issue be fixed in one da=
+y?
+>    Then revert this workaround?
 
-Like any other _require statement
-requires support for what this test does -
-meaning that a test does xfs_io -c shutdown, just like test generic/623 doe=
-s
+Maybe, but keep in mind that the workaround is simply
+telling the library what we want to do.
 
-and _require_scratch_shutdown implies that the test does
-_scratch_shutdown
+We want to remount overlay ro and nothing else and that is exactly
+what  "--options-mode ignore" tells the library to do.
 
-FSTYP overlay happens to be able to do _scratch_shutdown
-but not able to do xfs_io -c shutdown $SCRATCH_MNT
+I could have just as well written a test helper src/remount_rdonly.c
+and not have to deal with the question of which libmount version
+the test machine is using.
 
-The different _require statements simply reflect reality as it is.
+Note that the tests in question are not intended to test the remount,ro
+functionality itself, they are intended to test the behavior of fs in
+some scenarios involving a rdonly mount.
 
-We can solve the confused about o/087 not having
-_require_xfs_io_command "shutdown"
-by moving the special hand crafted xfs_io command in o/087
-to a helper _scratch_shutdown_and_syncfs to hide those internal
-implementation details from test writers.
-See attached patch.
+I do not want to lose important test coverage of these scenarios
+because of regressions in the kernel/libmount API.
+
+We can add a new test that ONLY tests remount,ro and let that
+test fail on overlayfs to keep us reminded of the real regresion that
+needs to be fixed, but the "workaround" or as I prefer to call it
+"using the right tool for the test case" has to stay for those other tests.
 
 Thanks,
 Amir.
-
---000000000000ddb7350636e21b9b
-Content-Type: text/x-patch; charset="US-ASCII"; 
-	name="0001-fstests-add-helper-_scratch_shutdown_and_syncfs.patch"
-Content-Disposition: attachment; 
-	filename="0001-fstests-add-helper-_scratch_shutdown_and_syncfs.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_mbkh9qf20>
-X-Attachment-Id: f_mbkh9qf20
-
-RnJvbSAzYjRkNmZmM2NlOTA5ZmE0YjM4NWE4ZDA3NWJiYWMxZjMyYjgyY2I4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBGcmksIDYgSnVuIDIwMjUgMDk6MTE6MTcgKzAyMDAKU3ViamVjdDogW1BBVENIXSBmc3Rl
-c3RzOiBhZGQgaGVscGVyIF9zY3JhdGNoX3NodXRkb3duX2FuZF9zeW5jZnMKClRlc3QgeGZzLzU0
-NiBoYXMgdG8gY2hhaW4gc3luY2ZzIGFmdGVyIHNodXRkb3duIGFuZCBjYW5ub3QKdXNlIHRoZSBf
-c2NyYXRjaF9zaGl0ZG93biBoZWxwZXIsIGJlY2F1c2UgYWZ0ZXIgc2h1dGRvd24gYSBmZApjYW5u
-b3QgYmUgb3BlbmVkIHRvIGV4ZWN1dGUgc3luY2ZzIG9uLgoKVGhlIHhmc19pbyBjb21tYW5kIG9m
-IGNoYWluaW5nIHN5bmNmcyBhZnRlciBzaHV0ZG93biBpcyByYXRoZXIKbW9yZSBjb21wbGV4IHRv
-IGV4ZWN1dGUgaW4gdGhlIGRlcml2ZWQgb3ZlcmxheWZzIHRlc3Qgb3ZlcmxheS8wODcuCgpBZGQg
-YSBoZWxwZXIgdG8gYWJzdHJhY3QgdGhpcyBjb21wbGV4aXR5IGZyb20gdGVzdCB3cml0ZXJzLgpB
-ZGQgYSBfcmVxdWlyZSBzdGF0ZW1lbnQgdG8gbWF0Y2guCgpTaWduZWQtb2ZmLWJ5OiBBbWlyIEdv
-bGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgotLS0KIGNvbW1vbi9yYyAgICAgICAgIHwgMjcg
-KysrKysrKysrKysrKysrKysrKysrKysrKysrCiB0ZXN0cy9vdmVybGF5LzA4NyB8IDEzICsrKy0t
-LS0tLS0tLS0KIHRlc3RzL3hmcy81NDYgICAgIHwgIDUgKystLS0KIDMgZmlsZXMgY2hhbmdlZCwg
-MzIgaW5zZXJ0aW9ucygrKSwgMTMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvY29tbW9uL3Jj
-IGIvY29tbW9uL3JjCmluZGV4IDk2ZDY1ZDFjLi43NzY4M2I4MiAxMDA2NDQKLS0tIGEvY29tbW9u
-L3JjCisrKyBiL2NvbW1vbi9yYwpAQCAtNTk1LDYgKzU5NSwyNyBAQCBfc2NyYXRjaF9zaHV0ZG93
-bl9oYW5kbGUoKQogCWZpCiB9CiAKK19zY3JhdGNoX3NodXRkb3duX2FuZF9zeW5jZnMoKQorewor
-CWlmIFsgJEZTVFlQID0gIm92ZXJsYXkiIF07IHRoZW4KKwkJIyBJbiBsYWdhY3kgb3ZlcmxheSB1
-c2FnZSwgaXQgbWF5IHNwZWNpZnkgZGlyZWN0b3J5IGFzCisJCSMgU0NSQVRDSF9ERVYsIGluIHRo
-aXMgY2FzZSBPVkxfQkFTRV9TQ1JBVENIX0RFVgorCQkjIHdpbGwgYmUgbnVsbCwgc28gY2hlY2sg
-T1ZMX0JBU0VfU0NSQVRDSF9ERVYgYmVmb3JlCisJCSMgcnVubmluZyBzaHV0ZG93biB0byBhdm9p
-ZCBzaHV0dGluZyBkb3duIGJhc2UgZnMgYWNjaWRlbnRseS4KKwkJaWYgWyAteiAkT1ZMX0JBU0Vf
-U0NSQVRDSF9ERVYgXTsgdGhlbgorCQkJX2ZhaWwgIl9zY3JhdGNoX3NodXRkb3duOiBjYWxsIF9y
-ZXF1aXJlX3NjcmF0Y2hfc2h1dGRvd24gZmlyc3QgaW4gdGVzdCIKKwkJZmkKKwkJIyBUaGlzIGNv
-bW1hbmQgaXMgY29tcGxpY2F0ZWQgYSBiaXQgYmVjYXVzZSBpbiB0aGUgY2FzZSBvZiBvdmVybGF5
-ZnMgdGhlCisJCSMgc3luY2ZzIGZkIG5lZWRzIHRvIGJlIG9wZW5lZCBiZWZvcmUgc2h1dGRvd24g
-YW5kIGl0IGlzIGRpZmZlcmVudCBmcm9tIHRoZQorCQkjIHNodXRkb3duIGZkLCBzbyB3ZSBjYW5u
-b3QgdXNlIHRoZSBfc2NyYXRjaF9zaHV0ZG93bigpIGhlbHBlci4KKwkJIyBGaWx0ZXIgb3V0IHhm
-c19pbyBvdXRwdXQgb2YgYWN0aXZlIGZkcy4KKwkJJFhGU19JT19QUk9HIC14IC1jICJvcGVuICQo
-X3NjcmF0Y2hfc2h1dGRvd25faGFuZGxlKSIgLWMgJ3NodXRkb3duIC1mICcgXAorCQkJCS1jIGNs
-b3NlIC1jIHN5bmNmcyAkU0NSQVRDSF9NTlQgfCBncmVwIC12RiAnWzAwJworCWVsc2UKKwkJJFhG
-U19JT19QUk9HIC14IC1jICdzaHV0ZG93biAtZiAnIC1jIHN5bmNmcyAkU0NSQVRDSF9NTlQKKwlm
-aQorfQorCiBfbW92ZV9tb3VudCgpCiB7CiAJbG9jYWwgbW50PSQxCkBAIC00MTEwLDYgKzQxMzEs
-MTIgQEAgX3JlcXVpcmVfc2NyYXRjaF9zaHV0ZG93bigpCiAJX3NjcmF0Y2hfdW5tb3VudAogfQog
-CitfcmVxdWlyZV9zY3JhdGNoX3NodXRkb3duX2FuZF9zeW5jZnMoKQoreworCV9yZXF1aXJlX3hm
-c19pb19jb21tYW5kIHN5bmNmcworCV9yZXF1aXJlX3NjcmF0Y2hfc2h1dGRvd24KK30KKwogX2No
-ZWNrX3NfZGF4KCkKIHsKIAlsb2NhbCB0YXJnZXQ9JDEKZGlmZiAtLWdpdCBhL3Rlc3RzL292ZXJs
-YXkvMDg3IGIvdGVzdHMvb3ZlcmxheS8wODcKaW5kZXggYTVhZmIwZDUuLjJhZDA2OWRiIDEwMDc1
-NQotLS0gYS90ZXN0cy9vdmVybGF5LzA4NworKysgYi90ZXN0cy9vdmVybGF5LzA4NwpAQCAtMzIs
-OSArMzIsOCBAQCBfYmVnaW5fZnN0ZXN0IGF1dG8gcXVpY2sgbW91bnQgc2h1dGRvd24KIAogCiAj
-IE1vZGlmeSBhcyBhcHByb3ByaWF0ZS4KLV9yZXF1aXJlX3hmc19pb19jb21tYW5kIHN5bmNmcwog
-X3JlcXVpcmVfc2NyYXRjaF9ub2NoZWNrCi1fcmVxdWlyZV9zY3JhdGNoX3NodXRkb3duCitfcmVx
-dWlyZV9zY3JhdGNoX3NodXRkb3duX2FuZF9zeW5jZnMKIAogWyAiJE9WTF9CQVNFX0ZTVFlQIiA9
-PSAieGZzIiBdIHx8IFwKIAlfbm90cnVuICJiYXNlIGZzICRPVkxfQkFTRV9GU1RZUCBoYXMgdW5r
-bm93biBiZWhhdmlvciB3aXRoIHN5bmNmcyBhZnRlciBzaHV0ZG93biIKQEAgLTQzLDE5ICs0Miwx
-MyBAQCBfcmVxdWlyZV9zY3JhdGNoX3NodXRkb3duCiAjIGJvdGhlciBjaGVja2luZyB0aGUgZmls
-ZXN5c3RlbSBhZnRlcndhcmRzIHNpbmNlIHdlIG5ldmVyIHdyb3RlIGFueXRoaW5nLgogZWNobyAi
-PT09IHN5bmNmcyBhZnRlciBzaHV0ZG93biIKIF9zY3JhdGNoX21vdW50Ci0jIFRoaXMgY29tbWFu
-ZCBpcyBjb21wbGljYXRlZCBhIGJpdCBiZWNhdXNlIGluIHRoZSBjYXNlIG9mIG92ZXJsYXlmcyB0
-aGUKLSMgc3luY2ZzIGZkIG5lZWRzIHRvIGJlIG9wZW5lZCBiZWZvcmUgc2h1dGRvd24gYW5kIGl0
-IGlzIGRpZmZlcmVudCBmcm9tIHRoZQotIyBzaHV0ZG93biBmZCwgc28gd2UgY2Fubm90IHVzZSB0
-aGUgX3NjcmF0Y2hfc2h1dGRvd24oKSBoZWxwZXIuCi0jIEZpbHRlciBvdXQgeGZzX2lvIG91dHB1
-dCBvZiBhY3RpdmUgZmRzLgotJFhGU19JT19QUk9HIC14IC1jICJvcGVuICQoX3NjcmF0Y2hfc2h1
-dGRvd25faGFuZGxlKSIgLWMgJ3NodXRkb3duIC1mICcgLWMgY2xvc2UgLWMgc3luY2ZzICRTQ1JB
-VENIX01OVCB8IFwKLQlncmVwIC12RiAnWzAwJworX3NjcmF0Y2hfc2h1dGRvd25fYW5kX3N5bmNm
-cwogCiAjIE5vdyByZXBlYXQgdGhlIHNhbWUgdGVzdCB3aXRoIGEgdm9sYXRpbGUgb3ZlcmxheWZz
-IG1vdW50IGFuZCBleHBlY3Qgbm8gZXJyb3IKIF9zY3JhdGNoX3VubW91bnQKIGVjaG8gIj09PSBz
-eW5jZnMgYWZ0ZXIgc2h1dGRvd24gKHZvbGF0aWxlKSIKIF9zY3JhdGNoX21vdW50IC1vIHZvbGF0
-aWxlCi0kWEZTX0lPX1BST0cgLXggLWMgIm9wZW4gJChfc2NyYXRjaF9zaHV0ZG93bl9oYW5kbGUp
-IiAtYyAnc2h1dGRvd24gLWYgJyAtYyBjbG9zZSAtYyBzeW5jZnMgJFNDUkFUQ0hfTU5UIHwgXAot
-CWdyZXAgLXZGICdbMDAnCitfc2NyYXRjaF9zaHV0ZG93bl9hbmRfc3luY2ZzCiAKICMgc3VjY2Vz
-cywgYWxsIGRvbmUKIHN0YXR1cz0wCmRpZmYgLS1naXQgYS90ZXN0cy94ZnMvNTQ2IGIvdGVzdHMv
-eGZzLzU0NgppbmRleCAzMTZmZmM1MC4uYzUwZDQxYTYgMTAwNzU1Ci0tLSBhL3Rlc3RzL3hmcy81
-NDYKKysrIGIvdGVzdHMveGZzLzU0NgpAQCAtMjcsMTQgKzI3LDEzIEBAIF9iZWdpbl9mc3Rlc3Qg
-YXV0byBxdWljayBzaHV0ZG93bgogCiAKICMgTW9kaWZ5IGFzIGFwcHJvcHJpYXRlLgotX3JlcXVp
-cmVfeGZzX2lvX2NvbW1hbmQgc3luY2ZzCiBfcmVxdWlyZV9zY3JhdGNoX25vY2hlY2sKLV9yZXF1
-aXJlX3NjcmF0Y2hfc2h1dGRvd24KK19yZXF1aXJlX3NjcmF0Y2hfc2h1dGRvd25fYW5kX3N5bmNm
-cwogCiAjIFJldXNlIHRoZSBmcyBmb3JtYXR0ZWQgd2hlbiB3ZSBjaGVja2VkIGZvciB0aGUgc2h1
-dGRvd24gaW9jdGwsIGFuZCBkb24ndAogIyBib3RoZXIgY2hlY2tpbmcgdGhlIGZpbGVzeXN0ZW0g
-YWZ0ZXJ3YXJkcyBzaW5jZSB3ZSBuZXZlciB3cm90ZSBhbnl0aGluZy4KIF9zY3JhdGNoX21vdW50
-Ci0kWEZTX0lPX1BST0cgLXggLWMgJ3NodXRkb3duIC1mICcgLWMgc3luY2ZzICRTQ1JBVENIX01O
-VAorX3NjcmF0Y2hfc2h1dGRvd25fYW5kX3N5bmNmcwogCiAjIHN1Y2Nlc3MsIGFsbCBkb25lCiBz
-dGF0dXM9MAotLSAKMi4zNC4xCgo=
---000000000000ddb7350636e21b9b--
