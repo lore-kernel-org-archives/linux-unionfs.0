@@ -1,153 +1,84 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D73D97FD;
-	Fri,  6 Jun 2025 07:35:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A97C81D5CE0
+	for <linux-unionfs@vger.kernel.org>; Fri,  6 Jun 2025 09:33:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749195351; cv=none; b=jGPYgASgtXjvEg8HZ4ryFdhZB+yO/xZlOsUKPu+bL4mZ657MaMVerUeGOJiXyKBYXxHtP4gKUrqxPwRILHH8zESbtc2y/PEaCoNehj2T3glb3Sudnkbt7oHkxlO9pJ3HOwjRUl6byQrqWK3TVDXxIKjEJCOoAGLaUu+VLeYEpzY=
+	t=1749202436; cv=none; b=s1GmVjVCl51trhRuipMNy99B8pYQkqcKEhEyfElhmaCc4H+egR0Ijtv2F/6DCBhOaRh14gU54MpUNFdyWOqft+tlpGpsbtW+wT2FbkdbVbbvgMeySHxFFkRzAKw2V7mH6GTrbMKTa+JF2f1Gr2yUDCi5i3CD5edWjCA6WgZvqTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749195351; c=relaxed/simple;
-	bh=v9N8q6JVteMfHnV2OA+O1dSqPVkTZrNmhLQGENDC1Io=;
+	s=arc-20240116; t=1749202436; c=relaxed/simple;
+	bh=NCD3FsHqX/tDsdqDrxlXUdzTVx+2sqRGtUtrxLK6jAc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=stV+MK2B70Gf6/ZwKw28ADC7xKDj8UaTenv3Eamw9Jasg13aDTBuwKOD5CZtIZs6hZyyi1BLrlvCxrzi6kWiPx+DZe4bXntWjxEZEGs0+aXPVSg183Pg6eqvQNiSnLBEVzWr3E0wzQMia/zwX0istb6xdocpD4MgArFIbclZ6z0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F0V3//D9; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=LTp85mLTHkqC6B/JtzMvMtiZZIpDqHE6qgeZNRCimS3nLfVFQ74IKIsR/jRRdsp86h5/J8nQ3c7eHqB3Oqab27wQrpbEFXr0wwf3+OPuhWcFvGxYFMwjbbQ/dKTFLsZFz+kl6gRdQT874iq9M6we3zAQ3lsFxcaoJUD/wL9X5FY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=lvAG+tHk; arc=none smtp.client-ip=209.85.160.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F0V3//D9"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-adb4e36904bso340456266b.1;
-        Fri, 06 Jun 2025 00:35:49 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="lvAG+tHk"
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-4a4312b4849so23564211cf.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 06 Jun 2025 02:33:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1749195348; x=1749800148; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3B44Arf5QXlToAOOYVpVALNJFgCEDJr8URLaNgTSe24=;
-        b=F0V3//D9vE87zQ35B/aDU+acbkHQy96c0hlgJ7Ll5sS4I2pwEQt6+PPFleYD28CIam
-         q41gxrwLYhRmWr6LxhfJ+aRUkalxG9NM8O1oureDIY2TLuGdIYAmJuRinghfQZqFLJiM
-         7kJGvsEFpSws6gmvseUn/pnpnmPdjfRb7c7ETZ481q2JZ0Tiz7YfU3j/C3Edb3AoWQ5A
-         FGusOI7p9uPS4+LozwV8vGKTQxgab/rHmvpkBuNvUAeb8sZF+2OnnM7AXEv+WC58fkn+
-         6Yki1BFMUwbruoZ9lAYDu/YdXNyKaiOAlefxUXuo7eFBRlS78pnek6DE3kghPbx+Ne8/
-         2XNw==
+        d=szeredi.hu; s=google; t=1749202433; x=1749807233; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=kjjJoIKAqPL4Fi3nMaT3Fad+/StO4aRC+TRTWdCbeTc=;
+        b=lvAG+tHkEIFwrw/yQXFUo0RH+vfERl2p/X23Pzswzv4TaPWDxbepHDZIr3RmqV7aCq
+         eaYotMiBY26iIMwt2AJx45me/PQfzUI+tHBfPK4n3fEhAmGz0+VHSoA3l8qW+pik3ND1
+         xvYFl1SOljGyKrq/Hwp/2q+u8k3l9uDXzQvJ8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749195348; x=1749800148;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=3B44Arf5QXlToAOOYVpVALNJFgCEDJr8URLaNgTSe24=;
-        b=w88cZbSkpQfUyn/B+k8WaLfwsLcV6iE9NqyblUbi1JQFHugrdN3Yr/M9lhI+oTOnP5
-         1bnvaDxTgkvC7VGBug3cWdMM/trh9j40+7LwF8qICskJmRNg+SEP3j/njeHIqW7kDp2E
-         v7JihGtQO+t6y4pbU1YEi7B655s44Vq2Xm+53vTwnKqPKy/W6x3yFcalBK/BdJcKlbrc
-         1ivCeE8AevIdNmxKCPRO4n5gVDwgIPteHW3QpbJrb673RT65DtYrp0FC2Q2RgFV+98aI
-         Hdjq1gvl/Y+CS3W7CUtRgQIK2g5hnKnX5a8sGKjBNxlHMC/2YPK8rZlG/EfE1wHAgbUp
-         4bIA==
-X-Forwarded-Encrypted: i=1; AJvYcCWmeRJcRnmqOYp85jUFT9sA2R8LGVKZiPhf/acDPSrgPXEuO1+4P+1smSBV2wIKNdDvHlrGOif6@vger.kernel.org, AJvYcCX1PyjHCU8DnOfaSHfDZHcY57e01JGILKNXblHcI4UdwbrlC//pWTf2i9ohPVkqhoEsgw9LC6+0i844qvbv3Q==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzLuhMcLWrnui6Yg7SRXmZQ28bc0njjPnQ1Zn8LL+I9j3er8yzb
-	JymEVDdPoPRpRcQaiyHLXr1RW9c+4SRONiTThedQJ6Az2N5/oFD7VxRGGkZkCZaoiIMRecEc6g6
-	Q7sXvZUa6Stn8MufmhjIXa+S19RdtwI94g6EYpiM=
-X-Gm-Gg: ASbGncsS0FngZX+Jh06tN/8Zh9XlzQEm8UY2VVRPULKq3g+yZ0Ty/gMvLIFCCJ9E+ZO
-	ainocm9nu5tVzOS56VmZaycRspZ7u101BTlzzt7wUrQsAj9mCm34zuooHn/8mPfjt6Cg7dJejU+
-	vH3TGsBqB+NoiTcu6WLxPJ2nJ1iR0bzX4GlMj6uJUiFj8=
-X-Google-Smtp-Source: AGHT+IFab66mhYRxNZ86NFKf4CX41HwrnccLYskoEwH3USdpcoC/vMeZcxBwhrf1SFF0iZCCrQSV/s/3BAkwouB73Jw=
-X-Received: by 2002:a17:907:7f0b:b0:ad8:9257:5724 with SMTP id
- a640c23a62f3a-ade1a9061f1mr194996366b.24.1749195347585; Fri, 06 Jun 2025
- 00:35:47 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1749202433; x=1749807233;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=kjjJoIKAqPL4Fi3nMaT3Fad+/StO4aRC+TRTWdCbeTc=;
+        b=tJ/WerDnAh6UqMyDSG1tsMuAUI6YsLckDu5FH/NXHIuziThiAtV9SG0MPTATDs+6Ww
+         zWMS12LLMAU7LmOYEoy4+m2SSxsIMFOz+yra3KJa/Q/q7wevG5UTo/XuduLo1lFis8MR
+         zW0niEQCUTv6dpj5ECyYvxWlifTqo0I41nn1tEJ27/ojwWbAXpKkOaaVAa8V8JAt2cL0
+         TL21RcoDwGPzw89I34Ykfc3weElZNoiWCM7Dzbrbd5MNWy2RFX/A09oDwUtzWWOJ/R8n
+         dbWO5SnAO801VCU7Zr9YkI482/OEjak+xAUtvQdGhABbBW5Qx9lqJrzVr0eN0yRISUz8
+         q0eA==
+X-Forwarded-Encrypted: i=1; AJvYcCUTNzSPS7fvOzehjXhaQ7D2CbzO3XlnW/xWyZd/2BZimv593QTgGAMnxMm6eeMfOJbSZRgpY9aVy6v1O21W@vger.kernel.org
+X-Gm-Message-State: AOJu0YzUXL2zbLtQWze2QCbDVnoC7m51XBsb6Yit1m2Vi4cQ5BNRxcQI
+	0501JFB1YaQvD+ERokRPCvsZatreeOsGtfBw/b/fqycVj228PtCighJuwo61nI4Jks01NVGDB3G
+	NWqS/ft7uNcZ8FBwiEx/Oj20ERczGKxxC4tmBle8d9Q==
+X-Gm-Gg: ASbGncvk4JcQE3dVoLqMJU6f2hZ7F7/TtLvpzTwTy5TnyUU0pdPiyZIwkMqCEoxcT/C
+	79N58EIaMhMgKs27iEnm/YW3isSzi2R7GQoO8C54bvuS4mooUm01Xh9ho8Tf584MgKj0VP6yAfw
+	9oOK6GaYL+sXPqNactgkYcBiwVl03qkSk=
+X-Google-Smtp-Source: AGHT+IEpD8A+u93yY7dMI4QI7COmSAbaXPHLO6KjHqBSEgUYxk/Jw0ZYl1TrJ9sLHanEFIt9Z9r1xEAOroted7uPQME=
+X-Received: by 2002:a05:622a:428c:b0:48e:1f6c:227b with SMTP id
+ d75a77b69052e-4a5b9a47e1amr44216851cf.26.1749202433527; Fri, 06 Jun 2025
+ 02:33:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250603100745.2022891-1-amir73il@gmail.com> <20250603100745.2022891-2-amir73il@gmail.com>
- <20250605175129.oqqzr5qluxv52m6b@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxg2D-ED3vy=jedEKbpEJvWBLD=QYtfp=DCU3pQGGCaGog@mail.gmail.com> <20250606011223.gx6xearyoqae5byp@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20250606011223.gx6xearyoqae5byp@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 6 Jun 2025 09:35:36 +0200
-X-Gm-Features: AX0GCFvZyPcHgbDSY5goMTstXhSylJtLDmHkmu25qbDsIGGzT7Rm38XHVVWLMfo
-Message-ID: <CAOQ4uxh9b285dnw+SO2h6HqtNC5Xog0TQSqhFAQaV1brBnVxVQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/6] overlay: workaround libmount failure to remount,ro
-To: Zorro Lang <zlang@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
-	=?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
-	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org, 
-	Karel Zak <kzak@redhat.com>
+References: <CAJfpegvB3At5Mm54eDuNVspuNtkhoJwPH+HcOCWm7j-CSQ1jbw@mail.gmail.com>
+ <CAHk-=wgH174aR4HnpmV7yVYVjS7VmSRC31md5di7_Cr_v0Afqg@mail.gmail.com>
+ <CAOQ4uxjXvcj8Vf3y81KJCbn6W5CSm9fFofV8P5ihtcZ=zYSREA@mail.gmail.com> <CAJfpegutprdJ8LPsKGG-yNi9neC65Phhf67nLuL+5a4xGhpkZA@mail.gmail.com>
+In-Reply-To: <CAJfpegutprdJ8LPsKGG-yNi9neC65Phhf67nLuL+5a4xGhpkZA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 6 Jun 2025 11:33:42 +0200
+X-Gm-Features: AX0GCFvFo8VWZRAyQvoO_OwOv8y44RwyQfaZo7GsgVMP1nOljN6vif8ZNW5sSOg
+Message-ID: <CAJfpegu1BAVsW5duT-HoMGiSXNvj2VsLNfTuzvF1-RLyVLDdTA@mail.gmail.com>
+Subject: Re: [GIT PULL] overlayfs update for 6.16
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, 
+	overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jun 6, 2025 at 3:12=E2=80=AFAM Zorro Lang <zlang@redhat.com> wrote:
->
-> On Thu, Jun 05, 2025 at 08:30:53PM +0200, Amir Goldstein wrote:
-> > On Thu, Jun 5, 2025 at 7:51=E2=80=AFPM Zorro Lang <zlang@redhat.com> wr=
-ote:
-> > >
-> > > On Tue, Jun 03, 2025 at 12:07:40PM +0200, Amir Goldstein wrote:
-> > > > libmount >=3D v1.39 calls several unneeded fsconfig() calls to reco=
-nfigure
-> > > > lowerdir/upperdir when user requests only -o remount,ro.
-> > > >
-> > > > Those calls fail because overlayfs does not allow making any config
-> > > > changes with new mount api, besides MS_RDONLY.
-> > > >
-> > > > We workaround this problem with --options-mode ignore.
-> > > >
-> > > > Reported-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> > > > Suggested-by: Karel Zak <kzak@redhat.com>
-> > > > Link: https://lore.kernel.org/linux-fsdevel/20250521-ovl_ro-v1-1-23=
-50b1493d94@igalia.com/
-> > > > Link: https://lore.kernel.org/fstests/CAJfpegtJ3SDKmC80B4AfWiC3JmtW=
-dW2+78fRZVtsuhe-wSRPvg@mail.gmail.com/
-> > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > > ---
-> > > >
-> > > > Changes since v1 [1]:
-> > > > - Change workaround from LIBMOUNT_FORCE_MOUNT2 to --options-mode=3D=
-ignore
-> > > >
-> > > > [1] https://lore.kernel.org/fstests/20250526143500.1520660-1-amir73=
-il@gmail.com/
-> > >
-> > > I'm not sure if I understand clearly. Does overlay list are fixing th=
-is issue
-> > > on kernel side, then providing a workaround to fstests to avoid the i=
-ssue be
-> > > triggered too?
-> > >
-> >
-> > Noone agreed to fix it on the kernel side.
-> > At least not yet.
->
-> If so, I have two questions:)
-> 1) Will overlay fix it on kernel or mount util side?
+On Fri, 6 Jun 2025 at 08:36, Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-This is not known at this time.
+> I'll redo the PR with your patch.
 
-> 2) Do you plan to keep this workaround until the issue be fixed in one da=
-y?
->    Then revert this workaround?
+Pushed to #overlayfs-next.
 
-Maybe, but keep in mind that the workaround is simply
-telling the library what we want to do.
-
-We want to remount overlay ro and nothing else and that is exactly
-what  "--options-mode ignore" tells the library to do.
-
-I could have just as well written a test helper src/remount_rdonly.c
-and not have to deal with the question of which libmount version
-the test machine is using.
-
-Note that the tests in question are not intended to test the remount,ro
-functionality itself, they are intended to test the behavior of fs in
-some scenarios involving a rdonly mount.
-
-I do not want to lose important test coverage of these scenarios
-because of regressions in the kernel/libmount API.
-
-We can add a new test that ONLY tests remount,ro and let that
-test fail on overlayfs to keep us reminded of the real regresion that
-needs to be fixed, but the "workaround" or as I prefer to call it
-"using the right tool for the test case" has to stay for those other tests.
+I'll drop this from the PR, since it's just a cleanup.  It still won't
+break anything (and that's what I meant by "trivial"), but it can wait
+a cycle or at least a few rc's.
 
 Thanks,
-Amir.
+Miklos
