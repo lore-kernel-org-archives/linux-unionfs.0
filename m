@@ -1,96 +1,106 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D254E26ACD
-	for <linux-unionfs@vger.kernel.org>; Sun,  8 Jun 2025 14:58:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 014042AE6D;
+	Sun,  8 Jun 2025 23:10:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749394716; cv=none; b=mn1HvY7y3LddvDA0rFNQel1No0B63voTIPYQsgRuZ/CkNXXWJtOm5Y6aFgVhIniZyHMHgC4Kw79647rvp19JLBDZWrUIAPSrhksWgL7SvVf0D2MI0Bv7bGQ6h5vwN+tV+vfeQeIMkP8MeJmHwSJoWDXYiiOo3lh7ZgtJpo7CkI8=
+	t=1749424212; cv=none; b=KMl2p8ka/CniLNHbaygEdQw76t5PC9+wiL1ZjyBMHb9UJd3E18sRK3VCZWhD6DVK7zxQMYGmeTY+RoWQZU/9GradBQ36Tg3UpkpaKMGocFt10h9PEuNgthylWErbSl0xBLgcYXvBbBSjyVjFxaEA8kJzKXJcTQNuDjRuZhWypFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749394716; c=relaxed/simple;
-	bh=5Z1pYM3g097do58ZrkE9xezPcVfwaTQeCdF+KsiLtEQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=rilkTt2oLWBe6YGIPGQPJ171ruMvAlLgdfyuYItxO086hZ9VFdZXUtl/BLNhdhZlHClOmV3qCpNBG6K8TiQl3sDlkusCJfqOlluXBra7y3BWZO2gt5rFwQIX78ms2oTZQTS+eszgA7LqdlnIuzzKn0OcZn6efdlum60oF6M2f8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Qpel3aX2; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Qpel3aX2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1749394713;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-	bh=1MHolxAo5E7JZonvdA9Y3lwdbEbD6V98FiPVx/5z218=;
-	b=Qpel3aX2j97b4enRcec+Y2JrsizDNKee/ZZAWpqHvV2UUiLg+SDb/N0CSa7pG2s0NE7InQ
-	L8nraU113n/w6KnnHNl4SImY2G45JeE8nYgIuZoAdFJEQ2OcrfWO6D5oepHDHAgznXV2JB
-	bEm5YJMDodeLBfGgCvL/7hsvpC4v4+s=
-Received: from mail-pl1-f198.google.com (mail-pl1-f198.google.com
- [209.85.214.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-130-cU9HSrSdM0Kp-Z1G3PaNtw-1; Sun, 08 Jun 2025 10:58:31 -0400
-X-MC-Unique: cU9HSrSdM0Kp-Z1G3PaNtw-1
-X-Mimecast-MFC-AGG-ID: cU9HSrSdM0Kp-Z1G3PaNtw_1749394711
-Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-22aa75e6653so27629425ad.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 08 Jun 2025 07:58:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749394711; x=1749999511;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=1MHolxAo5E7JZonvdA9Y3lwdbEbD6V98FiPVx/5z218=;
-        b=oEH3n7lTWtRLLxhXL/JB67p4wPrD9lP5flaOzgDXl7MmiBDuffShC4aaJRrrw2C+3G
-         uSIz7cCBTJ7h3kWiL6X0/YviFIMHwJp/QseKUpbt825e4ZsvEfmDxLtQfK9NETWgCmTv
-         J2bXLCTUKhgXoOeM6r+vizjCcaIrasEBYPnOZaUmNiFM6pbmF7kbo6YqtRHKoysu9v+g
-         UM18QSNhRbXudlFfhnEwkrUw+H38zYB4xYmRzSm/FQ2yhU8yZjpUNqYSaAzLPfsMEG4c
-         cGHo4cQ3Xyp0TyWHwyg8Y9m6pcI5tJRfO5x93Yn5/ebLchYy2P2heUVpktd8gXp2ddcq
-         kAtQ==
-X-Gm-Message-State: AOJu0YzNG3KQk/V/SxG+JDQN0+/niVyIIIrOSuoDWoh+SE5klvxVhSsv
-	wz5RVeMxgbf5ABtIIRGtz3wVFBWvGZhb2PqlgMH8bPBe3mYBWl1Moj7KV6RPU+TGZRJCnWiYu31
-	k+OgEqs93ln8eufPXTP3NRuYDuaB4VOIJXFm7bOP+ORi3nl60EujkBF3pgpUgmmpKFJ9MK3+33G
-	IVBrrwRByx66RYoEOcegw9N13ECSVFrEgriiO7JfvvzbNkSNo=
-X-Gm-Gg: ASbGncutiUu7Nj7nv2+JVJiShBu3wyISL6LklhWiWYC9sHun8tjX5WR/vNidxfT7y7n
-	WV/QIae89rBBJZm2Oo0A57A5nSkSOn417dMTpSZRJ+vYBx8a9sq9NnGOnAWzTYJHgYQP5n2Rbrl
-	KEf42NoBPf3EdQgKeXsddV3wwpEDzZo3tAPkKrciXAtlys7sA4ymc39TA/s+7LUaZ0S3Qgll512
-	RxhgpTjd8PA3hQQQfZlvxe231GG27wc7rH7r+9HlNJ3y+7jJEQHe5HMU19NR/ZTanTMMduyF3oY
-	8oh+DHzYxmBgELXVvZq2oYJQBt3PVFQKMOSRBOI3zSwKlpBnD6iRPY2YQaRxjcA=
-X-Received: by 2002:a17:902:e74e:b0:235:60e:3704 with SMTP id d9443c01a7336-23601cfd8aamr142098905ad.12.1749394710702;
-        Sun, 08 Jun 2025 07:58:30 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE6zgFz1OgK7vGhC0J5T7M5M3OsmE5aZevfwZYvpqiu8BnuSlE7/CCItKjGt5ir09qmy7W6wQ==
-X-Received: by 2002:a17:902:e74e:b0:235:60e:3704 with SMTP id d9443c01a7336-23601cfd8aamr142098725ad.12.1749394710268;
-        Sun, 08 Jun 2025 07:58:30 -0700 (PDT)
-Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([209.132.188.88])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23603092ed7sm39909135ad.86.2025.06.08.07.58.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 08 Jun 2025 07:58:29 -0700 (PDT)
-Date: Sun, 8 Jun 2025 22:58:26 +0800
-From: Zorro Lang <zlang@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>
-Subject: [xfstests o/012] unexpected failure on latest linux
-Message-ID: <20250608145826.s6fnuitdfjb4hldr@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+	s=arc-20240116; t=1749424212; c=relaxed/simple;
+	bh=Afuue44CwgF//wFbdoNXEChynbl6KEZWKopL/hySyt8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AUJjZ9/nJDEJ44n8oD6sL2naHAZtI+oowQZyNLZrxPnlmdiuCx81uF5i3UfV9+Zuj2dIp3bJ/m45hEfWuQcXboaJNwkT3hDMA88Wg4s/Iv5N8qj2MMGYsbc1esGBLgUbu89LDoFjhm8XePVoWHi4zvqbaCT8j6jGOsYV5Qfi9QY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1uOP9O-005veo-5K;
+	Sun, 08 Jun 2025 23:10:02 +0000
+From: NeilBrown <neil@brown.name>
+To: Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Jan Harkes <jaharkes@cs.cmu.edu>,
+	David Howells <dhowells@redhat.com>,
+	Tyler Hicks <code@tyhicks.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Carlos Maiolino <cem@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org,
+	coda@cs.cmu.edu,
+	codalist@coda.cs.cmu.edu,
+	linux-nfs@vger.kernel.org,
+	netfs@lists.linux.dev,
+	ecryptfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-xfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/5] Minor cleanup preparation for some dir-locking API changes
+Date: Mon,  9 Jun 2025 09:09:32 +1000
+Message-ID: <20250608230952.20539-1-neil@brown.name>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hi,
+The following 5 patches provide further cleanup that serves as
+preparation for some dir-locking API changes that I want to make.  The
+most interesting is the last which makes another change to vfs_mkdir().
+As well as returning the dentry or consuming it on failure (a recent
+change) it now also unlocks on failure.  This will be needed when we
+transition to locking just the dentry, not the whole directory.
 
-My fstests regression test on overlayfs hit an unknown failure (diff output):
+This leaves some rather clumsy code in overlayfs.  Overlayfs sometimes
+takes a rename lock (two directories) and then possibly does a
+vfs_mkdir() in one of those directories.  When that fails we now need to
+unlock only the other directory.
 
-  --- /dev/fd/63	2025-06-07 10:18:01.306026526 -0400
-  +++ overlay/012.out.bad	2025-06-07 10:18:00.941720188 -0400
-  @@ -1,2 +1,2 @@
-   QA output created by 012
-  -rm: cannot remove 'SCRATCH_MNT/test': Stale file handle
-  +rm: cannot remove 'SCRATCH_MNT/test': Is a directory
+I hope to go through overlayfs to narrow the directory locking so each
+lock only covers a single operation (possibly including a lookup first).
+That should remove the clumsiness and will also be needed for the
+proposed API change.
 
-Due to I never hit o/012 failed before, but it fails on this regression test.
-So I report this to overlay list to double check if it's a overlay regression
-or a test bug.
+As well as the cleanups here I have a few for smb/server.  I will send
+those separately as they deserve careful review by the smb team and I
+don't want them to be buried in this patch set.
+
+After these, and the mentioned overlayfs changes, I have a series which
+adds a collection of APIs with names like "lookup_and_lock()" which
+combine the locking and the lookup, and then a set which changes all
+code which currently locks a directory for name-based operations to
+instead use the new look_and_lock() interfaces.  This will mean that the
+changes to directory locking can be done in one central place.
+
+After that there are a few more cleanups to stop filesystems from usng
+d_drop() in the middle of name operations (at the end is OK, but not in
+the middle) and then the core patches for this work which introduce an
+alternate way to provide all the locking that the VFS needs for name
+operations without taking i_rw_sem.  Filesystems can then opt into using
+only this locking and to not depend on i_rw_sem.  This allows create and
+remove of different names is the same directory to continue concurrently
+with each other and with renames.  Renames are also concurrent though
+cross-directory renames block some other cross-directory renames in the
+same part of the tree.
+
+Note that i_rw_sem will still be used for the target of rmdir, and will
+still be held as a shared lock by readdir() so that we never try reading
+in a directory being removed.  It might still be used (shared) for
+lookups for the same reason, though I haven't completely settled my
+design there yet.
 
 Thanks,
-Zorro
+NeilBrown
 
+ [PATCH 1/5] VFS: merge lookup_one_qstr_excl_raw() back into
+ [PATCH 2/5] VFS: Minor fixes for porting.rst
+ [PATCH 3/5] coda: use iterate_dir() in coda_readdir()
+ [PATCH 4/5] exportfs: use lookup_one_unlocked()
+ [PATCH 5/5] Change vfs_mkdir() to unlock on failure.
