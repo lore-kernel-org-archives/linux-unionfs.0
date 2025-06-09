@@ -1,86 +1,104 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D4DC17BD3;
-	Mon,  9 Jun 2025 05:34:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2038124DFF3;
+	Mon,  9 Jun 2025 10:39:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749447294; cv=none; b=mZ977pmNzMBUgriYI8/WVnYzOaxFIKNpROQB58ZwDBe6Cg0rHZDil4m/id1cOtZ1g8j0BNcA/NiwKPtpEBnbt0LMxZPIw1+8l6KXyyOhY5Ki1ak9Gh22M4qSqTVaF8LSkogBeJXoRhSinwYcFeWbq0Tei6kAHTcVwM4MVmVWWYQ=
+	t=1749465578; cv=none; b=CCTQ2qPeAi+MCaMems+niktUpQux/lGQZzkUnoAXT8OO/FGrZuAZQwKqK+fjmwiLTNj8hKKBfIcAw9wpnFKq2eGYrMGv2CRNVmJt7C2DqI1lygTMEublLN0JrGPApvOskHtQ850tY9vlvcseURzczLg7BaISCiWoUCve4hwKRog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749447294; c=relaxed/simple;
-	bh=uwxa5npzdokndbCpN5yU7uplXOuCnvLiH5v8BmUtBz0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aLiiCgVoOii1WySFKTB/qOy3/p7HKWn+8VdAJ2q+ie56r63h1BVbtfjTPwvI9RNFFwKPZzXM1caYrvQXeQtOa99jXO+X+3QP685W6sHtUzCIzev169+a8jMzSuZS6aDGcbImGqCV8C6p5V3RArs4ayjXwfA8eD75xZUcgktppMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=Gpi8SoMr; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	s=arc-20240116; t=1749465578; c=relaxed/simple;
+	bh=o40cdfq0avXaOThlxnjrAygFWUAA6SzRVbbR8gMI28g=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=NlMdz5BqAOVfxZnwVXgbVKR43j1MRCsqR5M0qfJzxdSDH9V4z3BlJHs3GuOtdd+Uyu/v6rNa3f1MfNpSo2vRT22e2Vwt/EyxM01TmL68I/828ea/ty2cCyXoCGxIE7KO4xeoTOk/7P4lW+CD2QCuMjmXoMDbknRwL71/ogDSfFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l6VV6Gjs; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="Gpi8SoMr"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=dkLL/eLFQ+sNI47KAXAvlP2XsLUmCy2MqXXx7+2KD6I=; b=Gpi8SoMrJAabIz21fHEErY778Y
-	1XnDwty0mXeTZmvRbqate1rLoP8K9aaYl4ZgGfTZasMRHyJwzdVFKqx/OSj3D8r5w2xHaR3/v3CDP
-	Wzf84eJ4XASt8QVP65M/0cEtArCvO27ap2Jbx73sjTEEKGOZNbx60WrMMtqNN9glE7LP8LqrMUDsu
-	mIXK9TEJn3RNquJBBfjDjp+aULXXwDebU1Xjub6J3ON8LN/uJSr5lbwRO9xeDmbosyKb1y9SIapdQ
-	COUWwVMFrAohO8ls9FQAeRhy54fPYrls/pxkbo1fdxN8ztPQyGQIki/7WwF/JUsRagCgLCDpoTs4s
-	ze6p+h3g==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uOV9e-00000008Whi-3LPI;
-	Mon, 09 Jun 2025 05:34:42 +0000
-Date: Mon, 9 Jun 2025 06:34:42 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: NeilBrown <neil@brown.name>
-Cc: Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jeff Layton <jlayton@kernel.org>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Jan Harkes <jaharkes@cs.cmu.edu>,
-	David Howells <dhowells@redhat.com>, Tyler Hicks <code@tyhicks.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Carlos Maiolino <cem@kernel.org>, linux-fsdevel@vger.kernel.org,
-	coda@cs.cmu.edu, codalist@coda.cs.cmu.edu,
-	linux-nfs@vger.kernel.org, netfs@lists.linux.dev,
-	ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
-	linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/5] Change vfs_mkdir() to unlock on failure.
-Message-ID: <20250609053442.GC299672@ZenIV>
-References: <>
- <20250609005009.GB299672@ZenIV>
- <174944652013.608730.3439111222517126345@noble.neil.brown.name>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l6VV6Gjs"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-ad8826c05f2so788845866b.3;
+        Mon, 09 Jun 2025 03:39:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1749465575; x=1750070375; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=rqf9whZk0cxbC1mikTl36CpUHfdl9sydJLTZx6NhoRE=;
+        b=l6VV6GjsCexkEeSDZJ/2Gjpt2jC/Zzk9jpR3/RAaPC2Z4wn+VF21MzJQFVB5yu0nQX
+         2bitsZYoAtG9WRMdw+hfHmxhlzu8n35UpJQikQ/kALu5qQWed2BSSierUK7ChyRwI1hB
+         OtvXtcUVYKqdbxJuNgeafO/GDxClxwPyT1avqbr4eUVnXRMsf5vtFETpvAcjy/LZA5fS
+         wASZDBqAll8IVECu/N5IyEpVLG8IAwe5oTrcRO1G1e/wzMf+SNJwcW2kgWkb+Vqf62YP
+         DmuI9fp2+FDByyyWnq8XkyuhUMjqWzMdF8ocXKMO17zMZQk1O0neRK5H29QeXGLbrZ6O
+         CU+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749465575; x=1750070375;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=rqf9whZk0cxbC1mikTl36CpUHfdl9sydJLTZx6NhoRE=;
+        b=knXW7Cma/ML/lJiy7aGAUtH+6eTvo4DVsnb0y2ive+dcUHI8IuYuXTwJ6T1qaNCRod
+         SDej4zw2twsAzmkdLcDHVGZOqvZLxMBa6f1C+xw54ZqbC64LRMKb18d4h7NHp+0loQCK
+         GFg9/5woQttbAouAgFgGH5AQcCetwgpO3IHMMrtzevymgJcXuFL0CTxC3vpIbNqoyOGu
+         Z05raVCKzbu787bh+p6ocU+0Ih0yXf9hbHHixhYNfwaTE6pG9sws64rr0t+m24T66jPs
+         LotoGK5laG206D+6qAUJj8ufnPu2GRn71yAVAa5wZ52m2LXkL0CX5J177CmKS+2wLvMp
+         mAKg==
+X-Forwarded-Encrypted: i=1; AJvYcCVLtDZB5/fgS8xgFYPt01c9jixLHkRxGU29Lj9qq0V4gOmXTTT04YDTg84zo4Sv8KSXlpQ9JddqID2Uyr1c@vger.kernel.org
+X-Gm-Message-State: AOJu0YwMfGzRpYeuMR7CUA2xFcfmEm+Wy8g8YniWmWVhClr+fjdSZ2v+
+	FTViF9acZl2KICsR9DZSxzYnGnC/Jgj2+D/ZOHG7Gi6RAKLPYSvJHH4syACCIzQe7uhPb+/fHw0
+	WDVcTEIkKFhtVSFQ5V2XsP8cE7F/Ton+pjSRl/BE=
+X-Gm-Gg: ASbGncsHs3nGxupFmIhfTMNqckZor6N80rOHOcP1vI165yGuYp89qDDKy6J/3oCcv5+
+	zoxhPfIS+vj/YNGgEpZzR07OjVke84QWYJ0k20ZkMIdjpjtAFINB0VgHXK5z7yK5BT7K0gWIkEg
+	8WTtZH5m4lkYQWSnWuy81Os2o8o7vRJA2D7nO+VkpIq5w=
+X-Google-Smtp-Source: AGHT+IEpGFjoAjap5QfCQxT2eELPju+hiAr1THRIgrMNT9q8V6s66B1ndE+dAzQ3//lLUg/MrNVLCOuyTRsSRL9j8OM=
+X-Received: by 2002:a17:907:6d28:b0:add:f4ac:171f with SMTP id
+ a640c23a62f3a-ade1a9e20c0mr1181219266b.5.1749465575107; Mon, 09 Jun 2025
+ 03:39:35 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <174944652013.608730.3439111222517126345@noble.neil.brown.name>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+References: <20250608145826.s6fnuitdfjb4hldr@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+In-Reply-To: <20250608145826.s6fnuitdfjb4hldr@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 9 Jun 2025 12:39:23 +0200
+X-Gm-Features: AX0GCFvnWN5homw0IrsXhcndVJaElvaTd_6wyQQFA35tlNsnB-zG0WwZmBfQ0Gc
+Message-ID: <CAOQ4uxiO-WhCc8H8tpW5YB-vQwm9VkUk1SpU5r+-K6jLmJjxqw@mail.gmail.com>
+Subject: Re: [xfstests o/012] unexpected failure on latest linux
+To: Zorro Lang <zlang@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christian Brauner <brauner@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 09, 2025 at 03:22:00PM +1000, NeilBrown wrote:
-> On Mon, 09 Jun 2025, Al Viro wrote:
-> > On Mon, Jun 09, 2025 at 09:09:37AM +1000, NeilBrown wrote:
-> > > Proposed changes to directory-op locking will lock the dentry rather
-> > > than the whole directory.  So the dentry will need to be unlocked.
-> > 
-> > Please, repost your current proposal _before_ that one goes anywhere.
-> > 
-> 
-> I've posted my proposal for the new API.  This makes the value of the
-> vfs_mkdir() change clear (I hope).
-> 
-> Would you also like me to post the patches which introduce the new
-> locking scheme?
+On Sun, Jun 8, 2025 at 4:58=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote:
+>
+> Hi,
+>
+> My fstests regression test on overlayfs hit an unknown failure (diff outp=
+ut):
+>
+>   --- /dev/fd/63        2025-06-07 10:18:01.306026526 -0400
+>   +++ overlay/012.out.bad       2025-06-07 10:18:00.941720188 -0400
+>   @@ -1,2 +1,2 @@
+>    QA output created by 012
+>   -rm: cannot remove 'SCRATCH_MNT/test': Stale file handle
+>   +rm: cannot remove 'SCRATCH_MNT/test': Is a directory
+>
+> Due to I never hit o/012 failed before, but it fails on this regression t=
+est.
+> So I report this to overlay list to double check if it's a overlay regres=
+sion
+> or a test bug.
 
-Yes, seeing that the rest does not make much sense without that.
+Kernel regression in 6.16-rc1.
 
-I would really like a description of that locking scheme as well,
-TBH, but if you prefer to start with the patches, then so be it.
+I noticed it before rc1 but fix [1] didn't make it in time for rc1.
+Should be there for rc2.
 
-I can't promise a response tonight - going down in an hour or so
-and I'd like to do enough reordering of #work.mount to be able
-to post the initial variant of at least some of that in the
-morning...
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/linux-fsdevel/20250605101530.2336320-1-amir73il=
+@gmail.com/
