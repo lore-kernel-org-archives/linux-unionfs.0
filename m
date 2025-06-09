@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21E9A22489A;
-	Mon,  9 Jun 2025 22:53:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C4EB224895;
+	Mon,  9 Jun 2025 22:53:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749509594; cv=none; b=UAWgxGT3nNwVZmzuxviuoQzfzfz3rOXVvuiMGKaPhrPT9dtrzeKUwqrAwEgRtrZApwCbvex6r5gHMeiPfXR3HtgfXHX4CI0yZZs3G/HTTpFNdVu/CLaTx2nA1hAQZwHEy1SxzYShBOO3WqD3oMx6i6vZZP7wLxagVOUw/bRid1A=
+	t=1749509612; cv=none; b=Ewxgoju5Cb5IfyTxr8SwlXnPHPp25wLwNUbkSsBw9LqJjIx9nKNRW/ILKtzTe9GX+nzRczX5JuDWC/owlTpNtxCkljeMf16+20sB/ZqewvUgwh5U2p7ePRTlJcu3neN3kCNIiU0DogSnH2H8XJj9hHUPM7S/R+hLVFCC63V+pp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749509594; c=relaxed/simple;
-	bh=vBDjo1aMMj+ZKOHKtZBWoj7qI8KIxTPwNfHWonjVlIQ=;
+	s=arc-20240116; t=1749509612; c=relaxed/simple;
+	bh=sqrSgCox3Vf/4YUGDNnVoA5p9JcmTSyoyXdRSBXadm0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=KbjK5Kd0DFXjjLDpYKgehrR83qf0GOGWsd/olGRVkdZdJfFnky/CgPPdxFUC3R43PsfmbHmaaJo+bQ6rH6+g+HAONKMvue526NcrHv/M3sAiYF6yV+4oO7MZVMyGSK0/3I4DOYC9heBk8KFPPZ1E1H9wMGBBF8vyYP0ShS8kFNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WxRIGk45; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=lMQsnRaxsiMlbwv+x+U3mr2wjevGhJqPZRCIwRJAFrjOjPCLVTn4uMC67BEbggtg7LEvUtp8Chi6s6epYhaoeMb9uglVCnrkdEeBm35v1MLGrBaCVx9/Eg/I61tbaHltKplVLshGi8JBl9Lcl3DOBCoypl/e6ZWbqdgeY/1shoU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mqeYn/SW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WxRIGk45"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A66E4C4CEF3;
-	Mon,  9 Jun 2025 22:53:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mqeYn/SW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1609C4CEEF;
+	Mon,  9 Jun 2025 22:53:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749509593;
-	bh=vBDjo1aMMj+ZKOHKtZBWoj7qI8KIxTPwNfHWonjVlIQ=;
+	s=k20201202; t=1749509611;
+	bh=sqrSgCox3Vf/4YUGDNnVoA5p9JcmTSyoyXdRSBXadm0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WxRIGk45qPnWb0Mv4QBDYnhGWrUOeM1gS3lqDJ91FA/w570NEB+G1sTkJ02aHqnkI
-	 Ud1XHyGLMzVsv+0cSHMYMrONl1TFVsY6MBtCz2ru9V5RjUstyOXtoveWExaDYULBBA
-	 CjEzXLAHMIcF4dUJubDCPdEqDC02GrSYrsq6DEAV3hEMFtjoFqQ4y6wpHg1Ma+R21d
-	 24U80Doa+P6fLahcfwjLC3d3/905RkbmdykMfxRxUZkbZAF7KiyPuRX4oX0Acc9a7k
-	 XeOmi5aTDqG2WONMKPRIdZQi5QdBc+mvIowPoDHugnc+739NYweMA9yqjMVtjDmSoe
-	 v8QuUi+7q8jhg==
+	b=mqeYn/SW6zME4h6VZcXm1DTKDtMtCt0338xpFAoDF/vKHaAMuo3tVGXGzkAMZ8rMn
+	 s4whgwcGR2i/RTQQ0JrvaJmCExP9gpu3Tlrcf+CrGRTQ+Q6CZoEwUnCv7sVHGJahsj
+	 H9hWDFGDhW3qDd8S7GY704BH8gMr+++exgV5cMg5vy210tMCChtZFk5DfED0r9id/g
+	 7XpORIIk6mogyLV9dF1RzzptBLbc1CSxJgQhcR0HpHhWseePArYazfJ2sBakF7OMt2
+	 mdJrykaP68FSIj/TE/9K0h8gMPxv122ppQPZK81mK/Cy/dhJZXH8cirXMYaTdhemcc
+	 TGt4M8fcaPgZA==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
@@ -35,12 +35,12 @@ Cc: Kees Cook <kees@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
 	miklos@szeredi.hu,
 	linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.14 11/11] ovl: Check for NULL d_inode() in ovl_dentry_upper()
-Date: Mon,  9 Jun 2025 18:52:45 -0400
-Message-Id: <20250609225246.1443679-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.12 8/8] ovl: Check for NULL d_inode() in ovl_dentry_upper()
+Date: Mon,  9 Jun 2025 18:53:14 -0400
+Message-Id: <20250609225315.1443936-8-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250609225246.1443679-1-sashal@kernel.org>
-References: <20250609225246.1443679-1-sashal@kernel.org>
+In-Reply-To: <20250609225315.1443936-1-sashal@kernel.org>
+References: <20250609225315.1443936-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.14.10
+X-stable-base: Linux 6.12.32
 Content-Transfer-Encoding: 8bit
 
 From: Kees Cook <kees@kernel.org>
@@ -214,10 +214,10 @@ vulnerability without introducing regression risk.
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 0819c739cc2ff..5d6b60d56c275 100644
+index 8f080046c59d9..99571de665dde 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -305,7 +305,9 @@ enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path *path)
+@@ -300,7 +300,9 @@ enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path *path)
  
  struct dentry *ovl_dentry_upper(struct dentry *dentry)
  {
