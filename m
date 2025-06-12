@@ -1,97 +1,84 @@
-Received: from out203-205-221-233.mail.qq.com (out203-205-221-233.mail.qq.com [203.205.221.233])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44FF62980C2;
-	Thu, 12 Jun 2025 15:10:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.233
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9963A1FBCB0;
+	Thu, 12 Jun 2025 22:52:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749741016; cv=none; b=G4eYhyWftRccEUIz9bWqRFELu8botGdBwasg3fGIM4VPGyOo32RM9aqzAGpesY57DTreD3rlD2yZP1o5sbtW9e5TmKO+no32JlZMBoF9A8+XiXsFJfg7muqvwoITPgvlwcftUz5DhvnJUbnWXX0gFvVyPoGtslm9wKD0fbo0LdU=
+	t=1749768745; cv=none; b=L2yUVDVGzQ4Dy9I5gnkpx01DWgRhLFJOPs2NO1SfwxqNW+1ZaN1flaIaOkerMVk1LSmp3wSUcl5zIPtxjpuRpPnrCXi2dN7CNeI3JvkOdXL3/hItpQAFsb7eFhnW7b0+DE+irmwP2ZF6m69E8UQyuMfV5mbMZ90/dsf5nUvr0HA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749741016; c=relaxed/simple;
-	bh=K3LQUnBtS+2Tcv7ACqZKHRdhKQxw+Yd7TehlFf8X0ic=;
-	h=Message-ID:From:To:Cc:Subject:Date:In-Reply-To:References:
-	 MIME-Version; b=BFxir8OJ+2ZDOLnKSNWlXqh+jfts+IUA/g306AVdcO1ClKC8Jd5DXrQsxcSQk8H32txEYENYoXUoWtancqecIjbhdJyDloRliA+XUC+mP/jgn5yZM9uHQJUn16BJblzaoZxZM1p7qlW0Rw47C1OFHUZLl6wpwLv/Zm8ITFe0XqI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=MbpyrVkD; arc=none smtp.client-ip=203.205.221.233
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	s=arc-20240116; t=1749768745; c=relaxed/simple;
+	bh=RLb43KAcC5RaodCRSfGcH1QteKxbGALd1H/ZIPYUHiY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pVr1Am5v9oRQWHq0aXq0gifyWwcorpqm2Pbyeicpz+tTgHRjpOL0Sedy6ICZKVwbrPqdLfvbEYrgfObv3C/w8oqwiYFN4xQmZvkhVIG070zFWNSRsjX5E6CCGcmt2J7mODv6Q2NaxK2KQHAF24G8mENdlAN/al+PPfjbo31U3NU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mB/ejbQ3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="MbpyrVkD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1749741010; bh=nTF5MUYaWmJcKbJXFqj0S8VvY7BZpo8uiL6sIulYVEA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=MbpyrVkDR0BgDFzBBUrK2qpuqlxL+25wQSA6ekkMdpiXSXT5gZNQvTiOGi0HGKBSP
-	 wzieVbcsNWeAN/zLGUrz7YiMLMHHx8rw03/jsO6eZTxTH1H9BQPa/uMV3kXEdIA9Nf
-	 HR5lHCtC8BBLUFV/qP/6bLAIoivqYLM7tZbk5BvA=
-Received: from pek-lxu-l1.corp.ad.wrs.com ([111.198.228.63])
-	by newxmesmtplogicsvrszb20-0.qq.com (NewEsmtp) with SMTP
-	id 5E14AFF; Thu, 12 Jun 2025 23:01:30 +0800
-X-QQ-mid: xmsmtpt1749740490t2u8huf6d
-Message-ID: <tencent_AB76B566A43C5B37A4961637CC4ABC745909@qq.com>
-X-QQ-XMAILINFO: OKKHiI6c9SH3MjZSMJ8ZzVg3A4yKuY+Fh0bXnnd9SnitM3VSEBpNHHzd1H5K9j
-	 vRcsWRVbaxJ84ASFm4kgxjW15FDt9e5J19/Mqgfr7+Vyt7WzCnjOIbCmCpH/p5fOhCT9ctoxSX/s
-	 y4szANZJtd73MLGRTa5K7WMYSoNmjhLJ5Ng6DeMWk8eUorb76c5R3lQFERe7Xi9sBvHnvMsJ0t3G
-	 uP86NTNSHl2fGValG2kP3cUbsOyh75qll5s2FPyip//UGttNmDENUW7jhjw7zbPRfDMmq4Cn8RRV
-	 uAHw5+X1Ku8etZNPAhAVUIHX2EmdwlhGxe86boPauRqLqmKmMfkoi3974Z1U3P66qdw9ykROHGtD
-	 Di5/bdIeJfwnB4IwKkrDef7F8PxK8J5z1CizDtWjfyajAhLfSkQxxLmgRqh52mhviuHKVmbMPbZA
-	 GKQ2D1Z9esBpsB5DkRBTLUMNxJGcf2Y3FPNAQ20ADqxw97w1vMn69HSqx9FB567DJasxFN3Iben5
-	 HVSYMrUO2JNGQKcH0lW2/1rNOjiUag807L7eTEGGxoX3XOvfJvS7Slw76RNvEfnGIMUu9IZw1jL6
-	 rO7B01KwANuEUx/4dsPVb2TN47535fvK5pNI3+5rhom8TY261IEaeOFHeVeCMnJdMiLInpiDK58A
-	 IBrM7CSi23JDWdjT09nITFaSkCgNBQJmLnXwkR8lMtz6fFO9ymzIee24gUhZXTf7RFTkVEuA1cnX
-	 Z6uHjpS+KHTyk/VM8B+X+M4kuUjbnRPYsYwKpzL/kFSyPr8qPHYShTp1L9D7bDCLh2hQwG++CHM0
-	 3fc+BeJ80F7141KqxziU8wDTTcs3FeyB+e47nQtCZ9UkueTkFhUOMcYSWY4VrAPXbQ9hqWHInECK
-	 lAbPjRa9hASP7JLjUSobVKr4p5iLMJHtSUwofwjvzhaB64k/Tf+/i1QWtdK3mC3Sk6d3T9ib533N
-	 EqJY4mfsGPplLA4SKaZ/EmDuA5157y
-X-QQ-XMRINFO: Mp0Kj//9VHAxr69bL5MkOOs=
-From: Edward Adam Davis <eadavis@qq.com>
-To: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
-Cc: amir73il@gmail.com,
-	linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	miklos@szeredi.hu,
-	stephen.smalley.work@gmail.com,
-	syzkaller-bugs@googlegroups.com
-Subject: [PATCH] fs/xattr: reset err to 0 after get security.* xattrs
-Date: Thu, 12 Jun 2025 23:01:30 +0800
-X-OQ-MSGID: <20250612150129.2783900-2-eadavis@qq.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <6828591c.a00a0220.398d88.0248.GAE@google.com>
-References: <6828591c.a00a0220.398d88.0248.GAE@google.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mB/ejbQ3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2126AC4CEF4;
+	Thu, 12 Jun 2025 22:52:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1749768745;
+	bh=RLb43KAcC5RaodCRSfGcH1QteKxbGALd1H/ZIPYUHiY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=mB/ejbQ3dPbzPx0vJQLYivH9v5mnXEd/scA1AhvIR8M46JK8BrlQ3eRWqz2qTDSQD
+	 wK8ea7e5qdGGpWe07lybVtH9ygVLZ3/CnGesVXwcrTTYCKACviX62NCJChn1+5myGy
+	 Wcr3UVwyT7wPgTKTMLBYMLZ9c7fDPsyOWIXDVs6ORTIrPzN/eOT9zfySfdldX4pB3n
+	 d17SPBa6cTBPIRche12CjBCQL+o2lKS3zQ0uZb+fKv43czwAgyxIunpnMXlUdLOE70
+	 RX8owW2PuuMjJnUGTUqAdMllFkuUdytAUnghgulHtsGByB/Scyzu2/1Q4JI3RGdZx9
+	 MaYK5S8C2BVNw==
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-607b59b447bso2664905a12.1;
+        Thu, 12 Jun 2025 15:52:25 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCU+kiF7xBbEabdDb39W3IgLstzxzJKjU2JKTvizdB4etBVWEk2zRiEXDSdhbeOxjWztNybVXevWFKJ9M+klzw==@vger.kernel.org, AJvYcCUOlnUhzLnDjXpH5C71yVL2WaTIXvwy3vFGHyQCKl10rMOYOrMrlzTok5PVuSvk1JnvEJxfv4G4xEOlDzSOhw==@vger.kernel.org, AJvYcCUbrDLbK9gAc8TiBcA0rLdyER1dtB44RmnVeratRn38lWt3uT4F9i8nkNwpnukiRW7Jf60JL6TEK2pLKQ==@vger.kernel.org, AJvYcCUfYT6LMenNG3WZEGgTfEAEtnfaG3El2wObnJpyBIj2rdH3G6GSaFCeZqylAe4O2GX2j4t1LZFdPaRI@vger.kernel.org, AJvYcCUpVCPXekb3IF8vKlkjzoZibV+9hoAoPtGtKoJa9fTqQfEMamhu5c10bRy6XJ0QxkEp6WYNQ9Z7Mw==@vger.kernel.org, AJvYcCXObn0swETn89JDE5DRtTbRINVDk1X3jDBBOILrR/WAxoiEyl4xVAcv+0rxsbqn392jBzxLS86Q/0d319qQ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzrl0zs+UOt+7cEFWCGPeG+BipVslWzwEfn5iSNk0Cu8J5ThWbr
+	/BTAudx/9Ee7123SBP7TIR0BV5GOHMUwE1VqelSzIVvFlDXm6d1PyzI7uUvPFWMc+rfXFtWzleY
+	x5jFDREqyvGCMHEaa95YGlsAA8LFzXxI=
+X-Google-Smtp-Source: AGHT+IFv9dGYrIOKeOZKaL0BR+0Fv0LEjei5oP/yryZdck4J+qKZtwawXs+osRG8Bg80wjBiojwFLAHZMDY7UpigbAg=
+X-Received: by 2002:a17:907:9447:b0:ad8:9d9b:40f9 with SMTP id
+ a640c23a62f3a-adec5bcd371mr94803066b.43.1749768743615; Thu, 12 Jun 2025
+ 15:52:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20250611225848.1374929-1-neil@brown.name> <20250611225848.1374929-2-neil@brown.name>
+In-Reply-To: <20250611225848.1374929-2-neil@brown.name>
+From: Namjae Jeon <linkinjeon@kernel.org>
+Date: Fri, 13 Jun 2025 07:52:12 +0900
+X-Gmail-Original-Message-ID: <CAKYAXd_bTyobeFyX7DvGN4vrdCqEDt0V=8vt7PeRfppcVbYP-w@mail.gmail.com>
+X-Gm-Features: AX0GCFsA8OY4bdVAjhiy1QgEfYRhs_gA_2LVvvqRo48JXUIIKzV2VY1ry6xZNOk
+Message-ID: <CAKYAXd_bTyobeFyX7DvGN4vrdCqEDt0V=8vt7PeRfppcVbYP-w@mail.gmail.com>
+Subject: Re: [PATCH 1/2] VFS: change old_dir and new_dir in struct renamedata
+ to dentrys
+To: NeilBrown <neil@brown.name>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	David Howells <dhowells@redhat.com>, Tyler Hicks <code@tyhicks.com>, 
+	Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, Kees Cook <kees@kernel.org>, 
+	Joel Granados <joel.granados@kernel.org>, Steve French <smfrench@gmail.com>, 
+	Sergey Senozhatsky <senozhatsky@chromium.org>, netfs@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-After successfully getting "security.SMACK64", err is not reset to 0, which
-causes simple_xattr_list() to return 17, which is much smaller than the
-actual buffer size..
-
-After updating err to remaining_size, reset err to 0 to avoid returning an
-inappropriate buffer size.
-
-Fixes: 8b0ba61df5a1 ("fs/xattr.c: fix simple_xattr_list to always include security.* xattrs")
-Reported-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=4125590f2a9f5b3cdf43
-Tested-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
----
- fs/xattr.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 8ec5b0204bfd..600ae97969cf 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -1479,6 +1479,7 @@ ssize_t simple_xattr_list(struct inode *inode, struct simple_xattrs *xattrs,
- 		buffer += err;
- 	}
- 	remaining_size -= err;
-+	err = 0;
- 
- 	read_lock(&xattrs->lock);
- 	for (rbp = rb_first(&xattrs->rb_root); rbp; rbp = rb_next(rbp)) {
--- 
-2.43.0
-
+On Thu, Jun 12, 2025 at 7:59=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+>
+> all users of 'struct renamedata' have the dentry for the old and new
+> directories, and often have no use for the inode except to store it in
+> the renamedata.
+>
+> This patch changes struct renamedata to hold the dentry, rather than
+> the inode, for the old and new directories, and changes callers to
+> match.
+>
+> This results in the removal of several local variables and several
+> dereferences of ->d_inode at the cost of adding ->d_inode dereferences
+> to vfs_rename().
+>
+> Signed-off-by: NeilBrown <neil@brown.name>
+For ksmbd part,
+Reviewed-by: Namjae Jeon <linkinjeon@kernel.org>
+Thanks!
