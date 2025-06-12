@@ -1,119 +1,97 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out203-205-221-233.mail.qq.com (out203-205-221-233.mail.qq.com [203.205.221.233])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E4D289804;
-	Thu, 12 Jun 2025 15:09:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44FF62980C2;
+	Thu, 12 Jun 2025 15:10:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.233
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749740993; cv=none; b=KtJWZE0nOTHCWI3DcvFWsYZUuvYmuMPxjqIkY9vUr/J8c+VORWXuMwf3Wc7IbtFLcycet7rDMW2Um7/BQHhXDK1AmPedNdb64EWPJXQC6lwMYLspdkftxyDdCY6YXHMPR/m1EA0qPonQmjdm5ofJbQkapZ9ympVdeAvAOmyKxgY=
+	t=1749741016; cv=none; b=G4eYhyWftRccEUIz9bWqRFELu8botGdBwasg3fGIM4VPGyOo32RM9aqzAGpesY57DTreD3rlD2yZP1o5sbtW9e5TmKO+no32JlZMBoF9A8+XiXsFJfg7muqvwoITPgvlwcftUz5DhvnJUbnWXX0gFvVyPoGtslm9wKD0fbo0LdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749740993; c=relaxed/simple;
-	bh=MoojmeoRF4o0D1mo63kTveZ/tYQdb3lhmx3lmiIHecU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UV/VrktrukkJZ2pLRK3XaCtuOfz5t2HrGMV3RrfGTsEzJ75ADsqyKV4CCouGBxzMJhP+iEkoriQOYcMR5mGAokqNa60ATqIwD5Y39qSmTjjKRjgpFuQdytp1hn7AO/bw+0yMzlaSu1UG7jMcrECbqa8SWn/fa8wPFUIBCb1S5v8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LZIhZgzh; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1749741016; c=relaxed/simple;
+	bh=K3LQUnBtS+2Tcv7ACqZKHRdhKQxw+Yd7TehlFf8X0ic=;
+	h=Message-ID:From:To:Cc:Subject:Date:In-Reply-To:References:
+	 MIME-Version; b=BFxir8OJ+2ZDOLnKSNWlXqh+jfts+IUA/g306AVdcO1ClKC8Jd5DXrQsxcSQk8H32txEYENYoXUoWtancqecIjbhdJyDloRliA+XUC+mP/jgn5yZM9uHQJUn16BJblzaoZxZM1p7qlW0Rw47C1OFHUZLl6wpwLv/Zm8ITFe0XqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=MbpyrVkD; arc=none smtp.client-ip=203.205.221.233
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LZIhZgzh"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-3137c2021a0so947385a91.3;
-        Thu, 12 Jun 2025 08:09:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1749740991; x=1750345791; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=yUuhnoKELMuM+rze0VXW6hHnp/ZBtRvDccMUHcPOHQ4=;
-        b=LZIhZgzh/DEpFo7bVDu2+l0VypWAG4jN96YS/UrwocmhZ22j/mBqqIIXC4KI2YADfS
-         hc4NrkiLWd875LYYF/PdCaQwtnOAEUtal+lpSyBcTj/zSubqfxGqJFiLKmim6uIvXvmg
-         tq0ofCJGAGsRvOwQRqxB2JPiqiaWE7lNU8TtY4ZQpnXF2ndE8Bl7SkxdhN/xagikF1NX
-         IvCgQ+jo/D8ddA1pOxNbAdrmvTC3XGC3VguzcxpuC4nRbPVzFKGg/B3TDq0g5fddoO+O
-         DlEnBvK+diCCj0CS8YNEc490g6Uf2t/iDwlszyVeu4KH+MqP1S/hzYJIT1UsV/ZQ4Rfl
-         i/UQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749740991; x=1750345791;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=yUuhnoKELMuM+rze0VXW6hHnp/ZBtRvDccMUHcPOHQ4=;
-        b=Iht3JXc0XE9rl/B9WaZYOw9z8k5EGj83Rx23pm9fOZKhSGSw1LXs/DEdEd1nG/lVU9
-         ZADuHnPzi9EAUqc83ceVlf1vPIetvI6lneSQ4MlfcPVxw3WpGIQPH61y2mdTKlLaz5p9
-         KH2vZQp1P8gkAmOilusZO5bz97Xj1B6LAyKnMcTIG/QmX+IxaJp0DUetZtt8Eg2a2G/2
-         LQFq53po9Pf0ISOkH1ic8lP7uKtLbug6k7ooukxbJjNVqmirMBkhMLfP1H/5QQk6TESX
-         lJPGwIrSeb6B8u0QmsExJrsmSwd9O4vHuNtJlwdzmIEiWJrRwszAcigESPUar0/Ycj0R
-         +PCA==
-X-Forwarded-Encrypted: i=1; AJvYcCV90Yc2lIvs8we13XxOUG8gwWtjAzh9cKlRQ6ImYs0mfGz55yhqOXxaeJ4sgxxM8f2XcSUZtJo9Bgb+dQs=@vger.kernel.org, AJvYcCX5XcqsN3vzXb+ysT7uGv9FJRoH1b7Fylic7DyKnrxs1SXgp6koin7hqRnCRtp6qYmyxLG5stsKa8UuNxSeAg==@vger.kernel.org
-X-Gm-Message-State: AOJu0YxSnZmBbxbH3kHRB1CW9vYtee2vvHGqjCmd3co4phr9VjTl+9yI
-	h2UwR2dboijOLiK8UbT5L6ZY+JTwFpw/o0v8Ctu047L9YaDk4KbPYoQi9oCLMRJZevM+GZ0iNbt
-	aT9K38qawKD6EaMsLNqpRxq5+P6hMIqY=
-X-Gm-Gg: ASbGncuOga+rr70BVFAKISMfcY1mAr50DrevIDxdwsPdj8yY3vzvRnUdUKNKy+AXn8s
-	5i76SucNq10V+ChyKm5qf562/ludQno+XkZ/XGZ1+uLpJuy//Wuu++GItvmwORo7qKg5CLrQwBy
-	LTaE4uoLbKj/ju1GZuRHJMn8SUgna/thdV3YHmHSwBYgY=
-X-Google-Smtp-Source: AGHT+IGpCu/ny+HlAgnFhT+7qJZLmizvXxbjXDA0wRsEoawbaUXHksVEjxlmPIQOaKo8SUI2IttvsJ2Jab7iAef/vpw=
-X-Received: by 2002:a17:90b:4d07:b0:311:c970:c9bc with SMTP id
- 98e67ed59e1d1-313af21d9bfmr11247530a91.30.1749740990703; Thu, 12 Jun 2025
- 08:09:50 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="MbpyrVkD"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1749741010; bh=nTF5MUYaWmJcKbJXFqj0S8VvY7BZpo8uiL6sIulYVEA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=MbpyrVkDR0BgDFzBBUrK2qpuqlxL+25wQSA6ekkMdpiXSXT5gZNQvTiOGi0HGKBSP
+	 wzieVbcsNWeAN/zLGUrz7YiMLMHHx8rw03/jsO6eZTxTH1H9BQPa/uMV3kXEdIA9Nf
+	 HR5lHCtC8BBLUFV/qP/6bLAIoivqYLM7tZbk5BvA=
+Received: from pek-lxu-l1.corp.ad.wrs.com ([111.198.228.63])
+	by newxmesmtplogicsvrszb20-0.qq.com (NewEsmtp) with SMTP
+	id 5E14AFF; Thu, 12 Jun 2025 23:01:30 +0800
+X-QQ-mid: xmsmtpt1749740490t2u8huf6d
+Message-ID: <tencent_AB76B566A43C5B37A4961637CC4ABC745909@qq.com>
+X-QQ-XMAILINFO: OKKHiI6c9SH3MjZSMJ8ZzVg3A4yKuY+Fh0bXnnd9SnitM3VSEBpNHHzd1H5K9j
+	 vRcsWRVbaxJ84ASFm4kgxjW15FDt9e5J19/Mqgfr7+Vyt7WzCnjOIbCmCpH/p5fOhCT9ctoxSX/s
+	 y4szANZJtd73MLGRTa5K7WMYSoNmjhLJ5Ng6DeMWk8eUorb76c5R3lQFERe7Xi9sBvHnvMsJ0t3G
+	 uP86NTNSHl2fGValG2kP3cUbsOyh75qll5s2FPyip//UGttNmDENUW7jhjw7zbPRfDMmq4Cn8RRV
+	 uAHw5+X1Ku8etZNPAhAVUIHX2EmdwlhGxe86boPauRqLqmKmMfkoi3974Z1U3P66qdw9ykROHGtD
+	 Di5/bdIeJfwnB4IwKkrDef7F8PxK8J5z1CizDtWjfyajAhLfSkQxxLmgRqh52mhviuHKVmbMPbZA
+	 GKQ2D1Z9esBpsB5DkRBTLUMNxJGcf2Y3FPNAQ20ADqxw97w1vMn69HSqx9FB567DJasxFN3Iben5
+	 HVSYMrUO2JNGQKcH0lW2/1rNOjiUag807L7eTEGGxoX3XOvfJvS7Slw76RNvEfnGIMUu9IZw1jL6
+	 rO7B01KwANuEUx/4dsPVb2TN47535fvK5pNI3+5rhom8TY261IEaeOFHeVeCMnJdMiLInpiDK58A
+	 IBrM7CSi23JDWdjT09nITFaSkCgNBQJmLnXwkR8lMtz6fFO9ymzIee24gUhZXTf7RFTkVEuA1cnX
+	 Z6uHjpS+KHTyk/VM8B+X+M4kuUjbnRPYsYwKpzL/kFSyPr8qPHYShTp1L9D7bDCLh2hQwG++CHM0
+	 3fc+BeJ80F7141KqxziU8wDTTcs3FeyB+e47nQtCZ9UkueTkFhUOMcYSWY4VrAPXbQ9hqWHInECK
+	 lAbPjRa9hASP7JLjUSobVKr4p5iLMJHtSUwofwjvzhaB64k/Tf+/i1QWtdK3mC3Sk6d3T9ib533N
+	 EqJY4mfsGPplLA4SKaZ/EmDuA5157y
+X-QQ-XMRINFO: Mp0Kj//9VHAxr69bL5MkOOs=
+From: Edward Adam Davis <eadavis@qq.com>
+To: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
+Cc: amir73il@gmail.com,
+	linux-kernel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	miklos@szeredi.hu,
+	stephen.smalley.work@gmail.com,
+	syzkaller-bugs@googlegroups.com
+Subject: [PATCH] fs/xattr: reset err to 0 after get security.* xattrs
+Date: Thu, 12 Jun 2025 23:01:30 +0800
+X-OQ-MSGID: <20250612150129.2783900-2-eadavis@qq.com>
+X-Mailer: git-send-email 2.49.0
+In-Reply-To: <6828591c.a00a0220.398d88.0248.GAE@google.com>
+References: <6828591c.a00a0220.398d88.0248.GAE@google.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6828591c.a00a0220.398d88.0248.GAE@google.com> <tencent_AB76B566A43C5B37A4961637CC4ABC745909@qq.com>
-In-Reply-To: <tencent_AB76B566A43C5B37A4961637CC4ABC745909@qq.com>
-From: Stephen Smalley <stephen.smalley.work@gmail.com>
-Date: Thu, 12 Jun 2025 11:09:39 -0400
-X-Gm-Features: AX0GCFsH-yo5JUhyWyBqrHBwq4KIAN-CHYAesU4gaI6S4jpDyCqdWzVGFPlCL_I
-Message-ID: <CAEjxPJ40rFsoXNYpMhZSNCuRrnWXP3GUavA3=1q7DkhcPLZ-+w@mail.gmail.com>
-Subject: Re: [PATCH] fs/xattr: reset err to 0 after get security.* xattrs
-To: Edward Adam Davis <eadavis@qq.com>
-Cc: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com, amir73il@gmail.com, 
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 12, 2025 at 11:01=E2=80=AFAM Edward Adam Davis <eadavis@qq.com>=
- wrote:
->
-> After successfully getting "security.SMACK64", err is not reset to 0, whi=
-ch
-> causes simple_xattr_list() to return 17, which is much smaller than the
-> actual buffer size..
->
-> After updating err to remaining_size, reset err to 0 to avoid returning a=
-n
-> inappropriate buffer size.
->
-> Fixes: 8b0ba61df5a1 ("fs/xattr.c: fix simple_xattr_list to always include=
- security.* xattrs")
-> Reported-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=3D4125590f2a9f5b3cdf43
-> Tested-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
-> Signed-off-by: Edward Adam Davis <eadavis@qq.com>
+After successfully getting "security.SMACK64", err is not reset to 0, which
+causes simple_xattr_list() to return 17, which is much smaller than the
+actual buffer size..
 
-Already fixed on vfs/vfs.fixes, see:
-https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git/commit/?h=3Dvfs=
-.fixes&id=3D800d0b9b6a8b1b354637b4194cc167ad1ce2bdd3
+After updating err to remaining_size, reset err to 0 to avoid returning an
+inappropriate buffer size.
 
-> ---
->  fs/xattr.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/fs/xattr.c b/fs/xattr.c
-> index 8ec5b0204bfd..600ae97969cf 100644
-> --- a/fs/xattr.c
-> +++ b/fs/xattr.c
-> @@ -1479,6 +1479,7 @@ ssize_t simple_xattr_list(struct inode *inode, stru=
-ct simple_xattrs *xattrs,
->                 buffer +=3D err;
->         }
->         remaining_size -=3D err;
-> +       err =3D 0;
->
->         read_lock(&xattrs->lock);
->         for (rbp =3D rb_first(&xattrs->rb_root); rbp; rbp =3D rb_next(rbp=
-)) {
-> --
-> 2.43.0
->
+Fixes: 8b0ba61df5a1 ("fs/xattr.c: fix simple_xattr_list to always include security.* xattrs")
+Reported-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=4125590f2a9f5b3cdf43
+Tested-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
+Signed-off-by: Edward Adam Davis <eadavis@qq.com>
+---
+ fs/xattr.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/xattr.c b/fs/xattr.c
+index 8ec5b0204bfd..600ae97969cf 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -1479,6 +1479,7 @@ ssize_t simple_xattr_list(struct inode *inode, struct simple_xattrs *xattrs,
+ 		buffer += err;
+ 	}
+ 	remaining_size -= err;
++	err = 0;
+ 
+ 	read_lock(&xattrs->lock);
+ 	for (rbp = rb_first(&xattrs->rb_root); rbp; rbp = rb_next(rbp)) {
+-- 
+2.43.0
+
