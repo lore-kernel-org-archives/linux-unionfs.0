@@ -1,95 +1,126 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27613126F0A;
-	Mon, 16 Jun 2025 14:31:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2354E8488;
+	Mon, 16 Jun 2025 15:02:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750084303; cv=none; b=Jx0cMM5XC7R9BaSTdtBjJrRmUfjlRBzKjUIm14Y3jJmjZ6JxFLe7vPEJ9+1vs/RlvHHOwaNrR/rVO4gLj68WjVCjF5azxhOiEAajn/Bh1vkBIwzboGQfKV7vRBFZ39kr6vTmsgm+k68rYZa9e+pNCJBW9FqalFIU4Vx7pJA+cm8=
+	t=1750086130; cv=none; b=Ar9X/CTsQQhuDx1n28nZx+2rQ9tSdLXm7lC+KCqac3DPEpvE2P7ed2G6c7zV/opdL7feVMA9i5/r1+WHJin/4Nrx/pezNroTWQj/OHZ0BVt2ciyNq2S3uZ8mbtw1oo5j7HG7p/a8hmrBoI66LuEywN5bcdta25OLAzGlz4lG38w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750084303; c=relaxed/simple;
-	bh=WulBjw8ArzfQyf38C3shN1EE4DycRB8irg80xQNbZ2c=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ZbVMVDMjVi6uaLVZzLmPNt92uXoMDl5fWazn9/pfBtjkveQQrf9+OEpxEVfjtradoXywaUxwCfwIz7qhIVv6WhWZDcx4hdBhAihNii0H7duUgoaTqhLGguc+HzUqW+XAN6NqRyBjcpqGnZKh9OUq/01VwCApGPG7octuqU6weIQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mNY68t13; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750086130; c=relaxed/simple;
+	bh=4lgjXfDP77fyC+bN07w7nhIhbJAVycmtLYGq17iMks4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=eGSzXJfiX83vrDcrkIq75M/s3zjXqjC6pN6ZINnrtcFNcSTtpVfKxA57XJjevbc9mxZviynuTDn80hc+asVB3m/5IPkXOt9VZZB0hMICaJh+O89kvPkxAuUL6kLKShlZzB3mg561+Gq76kk2IxInopDN+B4F3sBKmaycd9wj/qo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l15Dv5pG; arc=none smtp.client-ip=209.85.218.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mNY68t13"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D0B9C4CEEA;
-	Mon, 16 Jun 2025 14:31:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750084302;
-	bh=WulBjw8ArzfQyf38C3shN1EE4DycRB8irg80xQNbZ2c=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=mNY68t131j2sbE+wrh/9hFO/9Y6RIDXstIu70Eaxz5LP3nuynE6eJTlLPTJZw3Dz6
-	 uK1mmHGzPxr//YXp3ZzTbNsIrhSQwPvGBnCTEnUdlmUwnZj9Vw+Mum81Nk8tdn+w9N
-	 9Zfq6xRVMs4ngsURFm9Lh4lfkm1MELs6H+bJgrodMmhUry7LKrSI1yQk4E+VnPBExc
-	 OuQlCCHZsvlYcIkssLi0VvLUFTtD4+WO56nEiMN5yjmb7DiWo79KcHBXchDmJMemcM
-	 8lDIs8aDGxdc2rDGfZcPnnhlJXaGZhLjqkax7MUPIpNzbalzTB7skInSacujqByJU4
-	 YoqEjkina0ULw==
-From: Christian Brauner <brauner@kernel.org>
-To: NeilBrown <neil@brown.name>
-Cc: Christian Brauner <brauner@kernel.org>,
-	David Howells <dhowells@redhat.com>,
-	Tyler Hicks <code@tyhicks.com>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jeff Layton <jlayton@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Namjae Jeon <linkinjeon@kernel.org>,
-	Steve French <smfrench@gmail.com>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	netfs@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	ecryptfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	linux-cifs@vger.kernel.org,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v2] VFS: change old_dir and new_dir in struct renamedata to dentrys
-Date: Mon, 16 Jun 2025 16:31:26 +0200
-Message-ID: <20250616-kopfende-seilbahn-cdd8b52e8b2a@brauner>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <174977089072.608730.4244531834577097454@noble.neil.brown.name>
-References: <174977089072.608730.4244531834577097454@noble.neil.brown.name>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l15Dv5pG"
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-ad88d77314bso1025187166b.1;
+        Mon, 16 Jun 2025 08:02:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1750086127; x=1750690927; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4lgjXfDP77fyC+bN07w7nhIhbJAVycmtLYGq17iMks4=;
+        b=l15Dv5pGGrsgoBzjupigRz0UF8rpoH9twcnedB4/9bhM8PRM9A2U3ParL7eJ2H8KqR
+         qqw6wQv60j4x607JoZTkXEE4WHPoC/f/VwPxHjYxx+/Fs5ELsd/LMJB3qCo1owJ9BLl3
+         u/VA7svYeyZLEm3jSwJ8rneRmKeCXEyGIt/lfcsszIwsLadoQbUQ5vel3Sv2VxF0INgT
+         MQTWw1Hc5/F+upgDXRQohjHl/5ibR0aVzBdNo+W7jGQaiGc0grwszp82r4gDv2WcqTwk
+         pU8d4uum/XrNTeVTCEXPGlocVrxrTVYZttKiC5UjSct19lsi8cHovj1rJao3j9/SpvVg
+         sUxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1750086127; x=1750690927;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=4lgjXfDP77fyC+bN07w7nhIhbJAVycmtLYGq17iMks4=;
+        b=iZaoump0+62LivHf0sCTGULTPqNDTwK2V+SuiIL1RbDU4UzFSgdX/9fU1+2zbIh3xv
+         luweFZ0cVZ6Z4c0obQvnYxpSQKdd0cpe2wDHmIQrGIo01jz29XMpe7HuqGP47g7epklq
+         S2kkI6aDIGc0fhlOGn5xUjf1BKojMm0rHDQqV0IdRM5troGkogYLb1SMcp6wGHgE9rlv
+         +5TRAExIXf+lZymzkJ/XBGYy8a1TlfCXNVxb38++bwacdcxqQ/6g0GsuubS18rZ00F6c
+         BhEH2D30SQR4ZR7NEWv2CEGYH2zNyJy3ab7LU15lqfMaZj1dAtfiM/bK/jvbRmsVN0Mi
+         pYuQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUTtQGNt7wmfvczcNrptDljYawdXHR5gvZPWtyd4h1Ie8GKANc+JbPBcVoJgVax2xf8T1uCvVEW8ZFtrQNXWQ==@vger.kernel.org, AJvYcCVyhp6q+epH3RY7ngoQfgZv5PdPIHWJCOddhQMGf6CUTPIFyzt4mJiEpX91ykW4blTbwc6+jFTFqnBr9xJw@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz3zI618dbFlzMJ6O5riD9qGtY25Szoja/ZLrL1FKa9gwMoTTOA
+	2l+9HJmutet3HoqpDGF09HbTAuKyFD7kQjTb7iOzgjHFuKS/p5NfzRjBJLCwz4We5XaaDVDUZjC
+	uUEkvTy5vRcoAsA1YVWujWPeg//epdlgoUiBYs30=
+X-Gm-Gg: ASbGnctepoLHH8EnR1+BBYEefxEsBMetHBxkJFjbMKIMSRGqT9ZzZ3f/c90IN7iblnZ
+	U146DowYcc2Si8VLciXvULAE+6TaDhb+myvnGewcOHXywBfEP33iRuqyC/W9Ha+UuuQEKOTtat3
+	29BTQjm0CI6HmQ1Wu/FKCbWv1WqzQQvEmNIGUbEpKSNT0=
+X-Google-Smtp-Source: AGHT+IGUva/HWdOi901kFKzbrfQFMCLT6Oq3dDq2eUZY8/wv86Yk4iG+J9oZrubJ3+kEuTjx/JmAlsZb0SSYN1mG1+M=
+X-Received: by 2002:a17:907:9809:b0:ad8:a4a8:102c with SMTP id
+ a640c23a62f3a-adfad368010mr890476066b.11.1750086126038; Mon, 16 Jun 2025
+ 08:02:06 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1303; i=brauner@kernel.org; h=from:subject:message-id; bh=WulBjw8ArzfQyf38C3shN1EE4DycRB8irg80xQNbZ2c=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQEaB3r/skkzG/dU7zq7OYZB2SP/H3J2bay5X+S9Hxnq x7DU+sEO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACYyJYHhv59k+Svl0KXhUxjZ iu/PF1ued/OkguBbn67p/MqT1ZX8rzD8D9t6ISvTuPp1iuevd8rSq2KDco019lqp/93E9rzx0tE jzAA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+References: <20250602171702.1941891-1-amir73il@gmail.com> <oxmvu3v6a3r4ca26b4dhsx45vuulltbke742zna3rrinxc7qxb@kinu65dlrv3f>
+ <CAOQ4uxicRiha+EV+Fv9iAbWqBJzqarZhCa3OjuTr93NpT+wW-Q@mail.gmail.com>
+ <bc6tvlur6wdeseynuk3wqjlcuv6fwirr4xezofmjlcptk24fhp@w4lzoxf4embt>
+ <CAOQ4uxiYU_a_rmS9DBOaMizSFVsbiDQBRcf4-f=8hmL-TGbwxQ@mail.gmail.com> <4lxkp7nfw3dvql7ouqnsfj7hbvzpp32wezamt5b4b56keatc2g@butdqkurvmif>
+In-Reply-To: <4lxkp7nfw3dvql7ouqnsfj7hbvzpp32wezamt5b4b56keatc2g@butdqkurvmif>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 16 Jun 2025 17:01:54 +0200
+X-Gm-Features: AX0GCFuoHLwz52HeOoAT3F4-ksrcM-fXZJxfbG0Vh2Jtx-XWUe-PXYvex2saeKE
+Message-ID: <CAOQ4uxgvOXYyUZXn9s-AtGeQmJm=6eAwFGW4kxyDpDUr4uPUhw@mail.gmail.com>
+Subject: Re: [PATCH v3] ovl: support layers on case-folding capable filesystems
+To: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 13 Jun 2025 09:28:10 +1000, NeilBrown wrote:
-> all users of 'struct renamedata' have the dentry for the old and new
-> directories, and often have no use for the inode except to store it in
-> the renamedata.
-> 
-> This patch changes struct renamedata to hold the dentry, rather than
-> the inode, for the old and new directories, and changes callers to
-> match.  The names are also changed from a _dir suffix to _parent.  This
-> is consistent with other usage in namei.c and elsewhere.
-> 
-> [...]
+On Mon, Jun 16, 2025 at 2:54=E2=80=AFPM Kent Overstreet
+<kent.overstreet@linux.dev> wrote:
+>
+> On Mon, Jun 16, 2025 at 02:36:35PM +0200, Amir Goldstein wrote:
+> > On Mon, Jun 16, 2025 at 2:28=E2=80=AFPM Kent Overstreet
+> > <kent.overstreet@linux.dev> wrote:
+> > >
+> > > On Mon, Jun 16, 2025 at 10:06:32AM +0200, Amir Goldstein wrote:
+> > > > On Sun, Jun 15, 2025 at 9:20=E2=80=AFPM Kent Overstreet
+> > > > <kent.overstreet@linux.dev> wrote:
+> > > > > Where are we at with getting this in? I've got users who keep ask=
+ing, so
+> > > > > hoping we can get it backported to 6.15
+> > > >
+> > > > I'm planning to queue this for 6.17, but hoping to get an ACK from =
+Miklos first.
+> > >
+> > > This is a regression for bcachefs users, why isn't it being considere=
+d for
+> > > 6.16?
+> >
+> > This is an ovl behavior change on fs like ext4 regardless of bcachefs.
+> > This change of behavior, which is desired for your users, could expose =
+other
+> > users to other regressions.
+>
+> Regressions, like?
+>
+> The behavioral change is only for casess that were an error before, so
+> we should only be concerned about regressions if we think there might be
+> a bug in your patch,
 
-Applied to the vfs-6.17.misc branch of the vfs/vfs.git tree.
-Patches in the vfs-6.17.misc branch should appear in linux-next soon.
+Exactly my concern.
+Before the change, it was not possible to have a casefolded dentry
+in the overlay stack.
+Now it is very much possible.
+We detect it and report an error in some lookup cases, but not in all of th=
+em.
+For example in ovl_lower_positive().
+Does it matter? Can it cause harm? I hope not, but not sure.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+> and I think it's simple enough that we don't need to be concerned about t=
+hat.
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+Yes. famous last words.
+I will let Miklos be the judge of that.
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-6.17.misc
-
-[1/1] VFS: change old_dir and new_dir in struct renamedata to dentrys
-      https://git.kernel.org/vfs/vfs/c/bc9241367aac
+Thanks,
+Amir.
