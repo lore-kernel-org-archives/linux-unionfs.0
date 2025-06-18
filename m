@@ -1,78 +1,79 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BD672EE985
-	for <linux-unionfs@vger.kernel.org>; Wed, 18 Jun 2025 14:56:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ADB72E266E
+	for <linux-unionfs@vger.kernel.org>; Wed, 18 Jun 2025 15:19:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750258601; cv=none; b=p3EY3G1XBXn7U67jnJGUzjtyblHqkXC+dd0L0vf46VkZHyq7Oc5iONXL9oHCh4Vx5A/vbMMo9sqn26J9ya0xl6AihX/UZy013pF5Y8Z5fHa2mC0E68xiKEy7GB7kAW4/qNmdjQGZqbOQA5kNFj94KA2Y8XAG4qCffso7N4zgiCc=
+	t=1750259952; cv=none; b=UqtltECNw90rorOsn5j4y9AbjejHWof2sNVSvp8UHigouGko/Wqyp105dDCc07clgPQYAgEQMKWzwzXjNubS7sie46n45Fs8ULEbqMBId50xgtzazdGTWVdmevMPppCfB7BBJw93v8TOgxApafAPH+6juQvKa1GLM9ZA3AtQGvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750258601; c=relaxed/simple;
-	bh=uQKxwv+tZNxK3FWjArDBVpE4yn39W5vpTVad4Dy15iY=;
+	s=arc-20240116; t=1750259952; c=relaxed/simple;
+	bh=ojX4SF6dGhndv11TGfE6g7yZKJplokgNmTmVtt2GsQ4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E/8/U6fK6Nlc0yISv/o8vO/EhOrvD83pNI2nrDAo3ha2XzQahW0tCACi/H+eUlAFl3Cr3S/3pgv8LekjtlgXYAwO9cZGmQ5H0EnBq/LwEtx88ELS53NqbHoC3bgdOnYEreEuNUCWw0JUM3toee5QIQ/d07cdYb5ErLIc4nucTpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=JuKSyvqL; arc=none smtp.client-ip=170.10.129.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=S6xZQo1qvUQPszGMMqrUYsF+kRQ0ECrpcaYt1fTj1Lc1zZMupkY8sXJI53ftXAbRLNwFArxufbbAAHzlRBDGuiJTQ1ArJIMhqtu7NSoorLTZTmgkLaqEPLOC+SBYQJopvvwHcj1M7Jk/GjyuAEVmdRLwCpEWqBP7AOwmFK6DXXU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=a0i7oDSj; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JuKSyvqL"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="a0i7oDSj"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750258597;
+	s=mimecast20190719; t=1750259949;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=4RKFQQTnsHw62TEsOwEWNsE2ygb/sfOvWxBgOUYxwwU=;
-	b=JuKSyvqL+QQ0d/DImFjKuYGJO3W//rf7iuHe8tavxmBewvW+RqmEfgWzIdNX9r66AROq/y
-	BpG/TUGj0Fh8NbFtmYEc+yuqppzldWG1speHPIJNHwBMZD0/SGOL+p14PcPcdQBrXXv+vb
-	hQEof6i6E69dsCL4TxFtnQv1S+UXnDM=
-Received: from mail-pl1-f197.google.com (mail-pl1-f197.google.com
- [209.85.214.197]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=Z30kNtOgZyp00dZO2HkhAR2TtTggoK+GDbdlcN7uCQ8=;
+	b=a0i7oDSjL2Op6bE2anxqOIlbUcBneFE8EAK9tR+OSZSYGOzSC5Vh81OAVp8e03gS8olzv0
+	y/I35rEZem6BaP2K1dlRDWfaSRx/ktsc8RSdPPKESxYvPWLuyqXkhzDuN6WGslzUOuF0rV
+	OszFtrUw8ifra/+Ft3q88KSNMOEfMso=
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com
+ [209.85.215.198]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-139-T8KkOrTzOj2DZFTvSXZ_dA-1; Wed, 18 Jun 2025 10:56:34 -0400
-X-MC-Unique: T8KkOrTzOj2DZFTvSXZ_dA-1
-X-Mimecast-MFC-AGG-ID: T8KkOrTzOj2DZFTvSXZ_dA_1750258592
-Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-2355651d204so59989045ad.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Jun 2025 07:56:33 -0700 (PDT)
+ us-mta-455-Q0s88RWuOc62qpdxW5yOUA-1; Wed, 18 Jun 2025 11:19:05 -0400
+X-MC-Unique: Q0s88RWuOc62qpdxW5yOUA-1
+X-Mimecast-MFC-AGG-ID: Q0s88RWuOc62qpdxW5yOUA_1750259945
+Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-b31c8104e84so731130a12.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Jun 2025 08:19:05 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750258592; x=1750863392;
+        d=1e100.net; s=20230601; t=1750259944; x=1750864744;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4RKFQQTnsHw62TEsOwEWNsE2ygb/sfOvWxBgOUYxwwU=;
-        b=Niq+lamLMERhRJjNxFrqUFvOppcd9JYHZVcT39HLgHIPe/Jr7sfFo+MIrqkFVxlWrV
-         90iKP+R2jmcMoKkORr7Ed9Gw9hfcCnLa2zbpidxLg8T92hUhtaJBeIT+7hzG1Og6S2J2
-         f9pBBFretGo7snozc598Ex7Myst7sIy3QGiTGpHtv1CNrLktc+nYZjPKUULBRksugXMx
-         VnEtucA+bPuF5iDNaZSoH9YUNzwk9JyfMvsBDXzGBTLDkuePyvkhKwh+O0ITN9N9BHaX
-         cdVzZ53DXQvDJzym7JEwmuV89t0OlwfcyjrPeyPjt+wxnxZCQ/WSBpPbr8hO0GdU98mc
-         Q8Cw==
-X-Forwarded-Encrypted: i=1; AJvYcCXgBH6Z7qGBGVUvavVlSy5uZxVriQ2tBT4FPWUulTQ1q03yxkNoyXx9YU2sCDgqPJJyucD7nNmN8EfixSA7@vger.kernel.org
-X-Gm-Message-State: AOJu0YyZnNaKQKc7ttCdPOk9Rbm06vc3+4Y1S0cGcVlb4vx8t8SRE1qO
-	Uo++U8QhQbgdL1f/TzxRszFMIB1H6zKYyYE9rHr1a6MRZv5EfwSafNzMpx3MpjHU3aShC3k8C0c
-	eCy+I/WNfOLe10rHUPxw4/QkI5mucVPpYwJD2KyPu3udxZ/sh/HeYkBfh62kikfsOGp0=
-X-Gm-Gg: ASbGncv8joXt38dDlqk/Ae9kZ9oB/rn71AwM766xFXaRqvbY2FDXgcdZzA9WqlLJBUN
-	BwKQS5tVwxb5DwbSQ2D7dWNIs/hwVw32usYeMS4IyaSlUdPnW0jisfNXFb/PFS4sujO/X3rs/hA
-	lDlob+ECMEZr2BYZPF0miWwd1tNwVycmRbxF8eTmLHjP4+e9ClbQDtYF5F0uAurAPoNZ1csOWk6
-	+JtRtynoVYmWUQKEuyTMckyjZsHGnHI3iVYGwmRfzcaK3xd+h3Am2ifg63g4oh1Sa9Ut7RsD7/M
-	XCO7ZXkqkoo/yQAFJI+OvybfOLu9+RZ+sc1QYD7GeAMHalHPoeb0mmns0efIKBA=
-X-Received: by 2002:a17:903:320b:b0:235:f4f7:a62b with SMTP id d9443c01a7336-2366b13af7bmr288523525ad.41.1750258591974;
-        Wed, 18 Jun 2025 07:56:31 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFabFJFiL22n7lCCg4cOVxm7aNPOa8bMeeVTFijQmg0cfrqeYRHfv9rNIgz3k4LiSdEpz90Jg==
-X-Received: by 2002:a17:903:320b:b0:235:f4f7:a62b with SMTP id d9443c01a7336-2366b13af7bmr288523215ad.41.1750258591694;
-        Wed, 18 Jun 2025 07:56:31 -0700 (PDT)
+        bh=Z30kNtOgZyp00dZO2HkhAR2TtTggoK+GDbdlcN7uCQ8=;
+        b=D325/VldhNWcrJx8QmXpkcGMGUzlDcAAvNk4JcUclGMlnpY20zjSVj8TF82lrb2dXg
+         Dfyjp7DUbZ8fYNh6qD0yZNfvvNlnSvw5Fg9w5LdYTJCbTnWnEOQrXeA+PdatgY1uJUHh
+         JF26qxAhBOzzeZ0DAc/E1Ru2FWLN3bGzUcAdBRBz3r0wVXhf57J3SRhpT/6hp5WBbtdF
+         qYOFLbsWNMuLtOQn+/aLa6Xc1XxiT2rmOnTAqpHzdB//Una0IZbxFOVddCedN6YpPCb4
+         O5yr7Xnx1eQwZHXsJl7sZaN69J0Lk07PjW6cCV6q4tC6KmOtCk+53l6Fi4yzJuEzv/A5
+         EDYA==
+X-Forwarded-Encrypted: i=1; AJvYcCWFUXRy0TchPn7JSNwyIim/20u0E1omuKxvYTiR+UPB7deIJkZqKp0xr3lB7UkL3hu/KWpbofaFPZpYXrAI@vger.kernel.org
+X-Gm-Message-State: AOJu0YwamvdFSK6Fg+6IEEn9axu+5+dJY19TKhtJml3NuriGqIhEXqcw
+	Hom9lY1dNTyRMc6I2NmrhCTpmCmYzheQqxX5aoDzjmXt5yTBW1rnJDc1GhvaStc8AOMBgl+7hp/
+	NL2X7uyPIIWIKIG/T++OwEvgIPrpLXbL+NPAMn8QlbZgaXRYu8zQ/1kd3henSezwAO5U=
+X-Gm-Gg: ASbGncukMZOWxDcwwJI29egbiGv2cASvmpdzFh+beKEW57JR44KXoPwGWcr8YmF94a/
+	f5jM/7DW1IQE5zi6ZFSskfGUDXqQD0tqO7iFzPwW1DNh1FhpCqj/QvbcREFieP0dF+3rOUKUhPd
+	9/rp3T5JxkN6v1EMQdoz1C+LLhg+EfxseqQb66a5MkXy5+BteyBTP2DnVpY7ysNHlIvC+/rsG0H
+	0elmKIH1bzr+t5DCyFXEVi8meb3BDHLsobPGX0ovPfeClYQb7gf7eNeP7iw8B24QW0En1W7VbmG
+	xRVhIqXd0q8SRTf5oWiyMT1PEC/hOVxH7y+Bs19jEhChvT48V/bLsHjehFCuZdo=
+X-Received: by 2002:a05:6a21:348b:b0:21f:8d4f:9e3b with SMTP id adf61e73a8af0-21fbd495049mr29550985637.7.1750259944573;
+        Wed, 18 Jun 2025 08:19:04 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEaDScrc7zLSZGrtoxWrDo0y2u9/Nhj/Z/6vpLaxl4ORVAkYvGWbDe0RJikOFJTf4L+E5x3dg==
+X-Received: by 2002:a05:6a21:348b:b0:21f:8d4f:9e3b with SMTP id adf61e73a8af0-21fbd495049mr29550941637.7.1750259944180;
+        Wed, 18 Jun 2025 08:19:04 -0700 (PDT)
 Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([209.132.188.88])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2365d8a4d6csm101459915ad.88.2025.06.18.07.56.29
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b2fe1643ebdsm11109593a12.26.2025.06.18.08.19.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Jun 2025 07:56:31 -0700 (PDT)
-Date: Wed, 18 Jun 2025 22:56:26 +0800
+        Wed, 18 Jun 2025 08:19:03 -0700 (PDT)
+Date: Wed, 18 Jun 2025 23:18:59 +0800
 From: Zorro Lang <zlang@redhat.com>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>,
 	=?utf-8?B?QW5kcsOp?= Almeida <andrealmeid@igalia.com>,
 	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Subject: Re: [PATCH 0/3] fstests overlay updates for 6.16-rc1
-Message-ID: <20250618145626.xm5x56zwl724jonj@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+Subject: Re: [PATCH 1/3] fstests: add helper _scratch_shutdown_and_syncfs
+Message-ID: <20250618151859.fly75yltbk3xaanb@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
 References: <20250609151915.2638057-1-amir73il@gmail.com>
+ <20250609151915.2638057-2-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -81,53 +82,138 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250609151915.2638057-1-amir73il@gmail.com>
+In-Reply-To: <20250609151915.2638057-2-amir73il@gmail.com>
 
-On Mon, Jun 09, 2025 at 05:19:12PM +0200, Amir Goldstein wrote:
-> Zorro,
+On Mon, Jun 09, 2025 at 05:19:13PM +0200, Amir Goldstein wrote:
+> Test xfs/546 has to chain syncfs after shutdown and cannot
+> use the _scratch_shitdown helper, because after shutdown a fd
+> cannot be opened to execute syncfs on.
 > 
-> Please find two new tests by Miklos to cover ian overlayfs feature
-> merged to 6.16-rc1. Those tests do notrun on older kernels.
-
-Thanks for the testing and feedback for older kernels :)
-
+> The xfs_io command of chaining syncfs after shutdown is rather
+> more complex to execute in the derived overlayfs test overlay/087.
 > 
-> Adding two new helpers to sort out the shutdown test requiremetns w.r.t
-> overlayfs following our discussion on generic/623 patch review [1].
+> Add a helper to abstract this complexity from test writers.
+> Add a _require statement to match.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
 
-Sure, I'll merge this version (after testing) as we talked.
+As we talked, I think this version is good to me, I'll merge it with
+the typo fix which Darrick metioned :)
+
+Reviewed-by: Zorro Lang <zlang@redhat.com>
 
 Thanks,
 Zorro
 
+>  common/rc         | 27 +++++++++++++++++++++++++++
+>  tests/overlay/087 | 13 +++----------
+>  tests/xfs/546     |  5 ++---
+>  3 files changed, 32 insertions(+), 13 deletions(-)
 > 
-> Thanks,
-> Amir.
-> 
-> [1] https://lore.kernel.org/fstests/20250603100745.2022891-5-amir73il@gmail.com/
-> 
-> Amir Goldstein (2):
->   fstests: add helper _scratch_shutdown_and_syncfs
->   fstests: add helper _require_xfs_io_shutdown
-> 
-> Miklos Szeredi (1):
->   overlay/08[89]: add tests for data-only redirect with userxattr
-> 
->  common/overlay        |  29 +++++
->  common/rc             |  48 +++++++
->  tests/generic/623     |   2 +-
->  tests/overlay/087     |  13 +-
->  tests/overlay/088     | 296 ++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/088.out |  39 ++++++
->  tests/overlay/089     | 272 ++++++++++++++++++++++++++++++++++++++
->  tests/overlay/089.out |   5 +
->  tests/xfs/546         |   5 +-
->  9 files changed, 695 insertions(+), 14 deletions(-)
->  create mode 100755 tests/overlay/088
->  create mode 100644 tests/overlay/088.out
->  create mode 100755 tests/overlay/089
->  create mode 100644 tests/overlay/089.out
-> 
+> diff --git a/common/rc b/common/rc
+> index f71cc8f0..d9a8b52e 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -595,6 +595,27 @@ _scratch_shutdown_handle()
+>  	fi
+>  }
+>  
+> +_scratch_shutdown_and_syncfs()
+> +{
+> +	if [ $FSTYP = "overlay" ]; then
+> +		# In lagacy overlay usage, it may specify directory as
+> +		# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
+> +		# will be null, so check OVL_BASE_SCRATCH_DEV before
+> +		# running shutdown to avoid shutting down base fs accidently.
+> +		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
+> +			_fail "_scratch_shutdown: call _require_scratch_shutdown first in test"
+> +		fi
+> +		# This command is complicated a bit because in the case of overlayfs the
+> +		# syncfs fd needs to be opened before shutdown and it is different from the
+> +		# shutdown fd, so we cannot use the _scratch_shutdown() helper.
+> +		# Filter out xfs_io output of active fds.
+> +		$XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c 'shutdown -f ' \
+> +				-c close -c syncfs $SCRATCH_MNT | grep -vF '[00'
+> +	else
+> +		$XFS_IO_PROG -x -c 'shutdown -f ' -c syncfs $SCRATCH_MNT
+> +	fi
+> +}
+> +
+>  _move_mount()
+>  {
+>  	local mnt=$1
+> @@ -4102,6 +4123,12 @@ _require_scratch_shutdown()
+>  	_scratch_unmount
+>  }
+>  
+> +_require_scratch_shutdown_and_syncfs()
+> +{
+> +	_require_xfs_io_command syncfs
+> +	_require_scratch_shutdown
+> +}
+> +
+>  _check_s_dax()
+>  {
+>  	local target=$1
+> diff --git a/tests/overlay/087 b/tests/overlay/087
+> index a5afb0d5..2ad069db 100755
+> --- a/tests/overlay/087
+> +++ b/tests/overlay/087
+> @@ -32,9 +32,8 @@ _begin_fstest auto quick mount shutdown
+>  
+>  
+>  # Modify as appropriate.
+> -_require_xfs_io_command syncfs
+>  _require_scratch_nocheck
+> -_require_scratch_shutdown
+> +_require_scratch_shutdown_and_syncfs
+>  
+>  [ "$OVL_BASE_FSTYP" == "xfs" ] || \
+>  	_notrun "base fs $OVL_BASE_FSTYP has unknown behavior with syncfs after shutdown"
+> @@ -43,19 +42,13 @@ _require_scratch_shutdown
+>  # bother checking the filesystem afterwards since we never wrote anything.
+>  echo "=== syncfs after shutdown"
+>  _scratch_mount
+> -# This command is complicated a bit because in the case of overlayfs the
+> -# syncfs fd needs to be opened before shutdown and it is different from the
+> -# shutdown fd, so we cannot use the _scratch_shutdown() helper.
+> -# Filter out xfs_io output of active fds.
+> -$XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c 'shutdown -f ' -c close -c syncfs $SCRATCH_MNT | \
+> -	grep -vF '[00'
+> +_scratch_shutdown_and_syncfs
+>  
+>  # Now repeat the same test with a volatile overlayfs mount and expect no error
+>  _scratch_unmount
+>  echo "=== syncfs after shutdown (volatile)"
+>  _scratch_mount -o volatile
+> -$XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c 'shutdown -f ' -c close -c syncfs $SCRATCH_MNT | \
+> -	grep -vF '[00'
+> +_scratch_shutdown_and_syncfs
+>  
+>  # success, all done
+>  status=0
+> diff --git a/tests/xfs/546 b/tests/xfs/546
+> index 316ffc50..c50d41a6 100755
+> --- a/tests/xfs/546
+> +++ b/tests/xfs/546
+> @@ -27,14 +27,13 @@ _begin_fstest auto quick shutdown
+>  
+>  
+>  # Modify as appropriate.
+> -_require_xfs_io_command syncfs
+>  _require_scratch_nocheck
+> -_require_scratch_shutdown
+> +_require_scratch_shutdown_and_syncfs
+>  
+>  # Reuse the fs formatted when we checked for the shutdown ioctl, and don't
+>  # bother checking the filesystem afterwards since we never wrote anything.
+>  _scratch_mount
+> -$XFS_IO_PROG -x -c 'shutdown -f ' -c syncfs $SCRATCH_MNT
+> +_scratch_shutdown_and_syncfs
+>  
+>  # success, all done
+>  status=0
 > -- 
 > 2.34.1
 > 
