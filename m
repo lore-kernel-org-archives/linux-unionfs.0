@@ -1,71 +1,71 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47DF51DB15F;
-	Wed, 25 Jun 2025 18:22:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DCDE3074AC;
+	Wed, 25 Jun 2025 18:30:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750875777; cv=none; b=umenfuSJVj9gjQ1r18OmuIPy/MAJMnGBYvZCREvxMAJ/ybQ/MkETRiO0GEZT/ZzhAZ0i5XsdiYxk/q1uIFq08X4BuzlTzCrqn4LvlQ8ZpfzV4HhU6u3NCBkLK9Td2HIB2gCOhfRmzNW5k+rN//pqUzuGTf0HuOoHSQ74GqtGYD4=
+	t=1750876256; cv=none; b=aFX+x7rm5cpw1XYNP9x9CjLGgs5/5Rmv9HJwVp5j4nVcYcixoN6L9gy4BP2cLfRHvtvxdD86AaNsudmfhixwbU/oKjQPB6jydrtJdlgd9D/9WsMuA3NYEktZm5faFQcmKOa0g63j1EEIWv+SBq7jJ0WrhQur7EYov2/Rl7OE/yE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750875777; c=relaxed/simple;
-	bh=gjGaYRCYrUag7MztlOltEAYykia0C1e7kHs9zKybWiI=;
+	s=arc-20240116; t=1750876256; c=relaxed/simple;
+	bh=2lpg+lLFbQ7Em7szuMPalqegZRryEsgdCZRV32FRgYQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YOkAIRuo6P7m0mOU8g9NElc087mcIH0EzDEt8tmXHT9/eCs//4rLCI/nNrASiWkKqfqn/8p9i0yX7T37Z8vBwaPj4XS0tsnTIbMRUc3xfp9xHc6SRaGkOMVfZ3qATJGphmD7DY3usRF3JAqpmZoOQ70XcqYjZPurGTCtlDMN7oY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ez0+tbrC; arc=none smtp.client-ip=209.85.218.49
+	 To:Cc:Content-Type; b=aCxptAbNwuv+BVsv08uwyNQhkzpT53Pvx56pRVcNWrvZCkUcS9gblXxaMSTdiRN5toWK3dXogsUwAgCJlDyl8GyqSqit4xirbOHDChz3JDm5ZY9diqD+6fpbLMkkeoNE7fEP+CYIbph0Ov7zfCsPtrIG93qw80LkBhfSYnkBrRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kvzpzIHP; arc=none smtp.client-ip=209.85.208.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ez0+tbrC"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ade58ef47c0so47530566b.1;
-        Wed, 25 Jun 2025 11:22:55 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kvzpzIHP"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-60780d74c85so178160a12.2;
+        Wed, 25 Jun 2025 11:30:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1750875774; x=1751480574; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1750876253; x=1751481053; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Oi0m7fgA8psac0nPrT4JM7gCShW7pczHGe7U/CUmk6c=;
-        b=ez0+tbrC5ygkp9ul4rNc/jIk/3beMGXMgAF5fRhTgB+VhKImimbt+7kv5j5o2hmT+s
-         ajK+bnr9H88/P1f8820gS+k2qQo5CnEq/yjCciVkcd6BfmukEbIZrHNSwN0OdhYojsLL
-         JWmONg/xKZM2tsAb1GSLEpaT4K+qsPaTzXYXsVwYtcJXiUFR24fCU986WqmS+dysPPWC
-         wODA2ygulRSFPNuuUyzri+oefvmTGz9Gx2z974DdFL8jm7/CXHTQWhH23jHC2pSfKEKh
-         WNCeDad2VDvRwrFMIuctx/ZoBc2OYqUl8aBulOShKYXjLh9U1CzspOQuFyhBed4Dgctr
-         1t7w==
+        bh=kHmZSVDd99XgStkgJ6q220ctHwcq4hRDkkXskiwd5ZU=;
+        b=kvzpzIHPTg3MFHrFQdScuv4Etrq+A0iMc0flAayWZAVHlDfDEE0zYerpZOgmrIZc+c
+         0RsJLTb8rHAx+GjswS/Aigi63ZrEIwkm6emhlg+FTyKr9eS855K4PD09JQu32BdF/z/H
+         2lWiL7OfmhGRK50SMomZvEBfWGF/jStWM6ZymcJwZxq/oiydpn7NNVBrEfiXphYLftRM
+         Zq4biLhPc5hz3AVulvujL3pwVoQTLb7+4U6ypCwMJgrHrkSvJgnQUBAUtq8H4Rjeb3rB
+         4KwnoIOsbWkdHcdXCa/Sun0CpfSHm6FqqaUkAAsy72IQbZQKa4sirLWHeJxpp4ZZdurn
+         0tGA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750875774; x=1751480574;
+        d=1e100.net; s=20230601; t=1750876253; x=1751481053;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Oi0m7fgA8psac0nPrT4JM7gCShW7pczHGe7U/CUmk6c=;
-        b=b7G4Hif2+fPlBVQEZllzryeJnOGfDNKTBEQdaSR15yVcTCC+6hMoTq/ys+n6+r5mTL
-         UoUGT2ZxmVmUOmFCmjhuPjRJBGyUB5FwxvfzgS6VBKK+7PVoG5haDY5v7mRL6/bucCaD
-         kurrtq7qpCojGwPEX14gyTkq+dO4NDdii/NPe6b5dR4gA1PEeP1hMtstz6qNZB20t5TP
-         NSkVWWe2wcR7zIsFQomJqOCjZ8hE68MmyX8TclZd9zRmPDPfTy+CJ+dr5FULTaMRdG37
-         vWZHSBpUblWduUMIhCNo7bUXQhpUK5Sqw47G2NGdbfP5vXx6J0YoAyHNR3gLB1Tu8aM+
-         MiMg==
-X-Forwarded-Encrypted: i=1; AJvYcCUic6RE3f9pn81iFu2t6X0ZqROqqcygCdAMoB7Xfw2TobKZOEKcueyzzj0FDIGHPmkJ6TkbfV1YhwnYwWk2Hg==@vger.kernel.org, AJvYcCW3YcTX5YbNwSvUrOV8UZ7zddOvJN2NX9WPRQUWpF/gNDZ1sfjL9VKyiJtD+s9WtetaQ2Fv5X0fTBrXnrPn@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRqCnJGHPfrkwHwueVjM8vRAjjUiRvyKpVl0olgMLgb1gHY23j
-	t81aiBy8kGGggGFGL4pyP2VUfkiEOoJO4e/COrLetsylVUEa08Z12wvdIRXBkRXuVVkFKbibjCG
-	Aut/ve67Z+W/mrvSXwJS7/3lGQwJeHiA=
-X-Gm-Gg: ASbGncvKKchMEId5Bg6ct5CGh6MrZIgPJo3mO24v6uSHjLJHrehz4piXpwizseVVOC2
-	Xb5u7EhmP6wegOa1dDeobQ3Tlbl1PPxSV8EbX0Au/PMoGATuAPEZMI7gp7I3W9rdmJfUlCuBqpZ
-	UJpkg8PnETFkE1ed5z4uV24c8AiPYLh6acYuSjNbNI2vc=
-X-Google-Smtp-Source: AGHT+IFdybK8LZPk5C+8CZrkt1KGVhO1eidZOIcOrOhf9tqVb6zIX1Y2DdbH46GqJa+aqQVdZ4aWyeZEeXlLCTv8LO4=
-X-Received: by 2002:a17:907:1c18:b0:ad2:e08:e9e2 with SMTP id
- a640c23a62f3a-ae0d26dc306mr57634266b.27.1750875774114; Wed, 25 Jun 2025
- 11:22:54 -0700 (PDT)
+        bh=kHmZSVDd99XgStkgJ6q220ctHwcq4hRDkkXskiwd5ZU=;
+        b=s8qSx6xW5JQ045g00nxG+KhTs+jFJo91cbAAoF2RauYJZ5Mwltg9AHzInwAJVFboLI
+         43/qIZy41sdB+fyuWRsvel8akwqHXUdcc2FHZgSt+00zhZId6pup4X4g9Yxm/RnrqwBC
+         rV/5AG+TDVTODM/rqsa1KUBC/xB996CJolT0gfoEMy/Ixoz1r3/TTS2L8UuS6q3U4e24
+         9sDX5WJQSGQvssDQjJgF/wf/lAuK83bDaaeAeFx7XLxVnXg/qAn6hzj7UpqcLavHdSfO
+         7JytVaZW3/6Qc1lJc5c5cY4e3y22fqvjgb91ZsDK+mJ+mxu4CITfChR9Lbg5IEj0iBus
+         W3dA==
+X-Forwarded-Encrypted: i=1; AJvYcCUg0MZjn7oaJgLOEeSM75sIXLTDahYbbSrKF5uIcMn3d5bJLgsfutaRKcbRbLtU6rIX+1hRt8Y1z86Ek68RJQ==@vger.kernel.org, AJvYcCX9vodRQrzAoGY8UdqBfb5+Prbx2WzgRp5F40GyS5pUp1fo0dMzXV7TvtRRO7QyxnRp6qvVEiOSqIalNKpJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxAa1anhUTw1gM+ChtVktKZ9Cw8JlXj4TWHGKSKeYIgdhYUGBSt
+	uxym3px39FCFYk2YUCpCdcmNhxmflYMxNWe6aFuZbyWPxuIsKXC7k7PBkjIZ5lrBfsojxyG2ToJ
+	gbIM3Fyw6SbtuZMylfHR/Q1oMVObNlMY=
+X-Gm-Gg: ASbGnctBgSGHhLkN8WPyU0E9MgZA1fSDQQj644OrQEq69pyJURdU48C8aiNBZnyXsip
+	CrRAyJeKdtYbe05IOb6fn9RU9Jh+nnsQEF5jDLWsdovXQr4+ZoCDB2xZBJsFmWQWpsv15ak22EW
+	pC9TK73iBWa8+2da27+GN+F5cYVaU+vWtWTXTKv091awA=
+X-Google-Smtp-Source: AGHT+IG7k2x22iafh8klQtSNa/vSITcZABW1SHSmiWPbhWV0UbqZXq9GgPgh5UWMwYUYN3FtAj1YGHNmT/G6PqQ/Z1k=
+X-Received: by 2002:a17:906:c102:b0:ae0:ce40:11c6 with SMTP id
+ a640c23a62f3a-ae0ce40186cmr167484766b.21.1750876253045; Wed, 25 Jun 2025
+ 11:30:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250624230636.3233059-1-neil@brown.name> <20250624230636.3233059-6-neil@brown.name>
-In-Reply-To: <20250624230636.3233059-6-neil@brown.name>
+References: <20250624230636.3233059-1-neil@brown.name> <20250624230636.3233059-8-neil@brown.name>
+In-Reply-To: <20250624230636.3233059-8-neil@brown.name>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 25 Jun 2025 20:22:41 +0200
-X-Gm-Features: Ac12FXwKR4nmqgDcf5Xfc5bip1jbz7kuMyYGOJx_29mwH7WtsAhr-ulcbOKtKnw
-Message-ID: <CAOQ4uxhB73DUADGOM9gKoUXhO1_RXp7vUv6jx6i53jzOpdDhTQ@mail.gmail.com>
-Subject: Re: [PATCH 05/12] ovl: narrow locking in ovl_clear_empty()
+Date: Wed, 25 Jun 2025 20:30:41 +0200
+X-Gm-Features: Ac12FXyJI_YJphFwrp3bChx01T43PGR_bNlzyCJ5VpObAqnhkie6nM7pfQkJXAk
+Message-ID: <CAOQ4uxjDK3AJoY-geRLprvSKEW7UopJLY_9WcJ0LjwiKAP29uA@mail.gmail.com>
+Subject: Re: [PATCH 07/12] ovl: narrow locking in ovl_rename()
 To: NeilBrown <neil@brown.name>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
@@ -75,51 +75,71 @@ Content-Transfer-Encoding: quoted-printable
 
 On Wed, Jun 25, 2025 at 1:07=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
 >
-> Drop the locks immediately after rename, and use a separate lock for
-> cleanup.
+> Drop the rename lock immediately after the rename, and use
+> ovl_cleanup_unlocked() for cleanup.
 >
 > This makes way for future changes where locks are taken on individual
 > dentries rather than the whole directory.
 >
-> Note that ovl_cleanup_whiteouts() operates on "upper", a child of
-> "upperdir" and does not require upperdir or workdir to be locked.
->
 > Signed-off-by: NeilBrown <neil@brown.name>
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
 > ---
->  fs/overlayfs/dir.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+>  fs/overlayfs/dir.c | 15 ++++++++++-----
+>  1 file changed, 10 insertions(+), 5 deletions(-)
 >
 > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 2d67704d641e..e3ea7d02219f 100644
+> index 2b879d7c386e..5afe17cee305 100644
 > --- a/fs/overlayfs/dir.c
 > +++ b/fs/overlayfs/dir.c
-> @@ -355,7 +355,6 @@ static struct dentry *ovl_clear_empty(struct dentry *=
-dentry,
->  {
->         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct dentry *workdir =3D ovl_workdir(dentry);
-> -       struct inode *wdir =3D workdir->d_inode;
->         struct dentry *upperdir =3D ovl_dentry_upper(dentry->d_parent);
->         struct inode *udir =3D upperdir->d_inode;
->         struct path upperpath;
-> @@ -408,10 +407,10 @@ static struct dentry *ovl_clear_empty(struct dentry=
- *dentry,
->         err =3D ovl_do_rename(ofs, workdir, opaquedir, upperdir, upper, R=
-ENAME_EXCHANGE);
+> @@ -1270,9 +1270,10 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
+uct inode *olddir,
+>                             new_upperdir, newdentry, flags);
 >         if (err)
->                 goto out_cleanup;
-> +       unlock_rename(workdir, upperdir);
+>                 goto out_dput;
+> +       unlock_rename(new_upperdir, old_upperdir);
 >
->         ovl_cleanup_whiteouts(ofs, upper, list);
-> -       ovl_cleanup(ofs, wdir, upper);
-> -       unlock_rename(workdir, upperdir);
-> +       ovl_cleanup_unlocked(ofs, workdir, upper);
+>         if (cleanup_whiteout)
+> -               ovl_cleanup(ofs, old_upperdir->d_inode, newdentry);
+> +               ovl_cleanup_unlocked(ofs, old_upperdir, newdentry);
 >
->         /* dentry's upper doesn't match now, get rid of it */
->         d_drop(dentry);
-> --
-> 2.49.0
+>         if (overwrite && d_inode(new)) {
+>                 if (new_is_dir)
+> @@ -1291,12 +1292,8 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
+uct inode *olddir,
+>         if (d_inode(new) && ovl_dentry_upper(new))
+>                 ovl_copyattr(d_inode(new));
 >
+> -out_dput:
+>         dput(newdentry);
+> -out_dput_old:
+>         dput(olddentry);
+> -out_unlock:
+> -       unlock_rename(new_upperdir, old_upperdir);
+>  out_revert_creds:
+>         ovl_revert_creds(old_cred);
+>         if (update_nlink)
+> @@ -1307,6 +1304,14 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
+uct inode *olddir,
+>         dput(opaquedir);
+>         ovl_cache_free(&list);
+>         return err;
+> +
+> +out_dput:
+> +       dput(newdentry);
+> +out_dput_old:
+> +       dput(olddentry);
+> +out_unlock:
+> +       unlock_rename(new_upperdir, old_upperdir);
+> +       goto out_revert_creds;
+>  }
+
+Once again, I really do not like the resulting code flow.
+This is a huge function and impossile to follow all condition.
+As a rule of thumb, I think you need to factor out the block of code under
+lock_rename() to avoid those horrible goto mazes.
+
+The no error case used to do dput(newdentry) and dput(olddentry)
+how come they are gone now?
+what am I missing?
+
+Thanks,
+Amir.
