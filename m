@@ -1,107 +1,125 @@
-Received: from neil.brown.name (neil.brown.name [103.29.64.221])
+Received: from out-182.mta1.migadu.com (out-182.mta1.migadu.com [95.215.58.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F2B26CE0F;
-	Wed, 25 Jun 2025 21:45:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9055B2E54B9
+	for <linux-unionfs@vger.kernel.org>; Thu, 26 Jun 2025 13:37:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750887929; cv=none; b=rjeRTVF/zcjvDEt7oNLI9YpZR0G5GqVLwOSs0YwuKq85LwGC8LR8Tqh3xlXC7Q78rH43kwDP2yL7peG1xYiGpczyzqfOMu9md3cUMmkB3AKfRxLnP96MdDvvddf9lheKF5zfSYf06eLJcvMfrC4gPumpnZzkPfJ4L6mj2NMliZ4=
+	t=1750945053; cv=none; b=Xd4kNMn5sg0SheGXfe7K7zI+eB6Z2x6zOd6XyeKg1/DnrCWtGxEpTPZz6imjEDkKA1o3t/YK86VJ+cMLfpz976vr0XsckGawZXI2gWrtTwGsxCGxjfx52E+BKpyHlw2zeTX5HeaYgRZ3cTgAPQ1VnmcfvmxmhT9wQuZvTxiQGZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750887929; c=relaxed/simple;
-	bh=xzBP+699j1EQui1oe5SqTa5MCEOF8RKZFkPwrYRlLKw=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=SM5qGjM9FpvO7MWxhfVwH54R24ZilUdbrDCp78b5Cq0I8v3cPx87VfTlWRbY13OjEA1apepx9kb3NUGcYj3K7+mqcfNOyEK7blbjuQsgXhnoBgP42OAY/XVu448Q/yLVsPuvvB+R5Lf+a3WMgoIVJLyFjSAo0mRG7Ced4IDokLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
-Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
-	by neil.brown.name with esmtp (Exim 4.95)
-	(envelope-from <mr@neil.brown.name>)
-	id 1uUXvp-004rxc-5O;
-	Wed, 25 Jun 2025 21:45:25 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1750945053; c=relaxed/simple;
+	bh=w2jzAQH4LMBMSnep14UttjTH0cLF3lqFH/x7Yg1wtpI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Nb4mSYI7p6uhuyfu6m5s3J1nLtXT41K/wJaEULDnTcHGhbz0aGHJg5i7ydRPu4fYPubis30/nxBUa1jsMmYBWa2DHmWzL8OsbIeS9Q1SpM9rO0z2uFV5MZZuWTVqOtAQQ9iom2axnstjoum4q4bbDHhrcuqcmIuVVrlTEtalFww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=HZYW1/qm; arc=none smtp.client-ip=95.215.58.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="HZYW1/qm"
+Date: Thu, 26 Jun 2025 09:37:24 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1750945048;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=0Zd1X+WmxRI1gjnAViN5ZA4D1dRNipkc/fi1akXY9jY=;
+	b=HZYW1/qmVmgByKRWFBJTkKMkIwBebA0CkI56exm57B8QcPMX1sVE07K8KqP7b+ctmywVC1
+	5GUPprfANLw8S+pNZ81nRw1DvUldQUZRVWpRkaajYUZBBxgPAWu6wGWuWyVhiNWsIGUBJO
+	EoLH8Ww3OPIOxRK9kYGypxlFizYAV8c=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Kent Overstreet <kent.overstreet@linux.dev>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v3] ovl: support layers on case-folding capable
+ filesystems
+Message-ID: <v3sqyceuxalkzmu5yweciry54qjfwif3lloefpsapomz6afpv6@metypepdf3dt>
+References: <20250602171702.1941891-1-amir73il@gmail.com>
+ <oxmvu3v6a3r4ca26b4dhsx45vuulltbke742zna3rrinxc7qxb@kinu65dlrv3f>
+ <CAOQ4uxicRiha+EV+Fv9iAbWqBJzqarZhCa3OjuTr93NpT+wW-Q@mail.gmail.com>
+ <CAOQ4uxiNjZKonPKh7Zbz89TmSE67BVHmAtLMZGz=CazNAYRmGQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "NeilBrown" <neil@brown.name>
-To: "Amir Goldstein" <amir73il@gmail.com>
-Cc: "Miklos Szeredi" <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 01/12] ovl: use is_subdir() for testing if one thing is a
- subdir of another
-In-reply-to:
- <CAOQ4uxhoVe2g+85C5e=UrGQHyyB=B4OgKcXF3B_puU+5j0mCRQ@mail.gmail.com>
-References:
- <>, <CAOQ4uxhoVe2g+85C5e=UrGQHyyB=B4OgKcXF3B_puU+5j0mCRQ@mail.gmail.com>
-Date: Thu, 26 Jun 2025 07:45:23 +1000
-Message-id: <175088792304.2280845.17292051611230790520@noble.neil.brown.name>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxiNjZKonPKh7Zbz89TmSE67BVHmAtLMZGz=CazNAYRmGQ@mail.gmail.com>
+X-Migadu-Flow: FLOW_OUT
 
-On Thu, 26 Jun 2025, Amir Goldstein wrote:
-> On Wed, Jun 25, 2025 at 1:07=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+On Sun, Jun 22, 2025 at 09:20:24AM +0200, Amir Goldstein wrote:
+> On Mon, Jun 16, 2025 at 10:06 AM Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > Rather than using lock_rename(), use the more obvious is_subdir() for
-> > ensuring that neither upper nor workdir contain the other.
-> > Also be explicit in the comment that the two directories cannot be the
-> > same.
+> > On Sun, Jun 15, 2025 at 9:20 PM Kent Overstreet
+> > <kent.overstreet@linux.dev> wrote:
+> > >
+> > > On Mon, Jun 02, 2025 at 07:17:02PM +0200, Amir Goldstein wrote:
+> > > > Case folding is often applied to subtrees and not on an entire
+> > > > filesystem.
+> > > >
+> > > > Disallowing layers from filesystems that support case folding is over
+> > > > limiting.
+> > > >
+> > > > Replace the rule that case-folding capable are not allowed as layers
+> > > > with a rule that case folded directories are not allowed in a merged
+> > > > directory stack.
+> > > >
+> > > > Should case folding be enabled on an underlying directory while
+> > > > overlayfs is mounted the outcome is generally undefined.
+> > > >
+> > > > Specifically in ovl_lookup(), we check the base underlying directory
+> > > > and fail with -ESTALE and write a warning to kmsg if an underlying
+> > > > directory case folding is enabled.
+> > > >
+> > > > Suggested-by: Kent Overstreet <kent.overstreet@linux.dev>
+> > > > Link: https://lore.kernel.org/linux-fsdevel/20250520051600.1903319-1-kent.overstreet@linux.dev/
+> > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > > > ---
+> > > >
+> > > > Miklos,
+> > > >
+> > > > This is my solution to Kent's request to allow overlayfs mount on
+> > > > bcachefs subtrees that do not have casefolding enabled, while other
+> > > > subtrees do have casefolding enabled.
+> > > >
+> > > > I have written a test to cover the change of behavior [1].
+> > > > This test does not run on old kernel's where the mount always fails
+> > > > with casefold capable layers.
+> > > >
+> > > > Let me know what you think.
+> > > >
+> > > > Kent,
+> > > >
+> > > > I have tested this on ext4.
+> > > > Please test on bcachefs.
+> > >
+> > > Where are we at with getting this in? I've got users who keep asking, so
+> > > hoping we can get it backported to 6.15
 > >
-> > Signed-off-by: NeilBrown <neil@brown.name>
-> > ---
-> >  fs/overlayfs/super.c | 14 ++++----------
-> >  1 file changed, 4 insertions(+), 10 deletions(-)
+> > I'm planning to queue this for 6.17, but hoping to get an ACK from Miklos first.
 > >
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index cf99b276fdfb..db046b0d6a68 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -438,18 +438,12 @@ static int ovl_lower_dir(const char *name, struct p=
-ath *path,
-> >         return 0;
-> >  }
-> >
-> > -/* Workdir should not be subdir of upperdir and vice versa */
-> > +/* Workdir should not be subdir of upperdir and vice versa, and
-> > + * they should not be the same.
-> > + */
-> >  static bool ovl_workdir_ok(struct dentry *workdir, struct dentry *upperd=
-ir)
-> >  {
-> > -       bool ok =3D false;
-> > -
-> > -       if (workdir !=3D upperdir) {
-> > -               struct dentry *trap =3D lock_rename(workdir, upperdir);
-> > -               if (!IS_ERR(trap))
-> > -                       unlock_rename(workdir, upperdir);
-> > -               ok =3D (trap =3D=3D NULL);
-> > -       }
-> > -       return ok;
-> > +       return !is_subdir(workdir, upperdir) && !is_subdir(upperdir, work=
-dir);
->=20
-> I am not at ease with this simplification to an unlocked test.
-> In the cover letter you wrote that this patch is not like the other patches.
-> Is this really necessary for your work?
-> If not, please leave it out.
+> 
+> Hi Christian,
+> 
+> I would like to let this change soak in next for 6.17.
+> I can push to overlayfs-next, but since you have some changes on vfs.file,
+> I wanted to consult with you first.
+> 
+> The changes are independent so they could go through different trees,
+> but I don't like that so much, so I propose a few options.
+> 
+> 1. make vfs.file a stable branch, so I can base overlayfs-next on it
+> 2. rename to vfs.backing_file and make stable
+> 3. take this single ovl patch via your tree, as I don't currently have
+>     any other ovl patches queued to 6.17
 
-I assume that by "unlocked" you mean that there are two separate calls
-to is_subdir() which are not guaranteed to be coherent.  I don't see how
-that could be a problem.  The directory hierarchy could certainly change
-between the calls, but it could equally change immediately after a fully
-locked call, and thereby invalidate the result.  It is not possible to
-provide a permanent guarantee that there is never a subdir relationship
-between the two.
+I've got more users hitting the casefolding + overlayfs issue.
 
-I don't absolutely need the patch.  I plan for lock_rename() to go away.
-It will be replaced by lookup_and_lock_rename() which will lock two
-dentries and protect the paths from them to their common ancestor from
-any renames.  lookup_and_lock_rename() can be given the two dentries
-rather than having it look them up given parents and names.  So it could
-be used for this test.  It just seems to me to be unnecessary
-complexity.  I will drop it (for now) if you like.
+If we made the new behaviour bcachefs only, would that make it work for
+you to get it into 6.16 + 6.15 backport?
 
-NeilBrown.
+Otherwise I'm going to have to get my own workaround out...
