@@ -1,90 +1,105 @@
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C93727E7DB
-	for <linux-unionfs@vger.kernel.org>; Tue,  1 Jul 2025 17:41:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823F427E7CF;
+	Tue,  1 Jul 2025 19:11:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751391719; cv=none; b=EqHJGkrHoS04a0r2TRlkjTw+V6kOKbP3RlvJvGKShkfuC4GI+y7c6EteXJBefBcavlv+Pm1y/24FKDOjhB6kg0HLH3/yv6Dl+y2jj8XdHTwOUJ3AlJ6MjpqSa3A9h32k4V/MEe1n2kOEzn5/AW2JniH5XEfXnotPM6Bg+QFcPB8=
+	t=1751397101; cv=none; b=kaU30D17eOfVujg6oCRa4/bjgqtr7PYa8zOCX4FnRLTaI/X2g6Sm3SmmsrIJUl8yxH2bWdyQBrAXnDRamRMnkmd97LOG/OTV/2alPBr4RCs8gw+dBKbALC05fbuSEmi959K7/Vscn+zQQoeQ9/mszLRSpRWWPhZ2iM76K9RN5d4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751391719; c=relaxed/simple;
-	bh=vo+jsSLa7JU5IyWo2puh8gDfkbcKEmpzTYMYLg63hs0=;
+	s=arc-20240116; t=1751397101; c=relaxed/simple;
+	bh=vfrKJybgzwjpgw+TJOq6H2Fh67XbF07HjXoZ7cu5IM0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ni3eSnYrFih1eDzQLkyo/figJKdx6uAg+jEd89JjJQkoYrI5yw6ZzkvvvRmHgL/bNMl+rIG4oHZdVa0lQtzJu/KvwTlgR+KbVwprTbNb4WTl/UViaxef2JyDcSqaCEAtr+ogrP2UQcjeOWcFfX3V/OIr0syDnz7+llM9VN1N6AY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=k7+un4vW; arc=none smtp.client-ip=209.85.160.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=SARYjZo7EVlYAK8Q1Z5Sx9HxePSZsnuqpdOvFt49aQH3b9jR4f3toO01d6Vq4g8zchXR04mX0UFv/vpRTUrfdethFEti+e3YBwIIoh1r+uNBWjqLx+/Kh13bdrDfH6HbtZSzH6xWnePSLY1mtqEf2mj/DKDpeVUGXa0/gco9XvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=axXbWcki; arc=none smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="k7+un4vW"
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-4a58e0b26c4so60810441cf.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 01 Jul 2025 10:41:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="axXbWcki"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-ae0a0cd709bso1389385866b.0;
+        Tue, 01 Jul 2025 12:11:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1751391716; x=1751996516; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Uz9gxtHvV0hde9hVIKSffqOhDz+stlEZIhL4Ftpkdm8=;
-        b=k7+un4vWzopGCxZOXWfMTCpCmdQMKxWfjrvxHhklh2uUycV2Hb1a7s2Dq2q6ngysZU
-         Eh9qGTP9j3lccDeFOOv21ZXrApgKJEI3osZaWhshMPqB8zNOJxV3qiUnQnJUf17mtuTA
-         J5WDmStotfDHqrD3Oep9r2O3rPHpDt8v+6crA=
+        d=gmail.com; s=20230601; t=1751397098; x=1752001898; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=QjzoNhUidVgZHP9QlhU4SH9c2JyuaDfBZkeqDe+rudE=;
+        b=axXbWckiGJUtuLvTow6+NCvzQO/IWp6X/weX0z47K5Mvw9pbJkX9ir1z8UAXwxGQCy
+         gNTWFn+cUz9bldUWI8n3Te9cMENOtfc9csQJJReG7/vbtKYoRvGTTYEV8qvO38Qp0Pvw
+         dPS9vSBLVlv5qhrv7tBlumpe/+PWKLcRUtjvG+S6ufpzqxVygYME+OxywDdF2AAI91hl
+         a25lXY/Das1UhRpVaif8cAmj7Xkl7Gkf5CFaKlZgc7LYAmQnC+HmDhr4Yt+J3c1kQ2X3
+         ham8rW5gowdt3KBFJuQk3cDYDKa+9h1HcuwG4O3RNzWNP+Oa0oEciY/WOGg1NQp6R1M5
+         QDQg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751391716; x=1751996516;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Uz9gxtHvV0hde9hVIKSffqOhDz+stlEZIhL4Ftpkdm8=;
-        b=F54PVbw3FgtupZtr8nmFRluwaezf+i+5szGdwbC1P1kH01bQwYRU/qpo+GbVcZwmh3
-         2WayWniF6/V8ghCD+j8nj7aQmuyDhj6r1MblbcM00CfoVJZEI3b3ML4PVvIcZG6lzvx9
-         tPi/7q3LY4M0qzobf1aw1JNQuZMzKBjAqGdhIV+CLydJRuvJVUngbwHEfeHk2oDHZ/CI
-         a5OLMarESAqyYVKmU7lNGmbYnU/e5xEFgqPSJyx6doFn/LdXqZ7wDaZ1Dcxnhtv8TsV4
-         1y/X8QAPhamOWpsydPMRh1SuxIIgbpjTgg7i9WrNzwI7gaBburPhf275Fxm3WoYV2sAt
-         J0Dw==
-X-Forwarded-Encrypted: i=1; AJvYcCVuFenQJZNbadMXi7aFNHmQUThl9CNQv2zXdxUfZZUEr58xqzXO17+hdw2uF7yVacbVrMBowgpqfnrQnkxi@vger.kernel.org
-X-Gm-Message-State: AOJu0YwlalNPVcrRBzAj/sb97RMXUYevAxtb6/DB6U/o9PCKqg0s7LCS
-	598rm7haO3z7DE43e9pvMQfpjP+6QGYbAlTcE4copzW/Ee0AX91/lWZIy/XTKoZpq10r1UTlPLK
-	R2eacvS26xK4P57FspFa4XVeyf2IQR4lnoPBCw3Z6cA==
-X-Gm-Gg: ASbGncv3kLGIXuue5dHbBzBzs2likTx9wIn3OCVIxn1FYYCHRqZp14JY+qu812CtsIH
-	Mvyb0kVX2vOQjgmgLuqlLbonqUTOSf1ieHqaFLsR8wFmnf6EPSg0UBIOkUR8UnCNBfASg80CURs
-	7wx02QmYbFqyeDSeivnq5ZoFB1HKybdmNgJcU7OBJP9yUEYKO9qOJ4oNUp31E2RTM7L9oUBjCYB
-	HsT
-X-Google-Smtp-Source: AGHT+IFAguzY7Hna22OMNWaSfgeB2t8ipomsLv1pH4YwBbEzWUlXYmbu+ldhrUxhzS4BdlUNdvBk2bxHYF3YnWukajU=
-X-Received: by 2002:a05:622a:30d:b0:4a7:f9ab:7895 with SMTP id
- d75a77b69052e-4a7fc9ca69emr297652251cf.4.1751391715752; Tue, 01 Jul 2025
- 10:41:55 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1751397098; x=1752001898;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=QjzoNhUidVgZHP9QlhU4SH9c2JyuaDfBZkeqDe+rudE=;
+        b=i/tj3rEm0zRLoo6b6O5M1gx16Cnd7uV3yoSYz05IhM0uKjfTqryNLzWh8NqJVEKRuo
+         s/Nb3P6FwhnecPtVIYKCCUHKvzOSXelvU4Dsej+P2hUtS1OworSKC/F2WH9fURMOCg/H
+         ZUw5axiVdIe+DnsypdcB7UyClM76d0uhRMIP2yt3DCE9R04CBfU5oCj4uap/umijZtHj
+         VvelUO80MNUl3+xp34w+bjYtCUUX5l5UwBC8cJdSdRqhl6bSxDhSZiSkSAv2xOfvYUFD
+         R1k1S160PkDEzXJeudaecPWk/6pwyPnpF6+nGsXYb0/6cA9dKc35Y/o91DYF63Jn+8zM
+         nisQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUVO0QYv8je+vLjtkwAYpPNPDSmr2MNTE5OMUtx9M1TkyAXogis2Gm3gm/8Oh8cbGXXT9jTZuyjaYHGgZ5ftQ==@vger.kernel.org, AJvYcCW2tXtkCmriByUkAP1fWY7Ad26kE/nkyY1QGTfBVfC1uuml21tAkCqDo8++9IwspyE1qXYqmpT5sQYw5GH0@vger.kernel.org
+X-Gm-Message-State: AOJu0YzihLcXTHpqEAVj+vvU7vjrqXQxrCNe+BTgA3hXJvUjlWWp1dqL
+	POG8AIY0ej/U4ZN6Yituj++i5dnx3FeH+0Min1L83P5Ba7u4nZVFnA5qybbsExzuercK4H/lMRm
+	0mz7BRAdk0X4/TxiO2WgjBPhCRJdDA0NsbnkVoxw=
+X-Gm-Gg: ASbGncvj6ahcrnUg17nNSvr4EXPJ7SN2sX6x29m1TTOKPzhOzhgo1YclbrmBUj94q8f
+	jYpyBG2j2D8p++Z/fljeGKmpgsmVNm8F5sBCe4JNVXoZ7I8GA0Zdk9aROCO/hIT3241JoPTsAuM
+	5qq8lM/mWTJUL/rPfLSRBc1sRO9B6lDPjzh3vJ1LdEgiQ=
+X-Google-Smtp-Source: AGHT+IGhoAtZ0nPpwrGpHsxUvERoXprnTWRhp/mrbBB9hf0usVRtrc8KBMAymCzAXIijLekld9yz3eRERBye6x5PP9I=
+X-Received: by 2002:a17:907:95a4:b0:ae0:573f:40bd with SMTP id
+ a640c23a62f3a-ae3c179c182mr26858466b.11.1751397097290; Tue, 01 Jul 2025
+ 12:11:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250701142930.429547-1-amir73il@gmail.com>
-In-Reply-To: <20250701142930.429547-1-amir73il@gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 1 Jul 2025 19:41:45 +0200
-X-Gm-Features: Ac12FXyGnQWcOSjNvnf-sEx1GMXUZppeDO2dYzXnmlfXTWtjwRASiJG8thdk__0
-Message-ID: <CAJfpegvjpcsbNq6dpu5pdpfMUqcaKoqY5gAy62jq2V_rU55J5w@mail.gmail.com>
+References: <20250701142930.429547-1-amir73il@gmail.com> <CAJfpegvjpcsbNq6dpu5pdpfMUqcaKoqY5gAy62jq2V_rU55J5w@mail.gmail.com>
+In-Reply-To: <CAJfpegvjpcsbNq6dpu5pdpfMUqcaKoqY5gAy62jq2V_rU55J5w@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 1 Jul 2025 21:11:26 +0200
+X-Gm-Features: Ac12FXyHjCkgSaxD32AfHlpauRy7bb_rinBdUaszueDSnTFbOw7zjwSrYEv_is4
+Message-ID: <CAOQ4uxjZ+EaJCNfCqx+jVNXumstNfKQZL6WOB61uA+EG3v6C0w@mail.gmail.com>
 Subject: Re: [PATCH] fuse: return -EOPNOTSUPP from ->fileattr_[gs]et() instead
  of -ENOTTY
-To: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
 	Andrey Albershteyn <aalbersh@redhat.com>, linux-fsdevel@vger.kernel.org, 
 	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 1 Jul 2025 at 16:29, Amir Goldstein <amir73il@gmail.com> wrote:
-
-> index 6f0e15f86c21..92754749f316 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -722,7 +722,7 @@ int ovl_real_fileattr_get(const struct path *realpath, struct fileattr *fa)
+On Tue, Jul 1, 2025 at 7:41=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
+rote:
 >
->         err = vfs_fileattr_get(realpath->dentry, fa);
->         if (err == -ENOIOCTLCMD)
-> -               err = -ENOTTY;
-> +               err = -EOPNOTSUPP;
+> On Tue, 1 Jul 2025 at 16:29, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > index 6f0e15f86c21..92754749f316 100644
+> > --- a/fs/overlayfs/inode.c
+> > +++ b/fs/overlayfs/inode.c
+> > @@ -722,7 +722,7 @@ int ovl_real_fileattr_get(const struct path *realpa=
+th, struct fileattr *fa)
+> >
+> >         err =3D vfs_fileattr_get(realpath->dentry, fa);
+> >         if (err =3D=3D -ENOIOCTLCMD)
+> > -               err =3D -ENOTTY;
+> > +               err =3D -EOPNOTSUPP;
+>
+> This doesn't make sense, the Andrey's 4/6 patch made vfs_fileattr_get
+> return EOPNOTSUPP instead of ENOIOCTLCMD.  So why is it being checked
+> here?
 
-This doesn't make sense, the Andrey's 4/6 patch made vfs_fileattr_get
-return EOPNOTSUPP instead of ENOIOCTLCMD.  So why is it being checked
-here?
+You are right.
+I was trying to demonstrate the change in fuse/ovl independent of
+Ansrey's patch, but don't worry after squashing this patch,
+there is no remaining conversion in ovl_real_fileattr_get().
+
+I verified that with Christian.
 
 Thanks,
-Miklos
+Amir.
