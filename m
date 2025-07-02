@@ -1,58 +1,58 @@
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F432367A2;
-	Wed,  2 Jul 2025 10:04:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8EC1248F5A;
+	Wed,  2 Jul 2025 10:23:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751450699; cv=none; b=kxdRAEymKjUoD3zBevmXlwZ7S3wLNwWLmXlDYcp+1M6QKy++uEzxrMPWlNIGFfGQFiUc9/iSdSLl0BZJbgxv43tuZdI8izX+cNZkQszAZ9EqCuEUcqDSoefkItLKO3eopKy6MI5KBhlwFaKNs7bH9LGgTrZ/RRQB2N0/yt1szDc=
+	t=1751451800; cv=none; b=jU+XUx2AGSYBABpv4IlLZOvQYtqLFJ69nAAxHheYaTTGzRDOmZTjBjIIb9PfrQLtHOQoAX1vFY2VvgPKV2UEnVjxGU4X4/LNDCZBvbfb+uLMjIbRVgBseGZ5IStOaRkJ1xGiPO4XrpJ2pcwkFgLRp6s+x0i+dNXPjQEJTVsA3e8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751450699; c=relaxed/simple;
-	bh=6kCZBwhk60u3ug+toq3nG333rSQ1/QODDG17fY3YGq0=;
+	s=arc-20240116; t=1751451800; c=relaxed/simple;
+	bh=ToTWXH/kSBi8YPaAlLozOWcXBRNmpoVIe36jcMrelqE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uDHWldO+h7l/n7YJnv44OJlNNu3wBhJiv5GTfJgf7hg1C8QoCbGA/jRSvAggYJwraYenEUGi6gJHlE/pPdtyUrP9CoOCqZCE86DWsegjGjfc5LTHmuwn2F+H1YyL2OXfF9k0YZqg5xkEXqVlRzWJy0qgsM3+EqTc9ujQcE2ny0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bXNZ0qjK; arc=none smtp.client-ip=209.85.221.52
+	 To:Cc:Content-Type; b=UQLIZ+8461CgBGWo0K+NtA+RtQEQ91myugCXkLeB5HE32KOshfsKyvQYdr+eAJYswx5M0ISEbPASmEe5czaQk9ZC9j/qQzxzhpp1ri6Mo7zXaNxJ3dZ1inEL8yvej1mutVuLKHSaUeKT3C5puGH0cHsHUnVYo8PtCZttNKpzkpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PS3beibc; arc=none smtp.client-ip=209.85.221.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bXNZ0qjK"
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-3a57ae5cb17so2806579f8f.0;
-        Wed, 02 Jul 2025 03:04:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PS3beibc"
+Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-3a6cd1a6fecso7087318f8f.3;
+        Wed, 02 Jul 2025 03:23:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751450696; x=1752055496; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1751451797; x=1752056597; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rT+vt3dVIWatNPzBqk/hDuAAi24lDFamWkXfyvyYy/E=;
-        b=bXNZ0qjKrevcXdcVxgseXjnGNheM/qBCReEADXK+Yz8vjfBU4hxZuSziDSWbE01ybO
-         a7AxAfQ5xRzcOGRVxPjAWuIyto57EfAgv3bDbrTvgfp1946IILZJ/AiuY0Omx5n2zqmz
-         1/fADWO5+wuG2gpfNY8I3kKOyMmcxSIcKR+f+p78H9IjCjBZb36+mORTzEbWuPXElI8W
-         dL4LTrjlP7L92hSnQIPqG9gkoeJcgwb1Y2tDyBC0U5W3WgRfwnWFpukt1M/tFXeElE/U
-         qs8xP3mlRmXCrmxsUE2DX3skT/WKUHwIsDlFnYpJemG26okETMYsCfICqKztFoLy8sYv
-         yl4w==
+        bh=uj/0fi2wvV9tdrl0l4JDJuC2H4vJjClBMsiQ3eUhaP4=;
+        b=PS3beibcu5ZVA5GBynyEZDDA64lMgqwr9gkEtPKECRz2XFmD20E9HljQ9a8lTH1F1W
+         0ooYbxyLdoGbFSQTqRzJsbxOxC3E5QLepg+7VP0Lf3EbhL6ZFDtMUjl5Iy9bKARt3vdD
+         ovfo6MMfk9QQpOyfZCdtrjFwtmQbijK3EuMTMiI8U4cMRYbTT8HhAOIcG16aelJzhVtO
+         f4qujWuj/jR5VWEn90Hrr7CIBgAqOD/YnZtJfFxolZZFTVgnwN5kKXs+yG4EJh7e8Muv
+         65gxuOfDwaH6kHOhnUm40kpeL5azJ8cxIxQzHB/6lakimc8/dCUqYKiUxvO4zui0Wo4m
+         A5Rw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751450696; x=1752055496;
+        d=1e100.net; s=20230601; t=1751451797; x=1752056597;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=rT+vt3dVIWatNPzBqk/hDuAAi24lDFamWkXfyvyYy/E=;
-        b=WlKxqgWzXUW5eCeAfw+xEGAUbvMTUAqo5hUIvt+lQdgsgpzPNY+hT5/N6j0sFsAg4L
-         aZ5R5fQAwvlCtv470SmwXX0M+WXAG0TpWzfQm3YFxOAqYMXxEbhK/r3mxCz6ri+/24Oq
-         /efc1aCHoby4+/I2oLj6Eqc4IZxWcwPwqpHnxxUXBEdm8Yr2GQ0QgxTO00r7CEnBsEVL
-         FyIgidRvNYdoYGDpFsMjmq1QvGeZGkt5PXDgJZ+f9W6+9dGF+11QJdI90h54s4ST7elD
-         /QZGswGcrhn+groO3YtsrL7LFk8V8LyaKd0pLWLGNcPuBv7O3r+hHwkyoIvloATLoawn
-         PfJQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWyH0jGZ4VVHvEbRGegJFTaw+nwKPVv2zjL78k5r2jJqQ0+q2W9Qu4KOCzEktnU5oiXT306ldN9kSTcCo0rMg==@vger.kernel.org, AJvYcCXYXmMrJJ4gBZhs9vsqZTDdUCcv9hdI5I24Gtz4dn3OjOQuGeVaEgwTaDU2+rOlEgh8klWP1E/KGafTpA/X@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy+ZikTUUtxsvt0vPEXL6B3vXBXxB178uzOsv9qoLHBwNBqnm3u
-	du7fwvQmmoH2O08hFYCEd3yar43WDE34EAzjtlRa+1O9+BstZAzOP5WtX77CTolPqY9aAAiS1za
-	EWxijBNcYxva4XIF0Pe6FmzqG5wMkkgIFh5wa
-X-Gm-Gg: ASbGnctl/lWPYK4oqzeA7vqXFCMV8LSxDnHyJtAvHvZuBo2HuEv3Mtz+IuEnBVquRQG
-	u41hLkawbrZyrVfmnp85jvF5IOC75oIsRCSPRVJCEoYr8iSRzfV8MWuAHoASmiTnWlEvMrN3M3q
-	s58lFCNhSkxSt0aepyaxXE8UjuhR8GBW0lj4nX3ndNJHY=
-X-Google-Smtp-Source: AGHT+IFDIEVdZAm4XvXZIErQ6BSwpeHiciKwO5YM/vWUV3UaAbyDKz0A4Bgm6Y6mAl3iHT9EqzTbsdRgisXpprxWejM=
-X-Received: by 2002:a05:6000:18ab:b0:3a4:ddde:13e4 with SMTP id
- ffacd0b85a97d-3b20253882cmr1621599f8f.58.1751450696026; Wed, 02 Jul 2025
- 03:04:56 -0700 (PDT)
+        bh=uj/0fi2wvV9tdrl0l4JDJuC2H4vJjClBMsiQ3eUhaP4=;
+        b=WM4kqotV8hgTu+FJgKt+9O4iR8RJC6n9eASRkZrrIrKXi7QcHeutZ8ml19R5pP7SVd
+         yRYwhOjbUdAQ5fwnSVpa34gxs+GG+WalCM1PgJhElmu2QwErePOZnxC3xx0Uz2viZdri
+         a0RMqOKzvb4Gpo4oLJVXK+TjojLjps53wru9aGH6CW1Qd8FSYqjeRhhGhTChpcFcPopB
+         UijyZcH2wY3Kfjqz3KgxIGkOOedYhJjMsTni3Pa4gI4DIKgX7JdHtt4HZ6kGx5n914DE
+         tvfM4MajAM51eAieT0/mCqakt+xjiAKyQ6SNp6awu7Axbx6/CHjVPfOTxOZOTEs4C2qj
+         cMZA==
+X-Forwarded-Encrypted: i=1; AJvYcCVAtcnX8cMC+w3h50Sn4JH71U56omlXgDxcbtTg0UU6M9u0XZoR7gqbYkyc7bLL78yPbxA7OSNqlhe66XHv@vger.kernel.org, AJvYcCVY232UC/P6cvtQNyx54cP7OvYhAanvhKDr1BRHhs+1dsn2nutfPLQuhCgPpBrM9iC+CKfwr/dFdVxg2KF6Kg==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw3BWZqVYoKVpddcppz9Q9V1nA9nqXfNwA3PypJxxTRktGfzswA
+	nIVIciva2VdOafSI7URS28s++Bba0CAqaI5HAAfoZbvbBGsll/1IS7YtJdgoI4fKlwH8dSXXi6o
+	tR/BBAsP3z6Soki2SwKzkvA5J/ybzZBQ=
+X-Gm-Gg: ASbGncsKBDwzN96daj1jeBFBcpiC6+4qc0hNlUpJSgdeOkivNMti/R9nA4uSEVXa9M0
+	oUhlGyeioUoOdPEEaX1F2QhWgre3Vl/IwOzbvp3+W+udwe/IFBwcGg+6iD5/YDLA4DEk1TRJndE
+	bzMlM9g71i6JOW3EvSKeuTk3L2Wpq+Namt2UyPtm8n9qI=
+X-Google-Smtp-Source: AGHT+IGcbf/wbV9QTkPZPNDA96+Vg+/yex7SvPxeaVTdYG+1/91WIZOB1439rPi7TUq+dj2QaOvpF6HbUOg1Whgj69Q=
+X-Received: by 2002:a05:6000:410a:b0:3a4:e56a:48c1 with SMTP id
+ ffacd0b85a97d-3b2012f8d6dmr1679456f8f.55.1751451796966; Wed, 02 Jul 2025
+ 03:23:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -63,9 +63,9 @@ References: <CAOQ4uxgbhgGHcW+x1F=9Fo5T6ALjADC9SJhzp_mSooqUb8_6sA@mail.gmail.com>
  <175142407307.565058.17313140186618695058@noble.neil.brown.name>
 In-Reply-To: <175142407307.565058.17313140186618695058@noble.neil.brown.name>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 2 Jul 2025 12:04:44 +0200
-X-Gm-Features: Ac12FXyUWE1PyerJ7uOmwRT6KDvw0Y0vGfJDxuVHPf3H0IFmQoAmQfDVgb2bzB0
-Message-ID: <CAOQ4uxgF6eA3Pyudy05nLobByK1A7NE_3pBo6UfPj4YOyzi6Mg@mail.gmail.com>
+Date: Wed, 2 Jul 2025 12:23:04 +0200
+X-Gm-Features: Ac12FXymiHiPlWup0QBaobZLTtYHdSMS7Y5zPTWPA1KDpRUU09CG53LP1bVpxyk
+Message-ID: <CAOQ4uxijGyZt7QB1CAWCAoyVbwLFwS6fewL-A4e00jyXSC25Hw@mail.gmail.com>
 Subject: Re: [PATCH 10/12] ovl: narrow locking in ovl_check_rename_whiteout()
 To: NeilBrown <neil@brown.name>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
@@ -116,18 +116,20 @@ _fs *ofs)
 > > dont use unlock_rename hack please
 >
 > The lock was taken for the purpose of doing a rename.  So using
-> lock_rename and unlock_rename documents that.  I can use the less
-> informative "inode_lock" if you prefer.
->
-> > and why not return err?
->
-> Some people like to only have a single "return" in a function.  Some are
-> comfortable with more.  I guess I wasn't sure where you stood.
+> lock_rename and unlock_rename documents that.
+
+IMO this is not a good excuse for using lock_rename() here
+
+> I can use the less informative "inode_lock" if you prefer.
 >
 
-Generally, I think we need to move toward more scoped variables and
-less mult-goto-labels in ovl code, which are a common source of bugs,
-but I will not require this work from you of course.
+I meant that you should use the new helper that I proposed
+in review of patch #2, lock_parent(workdir, temp)
+instead of the weird looking lock_rename(workdir, workdir)
+
+BTW, I see that lock_rename_child() effectively has
+lock_parent() code in its first part, so maybe factor out this code
+as lock_parent().
 
 Thanks,
 Amir.
