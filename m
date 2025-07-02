@@ -1,105 +1,126 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823F427E7CF;
-	Tue,  1 Jul 2025 19:11:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F23D9FBF6;
+	Wed,  2 Jul 2025 02:16:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751397101; cv=none; b=kaU30D17eOfVujg6oCRa4/bjgqtr7PYa8zOCX4FnRLTaI/X2g6Sm3SmmsrIJUl8yxH2bWdyQBrAXnDRamRMnkmd97LOG/OTV/2alPBr4RCs8gw+dBKbALC05fbuSEmi959K7/Vscn+zQQoeQ9/mszLRSpRWWPhZ2iM76K9RN5d4=
+	t=1751422585; cv=none; b=H+BfGkRjdI67OpKHOcXanTEQnV7tKJkW7JNft0MtJfeIZmEbNyKfrfqTBlAxIdc0xsPpOzNusc7bZ6Q4LzzH4rlbaRswOBSpB8gOx5DlkhFhVxzkUiL6wYId6tKU78SM6bHHZ4OCrvpHm/5zzGz4QnjK2aNRnxPJCgL4c+3hEsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751397101; c=relaxed/simple;
-	bh=vfrKJybgzwjpgw+TJOq6H2Fh67XbF07HjXoZ7cu5IM0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SARYjZo7EVlYAK8Q1Z5Sx9HxePSZsnuqpdOvFt49aQH3b9jR4f3toO01d6Vq4g8zchXR04mX0UFv/vpRTUrfdethFEti+e3YBwIIoh1r+uNBWjqLx+/Kh13bdrDfH6HbtZSzH6xWnePSLY1mtqEf2mj/DKDpeVUGXa0/gco9XvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=axXbWcki; arc=none smtp.client-ip=209.85.218.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="axXbWcki"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-ae0a0cd709bso1389385866b.0;
-        Tue, 01 Jul 2025 12:11:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751397098; x=1752001898; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=QjzoNhUidVgZHP9QlhU4SH9c2JyuaDfBZkeqDe+rudE=;
-        b=axXbWckiGJUtuLvTow6+NCvzQO/IWp6X/weX0z47K5Mvw9pbJkX9ir1z8UAXwxGQCy
-         gNTWFn+cUz9bldUWI8n3Te9cMENOtfc9csQJJReG7/vbtKYoRvGTTYEV8qvO38Qp0Pvw
-         dPS9vSBLVlv5qhrv7tBlumpe/+PWKLcRUtjvG+S6ufpzqxVygYME+OxywDdF2AAI91hl
-         a25lXY/Das1UhRpVaif8cAmj7Xkl7Gkf5CFaKlZgc7LYAmQnC+HmDhr4Yt+J3c1kQ2X3
-         ham8rW5gowdt3KBFJuQk3cDYDKa+9h1HcuwG4O3RNzWNP+Oa0oEciY/WOGg1NQp6R1M5
-         QDQg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751397098; x=1752001898;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=QjzoNhUidVgZHP9QlhU4SH9c2JyuaDfBZkeqDe+rudE=;
-        b=i/tj3rEm0zRLoo6b6O5M1gx16Cnd7uV3yoSYz05IhM0uKjfTqryNLzWh8NqJVEKRuo
-         s/Nb3P6FwhnecPtVIYKCCUHKvzOSXelvU4Dsej+P2hUtS1OworSKC/F2WH9fURMOCg/H
-         ZUw5axiVdIe+DnsypdcB7UyClM76d0uhRMIP2yt3DCE9R04CBfU5oCj4uap/umijZtHj
-         VvelUO80MNUl3+xp34w+bjYtCUUX5l5UwBC8cJdSdRqhl6bSxDhSZiSkSAv2xOfvYUFD
-         R1k1S160PkDEzXJeudaecPWk/6pwyPnpF6+nGsXYb0/6cA9dKc35Y/o91DYF63Jn+8zM
-         nisQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUVO0QYv8je+vLjtkwAYpPNPDSmr2MNTE5OMUtx9M1TkyAXogis2Gm3gm/8Oh8cbGXXT9jTZuyjaYHGgZ5ftQ==@vger.kernel.org, AJvYcCW2tXtkCmriByUkAP1fWY7Ad26kE/nkyY1QGTfBVfC1uuml21tAkCqDo8++9IwspyE1qXYqmpT5sQYw5GH0@vger.kernel.org
-X-Gm-Message-State: AOJu0YzihLcXTHpqEAVj+vvU7vjrqXQxrCNe+BTgA3hXJvUjlWWp1dqL
-	POG8AIY0ej/U4ZN6Yituj++i5dnx3FeH+0Min1L83P5Ba7u4nZVFnA5qybbsExzuercK4H/lMRm
-	0mz7BRAdk0X4/TxiO2WgjBPhCRJdDA0NsbnkVoxw=
-X-Gm-Gg: ASbGncvj6ahcrnUg17nNSvr4EXPJ7SN2sX6x29m1TTOKPzhOzhgo1YclbrmBUj94q8f
-	jYpyBG2j2D8p++Z/fljeGKmpgsmVNm8F5sBCe4JNVXoZ7I8GA0Zdk9aROCO/hIT3241JoPTsAuM
-	5qq8lM/mWTJUL/rPfLSRBc1sRO9B6lDPjzh3vJ1LdEgiQ=
-X-Google-Smtp-Source: AGHT+IGhoAtZ0nPpwrGpHsxUvERoXprnTWRhp/mrbBB9hf0usVRtrc8KBMAymCzAXIijLekld9yz3eRERBye6x5PP9I=
-X-Received: by 2002:a17:907:95a4:b0:ae0:573f:40bd with SMTP id
- a640c23a62f3a-ae3c179c182mr26858466b.11.1751397097290; Tue, 01 Jul 2025
- 12:11:37 -0700 (PDT)
+	s=arc-20240116; t=1751422585; c=relaxed/simple;
+	bh=KSjOCxH0JSJcefO+vKgYyGtoBcDCM2Dr7rhqNWRzXNA=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=RPU49RbfNDU20l0C9vSdwb8w3KGexNwHj+ufVLOhg6qAwBCc+GUy++KFg3/XYC8rETVF4rFKS9ZRgQY9PHvUs0ck7x8E8GpJwn3l9jWblJZ9j5ydL9P/joMx7+naNcQ0gFgmGO6G0+ZYxyEQlo5VH7manyKk+ynlza+Jl4XaZnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1uWn1G-00GI4S-JQ;
+	Wed, 02 Jul 2025 02:16:18 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250701142930.429547-1-amir73il@gmail.com> <CAJfpegvjpcsbNq6dpu5pdpfMUqcaKoqY5gAy62jq2V_rU55J5w@mail.gmail.com>
-In-Reply-To: <CAJfpegvjpcsbNq6dpu5pdpfMUqcaKoqY5gAy62jq2V_rU55J5w@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 1 Jul 2025 21:11:26 +0200
-X-Gm-Features: Ac12FXyHjCkgSaxD32AfHlpauRy7bb_rinBdUaszueDSnTFbOw7zjwSrYEv_is4
-Message-ID: <CAOQ4uxjZ+EaJCNfCqx+jVNXumstNfKQZL6WOB61uA+EG3v6C0w@mail.gmail.com>
-Subject: Re: [PATCH] fuse: return -EOPNOTSUPP from ->fileattr_[gs]et() instead
- of -ENOTTY
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Andrey Albershteyn <aalbersh@redhat.com>, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: "NeilBrown" <neil@brown.name>
+To: "Amir Goldstein" <amir73il@gmail.com>
+Cc: "Miklos Szeredi" <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 07/12] ovl: narrow locking in ovl_rename()
+In-reply-to:
+ <CAOQ4uxjDK3AJoY-geRLprvSKEW7UopJLY_9WcJ0LjwiKAP29uA@mail.gmail.com>
+References:
+ <>, <CAOQ4uxjDK3AJoY-geRLprvSKEW7UopJLY_9WcJ0LjwiKAP29uA@mail.gmail.com>
+Date: Wed, 02 Jul 2025 12:16:18 +1000
+Message-id: <175142257818.565058.8422284947466318667@noble.neil.brown.name>
 
-On Tue, Jul 1, 2025 at 7:41=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
-rote:
->
-> On Tue, 1 Jul 2025 at 16:29, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > index 6f0e15f86c21..92754749f316 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -722,7 +722,7 @@ int ovl_real_fileattr_get(const struct path *realpa=
-th, struct fileattr *fa)
+On Thu, 26 Jun 2025, Amir Goldstein wrote:
+> On Wed, Jun 25, 2025 at 1:07=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
 > >
-> >         err =3D vfs_fileattr_get(realpath->dentry, fa);
-> >         if (err =3D=3D -ENOIOCTLCMD)
-> > -               err =3D -ENOTTY;
-> > +               err =3D -EOPNOTSUPP;
->
-> This doesn't make sense, the Andrey's 4/6 patch made vfs_fileattr_get
-> return EOPNOTSUPP instead of ENOIOCTLCMD.  So why is it being checked
-> here?
+> > Drop the rename lock immediately after the rename, and use
+> > ovl_cleanup_unlocked() for cleanup.
+> >
+> > This makes way for future changes where locks are taken on individual
+> > dentries rather than the whole directory.
+> >
+> > Signed-off-by: NeilBrown <neil@brown.name>
+> > ---
+> >  fs/overlayfs/dir.c | 15 ++++++++++-----
+> >  1 file changed, 10 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > index 2b879d7c386e..5afe17cee305 100644
+> > --- a/fs/overlayfs/dir.c
+> > +++ b/fs/overlayfs/dir.c
+> > @@ -1270,9 +1270,10 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
+uct inode *olddir,
+> >                             new_upperdir, newdentry, flags);
+> >         if (err)
+> >                 goto out_dput;
+> > +       unlock_rename(new_upperdir, old_upperdir);
+> >
+> >         if (cleanup_whiteout)
+> > -               ovl_cleanup(ofs, old_upperdir->d_inode, newdentry);
+> > +               ovl_cleanup_unlocked(ofs, old_upperdir, newdentry);
+> >
+> >         if (overwrite && d_inode(new)) {
+> >                 if (new_is_dir)
+> > @@ -1291,12 +1292,8 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
+uct inode *olddir,
+> >         if (d_inode(new) && ovl_dentry_upper(new))
+> >                 ovl_copyattr(d_inode(new));
+> >
+> > -out_dput:
+> >         dput(newdentry);
+> > -out_dput_old:
+> >         dput(olddentry);
+> > -out_unlock:
+> > -       unlock_rename(new_upperdir, old_upperdir);
+> >  out_revert_creds:
+> >         ovl_revert_creds(old_cred);
+> >         if (update_nlink)
+> > @@ -1307,6 +1304,14 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
+uct inode *olddir,
+> >         dput(opaquedir);
+> >         ovl_cache_free(&list);
+> >         return err;
+> > +
+> > +out_dput:
+> > +       dput(newdentry);
+> > +out_dput_old:
+> > +       dput(olddentry);
+> > +out_unlock:
+> > +       unlock_rename(new_upperdir, old_upperdir);
+> > +       goto out_revert_creds;
+> >  }
+>=20
+> Once again, I really do not like the resulting code flow.
+> This is a huge function and impossile to follow all condition.
+> As a rule of thumb, I think you need to factor out the block of code under
+> lock_rename() to avoid those horrible goto mazes.
 
-You are right.
-I was trying to demonstrate the change in fuse/ovl independent of
-Ansrey's patch, but don't worry after squashing this patch,
-there is no remaining conversion in ovl_real_fileattr_get().
+I'll see what I can do to improve it.
 
-I verified that with Christian.
+>=20
+> The no error case used to do dput(newdentry) and dput(olddentry)
+> how come they are gone now?
+> what am I missing?
+
+Those dput()s are still there.  I removed the goto labels between them
+but not the dput()s themselves.
 
 Thanks,
-Amir.
+NeilBrown
+
+>=20
+> Thanks,
+> Amir.
+>=20
+
