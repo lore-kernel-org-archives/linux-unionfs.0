@@ -1,225 +1,119 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CCA82980A6;
-	Thu, 10 Jul 2025 09:28:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C01F32FCE11;
+	Thu, 10 Jul 2025 20:55:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752139734; cv=none; b=TdvFrrzAQkA5G+xO1QErYXLITi7amIr8nkuE2vzC7Cp5RlxSEyJ2VTJuJ3gPPS4Gdqw/CqW/Vj1gqbOhdhmFjQHsozuRFb1/3PGsZmB0p8VvImbJTOAALwmJpkjwrPgKg4mVk0I3wsZcdErMBQ8N+gL0WfPLWUk0/I86DW3rohk=
+	t=1752180908; cv=none; b=SMyXUmMyZh28jmkeSKPnKXYy9Ic3l074zHFpNo3ykw1KBsergtbuuKRP8/aQuMop6EdBpErMB3CaqF70QdJfZhVsy5xwhNxB23wFqpOkBXZF58GA7o475/51QJmvOFBtpjuXJTqRVg/bJUkzBlTvqZiRsVNEUGlP4OJgWj7jxrc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752139734; c=relaxed/simple;
-	bh=g8FHaOAWisTNuIgaWejSWAO/Ou4HKo28ZtZbLrjWtg0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mr0Pzj0k/cl5bMbHQRQNZvrUyPm7PhJfTGkTdg0WmF+X0ay9FlpZ6afdlNPcu7matYHtM3vDuo5fNx7szHFReT99ICoHLkiz8aOQF+TkwKRRKthPXaO0OE/Z8xeuTWAxe7hKqcTcEs0n5tk2DgppTvVurPvJziimrjP8/RgM30E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ykv6Bpqz; arc=none smtp.client-ip=209.85.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1752180908; c=relaxed/simple;
+	bh=CRx4HESfp5IH1jxIqKZ880FXR29NeZiQcNKgbb5903Q=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YBQc+8XzJ2VE2GLvq20e7P3fCggWdNczTE5rwa97dUkWElvMftKSZcNH7+weEB1/47TJaN3qGGqREnLsRmaat5Q2QrQdvVGNtCVj5EY6QhuELiqkXzcgd3hEGrlIUHZcQRnkxSti30xi8iw7X8rTLDq284VTwh+OmM4u/k+q3F8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=T0cVzz0Y; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ykv6Bpqz"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-60700a745e5so1410725a12.3;
-        Thu, 10 Jul 2025 02:28:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752139731; x=1752744531; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=BiYkSn+vY9L3z87omArmGIEE0SZdtFmrm7AJojWfvmI=;
-        b=Ykv6BpqzjzzfjANucVYKzgKpOtJLTkVLlaEFTXRj0O3akSQ5AuDCgOTQeZ3SHnJhKG
-         KiOCKCVTRQGOUjU8ItOukL+VSA39oNMTHo8Kc7zBBvPzVPyGFCBvwFWHUNk213Lzza2e
-         MRN99xyeA0dcQKP0ouTufRpzVqGLtYY6q43BkZFgFsKzAXTn252nQKFZhjnZd/glbj+w
-         dkroUzNjdVjNCSxbtLS96/kaFNStKgoocRzYax3HDLRMb6bQ25NwVYZl/i4DRayQ4EK8
-         Y9sIxNHgHAsFuskVw3DaaLQB4KjKaSZVlnyZGioWE3vyHvSGz3gjKdyq236SvC0x22wj
-         97UQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752139731; x=1752744531;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=BiYkSn+vY9L3z87omArmGIEE0SZdtFmrm7AJojWfvmI=;
-        b=jiKxKPYxxzvoy1rjFKolQquZRSDVA1zHVyyNeTnl7KPTUHgxBWZDeLEH6/tKM29opO
-         tf6TtrEp8o1ll7V1/TnpqJNCmqsoppI337e980QoniUtgShRMXXq+qkVoBcY9/SkLeXi
-         JcMB8nfqJKrXEo2xxE0zxxg4/UR4E8glzFKCQFQfIQcX36cahyGrxPe8F4EEtGpl6B6E
-         LE/xwbiOl3A9RpUgpeq5DapRlx0Pd9NfNh2SfC9dgM4jPuIoo9zjFoCeDW+iNwdquCik
-         I+1tccjKwymRVRmbfMuitXGhsF9NulYaB9j+eJ9E/4xxHngjMBfr+Nulp6V5zPF3Y8q3
-         IbZg==
-X-Forwarded-Encrypted: i=1; AJvYcCUZB0YDZ7a9coulHxvMYCzAJHGMlJ+Hup8TFD0heAAeonwreZZcqdxuclBL8RedRy9hysakPmk9r1c=@vger.kernel.org, AJvYcCVVq3GL7pHexP7JmoAOFWeftT+EKskk/4lDE0/JLYdItVTXDFpIhFl1AotFroGj+JQIHdzczsWSC4V/O5SRHQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YyNSou6Ail64fZFEKFIjB1mwl6wuqWh3URuAnjwL203GnU5G7XZ
-	YIzbLbr9H0N0woA6/y+IA3YZ2kaOBK30RA+IVbL377o9Wn6SEhch7TuyrAUyoza5vLeKN5pUKYA
-	LWiYCtN4AX+tgyttkEPJ0AEorVDZN00E=
-X-Gm-Gg: ASbGnctcg2sghYHHoveCIOEtlYtPrAbgzNP8SjEacHVv8iQ2E1leDyUGGeiYQtoqJH+
-	P/yUsvwR3HS5cprvu/3KWZ4j97wdGPsirOKQsqvbRC/AxME1pG1XG4Tn4noz3IKB6ExkRFEMQBY
-	a9reci1bxBEwLTIbIN5NHLTIsGEg6F9fyHpofYihm3ZL8=
-X-Google-Smtp-Source: AGHT+IGVjPcztPdZlC6fa0irt9LUdxKj2BaoE2kC5A93RR1GebqTaZi5uj3oWG7ZxTbETAzs+9t+pEVjp/omVNvyfyQ=
-X-Received: by 2002:a17:907:2d89:b0:ae0:ded9:7f54 with SMTP id
- a640c23a62f3a-ae6e703387cmr243207666b.28.1752139730403; Thu, 10 Jul 2025
- 02:28:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="T0cVzz0Y"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=AGcfY8RgH0CT7Il3x69mF4dX1UtEs3VW9Dl2QfSdGgo=; b=T0cVzz0YU8wc2LGCtjvwfgtQSU
+	uIje5PDNPdVnF8RKy/Sjiiqtoi2j01T1dkgfGJvimWwhMTOZMFh0cuiBhWH2hEd38tmADjt41Q4I4
+	sLpxUQPryu86FIUjQwmdEDa1xqn8XbfCi1S0EaWDUzsMN9xRJ3FZHQfmnVkcjfwXFd7IhEn4BnXeG
+	w2tAdmdZD4RT8ziM1YMvQ39ivmQzlyJLTlqdMpv61jP2b93h08JmQoLwTVV7OZRWjhbc7vg/urOGA
+	AnFYCofqgmIWKadox5yA7nAUqdEBlZPNSkogRLw6tImLDt9t/xXjD7PswB289kOEGMxb7VhsgXXUs
+	eG9P4wSg==;
+Received: from [179.118.186.174] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+	id 1uZyIB-00F6AY-DS; Thu, 10 Jul 2025 22:54:55 +0200
+Message-ID: <00854dc3-538b-4b62-953a-68d0b9ff2295@igalia.com>
+Date: Thu, 10 Jul 2025 17:54:49 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250710050607.2891-1-frank.mt125@gmail.com>
-In-Reply-To: <20250710050607.2891-1-frank.mt125@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 10 Jul 2025 11:28:38 +0200
-X-Gm-Features: Ac12FXxBKaD_YJhNw5Xx7TFCELs1AQpQz9GtDpfwNqH5R4SdBWGrYx4C_J09FE0
-Message-ID: <CAOQ4uxhvBMJLWrDtuK3kOKDv0enMtAgpgV3WeR9Z9ZEDpOeu+A@mail.gmail.com>
-Subject: Re: [PATCH] overlayfs.rst: fix typos
-To: Matthias Frank <frank.mt125@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, 
-	Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/3] ovl: Enable support for casefold filesystems
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>,
+ Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ kernel-dev@igalia.com
+References: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com>
+ <CAOQ4uxiwv8F9p8L98BiX8fPBS-HSpNhJ_dtcZAkqM02RA0LuVQ@mail.gmail.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+In-Reply-To: <CAOQ4uxiwv8F9p8L98BiX8fPBS-HSpNhJ_dtcZAkqM02RA0LuVQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jul 10, 2025 at 7:06=E2=80=AFAM Matthias Frank <frank.mt125@gmail.c=
-om> wrote:
->
-> Grammatical fixes
->
-> Signed-off-by: Matthias Frank <frank.mt125@gmail.com>
-> Acked-by: Amir Goldstein <amir73il@gmail.com>
+Hi Amir,
 
-Hi Matthias,
+Sorry for my delay.
 
-Thanks for making overlayfs.rst better!
+Em 09/04/2025 14:17, Amir Goldstein escreveu:
+> On Wed, Apr 9, 2025 at 5:01 PM André Almeida <andrealmeid@igalia.com> wrote:
+>>
+>> Hi all,
+>>
+>> We would like to support the usage of casefold filesystems with
+>> overlayfs. This patchset do some of the work needed for that, but I'm
+>> sure there are more places that need to be tweaked so please share your
+>> feedback for this work.
+>>
+>> * Implementation
+>>
+>> The most obvious place that required change was the strncmp() inside of
+>> ovl_cache_entry_find(), that I managed to convert to use d_same_name(),
+> 
+> That's a very niche part of overlayfs where comparison of names matter.
+> 
+> Please look very closely at ovl_lookup() and how an overlay entry stack is
+> composed from several layers including the option to redirect to different names
+> via redirect xattr, so there is really very much to deal with other
+> than readdir.
+> 
+> I suggest that you start with a design proposal of how you intend to tackle this
+> task and what are your requirements?
+> Any combination of casefold supported layers?
+> 
 
-Since my ACK was given off-list, I reaffirm it publicly.
+The intended use case here is to use overlayfs as a container layer for 
+games. The lower layer will have the common libraries required for 
+games, and the upper layer will be a container for the running game, so 
+the game will be able to have write permission and even change the 
+common libraries if needed without impacting the original libraries. For 
+that, we would use case-folded enable ext4 mounting points.
 
-Jon,
+This use case doesn't need layers redirection, or to combine different 
+layers of enabled/disable case-fold. We would have just two layers, 
+upper and lower, both with case-fold enabled prior to mounting. If the 
+layers doesn't agree on the casefold flags/version/status, we can refuse 
+mounting it.
 
-Can you please pick up this patch?
+To avoid complexity and corner cases, I propose to have this feature 
+enabled only for the layout described above: one upper and one lower 
+layer, with both layers with the same casefold status and to refuse 
+otherwise.
 
-Thanks,
-Amir.
+The implementation would be, on top of this patchset, to create 
+restrictions on the mounting options if casefold is enabled in a 
+mounting point.
 
-> ---
->  Documentation/filesystems/overlayfs.rst | 24 ++++++++++++------------
->  1 file changed, 12 insertions(+), 12 deletions(-)
->
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
-systems/overlayfs.rst
-> index 4133a336486d..6e0c572d33dc 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -9,7 +9,7 @@ Overlay Filesystem
->  This document describes a prototype for a new approach to providing
->  overlay-filesystem functionality in Linux (sometimes referred to as
->  union-filesystems).  An overlay-filesystem tries to present a
-> -filesystem which is the result over overlaying one filesystem on top
-> +filesystem which is the result of overlaying one filesystem on top
->  of the other.
->
->
-> @@ -425,7 +425,7 @@ of information from up to three different layers:
->  The "lower data" file can be on any lower layer, except from the top mos=
-t
->  lower layer.
->
-> -Below the top most lower layer, any number of lower most layers may be d=
-efined
-> +Below the topmost lower layer, any number of lowermost layers may be def=
-ined
->  as "data-only" lower layers, using double colon ("::") separators.
->  A normal lower layer is not allowed to be below a data-only layer, so si=
-ngle
->  colon separators are not allowed to the right of double colon ("::") sep=
-arators.
-> @@ -445,8 +445,8 @@ to the absolute path of the "lower data" file in the =
-"data-only" lower layer.
->
->  Instead of explicitly enabling "metacopy=3Don" it is sufficient to speci=
-fy at
->  least one data-only layer to enable redirection of data to a data-only l=
-ayer.
-> -In this case other forms of metacopy are rejected.  Note: this way data-=
-only
-> -layers may be used toghether with "userxattr", in which case careful att=
-ention
-> +In this case other forms of metacopy are rejected.  Note: this way, data=
--only
-> +layers may be used together with "userxattr", in which case careful atte=
-ntion
->  must be given to privileges needed to change the "user.overlay.redirect"=
- xattr
->  to prevent misuse.
->
-> @@ -515,7 +515,7 @@ supports these values:
->      The metacopy digest is never generated or used. This is the
->      default if verity option is not specified.
->  - "on":
-> -    Whenever a metacopy files specifies an expected digest, the
-> +    Whenever a metacopy file specifies an expected digest, the
->      corresponding data file must match the specified digest. When
->      generating a metacopy file the verity digest will be set in it
->      based on the source file (if it has one).
-> @@ -537,7 +537,7 @@ Using an upper layer path and/or a workdir path that =
-are already used by
->  another overlay mount is not allowed and may fail with EBUSY.  Using
->  partially overlapping paths is not allowed and may fail with EBUSY.
->  If files are accessed from two overlayfs mounts which share or overlap t=
-he
-> -upper layer and/or workdir path the behavior of the overlay is undefined=
-,
-> +upper layer and/or workdir path, the behavior of the overlay is undefine=
-d,
->  though it will not result in a crash or deadlock.
->
->  Mounting an overlay using an upper layer path, where the upper layer pat=
-h
-> @@ -778,7 +778,7 @@ controlled by the "uuid" mount option, which supports=
- these values:
->  - "auto": (default)
->      UUID is taken from xattr "trusted.overlay.uuid" if it exists.
->      Upgrade to "uuid=3Don" on first time mount of new overlay filesystem=
- that
-> -    meets the prerequites.
-> +    meets the prerequisites.
->      Downgrade to "uuid=3Dnull" for existing overlay filesystems that wer=
-e never
->      mounted with "uuid=3Don".
->
-> @@ -794,20 +794,20 @@ without significant effort.
->  The advantage of mounting with the "volatile" option is that all forms o=
-f
->  sync calls to the upper filesystem are omitted.
->
-> -In order to avoid a giving a false sense of safety, the syncfs (and fsyn=
-c)
-> +In order to avoid giving a false sense of safety, the syncfs (and fsync)
->  semantics of volatile mounts are slightly different than that of the res=
-t of
->  VFS.  If any writeback error occurs on the upperdir's filesystem after a
->  volatile mount takes place, all sync functions will return an error.  On=
-ce this
->  condition is reached, the filesystem will not recover, and every subsequ=
-ent sync
-> -call will return an error, even if the upperdir has not experience a new=
- error
-> +call will return an error, even if the upperdir has not experienced a ne=
-w error
->  since the last sync call.
->
->  When overlay is mounted with "volatile" option, the directory
->  "$workdir/work/incompat/volatile" is created.  During next mount, overla=
-y
->  checks for this directory and refuses to mount if present. This is a str=
-ong
-> -indicator that user should throw away upper and work directories and cre=
-ate
-> -fresh one. In very limited cases where the user knows that the system ha=
-s
-> -not crashed and contents of upperdir are intact, The "volatile" director=
-y
-> +indicator that the user should discard upper and work directories and cr=
-eate
-> +fresh ones. In very limited cases where the user knows that the system h=
-as
-> +not crashed and contents of upperdir are intact, the "volatile" director=
-y
->  can be removed.
->
->
-> --
-> 2.39.5 (Apple Git-154)
->
+Thoughts?
+
+> Thanks,
+> Amir.
+> 
+
+
