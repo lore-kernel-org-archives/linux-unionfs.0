@@ -1,174 +1,225 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1539521C173;
-	Thu, 10 Jul 2025 05:06:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CCA82980A6;
+	Thu, 10 Jul 2025 09:28:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752123976; cv=none; b=lAiTWW99bCVytv9pbfaoKfE1d2noEDbgfHApIn24osx1Rjna5E2n4nFQAFtp9sRnITHvDWgK1Ct8SgU1cU8CbyDL+p4FbmCz92b7BW5hz2jEoa8zhQq3FEsDZds5fEQC6oaRF0aYxyrosIkThF9I/N2qSU/IN5YWaqWvom2Vhx4=
+	t=1752139734; cv=none; b=TdvFrrzAQkA5G+xO1QErYXLITi7amIr8nkuE2vzC7Cp5RlxSEyJ2VTJuJ3gPPS4Gdqw/CqW/Vj1gqbOhdhmFjQHsozuRFb1/3PGsZmB0p8VvImbJTOAALwmJpkjwrPgKg4mVk0I3wsZcdErMBQ8N+gL0WfPLWUk0/I86DW3rohk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752123976; c=relaxed/simple;
-	bh=5+A/k+DXDPWqzIujSg+L8+cy6lC+c9TMkQJBbbJNpEE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=aAtsyXknwYGPZW8xajGPE+2d/1OhGdRavwLnRPjb20E+sPs4ukdqlDx/t4b9J8Thjx/bCLjR4sGbBHMGUgG5fgqSQJhYm8ibIQeFuy9G16qaMgMfhjYFw1mlwXBXEm1UgVT1LBnJq3+8X0SPGKA4HWcymb2oJSXGVaybG/zg9zw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ACLK+pJ5; arc=none smtp.client-ip=209.85.214.175
+	s=arc-20240116; t=1752139734; c=relaxed/simple;
+	bh=g8FHaOAWisTNuIgaWejSWAO/Ou4HKo28ZtZbLrjWtg0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=mr0Pzj0k/cl5bMbHQRQNZvrUyPm7PhJfTGkTdg0WmF+X0ay9FlpZ6afdlNPcu7matYHtM3vDuo5fNx7szHFReT99ICoHLkiz8aOQF+TkwKRRKthPXaO0OE/Z8xeuTWAxe7hKqcTcEs0n5tk2DgppTvVurPvJziimrjP8/RgM30E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ykv6Bpqz; arc=none smtp.client-ip=209.85.208.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ACLK+pJ5"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-235f9ea8d08so5918465ad.1;
-        Wed, 09 Jul 2025 22:06:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ykv6Bpqz"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-60700a745e5so1410725a12.3;
+        Thu, 10 Jul 2025 02:28:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752123974; x=1752728774; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=4ufezQWuUmDdhETjzSA8kehCbZ0qaItdq5wj1opa808=;
-        b=ACLK+pJ5NsrO/+qjy0C8cMgfeD6ZM5KvQAy+QzRsP65hbdXqxMZrqHz41wVBCaDiib
-         R2fp/dGsC+4OzERj7LBA04GyieBm2HUyf27S9WkPqmobaveuAwd5H7vd3vT8EnnXfvCS
-         iG5b1nY6FypAB2r49Kl5W+GhDP4CbsHoav6gssEDTNIEPifmpwXTTYVkzTLEjPF+l48J
-         PEBEvzzUMkgE1sy6jI7WeH/YXgvcBpkZvWlrPjphHNBtxkmEAcJxJ5Ow6qNjrEuYyoU/
-         q8Bsah7ERxbm/v4vRIkFmwQ4DQH0VYKZOVyC6uDS/MIgDi5pP9i9IxkOe9W72FQpic7q
-         iMmQ==
+        d=gmail.com; s=20230601; t=1752139731; x=1752744531; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=BiYkSn+vY9L3z87omArmGIEE0SZdtFmrm7AJojWfvmI=;
+        b=Ykv6BpqzjzzfjANucVYKzgKpOtJLTkVLlaEFTXRj0O3akSQ5AuDCgOTQeZ3SHnJhKG
+         KiOCKCVTRQGOUjU8ItOukL+VSA39oNMTHo8Kc7zBBvPzVPyGFCBvwFWHUNk213Lzza2e
+         MRN99xyeA0dcQKP0ouTufRpzVqGLtYY6q43BkZFgFsKzAXTn252nQKFZhjnZd/glbj+w
+         dkroUzNjdVjNCSxbtLS96/kaFNStKgoocRzYax3HDLRMb6bQ25NwVYZl/i4DRayQ4EK8
+         Y9sIxNHgHAsFuskVw3DaaLQB4KjKaSZVlnyZGioWE3vyHvSGz3gjKdyq236SvC0x22wj
+         97UQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752123974; x=1752728774;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=4ufezQWuUmDdhETjzSA8kehCbZ0qaItdq5wj1opa808=;
-        b=CZOZanIdwqPYhQiXpzjE3N4azAzxjkXsijWfUwrxiDC9xl3bVYpWD/iHGOsG/Yf8KC
-         MLy8qYUsmDBVv9UNiqT4ZtLFfRPjgyrojT23DNZIzDTGlwaSW+8QWqYoYgIz7kwoL+Aa
-         X29uy2J9PslnzeS9IuMMbiWxf/ZAt9k1TSmhH96P1zqoxdFQBcS/4UxNMYGNh5LjP6o0
-         j4Hzh6A+OIZFFR+XYT6/JaJEvXyS11pt1XTFmj0aPRkEBEeC7JGbN9qUivBgyFH8n0MK
-         kZivgKhiK2Bbt7IjJ9TpW0bCeaIwqj3OCHENNoUz6wgOJDzdBZrJbRjgEJ62F8acQeK6
-         uuiw==
-X-Forwarded-Encrypted: i=1; AJvYcCUTp70SXGYG0OO+ovoUdpHbrwcIGMob3Sgf+uYyIrWXp6E4WEy236jUDse1IcfSYAOcgjsIAAzPS4w=@vger.kernel.org, AJvYcCX3kNghQV/Syw+sQrvXrtEldpbqD9+z+AVB3zWrNIeUvM0uvONgVbXmbf8Ze8BtmJU8/5Wv9KAfr9b8XZmXVg==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzlEyzM50KKGkF7Uss0EIVM9xZALjns1Q+jVmmva7w9VNF6NR3+
-	Kjtte8cV/NA0slaL5PettuX1qAbtDG//75HfmWs2Xa8eiWYSuWqRVv9dDks3mmRv
-X-Gm-Gg: ASbGncvO/UXjkn4yTHiH/qqwSaMe5Wo6A0QHMjmt93dk+EsU/1wVhjNu8Z99k6OBASr
-	b23Ijshm9bWJJnDinVBt5aJO4OxjaZCVIqlroeUtGkjOtAlADS3JZB/pvcki9Us9umQHocObpGU
-	txoZ1JEDSJ4TDINrlVsyb36rvrrWPu+cWkt/2r54leqpB/6AMvYoy57BNNT+LQxej6T/1HlntFa
-	Yso/JrK4M6LKilbSwIRW0dWeAuebevlsbTB7qG1JeHknCJlvrnBHDIzHTASScXY/Dikb6YIP8oG
-	+uxS0+dH8oCfiltwxVTR9fNoewZEeMbteRMgLuVQHICfFaxj9zYCugpucrMRg1GZsuYFdpyfc5L
-	eQmcOgaMw80pGOJLVZqvxoUynHIY=
-X-Google-Smtp-Source: AGHT+IEoqOfeTQFyCtDdNzvcIy28zHW/0xPaR7yp06ctqw9ooZhdD73oP1Lbxfk3o/SsZaJfhAlGSQ==
-X-Received: by 2002:a17:903:4b2d:b0:235:2e0:ab8 with SMTP id d9443c01a7336-23ddb1a04e3mr90994295ad.6.1752123974069;
-        Wed, 09 Jul 2025 22:06:14 -0700 (PDT)
-Received: from localhost.localdomain ([2601:647:4100:9c80:f536:f2df:c2a8:8b69])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23de43228b3sm9985845ad.135.2025.07.09.22.06.12
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 09 Jul 2025 22:06:13 -0700 (PDT)
-From: Matthias Frank <frank.mt125@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	linux-doc@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	linux-unionfs@vger.kernel.org,
-	Matthias Frank <frank.mt125@gmail.com>
-Subject: [PATCH] overlayfs.rst: fix typos
-Date: Wed,  9 Jul 2025 22:06:07 -0700
-Message-Id: <20250710050607.2891-1-frank.mt125@gmail.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+        d=1e100.net; s=20230601; t=1752139731; x=1752744531;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=BiYkSn+vY9L3z87omArmGIEE0SZdtFmrm7AJojWfvmI=;
+        b=jiKxKPYxxzvoy1rjFKolQquZRSDVA1zHVyyNeTnl7KPTUHgxBWZDeLEH6/tKM29opO
+         tf6TtrEp8o1ll7V1/TnpqJNCmqsoppI337e980QoniUtgShRMXXq+qkVoBcY9/SkLeXi
+         JcMB8nfqJKrXEo2xxE0zxxg4/UR4E8glzFKCQFQfIQcX36cahyGrxPe8F4EEtGpl6B6E
+         LE/xwbiOl3A9RpUgpeq5DapRlx0Pd9NfNh2SfC9dgM4jPuIoo9zjFoCeDW+iNwdquCik
+         I+1tccjKwymRVRmbfMuitXGhsF9NulYaB9j+eJ9E/4xxHngjMBfr+Nulp6V5zPF3Y8q3
+         IbZg==
+X-Forwarded-Encrypted: i=1; AJvYcCUZB0YDZ7a9coulHxvMYCzAJHGMlJ+Hup8TFD0heAAeonwreZZcqdxuclBL8RedRy9hysakPmk9r1c=@vger.kernel.org, AJvYcCVVq3GL7pHexP7JmoAOFWeftT+EKskk/4lDE0/JLYdItVTXDFpIhFl1AotFroGj+JQIHdzczsWSC4V/O5SRHQ==@vger.kernel.org
+X-Gm-Message-State: AOJu0YyNSou6Ail64fZFEKFIjB1mwl6wuqWh3URuAnjwL203GnU5G7XZ
+	YIzbLbr9H0N0woA6/y+IA3YZ2kaOBK30RA+IVbL377o9Wn6SEhch7TuyrAUyoza5vLeKN5pUKYA
+	LWiYCtN4AX+tgyttkEPJ0AEorVDZN00E=
+X-Gm-Gg: ASbGnctcg2sghYHHoveCIOEtlYtPrAbgzNP8SjEacHVv8iQ2E1leDyUGGeiYQtoqJH+
+	P/yUsvwR3HS5cprvu/3KWZ4j97wdGPsirOKQsqvbRC/AxME1pG1XG4Tn4noz3IKB6ExkRFEMQBY
+	a9reci1bxBEwLTIbIN5NHLTIsGEg6F9fyHpofYihm3ZL8=
+X-Google-Smtp-Source: AGHT+IGVjPcztPdZlC6fa0irt9LUdxKj2BaoE2kC5A93RR1GebqTaZi5uj3oWG7ZxTbETAzs+9t+pEVjp/omVNvyfyQ=
+X-Received: by 2002:a17:907:2d89:b0:ae0:ded9:7f54 with SMTP id
+ a640c23a62f3a-ae6e703387cmr243207666b.28.1752139730403; Thu, 10 Jul 2025
+ 02:28:50 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20250710050607.2891-1-frank.mt125@gmail.com>
+In-Reply-To: <20250710050607.2891-1-frank.mt125@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 10 Jul 2025 11:28:38 +0200
+X-Gm-Features: Ac12FXxBKaD_YJhNw5Xx7TFCELs1AQpQz9GtDpfwNqH5R4SdBWGrYx4C_J09FE0
+Message-ID: <CAOQ4uxhvBMJLWrDtuK3kOKDv0enMtAgpgV3WeR9Z9ZEDpOeu+A@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs.rst: fix typos
+To: Matthias Frank <frank.mt125@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Grammatical fixes
+On Thu, Jul 10, 2025 at 7:06=E2=80=AFAM Matthias Frank <frank.mt125@gmail.c=
+om> wrote:
+>
+> Grammatical fixes
+>
+> Signed-off-by: Matthias Frank <frank.mt125@gmail.com>
+> Acked-by: Amir Goldstein <amir73il@gmail.com>
 
-Signed-off-by: Matthias Frank <frank.mt125@gmail.com>
-Acked-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/overlayfs.rst | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+Hi Matthias,
 
-diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 4133a336486d..6e0c572d33dc 100644
---- a/Documentation/filesystems/overlayfs.rst
-+++ b/Documentation/filesystems/overlayfs.rst
-@@ -9,7 +9,7 @@ Overlay Filesystem
- This document describes a prototype for a new approach to providing
- overlay-filesystem functionality in Linux (sometimes referred to as
- union-filesystems).  An overlay-filesystem tries to present a
--filesystem which is the result over overlaying one filesystem on top
-+filesystem which is the result of overlaying one filesystem on top
- of the other.
- 
- 
-@@ -425,7 +425,7 @@ of information from up to three different layers:
- The "lower data" file can be on any lower layer, except from the top most
- lower layer.
- 
--Below the top most lower layer, any number of lower most layers may be defined
-+Below the topmost lower layer, any number of lowermost layers may be defined
- as "data-only" lower layers, using double colon ("::") separators.
- A normal lower layer is not allowed to be below a data-only layer, so single
- colon separators are not allowed to the right of double colon ("::") separators.
-@@ -445,8 +445,8 @@ to the absolute path of the "lower data" file in the "data-only" lower layer.
- 
- Instead of explicitly enabling "metacopy=on" it is sufficient to specify at
- least one data-only layer to enable redirection of data to a data-only layer.
--In this case other forms of metacopy are rejected.  Note: this way data-only
--layers may be used toghether with "userxattr", in which case careful attention
-+In this case other forms of metacopy are rejected.  Note: this way, data-only
-+layers may be used together with "userxattr", in which case careful attention
- must be given to privileges needed to change the "user.overlay.redirect" xattr
- to prevent misuse.
- 
-@@ -515,7 +515,7 @@ supports these values:
-     The metacopy digest is never generated or used. This is the
-     default if verity option is not specified.
- - "on":
--    Whenever a metacopy files specifies an expected digest, the
-+    Whenever a metacopy file specifies an expected digest, the
-     corresponding data file must match the specified digest. When
-     generating a metacopy file the verity digest will be set in it
-     based on the source file (if it has one).
-@@ -537,7 +537,7 @@ Using an upper layer path and/or a workdir path that are already used by
- another overlay mount is not allowed and may fail with EBUSY.  Using
- partially overlapping paths is not allowed and may fail with EBUSY.
- If files are accessed from two overlayfs mounts which share or overlap the
--upper layer and/or workdir path the behavior of the overlay is undefined,
-+upper layer and/or workdir path, the behavior of the overlay is undefined,
- though it will not result in a crash or deadlock.
- 
- Mounting an overlay using an upper layer path, where the upper layer path
-@@ -778,7 +778,7 @@ controlled by the "uuid" mount option, which supports these values:
- - "auto": (default)
-     UUID is taken from xattr "trusted.overlay.uuid" if it exists.
-     Upgrade to "uuid=on" on first time mount of new overlay filesystem that
--    meets the prerequites.
-+    meets the prerequisites.
-     Downgrade to "uuid=null" for existing overlay filesystems that were never
-     mounted with "uuid=on".
- 
-@@ -794,20 +794,20 @@ without significant effort.
- The advantage of mounting with the "volatile" option is that all forms of
- sync calls to the upper filesystem are omitted.
- 
--In order to avoid a giving a false sense of safety, the syncfs (and fsync)
-+In order to avoid giving a false sense of safety, the syncfs (and fsync)
- semantics of volatile mounts are slightly different than that of the rest of
- VFS.  If any writeback error occurs on the upperdir's filesystem after a
- volatile mount takes place, all sync functions will return an error.  Once this
- condition is reached, the filesystem will not recover, and every subsequent sync
--call will return an error, even if the upperdir has not experience a new error
-+call will return an error, even if the upperdir has not experienced a new error
- since the last sync call.
- 
- When overlay is mounted with "volatile" option, the directory
- "$workdir/work/incompat/volatile" is created.  During next mount, overlay
- checks for this directory and refuses to mount if present. This is a strong
--indicator that user should throw away upper and work directories and create
--fresh one. In very limited cases where the user knows that the system has
--not crashed and contents of upperdir are intact, The "volatile" directory
-+indicator that the user should discard upper and work directories and create
-+fresh ones. In very limited cases where the user knows that the system has
-+not crashed and contents of upperdir are intact, the "volatile" directory
- can be removed.
- 
- 
--- 
-2.39.5 (Apple Git-154)
+Thanks for making overlayfs.rst better!
 
+Since my ACK was given off-list, I reaffirm it publicly.
+
+Jon,
+
+Can you please pick up this patch?
+
+Thanks,
+Amir.
+
+> ---
+>  Documentation/filesystems/overlayfs.rst | 24 ++++++++++++------------
+>  1 file changed, 12 insertions(+), 12 deletions(-)
+>
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
+systems/overlayfs.rst
+> index 4133a336486d..6e0c572d33dc 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -9,7 +9,7 @@ Overlay Filesystem
+>  This document describes a prototype for a new approach to providing
+>  overlay-filesystem functionality in Linux (sometimes referred to as
+>  union-filesystems).  An overlay-filesystem tries to present a
+> -filesystem which is the result over overlaying one filesystem on top
+> +filesystem which is the result of overlaying one filesystem on top
+>  of the other.
+>
+>
+> @@ -425,7 +425,7 @@ of information from up to three different layers:
+>  The "lower data" file can be on any lower layer, except from the top mos=
+t
+>  lower layer.
+>
+> -Below the top most lower layer, any number of lower most layers may be d=
+efined
+> +Below the topmost lower layer, any number of lowermost layers may be def=
+ined
+>  as "data-only" lower layers, using double colon ("::") separators.
+>  A normal lower layer is not allowed to be below a data-only layer, so si=
+ngle
+>  colon separators are not allowed to the right of double colon ("::") sep=
+arators.
+> @@ -445,8 +445,8 @@ to the absolute path of the "lower data" file in the =
+"data-only" lower layer.
+>
+>  Instead of explicitly enabling "metacopy=3Don" it is sufficient to speci=
+fy at
+>  least one data-only layer to enable redirection of data to a data-only l=
+ayer.
+> -In this case other forms of metacopy are rejected.  Note: this way data-=
+only
+> -layers may be used toghether with "userxattr", in which case careful att=
+ention
+> +In this case other forms of metacopy are rejected.  Note: this way, data=
+-only
+> +layers may be used together with "userxattr", in which case careful atte=
+ntion
+>  must be given to privileges needed to change the "user.overlay.redirect"=
+ xattr
+>  to prevent misuse.
+>
+> @@ -515,7 +515,7 @@ supports these values:
+>      The metacopy digest is never generated or used. This is the
+>      default if verity option is not specified.
+>  - "on":
+> -    Whenever a metacopy files specifies an expected digest, the
+> +    Whenever a metacopy file specifies an expected digest, the
+>      corresponding data file must match the specified digest. When
+>      generating a metacopy file the verity digest will be set in it
+>      based on the source file (if it has one).
+> @@ -537,7 +537,7 @@ Using an upper layer path and/or a workdir path that =
+are already used by
+>  another overlay mount is not allowed and may fail with EBUSY.  Using
+>  partially overlapping paths is not allowed and may fail with EBUSY.
+>  If files are accessed from two overlayfs mounts which share or overlap t=
+he
+> -upper layer and/or workdir path the behavior of the overlay is undefined=
+,
+> +upper layer and/or workdir path, the behavior of the overlay is undefine=
+d,
+>  though it will not result in a crash or deadlock.
+>
+>  Mounting an overlay using an upper layer path, where the upper layer pat=
+h
+> @@ -778,7 +778,7 @@ controlled by the "uuid" mount option, which supports=
+ these values:
+>  - "auto": (default)
+>      UUID is taken from xattr "trusted.overlay.uuid" if it exists.
+>      Upgrade to "uuid=3Don" on first time mount of new overlay filesystem=
+ that
+> -    meets the prerequites.
+> +    meets the prerequisites.
+>      Downgrade to "uuid=3Dnull" for existing overlay filesystems that wer=
+e never
+>      mounted with "uuid=3Don".
+>
+> @@ -794,20 +794,20 @@ without significant effort.
+>  The advantage of mounting with the "volatile" option is that all forms o=
+f
+>  sync calls to the upper filesystem are omitted.
+>
+> -In order to avoid a giving a false sense of safety, the syncfs (and fsyn=
+c)
+> +In order to avoid giving a false sense of safety, the syncfs (and fsync)
+>  semantics of volatile mounts are slightly different than that of the res=
+t of
+>  VFS.  If any writeback error occurs on the upperdir's filesystem after a
+>  volatile mount takes place, all sync functions will return an error.  On=
+ce this
+>  condition is reached, the filesystem will not recover, and every subsequ=
+ent sync
+> -call will return an error, even if the upperdir has not experience a new=
+ error
+> +call will return an error, even if the upperdir has not experienced a ne=
+w error
+>  since the last sync call.
+>
+>  When overlay is mounted with "volatile" option, the directory
+>  "$workdir/work/incompat/volatile" is created.  During next mount, overla=
+y
+>  checks for this directory and refuses to mount if present. This is a str=
+ong
+> -indicator that user should throw away upper and work directories and cre=
+ate
+> -fresh one. In very limited cases where the user knows that the system ha=
+s
+> -not crashed and contents of upperdir are intact, The "volatile" director=
+y
+> +indicator that the user should discard upper and work directories and cr=
+eate
+> +fresh ones. In very limited cases where the user knows that the system h=
+as
+> +not crashed and contents of upperdir are intact, the "volatile" director=
+y
+>  can be removed.
+>
+>
+> --
+> 2.39.5 (Apple Git-154)
+>
