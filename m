@@ -1,32 +1,32 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AFFC2D0C73;
-	Thu, 10 Jul 2025 23:21:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 407392D23B6;
+	Thu, 10 Jul 2025 23:21:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752189693; cv=none; b=gdZPUzD/4G+1LTdbp0BEZcnmMn075eKgr8BFA+hMgO64yM8+F3KT+Vj30ggDcpPkl2I/I3u9uQEfjVC/NqZhovP1kBl7MFixM4ZnK+AVDQuuWKJAcNPi0GXg0Dj0sOKeO+HcJDErXrUUC7f4W/bE9QeRCnOLQAEeYHO/SmpbcqA=
+	t=1752189693; cv=none; b=ab6xN00VZqFFpb7KjNC6q0Q364op153Bk7B4jVvrPf0a3Ixj7qDRMmU/Hf4CZyrcN+QvaP84KjPM8TWbrhkghlhC8JoOTHjWmtxX0WK6oJvFkkBzLVXkdzuUJOGmtnrJQ54EY3ySFayY1+z7+R7Tlu4RnhhEi7Iq4KXhYTi6rDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1752189693; c=relaxed/simple;
-	bh=33Dtj51zeqObE0uJi9cBwR1LK/sqCxadVpYR7oHLFYY=;
+	bh=Ps0U/+0i98nWDLoi7YkqfnRtlXbgNmKUa0uPpoZBWOA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p85BXRVAaV4S7maFn1OG1jiJHuiNENCdX3/uDmM3lKT6AdVLm+jblGUgm8VHlM1oK+DXIkZWBB5Me6Z+Z4Ih1N4/xfS3+T+C6LhK9hgQf3fOvsetuVlrInIKW4c6kGm0GmvNVgpJdDSdbmHm3mEwbfmvvh9ilepiBo0NbXgk7Z4=
+	 MIME-Version; b=mOuHd2pMtZAtQd9o6aTIV8aghHVxUNL3SRST11TbO9FDfkXjkinfdkA5ozk/4Vn9Qyt195je7eRGMVu9bVnWrgZYm+/HBOTKKMtT5eq/WOY7m7NelIVs0KBrqtcfXq9lWgq/aZRvOMrMvAbnmQ++MgSITH0FzXDWPcMgCH9ApHQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ua0Zu-001XGg-9x;
+	id 1ua0Zv-001XGs-6O;
 	Thu, 10 Jul 2025 23:21:24 +0000
 From: NeilBrown <neil@brown.name>
 To: Miklos Szeredi <miklos@szeredi.hu>,
 	Amir Goldstein <amir73il@gmail.com>
 Cc: linux-unionfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 11/20] ovl: narrow locking in ovl_workdir_create()
-Date: Fri, 11 Jul 2025 09:03:41 +1000
-Message-ID: <20250710232109.3014537-12-neil@brown.name>
+Subject: [PATCH 13/20] ovl: narrow locking in ovl_workdir_cleanup_recurse()
+Date: Fri, 11 Jul 2025 09:03:43 +1000
+Message-ID: <20250710232109.3014537-14-neil@brown.name>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250710232109.3014537-1-neil@brown.name>
 References: <20250710232109.3014537-1-neil@brown.name>
@@ -38,84 +38,47 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In ovl_workdir_create() don't hold the dir lock for the whole time, but
-only take it when needed.
-
-It now gets taken separately for ovl_workdir_cleanup().  A subsequent
-patch will move the locking into that function.
+Only take the dir lock when needed, rather than for the whole loop.
 
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- fs/overlayfs/super.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ fs/overlayfs/readdir.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 9cce3251dd83..239ae1946edf 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -299,8 +299,8 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 	int err;
- 	bool retried = false;
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 3a4bbc178203..b3d44bf56c78 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -1122,7 +1122,6 @@ static int ovl_workdir_cleanup_recurse(struct ovl_fs *ofs, const struct path *pa
+ 	if (err)
+ 		goto out;
  
 -	inode_lock_nested(dir, I_MUTEX_PARENT);
- retry:
-+	inode_lock_nested(dir, I_MUTEX_PARENT);
- 	work = ovl_lookup_upper(ofs, name, ofs->workbasedir, strlen(name));
+ 	list_for_each_entry(p, &list, l_node) {
+ 		struct dentry *dentry;
  
- 	if (!IS_ERR(work)) {
-@@ -311,23 +311,27 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 
- 		if (work->d_inode) {
- 			err = -EEXIST;
-+			inode_unlock(dir);
- 			if (retried)
- 				goto out_dput;
- 
- 			if (persist)
--				goto out_unlock;
-+				goto out;
- 
- 			retried = true;
-+			inode_lock_nested(dir, I_MUTEX_PARENT);
- 			err = ovl_workdir_cleanup(ofs, dir, mnt, work, 0);
-+			inode_unlock(dir);
- 			dput(work);
- 			if (err == -EINVAL) {
- 				work = ERR_PTR(err);
--				goto out_unlock;
-+				goto out;
- 			}
- 			goto retry;
+@@ -1137,16 +1136,18 @@ static int ovl_workdir_cleanup_recurse(struct ovl_fs *ofs, const struct path *pa
+ 			err = -EINVAL;
+ 			break;
  		}
- 
- 		work = ovl_do_mkdir(ofs, dir, work, attr.ia_mode);
-+		inode_unlock(dir);
- 		err = PTR_ERR(work);
- 		if (IS_ERR(work))
- 			goto out_err;
-@@ -365,11 +369,11 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
+-		dentry = ovl_lookup_upper(ofs, p->name, path->dentry, p->len);
++		dentry = ovl_lookup_upper_unlocked(ofs, p->name, path->dentry, p->len);
+ 		if (IS_ERR(dentry))
+ 			continue;
+-		if (dentry->d_inode)
++		if (dentry->d_inode) {
++			inode_lock_nested(dir, I_MUTEX_PARENT);
+ 			err = ovl_workdir_cleanup(ofs, dir, path->mnt, dentry, level);
++			inode_unlock(dir);
++		}
+ 		dput(dentry);
  		if (err)
- 			goto out_dput;
- 	} else {
-+		inode_unlock(dir);
- 		err = PTR_ERR(work);
- 		goto out_err;
+ 			break;
  	}
--out_unlock:
 -	inode_unlock(dir);
-+out:
- 	return work;
- 
- out_dput:
-@@ -378,7 +382,7 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 	pr_warn("failed to create directory %s/%s (errno: %i); mounting read-only\n",
- 		ofs->config.workdir, name, -err);
- 	work = NULL;
--	goto out_unlock;
-+	goto out;
- }
- 
- static int ovl_check_namelen(const struct path *path, struct ovl_fs *ofs,
+ out:
+ 	ovl_cache_free(&list);
+ 	return err;
 -- 
 2.49.0
 
