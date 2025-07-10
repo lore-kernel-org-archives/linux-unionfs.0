@@ -1,32 +1,32 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3BD029CB40;
-	Thu, 10 Jul 2025 23:21:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95A7529E0EB;
+	Thu, 10 Jul 2025 23:21:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752189690; cv=none; b=X74ywnofuPLuKZxG037lPvUVsNmEjxort+dX1QYV5KIZjwHCWZd5trVEnGnCkvyh9t2D3IJGMV445wCIrtEYh8PeAV5yp0HI2oe+ovKJwsT4GsPpKBbH0TMMTdrYoxCm0gtX+QAYuXn1gX3MFeMDtDeCh2t94CJTGcSiepLnxVM=
+	t=1752189690; cv=none; b=sEdVEsMwI9jriZUcbD9zJghuBLDRnWtIki80Y4awLvhGmYhygOZBsVhFqqqZEVXcSsB/lHVq1rBfbPk2A2zAEuG3+QvvL3fQ0jvkziwkeYWt+L5hBrt284p9a8Bdmw456qKSzbB8QmzS/NJc2emAkjsZTPgQgec8mBZCyOMRxHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1752189690; c=relaxed/simple;
-	bh=p9l3AYV1I6kZ4Nn81L4FwB1yGq7882FIaQrtooZ39fM=;
+	bh=f6F0lIH9loXNY0UKfQbitCCTDd7y45h55SZLSAR6caI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KF3hsbU4q2T6PhismptXhm3fH3uXJnVXFJD1XnsOA3tXkDwsBoOa7rzKbd1UALK3c0tbxczszpX1aQI7zK09zMjCoOF5LAE32iJoSYjvjph6Dvjzb6KyGw0szKTNUaXOnBAFCRJSrYKpeswSP8Kg8KAki24vjVf+wh0sjSAApsc=
+	 MIME-Version; b=i63zju+OEi5LiuzUcWVC1qHX2ew/KzcG8ah/SuzInsf3hq0opTVYjtiyoFjVjwt+a4u2t+IvBW7BMSzMvFqTYH24/sXJGZEY5D8+ZM4iaIKYrHK1jI104xZ3ymBmywDbPGkCzpjBZUa2NYvkP1sEJ+p/SzfWtONUf23O/969GLk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ua0Zw-001XHA-Jj;
-	Thu, 10 Jul 2025 23:21:26 +0000
+	id 1ua0Zr-001XG0-5g;
+	Thu, 10 Jul 2025 23:21:20 +0000
 From: NeilBrown <neil@brown.name>
 To: Miklos Szeredi <miklos@szeredi.hu>,
 	Amir Goldstein <amir73il@gmail.com>
 Cc: linux-unionfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 16/20] ovl: change ovl_cleanup_and_whiteout() to take rename lock as needed
-Date: Fri, 11 Jul 2025 09:03:46 +1000
-Message-ID: <20250710232109.3014537-17-neil@brown.name>
+Subject: [PATCH 04/20] ovl: narrow the locked region in ovl_copy_up_workdir()
+Date: Fri, 11 Jul 2025 09:03:34 +1000
+Message-ID: <20250710232109.3014537-5-neil@brown.name>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250710232109.3014537-1-neil@brown.name>
 References: <20250710232109.3014537-1-neil@brown.name>
@@ -38,161 +38,77 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Rather than locking the directory(s) before calling
-ovl_cleanup_and_whiteout(), change it (and ovl_whiteout()) to do the
-locking, so the locking can be fine grained as will be needed for
-proposed locking changes.
+In ovl_copy_up_workdir() unlock immediately after the rename, and then
+use ovl_cleanup_unlocked() with separate locking rather than using the
+same lock to protect both.
 
-Sometimes this is called to whiteout something in the index dir, in
-which case only that dir must be locked.  In one case it is called on
-something in an upperdir, so two directories must be locked.  We use
-ovl_lock_rename_workdir() for this and remove the restriction that
-upperdir cannot be indexdir - because now sometimes it is.
+This makes way for future changes where locks are taken on individual
+dentries rather than the whole directory.
 
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- fs/overlayfs/dir.c     | 20 +++++++++-----------
- fs/overlayfs/readdir.c |  3 ---
- fs/overlayfs/util.c    |  7 -------
- 3 files changed, 9 insertions(+), 21 deletions(-)
+ fs/overlayfs/copy_up.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 8580cd5c61e4..086719129be3 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -77,7 +77,6 @@ struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdir)
- 	return temp;
- }
- 
--/* caller holds i_mutex on workdir */
- static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index eafb46686854..7b84a39c081f 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -765,7 +765,6 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
  {
- 	int err;
-@@ -85,6 +84,7 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
- 	struct dentry *workdir = ofs->workdir;
- 	struct inode *wdir = workdir->d_inode;
- 
-+	inode_lock_nested(wdir, I_MUTEX_PARENT);
- 	if (!ofs->whiteout) {
- 		whiteout = ovl_lookup_temp(ofs, workdir);
- 		if (IS_ERR(whiteout))
-@@ -118,14 +118,13 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
- 	whiteout = ofs->whiteout;
- 	ofs->whiteout = NULL;
- out:
-+	inode_unlock(wdir);
- 	return whiteout;
- }
- 
--/* Caller must hold i_mutex on both workdir and dir */
- int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *dir,
- 			     struct dentry *dentry)
- {
--	struct inode *wdir = ofs->workdir->d_inode;
- 	struct dentry *whiteout;
- 	int err;
- 	int flags = 0;
-@@ -138,18 +137,22 @@ int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *dir,
- 	if (d_is_dir(dentry))
- 		flags = RENAME_EXCHANGE;
- 
--	err = ovl_do_rename(ofs, ofs->workdir, whiteout, dir, dentry, flags);
-+	err = ovl_lock_rename_workdir(ofs->workdir, whiteout, dir, dentry);
-+	if (!err) {
-+		err = ovl_do_rename(ofs, ofs->workdir, whiteout, dir, dentry, flags);
-+		unlock_rename(ofs->workdir, dir);
-+	}
- 	if (err)
- 		goto kill_whiteout;
- 	if (flags)
--		ovl_cleanup(ofs, wdir, dentry);
-+		ovl_cleanup_unlocked(ofs, ofs->workdir, dentry);
- 
- out:
- 	dput(whiteout);
- 	return err;
- 
- kill_whiteout:
--	ovl_cleanup(ofs, wdir, whiteout);
-+	ovl_cleanup_unlocked(ofs, ofs->workdir, whiteout);
- 	goto out;
- }
- 
-@@ -782,10 +785,6 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
- 		goto out_dput_upper;
+ 	struct ovl_fs *ofs = OVL_FS(c->dentry->d_sb);
+ 	struct inode *inode;
+-	struct inode *wdir = d_inode(c->workdir);
+ 	struct path path = { .mnt = ovl_upper_mnt(ofs) };
+ 	struct dentry *temp, *upper, *trap;
+ 	struct ovl_cu_creds cc;
+@@ -816,9 +815,9 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 		/* temp or workdir moved underneath us? abort without cleanup */
+ 		dput(temp);
+ 		err = -EIO;
+-		if (IS_ERR(trap))
+-			goto out;
+-		goto unlock;
++		if (!IS_ERR(trap))
++			unlock_rename(c->workdir, c->destdir);
++		goto out;
  	}
  
--	err = ovl_lock_rename_workdir(workdir, NULL, upperdir, upper);
--	if (err)
--		goto out_dput_upper;
--
- 	err = ovl_cleanup_and_whiteout(ofs, upperdir, upper);
- 	if (err)
- 		goto out_d_drop;
-@@ -793,7 +792,6 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
- 	ovl_dir_modified(dentry->d_parent, true);
- out_d_drop:
- 	d_drop(dentry);
--	unlock_rename(workdir, upperdir);
- out_dput_upper:
- 	dput(upper);
- out_dput:
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 6cc5f885e036..4127d1f160b3 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -1179,7 +1179,6 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
- 	int err;
- 	struct dentry *indexdir = ofs->workdir;
- 	struct dentry *index = NULL;
--	struct inode *dir = indexdir->d_inode;
- 	struct path path = { .mnt = ovl_upper_mnt(ofs), .dentry = indexdir };
- 	LIST_HEAD(list);
- 	struct ovl_cache_entry *p;
-@@ -1231,9 +1230,7 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
- 			 * Whiteout orphan index to block future open by
- 			 * handle after overlay nlink dropped to zero.
- 			 */
--			inode_lock_nested(dir, I_MUTEX_PARENT);
- 			err = ovl_cleanup_and_whiteout(ofs, indexdir, index);
--			inode_unlock(dir);
- 		} else {
- 			/* Cleanup orphan index entries */
- 			err = ovl_cleanup_unlocked(ofs, indexdir, index);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 7369193b11ec..5218a477551b 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1071,7 +1071,6 @@ static void ovl_cleanup_index(struct dentry *dentry)
- {
- 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	struct dentry *indexdir = ovl_indexdir(dentry->d_sb);
--	struct inode *dir = indexdir->d_inode;
- 	struct dentry *lowerdentry = ovl_dentry_lower(dentry);
- 	struct dentry *upperdentry = ovl_dentry_upper(dentry);
- 	struct dentry *index = NULL;
-@@ -1113,10 +1112,8 @@ static void ovl_cleanup_index(struct dentry *dentry)
- 		index = NULL;
- 	} else if (ovl_index_all(dentry->d_sb)) {
- 		/* Whiteout orphan index to block future open by handle */
--		inode_lock_nested(dir, I_MUTEX_PARENT);
- 		err = ovl_cleanup_and_whiteout(OVL_FS(dentry->d_sb),
- 					       indexdir, index);
--		inode_unlock(dir);
- 	} else {
- 		/* Cleanup orphan index entries */
- 		err = ovl_cleanup_unlocked(ofs, indexdir, index);
-@@ -1224,10 +1221,6 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *work,
- {
- 	struct dentry *trap;
+ 	err = ovl_copy_up_metadata(c, temp);
+@@ -832,9 +831,10 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 		goto cleanup;
  
--	/* Workdir should not be the same as upperdir */
--	if (workdir == upperdir)
--		goto err;
--
- 	/* Workdir should not be subdir of upperdir and vice versa */
- 	trap = lock_rename(workdir, upperdir);
- 	if (IS_ERR(trap))
+ 	err = ovl_do_rename(ofs, c->workdir, temp, c->destdir, upper, 0);
++	unlock_rename(c->workdir, c->destdir);
+ 	dput(upper);
+ 	if (err)
+-		goto cleanup;
++		goto cleanup_unlocked;
+ 
+ 	inode = d_inode(c->dentry);
+ 	if (c->metacopy_digest)
+@@ -848,17 +848,17 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 	ovl_inode_update(inode, temp);
+ 	if (S_ISDIR(inode->i_mode))
+ 		ovl_set_flag(OVL_WHITEOUTS, inode);
+-unlock:
+-	unlock_rename(c->workdir, c->destdir);
+ out:
+ 	ovl_end_write(c->dentry);
+ 
+ 	return err;
+ 
+ cleanup:
+-	ovl_cleanup(ofs, wdir, temp);
++	unlock_rename(c->workdir, c->destdir);
++cleanup_unlocked:
++	ovl_cleanup_unlocked(ofs, c->workdir, temp);
+ 	dput(temp);
+-	goto unlock;
++	goto out;
+ 
+ cleanup_need_write:
+ 	ovl_start_write(c->dentry);
 -- 
 2.49.0
 
