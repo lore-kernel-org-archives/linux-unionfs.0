@@ -1,32 +1,32 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C808B29B8E2;
-	Thu, 10 Jul 2025 23:21:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 963032BE7CB;
+	Thu, 10 Jul 2025 23:21:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752189691; cv=none; b=towNWAP0So+QJmgUyy2D/rL26ub4nvMHpPP7i/trQ8lJM5k+uLNrm1hi3YHOdnk8yfV8O5QwUp5iWWcfKbqo1gpmwSrf0C4NAoPyhdvxF+zqtmTPo+tTeZGrCCGof8g971LwM6+o/PlfrzTHnkaZyXtsXYDfJwlQYoh8n3DcPyA=
+	t=1752189691; cv=none; b=LNjsDupl1OnaMs1BRe/HV4aT3CSEv76uO1YGXwy8bVbe00rvJsaj7h5mr5u5tDNhnb+sfPSDvlrv07/P23MmdL9yWZ1wc4BUTIg09u775Q4Ifl49HfGYkk5rEMCU5fYlkPjL4RHFibaKuCkXzznuWE5PBNUhJ2EA6CvZQTM3ndA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1752189691; c=relaxed/simple;
-	bh=+U5PQ/KGriE6WpMxKjd1XC0845PzebZmM9gO3Du3gpY=;
+	bh=Rd3Sa4EvNTcD57QmRv661cBOjl4tNDJ9kCbOuGjmTpw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dss95YOuUhC0ecNvib0nnuMxVtIO1dK1M2KCVhCJITIod6VHm4tUFfM6+Ndke0+dPbr4EpU0cPA4k8fV9KBkNodrohvPAiVQZaQAUL0d9Otm0AxzdDt/1Ovh+6ZPRIMXoNXb8i+eYrEZTeboPaB8bPea738P0DGks4d7j9ApcU8=
+	 MIME-Version; b=FVxrRB3tq2PlDvKQWf0pxsv/unJwMqSHuUwq0a9fjTLzU+yrSadDhMicq7MViiagc93IuTHWVA0V7kMpJZ+wU6QXcnj9UCHKI9mh0/0G16BvdMkuLMQyHGgijZdnxqkQFm6DXlnEQUeQDlX6Y8GDhtOQih9jqyFLHAb3UH5s97k=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ua0Zp-001XFm-Ob;
-	Thu, 10 Jul 2025 23:21:19 +0000
+	id 1ua0Zy-001XHS-0T;
+	Thu, 10 Jul 2025 23:21:27 +0000
 From: NeilBrown <neil@brown.name>
 To: Miklos Szeredi <miklos@szeredi.hu>,
 	Amir Goldstein <amir73il@gmail.com>
 Cc: linux-unionfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 01/20] ovl: simplify an error path in ovl_copy_up_workdir()
-Date: Fri, 11 Jul 2025 09:03:31 +1000
-Message-ID: <20250710232109.3014537-2-neil@brown.name>
+Subject: [PATCH 19/20] ovl: change ovl_create_real() to receive dentry parent
+Date: Fri, 11 Jul 2025 09:03:49 +1000
+Message-ID: <20250710232109.3014537-20-neil@brown.name>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250710232109.3014537-1-neil@brown.name>
 References: <20250710232109.3014537-1-neil@brown.name>
@@ -38,140 +38,78 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If ovl_copy_up_data() fails the error is not immediately handled but the
-code continues on to call ovl_start_write() and lock_rename(),
-presumably because both of these locks are needed for the cleanup.
-On then (if the lock was successful) is the error checked.
+Instead of passing an inode *dir, pass a dentry *parent.  This makes the
+calling slightly cleaner.
 
-This makes the code a little hard to follow and could be fragile.
-
-This patch changes to handle the error immediately.  A new
-ovl_cleanup_unlocked() is created which takes the required directory
-lock (though it doesn't take the write lock on the filesystem).  This
-will be used extensively in later patches.
-
-In general we need to check the parent is still correct after taking the
-lock (as ovl_copy_up_workdir() does after a successful lock_rename()) so
-that is included in ovl_cleanup_unlocked() using new lock_parent() and
-unlock_parent() calls (it is planned to move this API into VFS code
-eventually, though in a slightly different form).
-
-A fresh cleanup block is added which doesn't share code with other
-cleanup blocks.  It will get a new users in the next patch.
-
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- fs/overlayfs/copy_up.c   | 12 ++++++++++--
- fs/overlayfs/dir.c       | 15 +++++++++++++++
- fs/overlayfs/overlayfs.h |  6 ++++++
- fs/overlayfs/util.c      | 10 ++++++++++
- 4 files changed, 41 insertions(+), 2 deletions(-)
+ fs/overlayfs/dir.c       | 7 ++++---
+ fs/overlayfs/overlayfs.h | 2 +-
+ fs/overlayfs/super.c     | 3 +--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8a3c0d18ec2e..5d21b8d94a0a 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -794,6 +794,9 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 	 */
- 	path.dentry = temp;
- 	err = ovl_copy_up_data(c, &path);
-+	if (err)
-+		goto cleanup_need_write;
-+
- 	/*
- 	 * We cannot hold lock_rename() throughout this helper, because of
- 	 * lock ordering with sb_writers, which shouldn't be held when calling
-@@ -809,8 +812,6 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 		if (IS_ERR(trap))
- 			goto out;
- 		goto unlock;
--	} else if (err) {
--		goto cleanup;
- 	}
- 
- 	err = ovl_copy_up_metadata(c, temp);
-@@ -857,6 +858,13 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 	ovl_cleanup(ofs, wdir, temp);
- 	dput(temp);
- 	goto unlock;
-+
-+cleanup_need_write:
-+	ovl_start_write(c->dentry);
-+	ovl_cleanup_unlocked(ofs, c->workdir, temp);
-+	ovl_end_write(c->dentry);
-+	dput(temp);
-+	return err;
- }
- 
- /* Copyup using O_TMPFILE which does not require cross dir locking */
 diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 4fc221ea6480..cee35d69e0e6 100644
+index fd89c25775bd..58078ce67d6a 100644
 --- a/fs/overlayfs/dir.c
 +++ b/fs/overlayfs/dir.c
-@@ -43,6 +43,21 @@ int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir, struct dentry *wdentry)
- 	return err;
+@@ -159,9 +159,10 @@ int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *dir,
+ 	goto out;
  }
  
-+int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir,
-+			 struct dentry *wdentry)
-+{
-+	int err;
-+
-+	err = parent_lock(workdir, wdentry);
-+	if (err)
-+		return err;
-+
-+	ovl_cleanup(ofs, workdir->d_inode, wdentry);
-+	parent_unlock(workdir);
-+
-+	return err;
-+}
-+
- struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdir)
+-struct dentry *ovl_create_real(struct ovl_fs *ofs, struct inode *dir,
++struct dentry *ovl_create_real(struct ovl_fs *ofs, struct dentry *parent,
+ 			       struct dentry *newdentry, struct ovl_cattr *attr)
  {
- 	struct dentry *temp;
++	struct inode *dir = parent->d_inode;
+ 	int err;
+ 
+ 	if (IS_ERR(newdentry))
+@@ -222,7 +223,7 @@ struct dentry *ovl_create_temp(struct ovl_fs *ofs, struct dentry *workdir,
+ {
+ 	struct dentry *ret;
+ 	inode_lock(workdir->d_inode);
+-	ret = ovl_create_real(ofs, d_inode(workdir),
++	ret = ovl_create_real(ofs, workdir,
+ 			      ovl_lookup_temp(ofs, workdir), attr);
+ 	inode_unlock(workdir->d_inode);
+ 	return ret;
+@@ -328,7 +329,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
+ 	int err;
+ 
+ 	inode_lock_nested(udir, I_MUTEX_PARENT);
+-	newdentry = ovl_create_real(ofs, udir,
++	newdentry = ovl_create_real(ofs, upperdir,
+ 				    ovl_lookup_upper(ofs, dentry->d_name.name,
+ 						     upperdir, dentry->d_name.len),
+ 				    attr);
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 42228d10f6b9..68dc78c712a8 100644
+index ca74be44dddd..bda25287c510 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -416,6 +416,11 @@ static inline bool ovl_open_flags_need_copy_up(int flags)
- }
+@@ -855,7 +855,7 @@ struct ovl_cattr {
+ #define OVL_CATTR(m) (&(struct ovl_cattr) { .mode = (m) })
  
- /* util.c */
-+int parent_lock(struct dentry *parent, struct dentry *child);
-+static inline void parent_unlock(struct dentry *parent)
-+{
-+	inode_unlock(parent->d_inode);
-+}
- int ovl_get_write_access(struct dentry *dentry);
- void ovl_put_write_access(struct dentry *dentry);
- void ovl_start_write(struct dentry *dentry);
-@@ -843,6 +848,7 @@ struct dentry *ovl_create_real(struct ovl_fs *ofs,
- 			       struct inode *dir, struct dentry *newdentry,
+ struct dentry *ovl_create_real(struct ovl_fs *ofs,
+-			       struct inode *dir, struct dentry *newdentry,
++			       struct dentry *parent, struct dentry *newdentry,
  			       struct ovl_cattr *attr);
  int ovl_cleanup(struct ovl_fs *ofs, struct inode *dir, struct dentry *dentry);
-+int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir, struct dentry *dentry);
- struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdir);
- struct dentry *ovl_create_temp(struct ovl_fs *ofs, struct dentry *workdir,
- 			       struct ovl_cattr *attr);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 2b4754c645ee..a5105d68f6b4 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1544,3 +1544,13 @@ void ovl_copyattr(struct inode *inode)
- 	i_size_write(inode, i_size_read(realinode));
- 	spin_unlock(&inode->i_lock);
- }
-+
-+int parent_lock(struct dentry *parent, struct dentry *child)
-+{
-+	inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
-+	if (!child || child->d_parent == parent)
-+		return 0;
-+
-+	inode_unlock(parent->d_inode);
-+	return -EINVAL;
-+}
+ int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir, struct dentry *dentry);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 78f4fcfb9ff6..3c012c8f7c88 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -625,8 +625,7 @@ static struct dentry *ovl_lookup_or_create(struct ovl_fs *ofs,
+ 	inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
+ 	child = ovl_lookup_upper(ofs, name, parent, len);
+ 	if (!IS_ERR(child) && !child->d_inode)
+-		child = ovl_create_real(ofs, parent->d_inode, child,
+-					OVL_CATTR(mode));
++		child = ovl_create_real(ofs, parent, child, OVL_CATTR(mode));
+ 	inode_unlock(parent->d_inode);
+ 	dput(parent);
+ 
 -- 
 2.49.0
 
