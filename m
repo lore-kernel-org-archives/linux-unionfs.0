@@ -1,252 +1,204 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09BFE279903;
-	Fri, 11 Jul 2025 09:21:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D972627E06C;
+	Fri, 11 Jul 2025 09:46:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752225670; cv=none; b=IrRWKeNFS2bpMWSPauHnvrq+AdFf3qcV65MoOerUq4XmBuc8N9IFnqSA8uuxhCpSj9mp/TZYIWvNKMB+2VyZSafHbeEnj8GpIGVqCjzyrMiussfFkjbCl9a6p2wGIsinVSX6zPwNB84OMZKX6ECvGF4+uVSoT4Is7WNLuzCcgiM=
+	t=1752227206; cv=none; b=iHf8bNLwF5abJtBQScffxjgGsDJJZpTuYFr/y93chURIMAlJEgXc6XZuBcGFvz4obTw4eUrfJh3H6+dWZ6O3tnCe422bayrwyXWTNFaXvjEx8kAC5/AQgz8rJCHyixStfp9xfOnGIhMyYXI+jc6wZsRyJKfVx71M2O6Dv8szfb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752225670; c=relaxed/simple;
-	bh=SQSY+yJcJgb25frE63fDGNycze80thMjpkH9vZYE1vY=;
+	s=arc-20240116; t=1752227206; c=relaxed/simple;
+	bh=FhKULSqGBmvnGSH+FwP5V1mfWJ77eOEIiy6JATcKyQg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EWOi6Rnn44auA1/lhlxKIuULbDStiAyM0CD1gSuo25yobTGUH24aKHIiC3nPMRg+mlbbIpXVGn3q9iSGrmhlUMWiQYANLzOZWELMPnMtWtX4HPcBMrJeBZ7NFOtVcbw0gORmuHBtQsQHxvYbJx+CIhJMn0Vom8WZd+nikzn8Z6E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DxQ5CNbm; arc=none smtp.client-ip=209.85.218.50
+	 To:Cc:Content-Type; b=Gtn24nLKN4nGSu4Sp5kwNO2LD6YjLTSQlgDMf0hqAuY6Quh301QiaEa19Da0YHP0p5u6bhIoOvQEC9fQvZ824r++bJFfCird8YK/6z6BWGxxoG6DA455ezJ5M96UB78hicpoolvP8tCi0vA2cYo+kDT/vWzQVOM8y0hp7g7t8Oo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wb65eGMM; arc=none smtp.client-ip=209.85.218.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DxQ5CNbm"
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-ae3c5f666bfso321627966b.3;
-        Fri, 11 Jul 2025 02:21:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wb65eGMM"
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ae0a0cd709bso630879966b.0;
+        Fri, 11 Jul 2025 02:46:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752225667; x=1752830467; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1752227202; x=1752832002; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=wbgQwgv86/5VVckypbyscciQa25651fNokB4l5TD2PE=;
-        b=DxQ5CNbmILtaMSFqzCs2kuLa2OliXfYsIcnUTETpBZK+ofMvmEAIel+alv2Bg0dCwF
-         P4CkQy/A8IDSCUigDk5NoYWCQDk3+JaxhDfAwl/yU5d/w2EdB8yB8szBCZrtUbIqqMrE
-         BTixA5jsKpkKemFYM46b1RQpCMcTX+xYmmtI/JQ40hshy1TW5VQNMhbbetlqyXRIx7Ch
-         R4/3JOvS/8cTg4cBncLPjoFVcgmbHv5sOxQqzhn44Hu9rU+FxeU3flcWEySMtLhX9wBj
-         FIFKTRck9Eajsh1yENOsdhCBzYC8PpsDOk7pJ+zTpQ5a3O0sietNYl+yEPa4wsOicPUE
-         1zTg==
+        bh=VWxaFq6B1WhfohWAxkce96BoUL90ZeODa6IArkghQVg=;
+        b=Wb65eGMM0Ds2tgPB9qp1NfUU7mBz+mdkC1mkHcTuMZPp7p2VR5tsLXhMtP1s3Jd3vP
+         4nDNDMKR9m6tuwaPSdh/UfjkrgBaIYMocfOmhiHck293XTqyjHnCPf9f6SPR3zGQVpCm
+         ZBCxziStAdtXiwV4cPVBsvn1XtbYGhNZPLpKCp/NaOL9bs+rUJcjavJbm8leIEKWkhYn
+         mgcveUNWlX48tdoHLu1qSzAB0H06xKELqFH+g360uiee+Cg7OSHymfdS3qXyQ7b69HKM
+         xFW5Vfm+zA9BZSwKFFA5ALN6sWAR9GcpT4TQQNIkBU4/EyWBC0KxQGrR1ZiKNNgKnKZj
+         K0EA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752225667; x=1752830467;
+        d=1e100.net; s=20230601; t=1752227202; x=1752832002;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=wbgQwgv86/5VVckypbyscciQa25651fNokB4l5TD2PE=;
-        b=tauobyhGYUodshgdWDlnwxoovL4FtAdc756sqGlErwH1GvynoYigVkC+CsfJAmVHtf
-         J9FOLYr8xQ8Rf4YNPfVdXmWdDNaLsIGXylTehm2zOOuPNgA6N+Cvpq/EHdXkqCLjmYrx
-         PTF2n9m79vSf9Saz31H8VlwSuMSRPr9Scf8gB0cfBnSKb+G++2N3wIbc3L+XZj6k24b4
-         tOWr0Jvqwu0OHEU32bdT0SMy1cTRBBPxw8kdgpfptGWSSq0hKc7qoaJW4jmh1Pxp7BFq
-         /cQtR+yWvuKwH21kJlSllA9wVC+k+hR6mns2JQ0+Xcg+oUDTtUAnd9pjamWlLDrHd7rR
-         4ueg==
-X-Forwarded-Encrypted: i=1; AJvYcCU7bIb1xBJlsvpleyYhBaxQD0JagKtKbRyOcDILr+dYO8gvFVS8OMepyK1zU3yQm4EuuR4t5vkVbQYdr+xWDQ==@vger.kernel.org, AJvYcCWg2V3X8MUWz6laZXR/fM700P1hBtxBWISdpSi5a2vm4uJIKneFcbyZ1MvrfHyvqbCLdMNJI2nisa76IFxE@vger.kernel.org, AJvYcCXtmupcDA7RvnL6E8vOtyK24QxP0nvNu7mZu/H7oVDQ22j/vR2yUod9uMcY1vKpr4EolwcBDeUo089GhjaR@vger.kernel.org
-X-Gm-Message-State: AOJu0YzznILTbc0aMJUvnHO57c0MNJO/vjGwSiMvztUOAENJltb3JoXX
-	g7hMR5LNRSIXOyNr4GvU8fhSBLNcz25EC5jR23nJlLT2pgp2UM0VIUi4KsdDyh+RQMkSexbxT/g
-	phzakC+QB+i6d4xY03aayMuCNplV9T8s=
-X-Gm-Gg: ASbGncvzFbaTamwSLfSYokeTk2ad98gvjRAsbqTpBi4jpIuHS47jDbfZdmE9F+e/64l
-	75KoTqdMQLfFdvYXQSEkrAsEiI3OkiEgvek091VxdxlBuyPHKoMr4SZnmCiuwFAZa+Goo/77CeH
-	vSDte7OhfUOdk2ZVwLYcgaBmONY7KA9mDzEyP09kd4sKhyXTQA2zuIMVN64coXHPrmzk3baaq+Q
-	2hFlsI=
-X-Google-Smtp-Source: AGHT+IE8buR3tJCkIr8cAbGvc2ORbqJ8LUgtLVahQ80ZgCCcwYfluCn3E+tMNcHxUmPo384/tuhLUlR7hIk7gNL9BvY=
-X-Received: by 2002:a17:907:2da3:b0:ae0:ce40:11c6 with SMTP id
- a640c23a62f3a-ae6fbd9c1camr267563166b.21.1752225666700; Fri, 11 Jul 2025
- 02:21:06 -0700 (PDT)
+        bh=VWxaFq6B1WhfohWAxkce96BoUL90ZeODa6IArkghQVg=;
+        b=dTNd0LAgNgWzy4gtRqDAp8tQ/Z8rEJDScv+qidDTpOUqLbq5/s27lYocxnTHPGNDyV
+         9QNGSddfBExVbzvbsJbs/TDCvUdWaV2GMdAMDeBRBgRNWYm3AFDTSckTRxPaXIZ4AiCm
+         BYS0swAG88k24ADtXtyatE2KBgzO5edrF4fakn3Rh6W5ljgfTVXWuVPIjxmlUDmw02zQ
+         ixE8uHccTQdkzi4JVN+qOx/pM/B42U8Y1HkkBzWKWfOKgIB4kaFSGuzTJGooAoArU0Xv
+         tM0pmL4gG0MTUBAbZ0Az7/UZ4YXwVs/nPPD1uPy0niraWybBpG4g2Ikv0lQ8lv75iqIG
+         zDvw==
+X-Forwarded-Encrypted: i=1; AJvYcCUcS10fk1GiKda+2qm/Tnvida4f6Z0fYboI0YIoc2IlBVew64IYf70xkTk3VUvna8bdtkcEI73tQy2HjqxzhQ==@vger.kernel.org, AJvYcCVa/v7+NFAPbvK/Lufni6INOII4mepZ9eTepETORxcgTAsNYbmE8DqkRSedpMvIEDRgWXGOgjbB8RwCRYE6@vger.kernel.org, AJvYcCWzCN6a2WCihGHXBnITWzldEWmkcvGMh2es/S8vxT7Lf6Ns/YZ9ZSIJfa0nPOqgMoixtWN8D0ZOU912ZR8q@vger.kernel.org
+X-Gm-Message-State: AOJu0YzJ2sAvyv91qix0vvKETe/ipOoJUbsrTXMefSfi0GH8+kOflykm
+	po2EshwjNqV5FwaS2QCbSB/Uu56sEdCMcDWg459xP3WmBH68rWc0WuIls/dvDjogh93us5Lfkd4
+	zxOvoXuIAKjneiixV6DWcbIvQRGHlO1I=
+X-Gm-Gg: ASbGncv3h/75ET8TKREXjoVJyYA0Tx14ifQN80l6WxwjeMB3RJswxq78h5SljqBFwGp
+	oUQgM4XotZUy/VU9NZT8PyDKmXrGk6K4b0PXpKJ4PjCF6Sz+DEhakZHSf/ChuvVOh0XLsxfgJ09
+	h6vuWHE2IMJ7qwPaJZJtug4u8Jf46gpBjfU0O0SOZsNNWqZfCpne8SbIU04x2+jLIX6iM4GY19T
+	CuMiAY=
+X-Google-Smtp-Source: AGHT+IHiY3xa6kGWa2ZZx/ubPBkWo65H8kbbj2DkUhbZf4YWqT9FMnaC25+qUJjTgy1w80qmvk38mF4HYHRbYnCULoA=
+X-Received: by 2002:a17:906:9f91:b0:ae0:7e95:fb with SMTP id
+ a640c23a62f3a-ae6e227c889mr719410466b.5.1752227201542; Fri, 11 Jul 2025
+ 02:46:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com>
- <20250409-tonyk-overlayfs-v1-2-3991616fe9a3@igalia.com> <CAOQ4uxit5nYeGPN1_uB7c37=eKQi_T-0LtoQaTZHVisAUDoBsg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxit5nYeGPN1_uB7c37=eKQi_T-0LtoQaTZHVisAUDoBsg@mail.gmail.com>
+References: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com> <20250409-tonyk-overlayfs-v1-1-3991616fe9a3@igalia.com>
+In-Reply-To: <20250409-tonyk-overlayfs-v1-1-3991616fe9a3@igalia.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 11 Jul 2025 11:20:55 +0200
-X-Gm-Features: Ac12FXy38P3vrL06knTn6rpiQBvERA0QEnB7JcRW5AyvK5K5AUV-tM7LzbviHb0
-Message-ID: <CAOQ4uxgzT1R-u9-ZFHbW7koFV+o-Ow-k=eAwfKBc18cQe2DW4A@mail.gmail.com>
-Subject: Re: [PATCH 2/3] ovl: Make ovl_dentry_weird() accept casefold dentries
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
-	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
+Date: Fri, 11 Jul 2025 11:46:30 +0200
+X-Gm-Features: Ac12FXxZ3_W7PgUflUyUh3BPlyzS0a0otRjvpz7FCpnsZ38Tqeeglv4E0Ein8rU
+Message-ID: <CAOQ4uxjv199LB4XhgeSbTc9VkPB16S86vwcz9tq4GHVX4eVx-w@mail.gmail.com>
+Subject: Re: [PATCH 1/3] ovl: Make ovl_cache_entry_find support casefold
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
+	Gabriel Krisman Bertazi <krisman@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, linux-unionfs@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
 	kernel-dev@igalia.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 9, 2025 at 7:11=E2=80=AFPM Amir Goldstein <amir73il@gmail.com> =
-wrote:
+On Wed, Apr 9, 2025 at 5:01=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@igal=
+ia.com> wrote:
 >
-> On Wed, Apr 9, 2025 at 5:01=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@ig=
-alia.com> wrote:
-> >
-> > ovl_dentry_weird() is used to avoid problems with filesystems that has
-> > their d_hash and d_compare implementations. Create an exception for thi=
-s
-> > function, where only casefold filesystems are eligible to use their own
-> > d_hash and d_compare functions, allowing to support casefold
-> > filesystems.
+> To add overlayfs support casefold filesystems, make
+> ovl_cache_entry_find() support casefold dentries.
 >
-> What do you mean by this sentence?
-> Any casefold fs can be on any layer?
-> All layers on the same casefold sb? same casefold fstype?
+> For the casefold support, just comparing the strings does not work
+> because we need the dentry enconding, so make this function find the
+> equivalent dentry for a giving directory, if any.
 >
->
-> >
-> > Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> > ---
-> >  fs/overlayfs/namei.c     | 11 ++++++-----
-> >  fs/overlayfs/overlayfs.h |  2 +-
-> >  fs/overlayfs/params.c    |  3 ++-
-> >  fs/overlayfs/util.c      | 12 +++++++-----
-> >  4 files changed, 16 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index be5c65d6f8484b1fba6b3fee379ba1d034c0df8a..140bc609ffebe00151cbb44=
-6720f5106dbeb2ef2 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -192,7 +192,7 @@ struct dentry *ovl_decode_real_fh(struct ovl_fs *of=
-s, struct ovl_fh *fh,
-> >                 return real;
-> >         }
-> >
-> > -       if (ovl_dentry_weird(real)) {
-> > +       if (ovl_dentry_weird(real, ofs)) {
-> >                 dput(real);
-> >                 return NULL;
-> >         }
-> > @@ -244,7 +244,7 @@ static int ovl_lookup_single(struct dentry *base, s=
-truct ovl_lookup_data *d,
-> >                 goto out_err;
-> >         }
-> >
-> > -       if (ovl_dentry_weird(this)) {
-> > +       if (ovl_dentry_weird(this, ofs)) {
-> >                 /* Don't support traversing automounts and other weirdn=
-ess */
-> >                 err =3D -EREMOTE;
-> >                 goto out_err;
-> > @@ -365,6 +365,7 @@ static int ovl_lookup_data_layer(struct dentry *den=
-try, const char *redirect,
-> >                                  struct path *datapath)
-> >  {
-> >         int err;
-> > +       struct ovl_fs *ovl =3D OVL_FS(layer->fs->sb);
->
-> ofs please
->
-> >
-> >         err =3D vfs_path_lookup(layer->mnt->mnt_root, layer->mnt, redir=
-ect,
-> >                         LOOKUP_BENEATH | LOOKUP_NO_SYMLINKS | LOOKUP_NO=
-_XDEV,
-> > @@ -376,7 +377,7 @@ static int ovl_lookup_data_layer(struct dentry *den=
-try, const char *redirect,
-> >                 return err;
-> >
-> >         err =3D -EREMOTE;
-> > -       if (ovl_dentry_weird(datapath->dentry))
-> > +       if (ovl_dentry_weird(datapath->dentry, ovl))
-> >                 goto out_path_put;
-> >
-> >         err =3D -ENOENT;
-> > @@ -767,7 +768,7 @@ struct dentry *ovl_get_index_fh(struct ovl_fs *ofs,=
- struct ovl_fh *fh)
-> >
-> >         if (ovl_is_whiteout(index))
-> >                 err =3D -ESTALE;
-> > -       else if (ovl_dentry_weird(index))
-> > +       else if (ovl_dentry_weird(index, ofs))
-> >                 err =3D -EIO;
-> >         else
-> >                 return index;
-> > @@ -815,7 +816,7 @@ struct dentry *ovl_lookup_index(struct ovl_fs *ofs,=
- struct dentry *upper,
-> >                 dput(index);
-> >                 index =3D ERR_PTR(-ESTALE);
-> >                 goto out;
-> > -       } else if (ovl_dentry_weird(index) || ovl_is_whiteout(index) ||
-> > +       } else if (ovl_dentry_weird(index, ofs) || ovl_is_whiteout(inde=
-x) ||
-> >                    inode_wrong_type(inode, d_inode(origin)->i_mode)) {
-> >                 /*
-> >                  * Index should always be of the same file type as orig=
-in
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index 6f2f8f4cfbbc177fbd5441483395d7ff72efe332..f3de013517598c44c15ca9f=
-950f6c2f0a5c2084b 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -445,7 +445,7 @@ void ovl_dentry_init_reval(struct dentry *dentry, s=
-truct dentry *upperdentry,
-> >                            struct ovl_entry *oe);
-> >  void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upper=
-dentry,
-> >                            struct ovl_entry *oe, unsigned int mask);
-> > -bool ovl_dentry_weird(struct dentry *dentry);
-> > +bool ovl_dentry_weird(struct dentry *dentry, struct ovl_fs *ovl);
-> >  enum ovl_path_type ovl_path_type(struct dentry *dentry);
-> >  void ovl_path_upper(struct dentry *dentry, struct path *path);
-> >  void ovl_path_lower(struct dentry *dentry, struct path *path);
-> > diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> > index 6759f7d040c89d3b3c01572579c854a900411157..459e8bddf1777c12c9fa0bd=
-fc150e2ea22eaafc3 100644
-> > --- a/fs/overlayfs/params.c
-> > +++ b/fs/overlayfs/params.c
-> > @@ -277,6 +277,7 @@ static int ovl_mount_dir_check(struct fs_context *f=
-c, const struct path *path,
-> >                                enum ovl_opt layer, const char *name, bo=
-ol upper)
-> >  {
-> >         struct ovl_fs_context *ctx =3D fc->fs_private;
-> > +       struct ovl_fs *ovl =3D fc->s_fs_info;
->
-> ofs pls
->
-> >
-> >         if (!d_is_dir(path->dentry))
-> >                 return invalfc(fc, "%s is not a directory", name);
-> > @@ -290,7 +291,7 @@ static int ovl_mount_dir_check(struct fs_context *f=
-c, const struct path *path,
-> >         if (sb_has_encoding(path->mnt->mnt_sb))
-> >                 return invalfc(fc, "case-insensitive capable filesystem=
- on %s not supported", name);
+> Also, if two strings are not equal, strncmp() return value sign can be
+> either positive or negative and this information can be used to optimize
+> the walk in the rb tree. utf8_strncmp(), in the other hand, just return
+> true or false, so replace the rb walk with a normal rb_next() function.
 
-I wonder how did your tests pass with this ^^^^
-Please rebase your patches on top of:
-https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git/log/?h=3Dvfs-6.=
-17.file
-which changes this test to ovl_dentry_casefolded()
-but you need to change this logic anyway.
+You cannot just replace a more performance implementation with a
+less performant one for everyone else just for your niche use case.
+Also it is the wrong approach.
 
-> >
-> > -       if (ovl_dentry_weird(path->dentry))
-> > +       if (ovl_dentry_weird(path->dentry, ovl))
-> >                 return invalfc(fc, "filesystem on %s not supported", na=
-me);
-> >
-> >         /*
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index 0819c739cc2ffce0dfefa84d3ff8f9f103eec191..4dd523a1a13ab0a6cf51d96=
-7d0b712873e6d8580 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -200,15 +200,17 @@ void ovl_dentry_init_flags(struct dentry *dentry,=
- struct dentry *upperdentry,
-> >         spin_unlock(&dentry->d_lock);
-> >  }
-> >
-> > -bool ovl_dentry_weird(struct dentry *dentry)
-> > +bool ovl_dentry_weird(struct dentry *dentry, struct ovl_fs *ovl)
->
-> ovl_fs *ofs as first argument please
->
+This code needs to use utf8_normalize() to store the normalized
+name in the rbtree instead of doing lookup and d_same_name().
+and you need to do ovl_cache_entry_add_rb() with the normalized
+name anotherwise you break the logic of ovl_dir_read_merged().
 
-Please don't forget to address those nits also.
+Gabriel,
+
+Do you think it makes sense to use utf8_normalize() from this code
+directly to generate a key for "is this name found in another layer"
+search tree?
+
+I see that utf8_normalize() has zero users, so I guess there was
+an intention to use it for things like that?
+
+More nits below, but they will not be relevant once you use the normalized =
+name.
+
+Thanks,
+Amir.
+
+>
+> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> ---
+>  fs/overlayfs/ovl_entry.h |  1 +
+>  fs/overlayfs/readdir.c   | 32 +++++++++++++++++++++-----------
+>  2 files changed, 22 insertions(+), 11 deletions(-)
+>
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index cb449ab310a7a89aafa0ee04ee7ff6c8141dd7d5..2ee52da85ba3e3fd704415a7e=
+e4e9b7da88bb019 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -90,6 +90,7 @@ struct ovl_fs {
+>         bool no_shared_whiteout;
+>         /* r/o snapshot of upperdir sb's only taken on volatile mounts */
+>         errseq_t errseq;
+> +       bool casefold;
+>  };
+>
+>  /* Number of lower layers, not including data-only layers */
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 881ec5592da52dfb27a588496582e7084b2fbd3b..68f4a83713e9beab604fd2331=
+9d60567ef1feeca 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -92,21 +92,31 @@ static bool ovl_cache_entry_find_link(const char *nam=
+e, int len,
+>  }
+>
+>  static struct ovl_cache_entry *ovl_cache_entry_find(struct rb_root *root=
+,
+> -                                                   const char *name, int=
+ len)
+> +                                                   const char *name, int=
+ len,
+> +                                                   struct dentry *upper)
+
+This is not an "upper" it is an overlayfs dentry that we call "dentry"
+
+>  {
+> +       struct ovl_fs *ofs =3D OVL_FS(upper->d_sb);
+
+OVL_FS(upper) is never correct, because OVL_FS() is only applicable to
+ovl dentries.
+
+>         struct rb_node *node =3D root->rb_node;
+> -       int cmp;
+> +       struct qstr q =3D { .name =3D name, .len =3D len };
+>
+>         while (node) {
+>                 struct ovl_cache_entry *p =3D ovl_cache_entry_from_node(n=
+ode);
+> +               struct dentry *p_dentry, *real_dentry =3D NULL;
+> +
+> +               if (ofs->casefold && upper) {
+> +                       p_dentry =3D ovl_lookup_upper(ofs, p->name, upper=
+, p->len);
+
+and here you are mixing a helper to lookup in underlying upper fs with
+an overlayfs dentry. You should not do lookup in this context at all.
+
+> +                       if (!IS_ERR(p_dentry)) {
+> +                               real_dentry =3D ovl_dentry_real(p_dentry)=
+;
+> +                               if (d_same_name(real_dentry, real_dentry-=
+>d_parent, &q))
+> +                                       return p;
+> +                       }
+> +               }
+>
+> -               cmp =3D strncmp(name, p->name, len);
+> -               if (cmp > 0)
+> -                       node =3D p->node.rb_right;
+> -               else if (cmp < 0 || len < p->len)
+> -                       node =3D p->node.rb_left;
+> -               else
+> -                       return p;
+> +               if (!real_dentry)
+> +                       if (!strncmp(name, p->name, len))
+> +                               return p;
+> +
+> +               node =3D rb_next(&p->node);
+
+As I wrote this change is wrong and unneeded when using normalized names.
 
 Thanks,
 Amir.
