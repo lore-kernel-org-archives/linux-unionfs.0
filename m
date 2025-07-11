@@ -1,327 +1,191 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729D9202F9C;
-	Fri, 11 Jul 2025 08:25:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BFD424EF8B;
+	Fri, 11 Jul 2025 09:08:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752222329; cv=none; b=SENdezvKTDJos7yKodMrT66Wy76JeFJs7GpNGeH4VRcqadJAkHYRvVFL8m0l5cMCKThpHxRxKTkDrOWfCk90nc9xJMxK4sCr6m2slyyKr/5ryMTaJtrUuUx/5g1sS2Yy+rcnCLE5GawXIasBzg1tkbXWuGiO+LXshxLIEXx4WHE=
+	t=1752224915; cv=none; b=CBrVgtSgqSpLlOvfZo/ITawUhvDggONw7AYYayKKJREeGEO5HeynDAmx4/CFF9iRD8gCRdWKWBhbPnu9TQYz3agQCB2MqIIBePhj/Pfqft7X+aBVUaslFnX8sqwsPUYQaLywItrpzY3BxYdVXJEuCIr643PJ1mfHUq3vPzVxlMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752222329; c=relaxed/simple;
-	bh=chtgV9g7OXXhg+ZVaIk/BlOyR774jSDhlUgVqqD41iA=;
+	s=arc-20240116; t=1752224915; c=relaxed/simple;
+	bh=Nj7J6nXf6EIGihTEI/dKrkPfpx4tg0ChZr6+KkbVkmg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iEY9DrB23O+DL311ro5bJzrLWWb55n4+wY4PLeila0lCxuCCoqnAa83AXsU7pTCzcaj5IZgBhATMrAV5N3u4r/Rak5XaTIIhKLcb5xLnkM3wkGUCpfv/I1Qhfbc397Su8dCH4/53zk/1gH95eIXn5s41WHdOPyULdEAblw+R5LI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H/Le467p; arc=none smtp.client-ip=209.85.218.49
+	 To:Cc:Content-Type; b=lHlTi5lncZT1VL8t0d0/5j7h8fs2uTDVmOl0KUAYls6lNRRSTE/qCTzspujETn4uYg9K5QSlPXy7Rij92vlMf9fD6z3GHgT1PnMK8Zpq8BUPtCif00S7CDjInA5fdktWrKFp2G+rSpmHa2+o5YhOFJxDHanX+op/Rct30NY+0B8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lcou9FrN; arc=none smtp.client-ip=209.85.218.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H/Le467p"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ad56cbc7b07so327317866b.0;
-        Fri, 11 Jul 2025 01:25:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lcou9FrN"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-ae0c4945c76so297692366b.3;
+        Fri, 11 Jul 2025 02:08:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752222326; x=1752827126; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1752224911; x=1752829711; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MBtRVNrPDueYB7FTA+ViEznKwsHfcDITP+EI95uTzM8=;
-        b=H/Le467pwLKk9feIzRO5RoaUdtxv7dA/UzjHYSERlLD6w/NAIy7sXyTU+yDDlfkgip
-         7JEeDRrWqVyBxVe0wkjia9nL8vF+8B3OZ4OqT3CQ96noeXMDUKx6I4oMksHNUO1eMYKF
-         4T9thxs0F1WOnTWbftfwUS3hBIum91UKLJvaU3zgFT8+//NBQw6SGT0LjFPSXIoEnDv1
-         BAHO+1E+9bMpqfNrNByZ6NqZc1Dg1/WN6blAnpvDoKeLkKzq1unfmhl4LlxyjR80LmbU
-         P7ant+X3JzokplwcVyqvJ2MnLidjSdL9Xdr5l9W7rPVBzJeXqvIFB32UU6MKSp0KTn9r
-         s1dw==
+        bh=Nj7J6nXf6EIGihTEI/dKrkPfpx4tg0ChZr6+KkbVkmg=;
+        b=Lcou9FrN2OY4D4uExZxa2TqxP2HbMyuDJ2VUgMFjIxERsjBvg9dG0h5w1LGkv26MZZ
+         7b/ACJ/4XcWXdopz9Ji3Z/8TM7tKvmDsdmBEuDG16M7otygY0hovsTopDGnN9F33KVNI
+         Y5B+dRfAb1Pe/4gDAEZzzhfK/h/iz1xsADy/3hS9/ARzDTyv+xJ/KuTnlEZiZRXKqEWZ
+         tYz6N0CBBhlRXvblTTgWC9gfRHShr7NC4IacWGGDM5DsCkBEWCWbvFH3kx/ZtQPwMZTP
+         9pLIqPbFh3U4pgF1ELGUBGZQQ1WG5E6lqlRFyb8FD0htaVx+I0aNcqjsSHNrlaTldq7g
+         mMiA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752222326; x=1752827126;
+        d=1e100.net; s=20230601; t=1752224911; x=1752829711;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=MBtRVNrPDueYB7FTA+ViEznKwsHfcDITP+EI95uTzM8=;
-        b=mehSSz3g2NyqB3Jpd2OVjV02xyFM52C+ao+T0coTxFBCT8CRxJwPoUyqsEqHNP9lw3
-         pxmFAiHIfJEWI0gGoLUKlOY5U1+Dmck7iS7uY5pXgmGuuTqbFmwmqbx5pIXWtuMv7hQt
-         u9cqKHthiQPnA1WovTmJownxieOkQrRZFXY0mefsfy5T2w9aUinz6dUuOhAf3ao+XyX7
-         Ttzy8HDsk2p85qLoAlMDiiQ+XBbtw5Fmq3cPKizhC1Juzeb8DmA6TIK4DTQ+zkPV2gD0
-         oVOjj7Mh6yjc2I7jGrLNaEvG77Ccqv6QStoIg65Ajg+l4LqR+IhkcZxtjVISKYilIv3L
-         /CPg==
-X-Forwarded-Encrypted: i=1; AJvYcCX1zdSkpQpmAlAoAQionaj41rQdBKZGrDS6y5xEVRBwPntQPacLpl6bLOkEYzqKJgeiR8d3u7fy26prOjTieA==@vger.kernel.org, AJvYcCXKWaGMc9PoWkctyxALoEGcJnkssx8QR1n9nIKxqpW9WAorkfXExFb61MVYivWERh/Yxvjnb9uJkY/23+yd@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz1Rc+P6YZMub4GbIQFTHHDTia0uYvLcZQNrmA/wL+8CLyC49BU
-	4c4jhss6GRc9c4JanWfqyb1Q+yOAg2MdRliQ22/eaYrBytvFJ098PaUdrOaoh9jLY+m1VYXL9Xh
-	rYTV8nU7NFRzdcM1Vi7jssYqg8AyEE+k=
-X-Gm-Gg: ASbGncsJ+aM9ZgPP7zyAraXV5o+7IY+G/kzmIfxPt4HAjmYqDuccHy1M8CVwPIjmwhn
-	D8DXKpFJBpN3TPhkUg9h04AMUJELVE6bncCIIeN46VsEYXlHWQrfYsEA/WeQ2smrAlFJ2Oqzay1
-	p1pTfOpb5cjoUuoZJJ/bkt3EaJMtMt8bzBt7BelNAuMFS6rgqF8l/pNZzVR1s4w2x6l8FdlopC4
-	8mgEuk=
-X-Google-Smtp-Source: AGHT+IE/LRf4+t/SZD7Zt/u3ni60wdO5lCzirxys+dE5Ijep9eifzIMxtWp4pbPl/N/aOeeiPph0fxq61glPz2cau9s=
-X-Received: by 2002:a17:907:c1c:b0:add:fb01:c64a with SMTP id
- a640c23a62f3a-ae6fcac8546mr245511766b.43.1752222325168; Fri, 11 Jul 2025
- 01:25:25 -0700 (PDT)
+        bh=Nj7J6nXf6EIGihTEI/dKrkPfpx4tg0ChZr6+KkbVkmg=;
+        b=Z80hDG8eRnQRkUhmkM5QEUz+gvy1E7kTtKsQcWsQsYs9pWGSsD/wkHP7eFGpUsW0h4
+         1z33u25K6AZB1YzAZvBXgIw5nQGMZN9ictY1jDCEzW2T1knpn0+mG+08ZrChHHbGP2Qh
+         Si49IjX5dYF8wUocuHJOUYwDol9OusRx03VZrGbhAhUbLs1JMAxFpbXfY2j0AZI/oCr0
+         Ye/1kF4snQg21Gx67pnJMGIYkaJlVxSg2caro+oCONf7F9qYODeOqkNCOk5T29XHcweM
+         +XLIqThEG8e9lXLbJuj1uPeT7ryVG8+WmHjgTaq8LB1duUpmCsmuzosb/TJgjcNy82Yi
+         pRRw==
+X-Forwarded-Encrypted: i=1; AJvYcCUhEh5KoyACB1gHyQKA4GVmf0YoOJg64yQNddzGPNukMyEJ5+uG3YucqcQAn/4Aim29xdMUx+N4iDShoyry@vger.kernel.org, AJvYcCVEgmJibEtGNl5jE7i0vcFu3L0kjp7bXx9EP3zImRTSAlPEMY4lYlcRY+fGajsKF6cXGepUg0+Bd2di5lX9@vger.kernel.org, AJvYcCXzsdU1cfvIYzMUm2PQ4ko0CXcAgQK6QYW5QD6MbQ1c0XNPIiA1gwE2fCRMlis99cphyk/4JwmnB06fP5LHfQ==@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywq1UNqqRnAr4Lxcu5S795By8PffVVETmpYoZlixMxGSvOpY4CC
+	b9y9LElOcpf7QA+zKQiMkDEX4YVx40+paTpy2MKjVDR/Up02hsJ2sV6W3Q8Qt6cyKLS6vX2JpyK
+	fI0RUNlNL0w05LzpKSBJASRqK+z/l718=
+X-Gm-Gg: ASbGncs928yS7z7Cvglh8UIDnWHZExTaJdgW72TaiX6B0b5GP4yzflY2n+nc7RZoyW6
+	aQQk7nzkkvUm69796DaXXL+laa4sKMtaSnp3IA4QH56HgPH0mcf/Rkb6mTDINIf6X/hzBDzlaRg
+	Z5tj0FcpnkTfdn/aO0e/eM7TI9Frkyki2vecx4fMSPZOUQHspoJcOAKbvXKlzs5YiArdIuTWMG1
+	fTaf5M=
+X-Google-Smtp-Source: AGHT+IG1YYcHAeZiqZFaK5ljgjVkAy0KRNHpUydfYKy/gl74gsXc8uopJeolrt27FRZKbrU9Dw+3gPI3w2NYlHr9zDs=
+X-Received: by 2002:a17:907:fdcc:b0:ae0:e123:605f with SMTP id
+ a640c23a62f3a-ae6fc219d10mr224645866b.39.1752224910305; Fri, 11 Jul 2025
+ 02:08:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250710232109.3014537-1-neil@brown.name> <20250710232109.3014537-2-neil@brown.name>
-In-Reply-To: <20250710232109.3014537-2-neil@brown.name>
+References: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com>
+ <CAOQ4uxiwv8F9p8L98BiX8fPBS-HSpNhJ_dtcZAkqM02RA0LuVQ@mail.gmail.com> <00854dc3-538b-4b62-953a-68d0b9ff2295@igalia.com>
+In-Reply-To: <00854dc3-538b-4b62-953a-68d0b9ff2295@igalia.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 11 Jul 2025 10:25:13 +0200
-X-Gm-Features: Ac12FXxXagrTGe4cYfeV3GNTYj6Ki9MJWq-SJ0ylNBxoaXN5PEk4jI2doHZIy6o
-Message-ID: <CAOQ4uxh6fb6GQcC0_mj=Ft5NbLco7Nb0brhn9d3f7LzMLkRYaw@mail.gmail.com>
-Subject: Re: [PATCH 01/20] ovl: simplify an error path in ovl_copy_up_workdir()
-To: NeilBrown <neil@brown.name>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
+Date: Fri, 11 Jul 2025 11:08:17 +0200
+X-Gm-Features: Ac12FXxoQTkDPfiYp1X0wbTqwcmgCow12DHl-0IhhCKIBgWVtWf2ia3EoZe5Bpg
+Message-ID: <CAOQ4uxjCmZkWd8x27hiLTU0tFA1N9+Nj9T5bviiDuF+Q4ANKvg@mail.gmail.com>
+Subject: Re: [PATCH 0/3] ovl: Enable support for casefold filesystems
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
+	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	kernel-dev@igalia.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 11, 2025 at 1:21=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+On Thu, Jul 10, 2025 at 10:54=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@ig=
+alia.com> wrote:
 >
-> If ovl_copy_up_data() fails the error is not immediately handled but the
-> code continues on to call ovl_start_write() and lock_rename(),
-> presumably because both of these locks are needed for the cleanup.
-> On then (if the lock was successful) is the error checked.
+> Hi Amir,
 >
-> This makes the code a little hard to follow and could be fragile.
+> Sorry for my delay.
 >
-> This patch changes to handle the error immediately.  A new
-> ovl_cleanup_unlocked() is created which takes the required directory
-> lock (though it doesn't take the write lock on the filesystem).  This
-> will be used extensively in later patches.
->
-> In general we need to check the parent is still correct after taking the
-> lock (as ovl_copy_up_workdir() does after a successful lock_rename()) so
-> that is included in ovl_cleanup_unlocked() using new lock_parent() and
-> unlock_parent() calls (it is planned to move this API into VFS code
-> eventually, though in a slightly different form).
-
-Since you are not planning to move it to VFS with this name
-AND since I assume you want to merge this ovl cleanup prior
-to the rest of of patches, please use an ovl helper without
-the ovl_ namespace prefix and you have a typo above
-its parent_lock() not lock_parent().
-
-And apropos lock helper names, at the tip of your branch
-the lock helpers used in ovl_cleanup() are named:
-lock_and_check_dentry()/dentry_unlock()
-
-I have multiple comments on your choice of names for those helpers:
-1. Please use a consistent name pattern for lock/unlock.
-    The pattern <obj-or-lock-type>_{lock,unlock}_* is far more common
-    then the pattern lock_<obj-or-lock-type> in the kernel, but at least
-    be consistent with dentry_lock_and_check() or better yet
-    parent_lock() and later parent_lock_get_child()
-2. dentry_unlock() is a very strange name for a helper that
-    unlocks the parent. The fact that you document what it does
-    in Kernel-doc does not stop people reading the code using it
-    from being confused and writing bugs.
-3. Why not call it parnet_unlock() like I suggested and like you
-    used in this patch set and why not introduce it in VFS to begin with?
-    For that matter parent_unlock_{put,return}_child() is more clear IMO.
-4. The name dentry_unlock_rename(&rd) also does not balance nicely with
-    the name lookup_and_lock_rename(&rd) and has nothing to do with the
-    dentry_ prefix. How about lookup_done_and_unlock_rename(&rd)?
-
-Hope this is not too much complaining for review of a small cleanup patch :=
--p
-
->
-> A fresh cleanup block is added which doesn't share code with other
-> cleanup blocks.  It will get a new users in the next patch.
->
-> Signed-off-by: NeilBrown <neil@brown.name>
-> ---
->  fs/overlayfs/copy_up.c   | 12 ++++++++++--
->  fs/overlayfs/dir.c       | 15 +++++++++++++++
->  fs/overlayfs/overlayfs.h |  6 ++++++
->  fs/overlayfs/util.c      | 10 ++++++++++
->  4 files changed, 41 insertions(+), 2 deletions(-)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 8a3c0d18ec2e..5d21b8d94a0a 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -794,6 +794,9 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx=
- *c)
->          */
->         path.dentry =3D temp;
->         err =3D ovl_copy_up_data(c, &path);
-> +       if (err)
-> +               goto cleanup_need_write;
-> +
->         /*
->          * We cannot hold lock_rename() throughout this helper, because o=
+> Em 09/04/2025 14:17, Amir Goldstein escreveu:
+> > On Wed, Apr 9, 2025 at 5:01=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@=
+igalia.com> wrote:
+> >>
+> >> Hi all,
+> >>
+> >> We would like to support the usage of casefold filesystems with
+> >> overlayfs. This patchset do some of the work needed for that, but I'm
+> >> sure there are more places that need to be tweaked so please share you=
+r
+> >> feedback for this work.
+> >>
+> >> * Implementation
+> >>
+> >> The most obvious place that required change was the strncmp() inside o=
 f
->          * lock ordering with sb_writers, which shouldn't be held when ca=
-lling
-> @@ -809,8 +812,6 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx=
- *c)
->                 if (IS_ERR(trap))
->                         goto out;
->                 goto unlock;
-> -       } else if (err) {
-> -               goto cleanup;
->         }
+> >> ovl_cache_entry_find(), that I managed to convert to use d_same_name()=
+,
+> >
+> > That's a very niche part of overlayfs where comparison of names matter.
+> >
+> > Please look very closely at ovl_lookup() and how an overlay entry stack=
+ is
+> > composed from several layers including the option to redirect to differ=
+ent names
+> > via redirect xattr, so there is really very much to deal with other
+> > than readdir.
+> >
+> > I suggest that you start with a design proposal of how you intend to ta=
+ckle this
+> > task and what are your requirements?
+> > Any combination of casefold supported layers?
+> >
 >
->         err =3D ovl_copy_up_metadata(c, temp);
-> @@ -857,6 +858,13 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ct=
-x *c)
->         ovl_cleanup(ofs, wdir, temp);
->         dput(temp);
->         goto unlock;
-> +
-> +cleanup_need_write:
-> +       ovl_start_write(c->dentry);
-> +       ovl_cleanup_unlocked(ofs, c->workdir, temp);
-> +       ovl_end_write(c->dentry);
-> +       dput(temp);
-> +       return err;
->  }
+> The intended use case here is to use overlayfs as a container layer for
+> games. The lower layer will have the common libraries required for
+> games, and the upper layer will be a container for the running game, so
+> the game will be able to have write permission and even change the
+> common libraries if needed without impacting the original libraries. For
+> that, we would use case-folded enable ext4 mounting points.
+>
+> This use case doesn't need layers redirection, or to combine different
+> layers of enabled/disable case-fold. We would have just two layers,
+> upper and lower, both with case-fold enabled prior to mounting. If the
+> layers doesn't agree on the casefold flags/version/status, we can refuse
+> mounting it.
+>
+> To avoid complexity and corner cases, I propose to have this feature
+> enabled only for the layout described above: one upper and one lower
+> layer, with both layers with the same casefold status and to refuse
+> otherwise.
+>
+> The implementation would be, on top of this patchset, to create
+> restrictions on the mounting options if casefold is enabled in a
+> mounting point.
+>
+> Thoughts?
 >
 
-Sorry, I will not accept more messy goto routines.
-I rewrote your simplification based on the tip of your branch.
-Much simpler and no need for this extra routine.
-Just always use ovl_cleanup_unlocked() in this function and
-ovl_start_write() before goto cleanup_unlocked:
+Good plan, but I don't think it is enough.
 
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -794,13 +794,16 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx=
- *c)
-         */
-        path.dentry =3D temp;
-        err =3D ovl_copy_up_data(c, &path);
-+       ovl_start_write(c->dentry);
-+       if (err)
-+               goto cleanup_unlocked;
-+
-        /*
-         * We cannot hold lock_rename() throughout this helper, because of
-         * lock ordering with sb_writers, which shouldn't be held when call=
-ing
-         * ovl_copy_up_data(), so lock workdir and destdir and make sure th=
-at
-         * temp wasn't moved before copy up completion or cleanup.
-         */
--       ovl_start_write(c->dentry);
-        trap =3D lock_rename(c->workdir, c->destdir);
-        if (trap || temp->d_parent !=3D c->workdir) {
-                /* temp or workdir moved underneath us? abort without clean=
-up */
-@@ -809,8 +812,6 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *=
-c)
-                if (IS_ERR(trap))
-                        goto out;
-                goto unlock;
--       } else if (err) {
--               goto cleanup;
-        }
+First of all take a look at this patch already queued for next:
+https://lore.kernel.org/linux-unionfs/20250602171702.1941891-1-amir73il@gma=
+il.com/
 
-        err =3D ovl_copy_up_metadata(c, temp);
-@@ -846,17 +847,17 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx=
- *c)
-        ovl_inode_update(inode, temp);
-        if (S_ISDIR(inode->i_mode))
-                ovl_set_flag(OVL_WHITEOUTS, inode);
--unlock:
--       unlock_rename(c->workdir, c->destdir);
- out:
-        ovl_end_write(c->dentry);
+We will now check for ovl_dentry_casefolded() per dir on every lookup,
+not only at mount time, so you need to rebase your patches and adjust the l=
+ogic
+to per-ovl-dir logic - all entries in ovl_stack need to have same casefold.
 
-        return err;
+The second thing is that from vfs POV, your patches do not mark the overlay=
+fs
+dirs as casefolded and do not define d_compare()/d_hash() methods
+for overlayfs. I think this is wrong and will result in odd behavior
+w.r.t overlayfs
+dcache.
 
- cleanup:
--       ovl_cleanup(ofs, wdir, temp);
-+       unlock_rename(c->workdir, c->destdir);
-+cleanup_unlocked:
-+       ovl_cleanup_unlocked(ofs, wdir, temp);
-        dput(temp);
--       goto unlock;
-+       goto out;
- }
----
+I think that ovl_fill_super(), in the case where all layers are on same fs =
+and
+that fs sb_has_encoding(), assign ovl sb->s_encoding =3D upper_sb->s_encodi=
+ng
+and call generic_set_sb_d_ops().
 
->  /* Copyup using O_TMPFILE which does not require cross dir locking */
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 4fc221ea6480..cee35d69e0e6 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -43,6 +43,21 @@ int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir=
-, struct dentry *wdentry)
->         return err;
->  }
->
-> +int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir,
-> +                        struct dentry *wdentry)
-> +{
-> +       int err;
-> +
-> +       err =3D parent_lock(workdir, wdentry);
-> +       if (err)
-> +               return err;
-> +
-> +       ovl_cleanup(ofs, workdir->d_inode, wdentry);
-> +       parent_unlock(workdir);
-> +
-> +       return err;
-> +}
-> +
->  struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdi=
-r)
->  {
->         struct dentry *temp;
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 42228d10f6b9..68dc78c712a8 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -416,6 +416,11 @@ static inline bool ovl_open_flags_need_copy_up(int f=
-lags)
->  }
->
->  /* util.c */
-> +int parent_lock(struct dentry *parent, struct dentry *child);
-> +static inline void parent_unlock(struct dentry *parent)
-> +{
-> +       inode_unlock(parent->d_inode);
-> +}
+As a matter of fact, I don't think we even need to restrict to all
+layers on same
+sb, just to all layers use the same sb->s_encoding and I think this
+will be pretty
+easy to implement on-the-fly.
 
-ovl_parent_unlock() or move to vfs please.
+Then in ovl_lookup() when composing the overlayfs stack for ovl_inode,
+IFF ovl has_encoding make sure that all or none dentry on stack are
+ovl_dentry_casefolded() and if they are casefolded, mark also the overlay
+inode S_CASEFOLDED as well.
 
->  int ovl_get_write_access(struct dentry *dentry);
->  void ovl_put_write_access(struct dentry *dentry);
->  void ovl_start_write(struct dentry *dentry);
-> @@ -843,6 +848,7 @@ struct dentry *ovl_create_real(struct ovl_fs *ofs,
->                                struct inode *dir, struct dentry *newdentr=
-y,
->                                struct ovl_cattr *attr);
->  int ovl_cleanup(struct ovl_fs *ofs, struct inode *dir, struct dentry *de=
-ntry);
-> +int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir, str=
-uct dentry *dentry);
->  struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdi=
-r);
->  struct dentry *ovl_create_temp(struct ovl_fs *ofs, struct dentry *workdi=
-r,
->                                struct ovl_cattr *attr);
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 2b4754c645ee..a5105d68f6b4 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -1544,3 +1544,13 @@ void ovl_copyattr(struct inode *inode)
->         i_size_write(inode, i_size_read(realinode));
->         spin_unlock(&inode->i_lock);
->  }
-> +
-> +int parent_lock(struct dentry *parent, struct dentry *child)
-> +{
-> +       inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
-> +       if (!child || child->d_parent =3D=3D parent)
-> +               return 0;
-> +
-> +       inode_unlock(parent->d_inode);
-> +       return -EINVAL;
-> +}
+Please make sure to write fstests for the new functionality.
+You can base you test on my WIP test for the patch that is in linux-next:
+https://github.com/amir73il/xfstests/commits/ovl-casefold/
 
-ovl_parent_lock() or move to vfs please.
+Your changes are going to change the results of my test
+to allow lookup in a lower casefolded subdir
+and so will need to change test expectation and add file name
+case insensitive lookups to test this case.
 
 Thanks,
 Amir.
