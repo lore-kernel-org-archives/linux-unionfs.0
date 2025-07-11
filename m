@@ -1,72 +1,72 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5CCA210F53;
-	Fri, 11 Jul 2025 13:54:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9687D1552E0;
+	Fri, 11 Jul 2025 15:19:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752242067; cv=none; b=qTz4g9MBQWaPnB1cfJGcg2SshGOSlHzx1X6mZp1PVEhYPNOtgJZVxT1ZSIc0Le+3B/3ABHOFR4L/qqTdZwChvUVatpymNjvwprUrMrVw+ZfusL74qrwkHw/wewozfxQND5eYPrmPwO9JGRQ/d+FoUGaqKUkzIalB/jTwSA/CUqI=
+	t=1752247175; cv=none; b=eCc4o/pnYWfC8/tdm1ygTWhsx1t3lW41tQRKTFGHp7wUlyMO2i0+51QZnlUYBbTeQqHXZU5mVY0PYtKv2aU0WPNDuxTOgyjtOnCJOUKde4Ym1fLq2p3Tyw6qs2fHLeGx5LvIcXHEC074x5etXYA7C/6AWmMMc3txCDhjlohXsJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752242067; c=relaxed/simple;
-	bh=Aq0UWMxuzgcAo0TZpLzDQyCfr27z64BIWG+3rs/BcMM=;
+	s=arc-20240116; t=1752247175; c=relaxed/simple;
+	bh=H6PRdMETs9WfkrtyxZ6tOAgx6ngf8YBak9TCrKYdhvM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=GSSfGFcxRQydUIw/5MM+OFLaS6Wi7hsOy+iuRbxGjtzY/q6fKFdJBpcdf+syyNjIWC53A0Yf+wmVFX725UzWMByC9NDdLTWe+yvr4pceE7kSvevhUys6tCYvGHga+NgqFZqxUCiUdJS2tdVXm5Ci0p58xCFfMYHblGXdpMbeejs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S4b/+2ba; arc=none smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=MqcAZcS8D/IHcJheapKRFyhDIwZSmKMVkRZ2/dGuCp4Zq3JysrZvEZds9T2e5L5laKUWdCxi6bAmdLcZwIJZrdx71+ctSw9aMvaDnrqFvh1RHKo527umi0eAuAKZARAm45zXKEx8W63pjt/2m/ot1VkkkeW+HQbt2Y7ElsJrGNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QD24POin; arc=none smtp.client-ip=209.85.218.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S4b/+2ba"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-60780d74c8cso3431396a12.2;
-        Fri, 11 Jul 2025 06:54:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QD24POin"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-ae0d7b32322so355841166b.2;
+        Fri, 11 Jul 2025 08:19:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752242064; x=1752846864; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1752247172; x=1752851972; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rKNmqbM1Io9kr6tHHswOc/RmHHXRZahen59U6vlxIVE=;
-        b=S4b/+2bap8r7d8aIP6CPVBC6fWUlCotsoajgNbJHWJoEntqNRs/HF0MVDz/v6FHQbt
-         XIYkJYuV+RieyyV+obwZ2ySPHcAY6lJoQc3P7/rMHO7xcS1XZlStGPIWPNW2et58Abox
-         6rqA6gtJd5oXADlNQTZDSFcUARQxjsmdNreAgq/rRu/Pd8vWFs1kMkA1mhRzrkuuQQFh
-         1hMehmwnoC+vjRspJfkmKK846ujFUDn5+smUNUmuJskasNRs08aojwopacKRSISlhaG/
-         Ub2iZCyeaLHIjtGvCfuIxr92DQdOKZERxRtB99v/d4pdMk+QEES6soI61THtB6hCJoNs
-         qJkw==
+        bh=43s3Zf5sbN7meVuCdv71m2W/YBnDSo0JrFNR/OZwvj0=;
+        b=QD24POinPAGwGi1rLOam6L0uGkEFueHvHWa4OKlPeJRLTm2GGoyn3ZzDE/Qobc1IIY
+         seVW9RaAIqDCUXMGDGhYqqLXTvXLE2jnRudtrDvDazFAYZuZBZs6c4d/FQAyBRDD8p7Q
+         ZOV86gW2+PZPLei7zVCbcK0R4FKHBV7cx/CAfV5GUxIVcSVO9lUX6UFlGT40tLJygjMg
+         T7vRAA5p7T0Iq6Hd0SvVnau7nFY0jOsrLpChQbijHf5M5mRaWbCfKhTxea3oH07j37rD
+         b6djojILMGC9hFU2mtU192LlaTL3zSmc9Gysiz1qrydNpgfIWzk5slVbLLbel6cdySPc
+         XC0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752242064; x=1752846864;
+        d=1e100.net; s=20230601; t=1752247172; x=1752851972;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=rKNmqbM1Io9kr6tHHswOc/RmHHXRZahen59U6vlxIVE=;
-        b=sW7i9No3eVXnnIyrPndi4T3/i0EEvd7SQmVgsIdamazw1yIKAlKetrWW8Zs8RrWe5r
-         4VpVBbE3CzRoeFWXV/beE1HoXWWswlG/oFRNcVAw1K4eKfBJO4How/DwJboj3ziq9YHm
-         bmTBOF11MgeA9ElNC5yphTua3knRbsaLu71HrCt5MAhtljj/hs0+ojmq4GYkKbvnUxyE
-         60dmU6JQ4qzqxlsWGRsgGZCgjgFNSy3pl+a0s+56xYSeDeP0prb6vum7jtP9jYU0b8MJ
-         gTDVNukAIx9qrVvb1iLljAB/jeRrwp/ck8h30I7snrjmArSqurCxuoEmS8sMsx9ZlPeH
-         tp4g==
-X-Forwarded-Encrypted: i=1; AJvYcCU+ZVrHkd+8k9L30esfl4Rbp2lMKiXCdvnbbpl9/CD7FHPoC4Goq8GVXpfUgRucCEtLd1gUnns2ADKezXDC@vger.kernel.org, AJvYcCVChml5UrTAJuujhY6wUofKdf2RWL+m/xjwutZ/u35IFptjd0qhyKYyRSheMH5pUAsD9X/nh5Le6ZXovIh1oQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy1KBZ0BJ8qpjOGAJPMfktJlNqE8rONZwpyQp3XBF27pEt2wlsR
-	bxaoJAcH5vR4Wh4q3e+6i26ktnMTnFEMfyWEneDnXvHXjfz3yBAMYzLw67AcnMEOVl9z65ULfLa
-	PUMXl9rP/mRhd0417lqeIYhxXGAsHhvsfj8OxD9F30w==
-X-Gm-Gg: ASbGncta2IUuZoE/8zrPV2wOxyKhHpVDRjI0AkiDTq6P50/nYIhwTn0UAFS+bfcmz3J
-	XzzExjIH1S8Fy5RsqBQHRYQ/u2EJR9EuQ15qYbrgxtgA49xbNAx5pSeS+WfZ/T2OKeCWIjJ7qe/
-	OEDdk9NzEhy2VrLebIpVkJaCiHWKHCzJyVSRjx+PCVR55r+FtIvuZZrvoQWjYES0jQI1sovizq7
-	1rtDH0=
-X-Google-Smtp-Source: AGHT+IH5COpSP/1rq3izI15zC6kQuwgQpZVSYuqKrU3pO/F3QBwQHJFmK8hAOh2gXvUCq0odx6xDw8XNvfLaYeR/a/4=
-X-Received: by 2002:a17:907:3d02:b0:ae0:b604:894c with SMTP id
- a640c23a62f3a-ae6fcad2f4emr331824466b.48.1752242063432; Fri, 11 Jul 2025
- 06:54:23 -0700 (PDT)
+        bh=43s3Zf5sbN7meVuCdv71m2W/YBnDSo0JrFNR/OZwvj0=;
+        b=XbE4AiIg6vozb0K62M3WXKsrYHr5kHHXYMQ0/MmKm5ZMprBDHzXYv2PHh97LEkCIue
+         sYkl0heV8RneQgZY5/let4fAZE6qGs5K9ANeR6JG0JoDcZp+LnAfw3L1BHrotxoT4xN/
+         KWggNWUhpIU3Y6PhuDGNKC2PH5Ik5YTbQrWuZcfcXFG6JIe6pz7dk/RbjIEQPQ+OzDew
+         sIUF3QbKhzNgcU+f10oS9sNCtoITPSzGJExbZFiqjfjrU/ag0+nMwHsD6ME95Mq7KQkH
+         KgjruEAJNsCYjwUYwSJ/b574GWMg1MxgOhIswRcZMYS8FPQr7ZfI/vX4AtYRxmiExR/z
+         C9Yg==
+X-Forwarded-Encrypted: i=1; AJvYcCVRv/Hnb/xg21JxXMjV0fR80sA1O/IQPSiwnxmONzFxgPfF7t9aZawvdgF3csuTYZiCSc6TRPn6TazUgaUhwQ==@vger.kernel.org, AJvYcCXX7U830hP6N+c7BddymBZ/AMPrdG5JiAM9ZMKihBlIxJD+yYkvSYQjmDpOXQidPArHnC4u4OBcEiCknOf/@vger.kernel.org
+X-Gm-Message-State: AOJu0YzLlp6HTznzTRrV6wAwXBE3XDiRPb9Go2+mOsWVTa2+vi2FP1rT
+	WIKoBxXvEdTiVno5EJ1MTOlaAyBUeIktHmxrcVtZFAznEhXSSXRleLedndRWakhWTDK6O0UDHjA
+	aS2WOZwOna456qb450yskBCyQae3uvI4=
+X-Gm-Gg: ASbGncsqReB2y/UorEARXRglFbu+6VAqUCx8dfh16MnbQM3u1Ha4dUnecLzPA2PgK8V
+	jfjXKC46ITxJ9Q3s5MlXQIAkdtLKdcWuxdxpT9LGfRKFQdEac6s3imTrattA+10EyI/iRlatrHZ
+	cWVo8gP75BSyrc7qzrTMCe2O+6zU4xWD+iwc4zlWYGRSCEvclNaOT8/roxqy1/lrjUyQWogdl8W
+	ETbKFo=
+X-Google-Smtp-Source: AGHT+IHnc0diKX5c5qW3t56ApqIuvBNiUNCKJNP06F/PrsU0Zy/kuVf5iW8cOx9/wb1XelPyBj9zo7LD4riEALDTK/o=
+X-Received: by 2002:a17:907:fdcc:b0:ae0:e123:605f with SMTP id
+ a640c23a62f3a-ae6fc219d10mr363648966b.39.1752247171582; Fri, 11 Jul 2025
+ 08:19:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250710232109.3014537-1-neil@brown.name> <20250710232109.3014537-19-neil@brown.name>
-In-Reply-To: <20250710232109.3014537-19-neil@brown.name>
+References: <20250710232109.3014537-1-neil@brown.name> <20250710232109.3014537-18-neil@brown.name>
+In-Reply-To: <20250710232109.3014537-18-neil@brown.name>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 11 Jul 2025 15:54:12 +0200
-X-Gm-Features: Ac12FXy4O2938nlEwEcZZV16F6s3PB5hr-0N5rK_-62XnL80rjr25-CRoGYHDvg
-Message-ID: <CAOQ4uxiopGbM9FECQLbvB1+x4Mz9KufEgSWoMKs4UC+tFVB2_Q@mail.gmail.com>
-Subject: Re: [PATCH 18/20] ovl: narrow locking in ovl_check_rename_whiteout()
+Date: Fri, 11 Jul 2025 17:19:19 +0200
+X-Gm-Features: Ac12FXxyZ4zqc_LVAKTPDbPXIdvQzyg2Q3huZWbcZEEv83iA82_JOMTwpzBSuZo
+Message-ID: <CAOQ4uxgHAun6Z3q_adGSs0GqE+WpZfYCpXejuC3DrUS9mF2rwQ@mail.gmail.com>
+Subject: Re: [PATCH 17/20] ovl: narrow locking in ovl_whiteout()
 To: NeilBrown <neil@brown.name>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
 	linux-fsdevel@vger.kernel.org
@@ -75,86 +75,107 @@ Content-Transfer-Encoding: quoted-printable
 
 On Fri, Jul 11, 2025 at 1:21=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
 >
-> ovl_check_rename_whiteout() now only holds the directory lock when
-> needed, and takes it again if necessary.
+> ovl_whiteout() relies on the workdir i_rwsem to provide exclusive access
+> to ofs->whiteout which it manipulates.  Rather than depending on this,
+> add a new mutex, "whiteout_lock" to explicitly provide the required
+> locking.  Use guard(mutex) for this so that we can return without
+> needing to explicitly unlock.
 >
-> This makes way for future changes where locks are taken on individual
-> dentries rather than the whole directory.
+> Then take the lock on workdir only when needed - to lookup the temp name
+> and to do the whiteout or link.
 >
 > Signed-off-by: NeilBrown <neil@brown.name>
+> ---
+>  fs/overlayfs/dir.c       | 49 +++++++++++++++++++++-------------------
+>  fs/overlayfs/ovl_entry.h |  1 +
+>  fs/overlayfs/params.c    |  2 ++
+>  3 files changed, 29 insertions(+), 23 deletions(-)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 086719129be3..fd89c25775bd 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -84,41 +84,44 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs=
+)
+>         struct dentry *workdir =3D ofs->workdir;
+>         struct inode *wdir =3D workdir->d_inode;
+>
+> -       inode_lock_nested(wdir, I_MUTEX_PARENT);
+> +       guard(mutex)(&ofs->whiteout_lock);
+> +
+>         if (!ofs->whiteout) {
+> +               inode_lock_nested(wdir, I_MUTEX_PARENT);
+>                 whiteout =3D ovl_lookup_temp(ofs, workdir);
+> -               if (IS_ERR(whiteout))
+> -                       goto out;
+> -
+> -               err =3D ovl_do_whiteout(ofs, wdir, whiteout);
+> -               if (err) {
+> -                       dput(whiteout);
+> -                       whiteout =3D ERR_PTR(err);
+> -                       goto out;
+> +               if (!IS_ERR(whiteout)) {
+> +                       err =3D ovl_do_whiteout(ofs, wdir, whiteout);
+> +                       if (err) {
+> +                               dput(whiteout);
+> +                               whiteout =3D ERR_PTR(err);
+> +                       }
+>                 }
+> +               inode_unlock(wdir);
+> +               if (IS_ERR(whiteout))
+> +                       return whiteout;
+>                 ofs->whiteout =3D whiteout;
+>         }
+>
+>         if (!ofs->no_shared_whiteout) {
+> +               inode_lock_nested(wdir, I_MUTEX_PARENT);
+>                 whiteout =3D ovl_lookup_temp(ofs, workdir);
+> -               if (IS_ERR(whiteout))
+> -                       goto out;
+> -
+> -               err =3D ovl_do_link(ofs, ofs->whiteout, wdir, whiteout);
+> -               if (!err)
+> -                       goto out;
+> -
+> -               if (err !=3D -EMLINK) {
+> -                       pr_warn("Failed to link whiteout - disabling whit=
+eout inode sharing(nlink=3D%u, err=3D%i)\n",
+> -                               ofs->whiteout->d_inode->i_nlink, err);
+> -                       ofs->no_shared_whiteout =3D true;
+> +               if (!IS_ERR(whiteout)) {
+> +                       err =3D ovl_do_link(ofs, ofs->whiteout, wdir, whi=
+teout);
+> +                       if (err) {
+> +                               dput(whiteout);
+> +                               whiteout =3D ERR_PTR(err);
+> +                       }
+>                 }
+> -               dput(whiteout);
+> +               inode_unlock(wdir);
+> +               if (!IS_ERR(whiteout) || PTR_ERR(whiteout) !=3D -EMLINK)
+> +                       return whiteout;
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
++               if (!IS_ERR(whiteout))
++                       return whiteout;
+
+> +
+> +               pr_warn("Failed to link whiteout - disabling whiteout ino=
+de sharing(nlink=3D%u, err=3D%i)\n",
+> +                       ofs->whiteout->d_inode->i_nlink, err);
+> +               ofs->no_shared_whiteout =3D true;
+
+Logic was changed.
+The above pr_warn and no_shared_whiteout =3D true and for the case of
+PTR_ERR(whiteout) !=3D -EMLINK
+
+>         }
+>         whiteout =3D ofs->whiteout;
+>         ofs->whiteout =3D NULL;
+
+The outcome is the same with all errors - we return and reset
+ofs->whiteout, but with EMLINK this is expected and not a warning
+with other errors unexpected and warning and we do not try again
+to hardlink to singleton whiteout.
 
 Thanks,
 Amir.
-
-> ---
->  fs/overlayfs/super.c | 15 +++++++--------
->  1 file changed, 7 insertions(+), 8 deletions(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 23f43f8131dd..78f4fcfb9ff6 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -559,7 +559,6 @@ static int ovl_get_upper(struct super_block *sb, stru=
-ct ovl_fs *ofs,
->  static int ovl_check_rename_whiteout(struct ovl_fs *ofs)
->  {
->         struct dentry *workdir =3D ofs->workdir;
-> -       struct inode *dir =3D d_inode(workdir);
->         struct dentry *temp;
->         struct dentry *dest;
->         struct dentry *whiteout;
-> @@ -580,19 +579,22 @@ static int ovl_check_rename_whiteout(struct ovl_fs =
-*ofs)
->         err =3D PTR_ERR(dest);
->         if (IS_ERR(dest)) {
->                 dput(temp);
-> -               goto out_unlock;
-> +               parent_unlock(workdir);
-> +               return err;
->         }
->
->         /* Name is inline and stable - using snapshot as a copy helper */
->         take_dentry_name_snapshot(&name, temp);
->         err =3D ovl_do_rename(ofs, workdir, temp, workdir, dest, RENAME_W=
-HITEOUT);
-> +       parent_unlock(workdir);
->         if (err) {
->                 if (err =3D=3D -EINVAL)
->                         err =3D 0;
->                 goto cleanup_temp;
->         }
->
-> -       whiteout =3D ovl_lookup_upper(ofs, name.name.name, workdir, name.=
-name.len);
-> +       whiteout =3D ovl_lookup_upper_unlocked(ofs, name.name.name,
-> +                                            workdir, name.name.len);
->         err =3D PTR_ERR(whiteout);
->         if (IS_ERR(whiteout))
->                 goto cleanup_temp;
-> @@ -601,18 +603,15 @@ static int ovl_check_rename_whiteout(struct ovl_fs =
-*ofs)
->
->         /* Best effort cleanup of whiteout and temp file */
->         if (err)
-> -               ovl_cleanup(ofs, dir, whiteout);
-> +               ovl_cleanup_unlocked(ofs, workdir, whiteout);
->         dput(whiteout);
->
->  cleanup_temp:
-> -       ovl_cleanup(ofs, dir, temp);
-> +       ovl_cleanup_unlocked(ofs, workdir, temp);
->         release_dentry_name_snapshot(&name);
->         dput(temp);
->         dput(dest);
->
-> -out_unlock:
-> -       parent_unlock(workdir);
-> -
->         return err;
->  }
->
-> --
-> 2.49.0
->
