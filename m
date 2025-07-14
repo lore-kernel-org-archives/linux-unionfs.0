@@ -1,472 +1,253 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AC1418D;
-	Mon, 14 Jul 2025 05:13:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8775B1EFF9B;
+	Mon, 14 Jul 2025 05:42:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752469992; cv=none; b=kOjyzA3UNY0avdaDglxu1P97a+XInUgl5idOCOBiK6apxmNdAgtU3dnBWyrlxxrR9UsUx4z7Y1lud7gbmVi+4lFERJUolAG8RCrFhMWqLFmSSZzNsjfocIrmEfjfhbztR+/RmmlIsBGcJxv03v3d+c2Ux5oCIdK4rYUzeL7QDJU=
+	t=1752471765; cv=none; b=pmNEkrfzFWZa7Nabb8KZsHhIMzShUCN8FwgE/qaODXjfONCpM8mJifF/nEuiQbPl3lRCdOhf4U3No9RNoTSVPNUD4rIH+NR3w9vdyiwRsBIIbIihOGgl4jR7WZwzm6R4zlQhbGa2WRPswQSd+Acf07nNOmVISGAcMowzRfj5/TA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752469992; c=relaxed/simple;
-	bh=ENmvx67fsgv6fuBClIhQsXaS3rlJFils+eJ4SGGiaCI=;
+	s=arc-20240116; t=1752471765; c=relaxed/simple;
+	bh=RT0pp7iFDoxCUwPaOyuV44gIHWNJekmnqvt3HmpQ0zA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=XUjuKxbB58SwTCk5coztdG3/HHCIytu5NlKlu8GMO0PxENQQKAO6JKmVUNpxZ3Wc7kUIMQD48LYkHbLjXywSsoDh2E7ErYbvqW16XCJSv5wKwsjPp6Pm3fZy5ySkCoHQkazqdeJ541sw0LIEW37apy7epzUr8eY3sYk2TstbxH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=k2PzNYSd; arc=none smtp.client-ip=209.85.208.45
+	 To:Cc:Content-Type; b=H4Ak6GiC1Aj5N1x0dkBsS0IDXELSdaHwFOMtd/5eVBgm+qNFVV/va22ytqyLAcFglAA1H1NN4aMIyNOSJ4ijfzzB1iOtKVtyZXO4NIOJ018Imxyk1QkCyn+0HpqZASVYZNmFsnBDubZC27lm2nthFEDl+ULMzytuBlDjNUrZ7Rk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Dk2qIZme; arc=none smtp.client-ip=209.85.218.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k2PzNYSd"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-604bff84741so7454638a12.2;
-        Sun, 13 Jul 2025 22:13:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Dk2qIZme"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-ad572ba1347so538247066b.1;
+        Sun, 13 Jul 2025 22:42:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752469989; x=1753074789; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1752471762; x=1753076562; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Hl1z5l0SKOhbQO2EGhfHhGja92omHGzvOiHGOzxnwgo=;
-        b=k2PzNYSds6iLOJGVB1C6ip3970RH3cRXe797/oQEbOpO3Dj49rD8qKNMp2GX5q795w
-         6MPXpsTH+wI0pqDk3b/BczUyblHoHbRhH8EuInDUtr9aNSmv1jJU7rkh9iaWbZLGpdtg
-         nDqhrhJ8L6Qc/F01ksgrG7663O41Cd4h72YqOBNizhnwBAEUVV8zIyYmxkQQtUNrUh+f
-         8LKOQs+vx1cqbgyvDS4eDj5c7U6V5tGKiJTNNNy0/uR+5dhlhlwVrpJvasedQSWfNO5i
-         owKPY26LX+jFIFnoAkOKbhKi6j1eKEjsY8yMCCsfvtp2B+5wXG0XaVReHNuxY2NuhxO8
-         C4Xw==
+        bh=IN51k3PG7P1PxKfyDC1D6YDwvqOFAxcGIBO3H1d/nuA=;
+        b=Dk2qIZmeVjAL5I30ANB+Ul6GWg532+ntWXwJrw2eE8cGQWh7q8DduRQGmHTGtwnZYV
+         LAbOyJ5s4brzT0ytxKOqSDKSzUtNxDBPVmFe6mAXILTvg72QD1PE2u5LNsFGTHJRgHqa
+         0jCPtY8NjQ2DwGuNou35YQraE7qy1EOH2OYpwJf7yknnJa2xvu+29YYXH3ZRcxjedxE6
+         5+qxaPKwLVsa5VbMjY9lt+5oChctH5FL6fefZogxGLHFAQ/F2LXTcjsnTvPs09UnjU0+
+         bnSuFhWmw2B8cUjg4N7MhrYhiLROC/m/ZImL22/W6KKeXzuHcc6iM5fKYdSn8MtHbfyF
+         V3HA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752469989; x=1753074789;
+        d=1e100.net; s=20230601; t=1752471762; x=1753076562;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Hl1z5l0SKOhbQO2EGhfHhGja92omHGzvOiHGOzxnwgo=;
-        b=IVutaZpbgYCADNsuT/uzEvF2771WSwEgP2ZJbHWdRFhVAabiFqqPoThewGeGlk9/Gf
-         UHidPr7HT7a2bCBtVteYKe8XXKg7fANvBzxZozXA1MFcyZD2QcL1jv/WNHq3su/9EMDa
-         X5EJtVf6qVQTiqJ7duSuhUnT+bpOhzZ7tzHWxSlE7DpE2D9+pmFThhooiEmq3Gkh12NV
-         N0hRTFISLlF5GMyUgrO4GkA886Kz5ao0kXFRqiOd8NGV/dudFlOZyAxVigrCCDvf/PIC
-         F6V7w505Jq85Q76XvgMvpy4OCRn7HFJeMERKe7qFQ0Cvoc3IRm+NU1d1XV80QQ4n3wMG
-         NJiw==
-X-Forwarded-Encrypted: i=1; AJvYcCU+xC35xfglZTFJP/365GvSRotCeNJtzs3H3InjouWSE1OnYeCArndUfwsS8kXcM4owkYQYi7Pp4yJHrDEF@vger.kernel.org, AJvYcCVT4BC599LfR2KZZMI22XJTIgckboOsJCsraIQtW8omUjdkkkR1lCa6dsVceLY8VJnWNqARi7RlhPAVcbxQzg==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz23jTTFQHLXIrIAspmRAFK7zy4fxTo91fa1EqJ94V3qa2nbBMh
-	OO+xUXbBlLlkoWDq5+KHA8of+hL4rOVQdDjPMBH+ZyDgHa5Rdvfz5di/Qtn1RqCxAHmgUlyqyU4
-	REYc1UbVkAN98pbH1lXZETzrcKF4i5zHU79bVi6o=
-X-Gm-Gg: ASbGncvnTIUioEETEE5sEy/k4lePlkS67y9PvidIdb8bXDk6rwFJKR+MuU3DHyo3Bq0
-	OPMPKMjZYas6/FrRn3o5lObfwAsTv2UG67/jyHoOLTLYM4Pz/V3xtEzwu7j1O+1AvoPD9IyLiOm
-	pr79a1se3rFxZhgIgQ+2Hmlz70NmKOmRTFgyrI7AvC3kPO+EtGZFLcvrZI0f/zOtCZb1g8J0T8v
-	EsO4OM=
-X-Google-Smtp-Source: AGHT+IFIyVuP6+Ff9qNzxtWF308BWUTm/GluwOv9WoRp0THhqnjpacttXqTyICaC4rfJZIz4u+2skhqwk3h8jxneS24=
-X-Received: by 2002:a17:907:3d9f:b0:ae9:a1f1:2b7d with SMTP id
- a640c23a62f3a-ae9a1f12fd1mr210595466b.17.1752469988004; Sun, 13 Jul 2025
- 22:13:08 -0700 (PDT)
+        bh=IN51k3PG7P1PxKfyDC1D6YDwvqOFAxcGIBO3H1d/nuA=;
+        b=jwC8IBDoIyjDGz/htQXeSe5O7pathq2Bjc6wcnZ8ikGcSEEep00Yz2mIi7E23KpMyr
+         GOSohPu5EyOppz8eh99aYSuJlUZS+uK+Y34vydP5lDWznTvZ20ZnLhom9BBWI2ybaM+q
+         4gVfKKLj+HjH5KR2Do4SD+QZabOK9YODnsOTekyR3REjqAYOqL4YbL7xsYUswO+xAzHb
+         ZAyNRTNBD8Fa0p8oAUDPHACtPnmucl0GXJoC96SvwwO0RYTAcOKiYIzzP+bL4CRjd+zR
+         VpI5wlsJVCRL/cYmqHqAsYjeT01nReOKhEGKsVTsMe0UQzWv1tkRip+otIog/4BrlEoC
+         b6RQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUljYqoNBL9Um0l7ZgSM4CW5wzejpmUqjMOdHiTwYbiBkDsFZ3kYpJdMr+c7Crnn7t7B/qSkBVpnDJmiGSw@vger.kernel.org, AJvYcCWPjSV5iTyYcxGuEvnfMYww+dOrwRulgUTClMJYQrh3z6GgK4tM4ENv1KCg56g2uTb6tv/DEMRnqVWsdzbL/Q==@vger.kernel.org
+X-Gm-Message-State: AOJu0YxaVJtDmJ5UiWs657cDw4KjeLtTWXUuXV9hU0au4wHqZOqlGsWN
+	OjGa57VnWx7fkQ5OQCW77Ad7gqbMe0j9hSogndW9/P9HWh9z2AFDG8DTwuxLXM5VSSxwbBlSWlx
+	n38nB/B/lBMunZV8HCnebt4o8JPulSn4=
+X-Gm-Gg: ASbGncttWMX+0qonVOgyXtymwvPrsFQa9YW9EHEDVJYalIOoOxbj6dyGgXbjC7AbMrS
+	uuRqrpq0kmJv7xJrNoppE9OGv9o2bIn2lMXoC35j0GG6OZTThnCu0Nyb1FN2W/Muxsx9qtMYP4K
+	G/31KGMV+tvnPjEf9f2D2crmylvZozD0mAcoBDNxMditukhwsaWSiJ2nDW+NCM0Sd7I4L4TFPfy
+	6Mg3W4=
+X-Google-Smtp-Source: AGHT+IF0NgrPv+wmrzyAGg8A04hpjzuc+YNcIgh/JfG9JoS988gB4qYFs7ce7ZRs/sGGJyysOtMIHyI9mzXGG9z+ImU=
+X-Received: by 2002:a17:906:c14b:b0:ae3:d108:afa with SMTP id
+ a640c23a62f3a-ae6fcacc9bbmr1096111466b.45.1752471761242; Sun, 13 Jul 2025
+ 22:42:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxiRBS14KdZRY4ad_6cOZ+u3dZp+0C+8WYjJ=qmqhjqQTg@mail.gmail.com>
- <175245482902.2234665.10015695984345104010@noble.neil.brown.name>
-In-Reply-To: <175245482902.2234665.10015695984345104010@noble.neil.brown.name>
+References: <CAOQ4uxh6fb6GQcC0_mj=Ft5NbLco7Nb0brhn9d3f7LzMLkRYaw@mail.gmail.com>
+ <175245198838.2234665.15268828706322164079@noble.neil.brown.name>
+In-Reply-To: <175245198838.2234665.15268828706322164079@noble.neil.brown.name>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 14 Jul 2025 07:12:56 +0200
-X-Gm-Features: Ac12FXyPuHiDm1nA9uTTau156wFc8gM-JF5hkAhVOEtnQCvKfri4YfcTRLkDcvg
-Message-ID: <CAOQ4uxjJNYq++u98B2LZ-xQTNXu3zAX92xZLy=sLaN6q0QeMsA@mail.gmail.com>
-Subject: Re: [PATCH 08/20] ovl: narrow locking in ovl_rename()
-To: NeilBrown <neil@brown.name>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
+Date: Mon, 14 Jul 2025 07:42:30 +0200
+X-Gm-Features: Ac12FXy4Kd3GNjyQqz3oWyiBROvmU0sSUqzQzKXkeOJ7TZQhJNSO9t1JehjcjVQ
+Message-ID: <CAOQ4uxjf=ig-t4GFPXzmKn1C26F3L9UAt1WKapLQ=nXbE8fOTQ@mail.gmail.com>
+Subject: Re: parent_lock/unlock (Was: [PATCH 01/20] ovl: simplify an error
+ path in ovl_copy_up_workdir())
+To: NeilBrown <neil@brown.name>, Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Jan Kara <jack@suse.cz>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 14, 2025 at 3:00=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+[CC vfs maintainers who were not personally CCed on your patches
+and changed the subject to focus on the topic at hand.]
+
+On Mon, Jul 14, 2025 at 2:13=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
 >
 > On Fri, 11 Jul 2025, Amir Goldstein wrote:
 > > On Fri, Jul 11, 2025 at 1:21=E2=80=AFAM NeilBrown <neil@brown.name> wro=
 te:
 > > >
-> > > Drop the rename lock immediately after the rename, and use
-> > > ovl_cleanup_unlocked() for cleanup.
+> > > If ovl_copy_up_data() fails the error is not immediately handled but =
+the
+> > > code continues on to call ovl_start_write() and lock_rename(),
+> > > presumably because both of these locks are needed for the cleanup.
+> > > On then (if the lock was successful) is the error checked.
 > > >
-> > > This makes way for future changes where locks are taken on individual
-> > > dentries rather than the whole directory.
+> > > This makes the code a little hard to follow and could be fragile.
 > > >
-> > > Signed-off-by: NeilBrown <neil@brown.name>
-> > > ---
-> > >  fs/overlayfs/dir.c | 15 ++++++++++-----
-> > >  1 file changed, 10 insertions(+), 5 deletions(-)
+> > > This patch changes to handle the error immediately.  A new
+> > > ovl_cleanup_unlocked() is created which takes the required directory
+> > > lock (though it doesn't take the write lock on the filesystem).  This
+> > > will be used extensively in later patches.
 > > >
-> > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > > index 687d5e12289c..d01e83f9d800 100644
-> > > --- a/fs/overlayfs/dir.c
-> > > +++ b/fs/overlayfs/dir.c
-> > > @@ -1262,9 +1262,10 @@ static int ovl_rename(struct mnt_idmap *idmap,=
- struct inode *olddir,
-> > >                             new_upperdir, newdentry, flags);
-> > >         if (err)
-> > >                 goto out_dput;
-> > > +       unlock_rename(new_upperdir, old_upperdir);
-> > >
-> > >         if (cleanup_whiteout)
-> > > -               ovl_cleanup(ofs, old_upperdir->d_inode, newdentry);
-> > > +               ovl_cleanup_unlocked(ofs, old_upperdir, newdentry);
-> > >
-> > >         if (overwrite && d_inode(new)) {
-> > >                 if (new_is_dir)
-> > > @@ -1283,12 +1284,8 @@ static int ovl_rename(struct mnt_idmap *idmap,=
- struct inode *olddir,
-> > >         if (d_inode(new) && ovl_dentry_upper(new))
-> > >                 ovl_copyattr(d_inode(new));
-> > >
-> > > -out_dput:
-> > >         dput(newdentry);
-> > > -out_dput_old:
-> > >         dput(olddentry);
-> > > -out_unlock:
-> > > -       unlock_rename(new_upperdir, old_upperdir);
-> > >  out_revert_creds:
-> > >         ovl_revert_creds(old_cred);
-> > >         if (update_nlink)
-> > > @@ -1299,6 +1296,14 @@ static int ovl_rename(struct mnt_idmap *idmap,=
- struct inode *olddir,
-> > >         dput(opaquedir);
-> > >         ovl_cache_free(&list);
-> > >         return err;
+> > > In general we need to check the parent is still correct after taking =
+the
+> > > lock (as ovl_copy_up_workdir() does after a successful lock_rename())=
+ so
+> > > that is included in ovl_cleanup_unlocked() using new lock_parent() an=
+d
+> > > unlock_parent() calls (it is planned to move this API into VFS code
+> > > eventually, though in a slightly different form).
+> >
+> > Since you are not planning to move it to VFS with this name
+> > AND since I assume you want to merge this ovl cleanup prior
+> > to the rest of of patches, please use an ovl helper without
+> > the ovl_ namespace prefix and you have a typo above
+> > its parent_lock() not lock_parent().
+>
+> I think you mean "with" rather than "without" ?
+
+Yeh.
+
+> But you separately say you would much rather this go into the VFS code
+> first.
+
+On second thought. no strong feeling either way.
+Using an internal ovl helper without ovl_ prefix is not good practice,
+but I can also live with that for a short while, or at the very least
+I am willing to defer the decision to the vfs maintainers.
+
+Pasting the helper here for context:
+
 > > > +
-> > > +out_dput:
-> > > +       dput(newdentry);
-> > > +out_dput_old:
-> > > +       dput(olddentry);
-> > > +out_unlock:
-> > > +       unlock_rename(new_upperdir, old_upperdir);
-> > > +       goto out_revert_creds;
-> > >  }
-> > >
-> > >  static int ovl_create_tmpfile(struct file *file, struct dentry *dent=
-ry,
-> > > --
-> > > 2.49.0
-> > >
-> >
-> > I think we get end up with fewer and clearer to understand goto labels
-> > with a relatively simple trick:
-> >
-> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > index fe493f3ed6b6..7cddaa7b263e 100644
-> > --- a/fs/overlayfs/dir.c
-> > +++ b/fs/overlayfs/dir.c
-> > @@ -1069,8 +1069,8 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >         int err;
-> >         struct dentry *old_upperdir;
-> >         struct dentry *new_upperdir;
-> > -       struct dentry *olddentry;
-> > -       struct dentry *newdentry;
-> > +       struct dentry *olddentry =3D NULL;
-> > +       struct dentry *newdentry =3D NULL;
-> >         struct dentry *trap;
-> >         bool old_opaque;
-> >         bool new_opaque;
-> > @@ -1187,18 +1187,22 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >         olddentry =3D ovl_lookup_upper(ofs, old->d_name.name, old_upper=
-dir,
-> >                                      old->d_name.len);
-> >         err =3D PTR_ERR(olddentry);
-> > -       if (IS_ERR(olddentry))
-> > +       if (IS_ERR(olddentry)) {
-> > +               olddentry =3D NULL;
-> >                 goto out_unlock;
-> > +       }
-> >
-> >         err =3D -ESTALE;
-> >         if (!ovl_matches_upper(old, olddentry))
-> > -               goto out_dput_old;
-> > +               goto out_unlock;
-> >
-> >         newdentry =3D ovl_lookup_upper(ofs, new->d_name.name, new_upper=
-dir,
-> >                                      new->d_name.len);
-> >         err =3D PTR_ERR(newdentry);
-> > -       if (IS_ERR(newdentry))
-> > -               goto out_dput_old;
-> > +       if (IS_ERR(newdentry)) {
-> > +               newdentry =3D NULL;
-> > +               goto out_unlock;
-> > +       }
-> >
-> >         old_opaque =3D ovl_dentry_is_opaque(old);
-> >         new_opaque =3D ovl_dentry_is_opaque(new);
-> > @@ -1207,28 +1211,28 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >         if (d_inode(new) && ovl_dentry_upper(new)) {
-> >                 if (opaquedir) {
-> >                         if (newdentry !=3D opaquedir)
-> > -                               goto out_dput;
-> > +                               goto out_unlock;
-> >                 } else {
-> >                         if (!ovl_matches_upper(new, newdentry))
-> > -                               goto out_dput;
-> > +                               goto out_unlock;
-> >                 }
-> >         } else {
-> >                 if (!d_is_negative(newdentry)) {
-> >                         if (!new_opaque || !ovl_upper_is_whiteout(ofs,
-> > newdentry))
-> > -                               goto out_dput;
-> > +                               goto out_unlock;
-> >                 } else {
-> >                         if (flags & RENAME_EXCHANGE)
-> > -                               goto out_dput;
-> > +                               goto out_unlock;
-> >                 }
-> >         }
-> >
-> >         if (olddentry =3D=3D trap)
-> > -               goto out_dput;
-> > +               goto out_unlock;
-> >         if (newdentry =3D=3D trap)
-> > -               goto out_dput;
-> > +               goto out_unlock;
-> >
-> >         if (olddentry->d_inode =3D=3D newdentry->d_inode)
-> > -               goto out_dput;
-> > +               goto out_unlock;
-> >
-> >         err =3D 0;
-> >         if (ovl_type_merge_or_lower(old))
-> > @@ -1236,7 +1240,7 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >         else if (is_dir && !old_opaque && ovl_type_merge(new->d_parent)=
-)
-> >                 err =3D ovl_set_opaque_xerr(old, olddentry, -EXDEV);
-> >         if (err)
-> > -               goto out_dput;
-> > +               goto out_unlock;
-> >
-> >         if (!overwrite && ovl_type_merge_or_lower(new))
-> >                 err =3D ovl_set_redirect(new, samedir);
-> > @@ -1244,15 +1248,16 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >                  ovl_type_merge(old->d_parent))
-> >                 err =3D ovl_set_opaque_xerr(new, newdentry, -EXDEV);
-> >         if (err)
-> > -               goto out_dput;
-> > +               goto out_unlock;
-> >
-> >         err =3D ovl_do_rename(ofs, old_upperdir->d_inode, olddentry,
-> >                             new_upperdir->d_inode, newdentry, flags);
-> >         if (err)
-> > -               goto out_dput;
-> > +               goto out_unlock;
-> > +       unlock_rename(new_upperdir, old_upperdir);
-> >
-> >         if (cleanup_whiteout)
-> > -               ovl_cleanup(ofs, old_upperdir->d_inode, newdentry);
-> > +               ovl_cleanup_unlocked(ofs, old_upperdir->d_inode, newden=
-try);
-> >
-> >         if (overwrite && d_inode(new)) {
-> >                 if (new_is_dir)
-> > @@ -1271,12 +1276,6 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >         if (d_inode(new) && ovl_dentry_upper(new))
-> >                 ovl_copyattr(d_inode(new));
-> >
-> > -out_dput:
-> > -       dput(newdentry);
-> > -out_dput_old:
-> > -       dput(olddentry);
-> > -out_unlock:
-> > -       unlock_rename(new_upperdir, old_upperdir);
-> >  out_revert_creds:
-> >         ovl_revert_creds(old_cred);
-> >         if (update_nlink)
-> > @@ -1284,9 +1283,15 @@ static int ovl_rename(struct mnt_idmap *idmap,
-> > struct inode *olddir,
-> >         else
-> >                 ovl_drop_write(old);
-> >  out:
-> > +       dput(newdentry);
-> > +       dput(olddentry);
-> >         dput(opaquedir);
-> >         ovl_cache_free(&list);
-> >         return err;
-> > +
-> > +out_unlock:
-> > +       unlock_rename(new_upperdir, old_upperdir);
-> > +       goto out_revert_creds;
-> >  }
-> >
+> > > +int parent_lock(struct dentry *parent, struct dentry *child)
+> > > +{
+> > > +       inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
+> > > +       if (!child || child->d_parent =3D=3D parent)
+> > > +               return 0;
+> > > +
+> > > +       inode_unlock(parent->d_inode);
+> > > +       return -EINVAL;
+> > > +}
+
+FWIW, as I mentioned before, this helper could be factored out
+of the first part of lock_rename_child().
+
 >
-> I decided to make the goto changed into a separate patch as follows.
-
-Good idea.
-
-> My version is slightly different to yours (see new var "de").
+> For me a core issue is how the patches will land.  If you are happy for
+> these patches (once they are all approved of course) to land via the vfs
+> tree, then I can certainly submit the new interfaces in VFS code first,
+> then the ovl cleanups that use them.
+>
+> However I assumed that they were so substantial that you would want them
+> to land via an ovl tree.  In that case I wouldn't want to have to wait
+> for a couple of new interfaces to land in VFS before you could take the
+> cleanups.
+>
+> What process do you imagine?
 >
 
-Looks nicer.
+Whatever process we choose is going to be collaborated with the vfs
+maintainers.
+
+Right now, there are a few ovl patches on Cristian's vfs-6.17.file
+branch and zero patches on overlayfs-next branch.
+
+What I would like to do is personally apply and test your patches
+(based on vfs-6.17.file).
+
+Then I will either send a PR to Christian before the merge window
+or send the PR to Linux during the merge window and after vfs-6.17.file
+PR lands.
+
+Within these options we have plenty of freedom to decide if we want
+to keep parent_lock/unlock internal ovl helpers or vfs helpers.
+It's really up to the vfs maintainers.
+
+> >
+> > And apropos lock helper names, at the tip of your branch
+
+Reference for people who just joined:
+
+   https://github.com/neilbrown/linux/commits/pdirops
+
+> > the lock helpers used in ovl_cleanup() are named:
+> > lock_and_check_dentry()/dentry_unlock()
+> >
+> > I have multiple comments on your choice of names for those helpers:
+> > 1. Please use a consistent name pattern for lock/unlock.
+> >     The pattern <obj-or-lock-type>_{lock,unlock}_* is far more common
+> >     then the pattern lock_<obj-or-lock-type> in the kernel, but at leas=
+t
+> >     be consistent with dentry_lock_and_check() or better yet
+> >     parent_lock() and later parent_lock_get_child()
+>
+> dentry_lock_and_check() does make sense - thanks.
+>
+> > 2. dentry_unlock() is a very strange name for a helper that
+> >     unlocks the parent. The fact that you document what it does
+> >     in Kernel-doc does not stop people reading the code using it
+> >     from being confused and writing bugs.
+>
+> The plan is that dentry_lookup_and_lock() will only lock the parent durin=
+g a
+> short interim period.  Maybe there will be one full release where that
+> is the case.  As soon a practical (and we know this sort of large change
+> cannot move quickly) dentry_lookup_and_lock() etc will only lock the
+> dentry, not the directory.  The directory will only get locked
+> immediately before call the inode_operations - for filesystems that
+> haven't opted out.  Thus patches in my git tree don't full reflect this
+> yet (Though the hints are there are the end) but that is my current
+> plan, based on most recent feedback from Al Viro.
+>
+> > 3. Why not call it parent_unlock() like I suggested and like you
+> >     used in this patch set and why not introduce it in VFS to begin wit=
+h?
+> >     For that matter parent_unlock_{put,return}_child() is more clear IM=
+O.
+>
+> Because, as I say about, it is only incidentally about the parent. It is
+> primarily about the dentry.
+
+When you have a helper named dentry_unlock() that unlocks the
+parent inode, it's not good naming IMO.
+
+When you have a helper called parent_unlock_put_child()
+or dentry_put_and_unlock_parent() there is no ambiguity about
+the subject of the operations.
+
+>
+> > 4. The name dentry_unlock_rename(&rd) also does not balance nicely with
+> >     the name lookup_and_lock_rename(&rd) and has nothing to do with the
+> >     dentry_ prefix. How about lookup_done_and_unlock_rename(&rd)?
+>
+> The is probably my least favourite name....  I did try some "done"
+> variants (following one from done_path_create()).  But if felt it should
+> be "done_$function-that-started-this-interaction()" and that resulted in
+>    done_dentry_lookup_and_lock()
+> or similar, and having "lock" in an unlock function was weird.
+> Your "done_and_unlock" addresses this but results and long name that
+> feels clumsy to me.
+>
+> I chose the dentry_ prefix before I decided to pass the renamedata
+> around (and I'm really happy about that latter choice).  So
+> reconsidering the name is definitely appropriate.
+> Maybe  renamedata_lock() and renamedata_unlock() ???
+> renamedata_lock() can do lookups as well as locking, but maybe that is
+> implied by the presense of old_last and new_last in renamedata...
+>
+
+My biggest complaint was about the non balanced lock/unlock name pattern.
+renamedata_lock/unlock() is fine by me and aligns very well with existing
+lock helper name patterns.
 
 Thanks,
 Amir.
-
-> Thanks,
-> NeilBrown
->
-> From: NeilBrown <neil@brown.name>
-> Date: Mon, 14 Jul 2025 10:44:03 +1000
-> Subject: [PATCH] ovl: simplify gotos in ovl_rename()
->
-> Rather than having three separate goto label: out_unlock, out_dput_old,
-> and out_dput, make use of that fact that dput() happily accepts a NULL
-> point to reduce this to just one goto label: out_unlock.
->
-> olddentry and newdentry are initialised to NULL and only set once a
-> value dentry is found.  They are then put late in the function.
->
-> Suggested-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: NeilBrown <neil@brown.name>
-> ---
->  fs/overlayfs/dir.c | 54 +++++++++++++++++++++++-----------------------
->  1 file changed, 27 insertions(+), 27 deletions(-)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index e094adf9d169..63460bdd71cf 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -1082,9 +1082,9 @@ static int ovl_rename(struct mnt_idmap *idmap, stru=
-ct inode *olddir,
->         int err;
->         struct dentry *old_upperdir;
->         struct dentry *new_upperdir;
-> -       struct dentry *olddentry;
-> -       struct dentry *newdentry;
-> -       struct dentry *trap;
-> +       struct dentry *olddentry =3D NULL;
-> +       struct dentry *newdentry =3D NULL;
-> +       struct dentry *trap, *de;
->         bool old_opaque;
->         bool new_opaque;
->         bool cleanup_whiteout =3D false;
-> @@ -1197,21 +1197,23 @@ static int ovl_rename(struct mnt_idmap *idmap, st=
-ruct inode *olddir,
->                 goto out_revert_creds;
->         }
->
-> -       olddentry =3D ovl_lookup_upper(ofs, old->d_name.name, old_upperdi=
-r,
-> -                                    old->d_name.len);
-> -       err =3D PTR_ERR(olddentry);
-> -       if (IS_ERR(olddentry))
-> +       de =3D ovl_lookup_upper(ofs, old->d_name.name, old_upperdir,
-> +                             old->d_name.len);
-> +       err =3D PTR_ERR(de);
-> +       if (IS_ERR(de))
->                 goto out_unlock;
-> +       olddentry =3D de;
->
->         err =3D -ESTALE;
->         if (!ovl_matches_upper(old, olddentry))
-> -               goto out_dput_old;
-> +               goto out_unlock;
->
-> -       newdentry =3D ovl_lookup_upper(ofs, new->d_name.name, new_upperdi=
-r,
-> -                                    new->d_name.len);
-> -       err =3D PTR_ERR(newdentry);
-> -       if (IS_ERR(newdentry))
-> -               goto out_dput_old;
-> +       de =3D ovl_lookup_upper(ofs, new->d_name.name, new_upperdir,
-> +                             new->d_name.len);
-> +       err =3D PTR_ERR(de);
-> +       if (IS_ERR(de))
-> +               goto out_unlock;
-> +       newdentry =3D de;
->
->         old_opaque =3D ovl_dentry_is_opaque(old);
->         new_opaque =3D ovl_dentry_is_opaque(new);
-> @@ -1220,28 +1222,28 @@ static int ovl_rename(struct mnt_idmap *idmap, st=
-ruct inode *olddir,
->         if (d_inode(new) && ovl_dentry_upper(new)) {
->                 if (opaquedir) {
->                         if (newdentry !=3D opaquedir)
-> -                               goto out_dput;
-> +                               goto out_unlock;
->                 } else {
->                         if (!ovl_matches_upper(new, newdentry))
-> -                               goto out_dput;
-> +                               goto out_unlock;
->                 }
->         } else {
->                 if (!d_is_negative(newdentry)) {
->                         if (!new_opaque || !ovl_upper_is_whiteout(ofs, ne=
-wdentry))
-> -                               goto out_dput;
-> +                               goto out_unlock;
->                 } else {
->                         if (flags & RENAME_EXCHANGE)
-> -                               goto out_dput;
-> +                               goto out_unlock;
->                 }
->         }
->
->         if (olddentry =3D=3D trap)
-> -               goto out_dput;
-> +               goto out_unlock;
->         if (newdentry =3D=3D trap)
-> -               goto out_dput;
-> +               goto out_unlock;
->
->         if (olddentry->d_inode =3D=3D newdentry->d_inode)
-> -               goto out_dput;
-> +               goto out_unlock;
->
->         err =3D 0;
->         if (ovl_type_merge_or_lower(old))
-> @@ -1249,7 +1251,7 @@ static int ovl_rename(struct mnt_idmap *idmap, stru=
-ct inode *olddir,
->         else if (is_dir && !old_opaque && ovl_type_merge(new->d_parent))
->                 err =3D ovl_set_opaque_xerr(old, olddentry, -EXDEV);
->         if (err)
-> -               goto out_dput;
-> +               goto out_unlock;
->
->         if (!overwrite && ovl_type_merge_or_lower(new))
->                 err =3D ovl_set_redirect(new, samedir);
-> @@ -1257,12 +1259,12 @@ static int ovl_rename(struct mnt_idmap *idmap, st=
-ruct inode *olddir,
->                  ovl_type_merge(old->d_parent))
->                 err =3D ovl_set_opaque_xerr(new, newdentry, -EXDEV);
->         if (err)
-> -               goto out_dput;
-> +               goto out_unlock;
->
->         err =3D ovl_do_rename(ofs, old_upperdir, olddentry,
->                             new_upperdir, newdentry, flags);
->         if (err)
-> -               goto out_dput;
-> +               goto out_unlock;
->
->         if (cleanup_whiteout)
->                 ovl_cleanup(ofs, old_upperdir->d_inode, newdentry);
-> @@ -1284,10 +1286,6 @@ static int ovl_rename(struct mnt_idmap *idmap, str=
-uct inode *olddir,
->         if (d_inode(new) && ovl_dentry_upper(new))
->                 ovl_copyattr(d_inode(new));
->
-> -out_dput:
-> -       dput(newdentry);
-> -out_dput_old:
-> -       dput(olddentry);
->  out_unlock:
->         unlock_rename(new_upperdir, old_upperdir);
->  out_revert_creds:
-> @@ -1297,6 +1295,8 @@ static int ovl_rename(struct mnt_idmap *idmap, stru=
-ct inode *olddir,
->         else
->                 ovl_drop_write(old);
->  out:
-> +       dput(newdentry);
-> +       dput(olddentry);
->         dput(opaquedir);
->         ovl_cache_free(&list);
->         return err;
-> --
-> 2.49.0
->
