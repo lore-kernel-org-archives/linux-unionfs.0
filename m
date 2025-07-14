@@ -1,24 +1,24 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07EAD2E630;
-	Mon, 14 Jul 2025 01:35:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 067AE17B50F;
+	Mon, 14 Jul 2025 01:44:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752456904; cv=none; b=WV7n0xN2DP3j05mulksv5wIOx+QrHznW7w4XUWwk9TsTrBXcFW1XHHUcfM4Q1m/DOe2EXOInLX/fgLB3yQEegNifqts9BZmogn+RgIlqydZ/JCGXOIae2hsu4fLlZBCrUHQXmvQN6NMDSBrozzJRrMuSICcuHAuIuLoLVn1p85U=
+	t=1752457471; cv=none; b=cyl0W+GRMhA6g6Oz/+gxVjCfRq1M1vl9LxwWuquB9h5ZSV5NAHMlei/DxiEbXlkHhSAGXGYTdnWRRsCiCZ90Aogp0efZYG5n1KJ1MZrCdIZ0qYiN4opmyjouMobnL7Q3/JnDE4lVe1V+WlpNEEv/ga5JAnpQnogWey80tB0eqjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752456904; c=relaxed/simple;
-	bh=NHU1kztA7ZfgcTYXnt2QUKFhgqcNjIzYlmVZojQchaI=;
+	s=arc-20240116; t=1752457471; c=relaxed/simple;
+	bh=kA9IMTjkFU32Fl82QWXLmkIFoCZ2okJoOdwmem4eKSo=;
 	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=QiwKFIgUe8Kktdwm1f5gGNk386hMZK0kC5XyMCWwkA9HSmt6HN43NxR2rPE67FaDcoA0v6P86yCUotIkrMSin2NHMXuHgobwMAFKsUk2qEZH/XYhvC+m0POZWDKSJqnDWD/VNGXalT16Gm6Iqf8+xccsI8x/mSHws+9Wb9IIcYA=
+	 References:Date:Message-id; b=ef14kMS0jSsf21m6JjIEQQAw5SmprmqB69gUETDs0uaEUJiFCJeZKGPbBFv0NGTsP7G7m+nwZWvwBsmmgxlT8cPjM6/LcngZikCtmmNzcovfC4myB/+bHOUs4FazjPuMOlMTFtlj8iTZakRrxRAKRO09A4h8zZpthLxqk0ZHUEE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ub85r-001w49-Cn;
-	Mon, 14 Jul 2025 01:35:01 +0000
+	id 1ub8F0-001w6L-Gt;
+	Mon, 14 Jul 2025 01:44:28 +0000
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
@@ -31,130 +31,119 @@ From: "NeilBrown" <neil@brown.name>
 To: "Amir Goldstein" <amir73il@gmail.com>
 Cc: "Miklos Szeredi" <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
  linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 15/20] ovl: narrow locking on ovl_remove_and_whiteout()
+Subject: Re: [PATCH 17/20] ovl: narrow locking in ovl_whiteout()
 In-reply-to:
- <CAOQ4uxiv+UeEsGAihjGUajyOfX6P0QQ=xt9bMxZv+-WQM4rYjQ@mail.gmail.com>
+ <CAOQ4uxgHAun6Z3q_adGSs0GqE+WpZfYCpXejuC3DrUS9mF2rwQ@mail.gmail.com>
 References:
- <>, <CAOQ4uxiv+UeEsGAihjGUajyOfX6P0QQ=xt9bMxZv+-WQM4rYjQ@mail.gmail.com>
-Date: Mon, 14 Jul 2025 11:35:00 +1000
-Message-id: <175245690090.2234665.5628796793048465986@noble.neil.brown.name>
+ <>, <CAOQ4uxgHAun6Z3q_adGSs0GqE+WpZfYCpXejuC3DrUS9mF2rwQ@mail.gmail.com>
+Date: Mon, 14 Jul 2025 11:44:28 +1000
+Message-id: <175245746802.2234665.6652040882873329423@noble.neil.brown.name>
 
-On Fri, 11 Jul 2025, Amir Goldstein wrote:
+On Sat, 12 Jul 2025, Amir Goldstein wrote:
 > On Fri, Jul 11, 2025 at 1:21=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
 > >
-> > Normally it is ok to include a lookup with the subsequent operation on
-> > the result.  However in this case ovl_cleanup_and_whiteout() already
-> > (potentially) creates a whiteout inode so we need separate locking.
->=20
-> The change itself looks fine and simple, but I didn't understand the text a=
-bove.
->=20
-> Can you please explain?
-
-Maybe that was really a note to myself - at first glance the change
-looked a little misguided.
-
-While it is possible to perform the lookups outside the directory lock,
-the take the lock, check the parents, perform the operation, it is
-generally better to combine the lookup with the lock (hence my proposed
-lookup_and_lock operations).
-
-In the current locking scheme, performing the lookup and the operation
-under the one lock avoids some races.
-In my new code we don't avoid the race but the lookup-and-lock can
-detect the race and repeat the lookup.
-
-So in generally we can avoid returning the -EINVAL if the parent check
-fails.
-
-So changing code that did a lookup and rename in the same lock to code
-which takes the lock twice seems wrong.  I wanted to justify it, and the
-justification is the need to create the whiteout between the lookup and
-the rename.
-
-A different way to do this might be the create the whiteout before doing
-the lookup_upper.  That would require a larger refactoring that probably
-isn't justified.
-
-I've changed it to:
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-This code:
-  performs a lookup_upper
-  created a whiteout object
-  renames the whiteout over the result of the lookup
-
-The create and the rename must be locked separated for proposed
-directory locking changes.  This patch takes a first step of moving the
-lookup out of the locked region.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-Thanks,
-NeilBrown
-
-
->=20
-> Thanks,
-> Amir.
->=20
+> > ovl_whiteout() relies on the workdir i_rwsem to provide exclusive access
+> > to ofs->whiteout which it manipulates.  Rather than depending on this,
+> > add a new mutex, "whiteout_lock" to explicitly provide the required
+> > locking.  Use guard(mutex) for this so that we can return without
+> > needing to explicitly unlock.
+> >
+> > Then take the lock on workdir only when needed - to lookup the temp name
+> > and to do the whiteout or link.
 > >
 > > Signed-off-by: NeilBrown <neil@brown.name>
 > > ---
-> >  fs/overlayfs/dir.c | 17 ++++++++---------
-> >  1 file changed, 8 insertions(+), 9 deletions(-)
+> >  fs/overlayfs/dir.c       | 49 +++++++++++++++++++++-------------------
+> >  fs/overlayfs/ovl_entry.h |  1 +
+> >  fs/overlayfs/params.c    |  2 ++
+> >  3 files changed, 29 insertions(+), 23 deletions(-)
 > >
 > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > index d01e83f9d800..8580cd5c61e4 100644
+> > index 086719129be3..fd89c25775bd 100644
 > > --- a/fs/overlayfs/dir.c
 > > +++ b/fs/overlayfs/dir.c
-> > @@ -769,15 +769,11 @@ static int ovl_remove_and_whiteout(struct dentry *d=
-entry,
-> >                         goto out;
-> >         }
+> > @@ -84,41 +84,44 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
+> >         struct dentry *workdir =3D ofs->workdir;
+> >         struct inode *wdir =3D workdir->d_inode;
 > >
-> > -       err =3D ovl_lock_rename_workdir(workdir, NULL, upperdir, NULL);
-> > -       if (err)
-> > -               goto out_dput;
-> > -
-> > -       upper =3D ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
-> > -                                dentry->d_name.len);
-> > +       upper =3D ovl_lookup_upper_unlocked(ofs, dentry->d_name.name, upp=
-erdir,
-> > +                                         dentry->d_name.len);
-> >         err =3D PTR_ERR(upper);
-> >         if (IS_ERR(upper))
-> > -               goto out_unlock;
-> > +               goto out_dput;
-> >
-> >         err =3D -ESTALE;
-> >         if ((opaquedir && upper !=3D opaquedir) ||
-> > @@ -786,6 +782,10 @@ static int ovl_remove_and_whiteout(struct dentry *de=
-ntry,
-> >                 goto out_dput_upper;
-> >         }
-> >
-> > +       err =3D ovl_lock_rename_workdir(workdir, NULL, upperdir, upper);
-> > +       if (err)
-> > +               goto out_dput_upper;
+> > -       inode_lock_nested(wdir, I_MUTEX_PARENT);
+> > +       guard(mutex)(&ofs->whiteout_lock);
 > > +
-> >         err =3D ovl_cleanup_and_whiteout(ofs, upperdir, upper);
-> >         if (err)
-> >                 goto out_d_drop;
-> > @@ -793,10 +793,9 @@ static int ovl_remove_and_whiteout(struct dentry *de=
-ntry,
-> >         ovl_dir_modified(dentry->d_parent, true);
-> >  out_d_drop:
-> >         d_drop(dentry);
-> > +       unlock_rename(workdir, upperdir);
-> >  out_dput_upper:
-> >         dput(upper);
-> > -out_unlock:
-> > -       unlock_rename(workdir, upperdir);
-> >  out_dput:
-> >         dput(opaquedir);
-> >  out:
-> > --
-> > 2.49.0
+> >         if (!ofs->whiteout) {
+> > +               inode_lock_nested(wdir, I_MUTEX_PARENT);
+> >                 whiteout =3D ovl_lookup_temp(ofs, workdir);
+> > -               if (IS_ERR(whiteout))
+> > -                       goto out;
+> > -
+> > -               err =3D ovl_do_whiteout(ofs, wdir, whiteout);
+> > -               if (err) {
+> > -                       dput(whiteout);
+> > -                       whiteout =3D ERR_PTR(err);
+> > -                       goto out;
+> > +               if (!IS_ERR(whiteout)) {
+> > +                       err =3D ovl_do_whiteout(ofs, wdir, whiteout);
+> > +                       if (err) {
+> > +                               dput(whiteout);
+> > +                               whiteout =3D ERR_PTR(err);
+> > +                       }
+> >                 }
+> > +               inode_unlock(wdir);
+> > +               if (IS_ERR(whiteout))
+> > +                       return whiteout;
+> >                 ofs->whiteout =3D whiteout;
+> >         }
 > >
+> >         if (!ofs->no_shared_whiteout) {
+> > +               inode_lock_nested(wdir, I_MUTEX_PARENT);
+> >                 whiteout =3D ovl_lookup_temp(ofs, workdir);
+> > -               if (IS_ERR(whiteout))
+> > -                       goto out;
+> > -
+> > -               err =3D ovl_do_link(ofs, ofs->whiteout, wdir, whiteout);
+> > -               if (!err)
+> > -                       goto out;
+> > -
+> > -               if (err !=3D -EMLINK) {
+> > -                       pr_warn("Failed to link whiteout - disabling whit=
+eout inode sharing(nlink=3D%u, err=3D%i)\n",
+> > -                               ofs->whiteout->d_inode->i_nlink, err);
+> > -                       ofs->no_shared_whiteout =3D true;
+> > +               if (!IS_ERR(whiteout)) {
+> > +                       err =3D ovl_do_link(ofs, ofs->whiteout, wdir, whi=
+teout);
+> > +                       if (err) {
+> > +                               dput(whiteout);
+> > +                               whiteout =3D ERR_PTR(err);
+> > +                       }
+> >                 }
+> > -               dput(whiteout);
+> > +               inode_unlock(wdir);
+> > +               if (!IS_ERR(whiteout) || PTR_ERR(whiteout) !=3D -EMLINK)
+> > +                       return whiteout;
 >=20
+> +               if (!IS_ERR(whiteout))
+> +                       return whiteout;
+>=20
+> > +
+> > +               pr_warn("Failed to link whiteout - disabling whiteout ino=
+de sharing(nlink=3D%u, err=3D%i)\n",
+> > +                       ofs->whiteout->d_inode->i_nlink, err);
+> > +               ofs->no_shared_whiteout =3D true;
+>=20
+> Logic was changed.
+> The above pr_warn and no_shared_whiteout =3D true and for the case of
+> PTR_ERR(whiteout) !=3D -EMLINK
+>=20
+> >         }
+> >         whiteout =3D ofs->whiteout;
+> >         ofs->whiteout =3D NULL;
+>=20
+> The outcome is the same with all errors - we return and reset
+> ofs->whiteout, but with EMLINK this is expected and not a warning
+> with other errors unexpected and warning and we do not try again
+> to hardlink to singleton whiteout.
 
+I see that now - thanks.  I've fix up the code.
+
+Thanks,
+NeilBrown
