@@ -1,78 +1,121 @@
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E712B672;
-	Tue, 15 Jul 2025 19:56:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.79.88.28
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1A5B10E4;
+	Wed, 16 Jul 2025 00:13:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752609369; cv=none; b=BXTWXx9xXwG7P0+laXpgXwS7pH8P5ogTyEI+m4EIx+7iDEVvFIcrEmB55CHEF3rdvOqR4Zp+Bkpvzao9niouflSPHmMPAwqK/AmUMzTrCKKdtLWEpSOSemvzIgYb/RczsCUZR7xoZVhXxxOmZkM3ZUbROGJdYa+FPwD2yFWHAb4=
+	t=1752624794; cv=none; b=CWIZsQlu7HGu/1nekgsenHSiPd+v3NXnC0yeaWXghIUgLisSsqi2QayTYFUiAnGG4MvSL5hMmF4jrKEptw9CHTznthu3my6r85dEJ5h8UZ7O8i8bmDNtCoRUbOij7CW2zDf3keu96+AVzmrWOxVVr9BgBfU0HpM5ptGQgIPFn74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752609369; c=relaxed/simple;
-	bh=+DV65RaR/WOE0wdNHoxnOcGlMqc1eC9PhAek4flM/yw=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=cl4Y7Yq+1CFTwlE4WBPGNYySUhQOqXXvwxXyWEV/QNAgqBUCTiTeCgK7WNi62c2naLiRhEDhdHnZpyX2jbefMB9FRz/SShwfphRHkdBjdzt+L0/5BAA+Src5dvJzPyorWv+DklPmnWiP1Jjv480Saa4iOGbYV4ov6ZLqsGG1SR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lwn.net; spf=pass smtp.mailfrom=lwn.net; dkim=pass (2048-bit key) header.d=lwn.net header.i=@lwn.net header.b=lQLbfZmz; arc=none smtp.client-ip=45.79.88.28
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lwn.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lwn.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lwn.net header.i=@lwn.net header.b="lQLbfZmz"
-DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net C15A34040B
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
-	t=1752609366; bh=+DV65RaR/WOE0wdNHoxnOcGlMqc1eC9PhAek4flM/yw=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=lQLbfZmzAkecYZs3sHU8dR7tfMTK0caXL/g+e1VUzV4np+RqZ1S/el7367btY0dwG
-	 aiM5djHyKkSygwj147il00Rxt/aaF7oLXz7onw4457JPokoV6cGV2/N5AuAGd1sCrD
-	 AkgwKkpBHr9BUme/kxgF6+M77uZLzz8rkBW1BueLcaWOokBCnQehi9Jp35TKWC2GX4
-	 jig8nSjGYJW7w/7r70zBD/dos8yA2wCKXgQOddACT1P6NAYpexfthQ14oAwmUpvg/r
-	 l7khsOd6BZRgQsMUobQuDJB1iYqUSI3yBssKoRyPMZysXUX0tgcEl8FH8UuyrxjiNA
-	 jc5ydprrjZUYQ==
-Received: from localhost (unknown [IPv6:2601:280:4600:2da9::1fe])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by ms.lwn.net (Postfix) with ESMTPSA id C15A34040B;
-	Tue, 15 Jul 2025 19:56:06 +0000 (UTC)
-From: Jonathan Corbet <corbet@lwn.net>
-To: Amir Goldstein <amir73il@gmail.com>, Matthias Frank <frank.mt125@gmail.com>
-Cc: linux-doc@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
- linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] overlayfs.rst: fix typos
-In-Reply-To: <CAOQ4uxhvBMJLWrDtuK3kOKDv0enMtAgpgV3WeR9Z9ZEDpOeu+A@mail.gmail.com>
-References: <20250710050607.2891-1-frank.mt125@gmail.com>
- <CAOQ4uxhvBMJLWrDtuK3kOKDv0enMtAgpgV3WeR9Z9ZEDpOeu+A@mail.gmail.com>
-Date: Tue, 15 Jul 2025 13:56:06 -0600
-Message-ID: <87frexfctl.fsf@trenco.lwn.net>
+	s=arc-20240116; t=1752624794; c=relaxed/simple;
+	bh=+/HDhExDF7Yx4AOGidioC6Y1nFyqT9UG8EJ6qDHo30g=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=ndU4L7lqLthFnpXlQMV9fBwyy0cK5Qe34xblREaWGYThhJDUQ2k/Wxgowcmrqfqn6OEEAPsGhel1aYvYmg1Hz6FacD/phYAkNh4mw6xMLIu5S+1Nn9STCbYg60qghFZqFACMne4YgifrreLE+QOY2zp0Y6o9WLBIBluv2y4vS3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1ubpld-002A43-5S;
+	Wed, 16 Jul 2025 00:13:02 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: "NeilBrown" <neil@brown.name>
+To: "Amir Goldstein" <amir73il@gmail.com>
+Cc: "Miklos Szeredi" <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, "Christian Brauner" <brauner@kernel.org>,
+ "Al Viro" <viro@zeniv.linux.org.uk>, "Jan Kara" <jack@suse.cz>
+Subject: Re: [PATCH 00/20 v2] ovl: narrow regions protected by i_rw_sem
+In-reply-to:
+ <CAOQ4uxhkAgJR0ALwVjUugYxNyu4JCkYFaZimOE6G--_AJi65mA@mail.gmail.com>
+References:
+ <>, <CAOQ4uxhkAgJR0ALwVjUugYxNyu4JCkYFaZimOE6G--_AJi65mA@mail.gmail.com>
+Date: Wed, 16 Jul 2025 10:13:02 +1000
+Message-id: <175262478253.2234665.1520483414112717438@noble.neil.brown.name>
 
-Amir Goldstein <amir73il@gmail.com> writes:
+On Mon, 14 Jul 2025, Amir Goldstein wrote:
+> [CC vfs maintainers]
+>=20
+> On Fri, Jul 11, 2025 at 6:41=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+> >
+> > On Fri, Jul 11, 2025 at 1:21=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+> > >
+> > > This is a revised set of patches following helpful feedback.  There are
+> > > now more patches, but they should be a lot easier to review.
+> >
+> > I confirm that this set was "reviewable" :)
+> >
+> > No major comments on my part, mostly petty nits.
+> >
+> > I would prefer to see parent_lock/unlock helpers in vfs for v3,
+> > but if you prefer to keep the prep patches internal to ovl, that's fine t=
+oo.
+> > In that case I'd prefer to use ovl_parent_lock/unlock, but if that's too
+> > painful, don't bother.
+> >
+> > Thanks,
+> > Amir.
+> >
+> > >
+> > > These patches are all in a git tree at
+> > >    https://github.com/neilbrown/linux/commits/pdirops
+> > > though there a lot more patches there too - demonstrating what is to co=
+me.
+> > > 0eaa1c629788 ovl: rename ovl_cleanup_unlocked() to ovl_cleanup()
+> > > is the last in the series posted here.
+> > >
+> > > I welcome further review.
+> > >
+> > > Original description:
+> > >
+> > > This series of patches for overlayfs is primarily focussed on preparing
+> > > for some proposed changes to directory locking.  In the new scheme we
+> > > will lock individual dentries in a directory rather than the whole
+> > > directory.
+> > >
+> > > ovl currently will sometimes lock a directory on the upper filesystem
+> > > and do a few different things while holding the lock.  This is
+> > > incompatible with the new scheme.
+> > >
+> > > This series narrows the region of code protected by the directory lock,
+> > > taking it multiple times when necessary.  This theoretically open up the
+> > > possibilty of other changes happening on the upper filesytem between the
+> > > unlock and the lock.  To some extent the patches guard against that by
+> > > checking the dentries still have the expect parent after retaking the
+> > > lock.  In general, I think ovl would have trouble if upperfs were being
+> > > changed independantly, and I don't think the changes here increase the
+> > > problem in any important way.
+> > >
+> > > I have tested this with fstests, both generic and unionfs tests.  I
+> > > wouldn't be surprised if I missed something though, so please review
+> > > carefully.
+> > >
+> > > After this series (with any needed changes) lands I will resubmit my
+> > > change to vfs_rmdir() behaviour to have it drop the lock on error.  ovl
+> > > will be much better positioned to handle that change.  It will come with
+> > > the new "lookup_and_lock" API that I am proposing.
+> > >
+>=20
+> Slightly off topic. As I know how much ovl code currently depends on
+> (perhaps even abuses) the directory inode lock beyond its vfs uses
+> (e.g. to synchronize internal ovl dir cache changes) just an idea that
+> came to my head for your followup patches -
+> Consider adding an assertion in WRAP_DIR_ITER() that disallows
+> i_op->no_dir_lock.
+> Not that any of the current users of WRAP_DIR_ITER() are candidates
+> for parallel dir ops (?), but its an easy assertion to add.
 
-> On Thu, Jul 10, 2025 at 7:06=E2=80=AFAM Matthias Frank <frank.mt125@gmail=
-.com> wrote:
->>
->> Grammatical fixes
->>
->> Signed-off-by: Matthias Frank <frank.mt125@gmail.com>
->> Acked-by: Amir Goldstein <amir73il@gmail.com>
->
-> Hi Matthias,
->
-> Thanks for making overlayfs.rst better!
->
-> Since my ACK was given off-list, I reaffirm it publicly.
->
-> Jon,
->
-> Can you please pick up this patch?
-
-Done.
+Thanks a sensible suggestion - thanks.
+Though removing the need for WRAP_DIR_ITER() would be nice too... Not an
+easy task for course.
 
 Thanks,
-
-jon
+NeilBrown
