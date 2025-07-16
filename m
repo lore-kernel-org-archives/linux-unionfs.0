@@ -1,290 +1,233 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4A56191F91;
-	Wed, 16 Jul 2025 00:47:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D503211A35;
+	Wed, 16 Jul 2025 03:55:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752626868; cv=none; b=qrwim6qvWmV1MQUaVF5hZOuJn5+oXTZ+NZ+ctQzCyB0G7gRUWJ9G5spRG4ZAwLtu/LmeKuyMYxZjAvn+zpgW9YS7dHT3OxSo9AbmCJUOxdHfpIdcdbjQtKQ2wgUUDB4R+4+fIdd6Oy7P6C2RFvEygQjCuwVfIzw1Ao4EMQBqDh0=
+	t=1752638109; cv=none; b=at0P/CU7YMymrR3R9xjhQJErK+eth92iKjoNJh4/j3BlhVltt6ZpMc+9lv0f00H+A2L+XcPebMjeb5Bc4nd199Wom+IT2n8wCzo0rbizPkDOaD2X44tE7zcfI88VKzEA01e3dvdcQW4KFx6ggoY/48pbCDa0PLhvtkpsiOBhHO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752626868; c=relaxed/simple;
-	bh=c6Mt4Lk1PjH9Jsh9NbGPjoFSR5VJjwwXA/5IhSwrUg0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KUF0AL4+kFPJxZzuyR+I+2d1OxdBGUC1zbIOkuWf6DiQF9256sw47QrvBmmfg8z2d1mgEff2SC0VnaNSM4VBCfh3FhLAWdIaIkRfv/4CkEwoCWWeZ6jE9px9XKGtBpl7XmD76hHHw3vrFYzbLJB9hH8Hs3kPXqFR9l9HveauS28=
+	s=arc-20240116; t=1752638109; c=relaxed/simple;
+	bh=Xnz0hk/bX/KBHAkfGrVlSqLxaE9TPP4B6T0NZ835CZo=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=UEqZs61NuQDjhbaLMQyrIDkB0wBTaTsj+Yq3w2dE6x8kApUiEXlVEacg5Ol5ufI/C9lk/kUUxMuHlZV9FXNvRrIneVUCRQujPvCpR+Z5ImLbpmNv2c/a3w7CZizzUGyAVrOaIkxRIwaCYPfDv/AniQWEzNBYOfcu/QdbUq2tUv0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ubqJD-002ACL-JN;
-	Wed, 16 Jul 2025 00:47:45 +0000
-From: NeilBrown <neil@brown.name>
-To: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org
-Subject: [PATCH v3 21/21] ovl: rename ovl_cleanup_unlocked() to ovl_cleanup()
-Date: Wed, 16 Jul 2025 10:44:32 +1000
-Message-ID: <20250716004725.1206467-22-neil@brown.name>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250716004725.1206467-1-neil@brown.name>
-References: <20250716004725.1206467-1-neil@brown.name>
+	id 1ubtEU-002B2e-Cp;
+	Wed, 16 Jul 2025 03:55:04 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: "NeilBrown" <neil@brown.name>
+To: "Amir Goldstein" <amir73il@gmail.com>
+Cc: "Christian Brauner" <brauner@kernel.org>,
+ "Miklos Szeredi" <miklos@szeredi.hu>,
+ "overlayfs" <linux-unionfs@vger.kernel.org>,
+ "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+ "Al Viro" <viro@zeniv.linux.org.uk>, "Jan Kara" <jack@suse.cz>
+Subject: Re: parent_lock/unlock (Was: [PATCH 01/20] ovl: simplify an error
+ path in ovl_copy_up_workdir())
+In-reply-to:
+ <CAOQ4uxjf=ig-t4GFPXzmKn1C26F3L9UAt1WKapLQ=nXbE8fOTQ@mail.gmail.com>
+References:
+ <>, <CAOQ4uxjf=ig-t4GFPXzmKn1C26F3L9UAt1WKapLQ=nXbE8fOTQ@mail.gmail.com>
+Date: Wed, 16 Jul 2025 13:55:03 +1000
+Message-id: <175263810368.2234665.188631625272611484@noble.neil.brown.name>
 
-The only remaining user of ovl_cleanup() is ovl_cleanup_locked(), so we
-no longer need both.
+On Mon, 14 Jul 2025, Amir Goldstein wrote:
+> [CC vfs maintainers who were not personally CCed on your patches
+> and changed the subject to focus on the topic at hand.]
+>=20
+> On Mon, Jul 14, 2025 at 2:13=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+> >
+> > On Fri, 11 Jul 2025, Amir Goldstein wrote:
+> > > On Fri, Jul 11, 2025 at 1:21=E2=80=AFAM NeilBrown <neil@brown.name> wro=
+te:
+> > > >
+> > > > If ovl_copy_up_data() fails the error is not immediately handled but =
+the
+> > > > code continues on to call ovl_start_write() and lock_rename(),
+> > > > presumably because both of these locks are needed for the cleanup.
+> > > > On then (if the lock was successful) is the error checked.
+> > > >
+> > > > This makes the code a little hard to follow and could be fragile.
+> > > >
+> > > > This patch changes to handle the error immediately.  A new
+> > > > ovl_cleanup_unlocked() is created which takes the required directory
+> > > > lock (though it doesn't take the write lock on the filesystem).  This
+> > > > will be used extensively in later patches.
+> > > >
+> > > > In general we need to check the parent is still correct after taking =
+the
+> > > > lock (as ovl_copy_up_workdir() does after a successful lock_rename())=
+ so
+> > > > that is included in ovl_cleanup_unlocked() using new lock_parent() and
+> > > > unlock_parent() calls (it is planned to move this API into VFS code
+> > > > eventually, though in a slightly different form).
+> > >
+> > > Since you are not planning to move it to VFS with this name
+> > > AND since I assume you want to merge this ovl cleanup prior
+> > > to the rest of of patches, please use an ovl helper without
+> > > the ovl_ namespace prefix and you have a typo above
+> > > its parent_lock() not lock_parent().
+> >
+> > I think you mean "with" rather than "without" ?
+>=20
+> Yeh.
+>=20
+> > But you separately say you would much rather this go into the VFS code
+> > first.
+>=20
+> On second thought. no strong feeling either way.
+> Using an internal ovl helper without ovl_ prefix is not good practice,
+> but I can also live with that for a short while, or at the very least
+> I am willing to defer the decision to the vfs maintainers.
+>=20
+> Pasting the helper here for context:
+>=20
+> > > > +
+> > > > +int parent_lock(struct dentry *parent, struct dentry *child)
+> > > > +{
+> > > > +       inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
+> > > > +       if (!child || child->d_parent =3D=3D parent)
+> > > > +               return 0;
+> > > > +
+> > > > +       inode_unlock(parent->d_inode);
+> > > > +       return -EINVAL;
+> > > > +}
+>=20
+> FWIW, as I mentioned before, this helper could be factored out
+> of the first part of lock_rename_child().
+>=20
+> >
+> > For me a core issue is how the patches will land.  If you are happy for
+> > these patches (once they are all approved of course) to land via the vfs
+> > tree, then I can certainly submit the new interfaces in VFS code first,
+> > then the ovl cleanups that use them.
+> >
+> > However I assumed that they were so substantial that you would want them
+> > to land via an ovl tree.  In that case I wouldn't want to have to wait
+> > for a couple of new interfaces to land in VFS before you could take the
+> > cleanups.
+> >
+> > What process do you imagine?
+> >
+>=20
+> Whatever process we choose is going to be collaborated with the vfs
+> maintainers.
+>=20
+> Right now, there are a few ovl patches on Cristian's vfs-6.17.file
+> branch and zero patches on overlayfs-next branch.
+>=20
+> What I would like to do is personally apply and test your patches
+> (based on vfs-6.17.file).
+>=20
+> Then I will either send a PR to Christian before the merge window
+> or send the PR to Linux during the merge window and after vfs-6.17.file
+> PR lands.
+>=20
+> Within these options we have plenty of freedom to decide if we want
+> to keep parent_lock/unlock internal ovl helpers or vfs helpers.
+> It's really up to the vfs maintainers.
 
-This patch renames ovl_cleanup() to ovl_cleanup_locked() and makes it
-static.
-ovl_cleanup_unlocked() is renamed to ovl_cleanup().
+My preference is for the ovl patches to land somewhere with an
+ovl_parent_lock() helper which is expected to be short-lived.
+(have have today posted a new set of patches to fs-devel and elsewhere).
 
-Signed-off-by: NeilBrown <neil@brown.name>
----
- fs/overlayfs/copy_up.c   |  4 ++--
- fs/overlayfs/dir.c       | 27 ++++++++++++++-------------
- fs/overlayfs/overlayfs.h |  3 +--
- fs/overlayfs/readdir.c   | 10 +++++-----
- fs/overlayfs/super.c     |  4 ++--
- fs/overlayfs/util.c      |  2 +-
- 6 files changed, 25 insertions(+), 25 deletions(-)
+Then I can send patches to introduce new VFS APIs and we can have name
+discussion then.  Meanwhile I'l revise my name choice based on your
+input.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8f8dbe8a1d54..c4d7c281d473 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -569,7 +569,7 @@ static int ovl_create_index(struct dentry *dentry, const struct ovl_fh *fh,
- 	ovl_parent_unlock(indexdir);
- out:
- 	if (err)
--		ovl_cleanup_unlocked(ofs, indexdir, temp);
-+		ovl_cleanup(ofs, indexdir, temp);
- 	dput(temp);
- free_name:
- 	kfree(name.name);
-@@ -854,7 +854,7 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- cleanup:
- 	unlock_rename(c->workdir, c->destdir);
- cleanup_unlocked:
--	ovl_cleanup_unlocked(ofs, c->workdir, temp);
-+	ovl_cleanup(ofs, c->workdir, temp);
- 	dput(temp);
- 	goto out;
- }
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index dedf89546e5f..30619777f0f6 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -24,7 +24,8 @@ MODULE_PARM_DESC(redirect_max,
- 
- static int ovl_set_redirect(struct dentry *dentry, bool samedir);
- 
--int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir, struct dentry *wdentry)
-+static int ovl_cleanup_locked(struct ovl_fs *ofs, struct inode *wdir,
-+			      struct dentry *wdentry)
- {
- 	int err;
- 
-@@ -43,8 +44,8 @@ int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir, struct dentry *wdentry)
- 	return err;
- }
- 
--int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir,
--			 struct dentry *wdentry)
-+int ovl_cleanup(struct ovl_fs *ofs, struct dentry *workdir,
-+		struct dentry *wdentry)
- {
- 	int err;
- 
-@@ -52,7 +53,7 @@ int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir,
- 	if (err)
- 		return err;
- 
--	ovl_cleanup(ofs, workdir->d_inode, wdentry);
-+	ovl_cleanup_locked(ofs, workdir->d_inode, wdentry);
- 	ovl_parent_unlock(workdir);
- 
- 	return 0;
-@@ -149,14 +150,14 @@ int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *dir,
- 	if (err)
- 		goto kill_whiteout;
- 	if (flags)
--		ovl_cleanup_unlocked(ofs, ofs->workdir, dentry);
-+		ovl_cleanup(ofs, ofs->workdir, dentry);
- 
- out:
- 	dput(whiteout);
- 	return err;
- 
- kill_whiteout:
--	ovl_cleanup_unlocked(ofs, ofs->workdir, whiteout);
-+	ovl_cleanup(ofs, ofs->workdir, whiteout);
- 	goto out;
- }
- 
-@@ -351,7 +352,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 	return 0;
- 
- out_cleanup:
--	ovl_cleanup_unlocked(ofs, upperdir, newdentry);
-+	ovl_cleanup(ofs, upperdir, newdentry);
- 	dput(newdentry);
- 	return err;
- }
-@@ -411,7 +412,7 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
- 		goto out_cleanup_unlocked;
- 
- 	ovl_cleanup_whiteouts(ofs, upper, list);
--	ovl_cleanup_unlocked(ofs, workdir, upper);
-+	ovl_cleanup(ofs, workdir, upper);
- 
- 	/* dentry's upper doesn't match now, get rid of it */
- 	d_drop(dentry);
-@@ -421,7 +422,7 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
- out_cleanup:
- 	unlock_rename(workdir, upperdir);
- out_cleanup_unlocked:
--	ovl_cleanup_unlocked(ofs, workdir, opaquedir);
-+	ovl_cleanup(ofs, workdir, opaquedir);
- 	dput(opaquedir);
- out:
- 	return ERR_PTR(err);
-@@ -516,7 +517,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 		if (err)
- 			goto out_cleanup_unlocked;
- 
--		ovl_cleanup_unlocked(ofs, workdir, upper);
-+		ovl_cleanup(ofs, workdir, upper);
- 	} else {
- 		err = ovl_do_rename(ofs, workdir, newdentry, upperdir, upper, 0);
- 		unlock_rename(workdir, upperdir);
-@@ -526,7 +527,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 	ovl_dir_modified(dentry->d_parent, false);
- 	err = ovl_instantiate(dentry, inode, newdentry, hardlink, NULL);
- 	if (err) {
--		ovl_cleanup_unlocked(ofs, upperdir, newdentry);
-+		ovl_cleanup(ofs, upperdir, newdentry);
- 		dput(newdentry);
- 	}
- out_dput:
-@@ -541,7 +542,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- out_cleanup:
- 	unlock_rename(workdir, upperdir);
- out_cleanup_unlocked:
--	ovl_cleanup_unlocked(ofs, workdir, newdentry);
-+	ovl_cleanup(ofs, workdir, newdentry);
- 	dput(newdentry);
- 	goto out_dput;
- }
-@@ -1268,7 +1269,7 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
- 		goto out_revert_creds;
- 
- 	if (cleanup_whiteout)
--		ovl_cleanup_unlocked(ofs, old_upperdir, newdentry);
-+		ovl_cleanup(ofs, old_upperdir, newdentry);
- 
- 	if (overwrite && d_inode(new)) {
- 		if (new_is_dir)
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b1e31e060157..56de6e83d24e 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -857,8 +857,7 @@ struct ovl_cattr {
- struct dentry *ovl_create_real(struct ovl_fs *ofs,
- 			       struct dentry *parent, struct dentry *newdentry,
- 			       struct ovl_cattr *attr);
--int ovl_cleanup(struct ovl_fs *ofs, struct inode *dir, struct dentry *dentry);
--int ovl_cleanup_unlocked(struct ovl_fs *ofs, struct dentry *workdir, struct dentry *dentry);
-+int ovl_cleanup(struct ovl_fs *ofs, struct dentry *workdir, struct dentry *dentry);
- struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdir);
- struct dentry *ovl_create_temp(struct ovl_fs *ofs, struct dentry *workdir,
- 			       struct ovl_cattr *attr);
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index ecbf39a49d57..b65cdfce31ce 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -1048,7 +1048,7 @@ void ovl_cleanup_whiteouts(struct ovl_fs *ofs, struct dentry *upper,
- 			continue;
- 		}
- 		if (dentry->d_inode)
--			ovl_cleanup_unlocked(ofs, upper, dentry);
-+			ovl_cleanup(ofs, upper, dentry);
- 		dput(dentry);
- 	}
- }
-@@ -1156,7 +1156,7 @@ int ovl_workdir_cleanup(struct ovl_fs *ofs, struct dentry *parent,
- 	int err;
- 
- 	if (!d_is_dir(dentry) || level > 1)
--		return ovl_cleanup_unlocked(ofs, parent, dentry);
-+		return ovl_cleanup(ofs, parent, dentry);
- 
- 	err = ovl_parent_lock(parent, dentry);
- 	if (err)
-@@ -1168,7 +1168,7 @@ int ovl_workdir_cleanup(struct ovl_fs *ofs, struct dentry *parent,
- 
- 		err = ovl_workdir_cleanup_recurse(ofs, &path, level + 1);
- 		if (!err)
--			err = ovl_cleanup_unlocked(ofs, parent, dentry);
-+			err = ovl_cleanup(ofs, parent, dentry);
- 	}
- 
- 	return err;
-@@ -1217,7 +1217,7 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
- 			goto next;
- 		} else if (err == -ESTALE) {
- 			/* Cleanup stale index entries */
--			err = ovl_cleanup_unlocked(ofs, indexdir, index);
-+			err = ovl_cleanup(ofs, indexdir, index);
- 		} else if (err != -ENOENT) {
- 			/*
- 			 * Abort mount to avoid corrupting the index if
-@@ -1233,7 +1233,7 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
- 			err = ovl_cleanup_and_whiteout(ofs, indexdir, index);
- 		} else {
- 			/* Cleanup orphan index entries */
--			err = ovl_cleanup_unlocked(ofs, indexdir, index);
-+			err = ovl_cleanup(ofs, indexdir, index);
- 		}
- 
- 		if (err)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 9fd0b3acd1a4..4afa91882075 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -600,11 +600,11 @@ static int ovl_check_rename_whiteout(struct ovl_fs *ofs)
- 
- 	/* Best effort cleanup of whiteout and temp file */
- 	if (err)
--		ovl_cleanup_unlocked(ofs, workdir, whiteout);
-+		ovl_cleanup(ofs, workdir, whiteout);
- 	dput(whiteout);
- 
- cleanup_temp:
--	ovl_cleanup_unlocked(ofs, workdir, temp);
-+	ovl_cleanup(ofs, workdir, temp);
- 	release_dentry_name_snapshot(&name);
- 	dput(temp);
- 	dput(dest);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 3df0f3efe592..62f809cf8ba9 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1116,7 +1116,7 @@ static void ovl_cleanup_index(struct dentry *dentry)
- 					       indexdir, index);
- 	} else {
- 		/* Cleanup orphan index entries */
--		err = ovl_cleanup_unlocked(ofs, indexdir, index);
-+		err = ovl_cleanup(ofs, indexdir, index);
- 	}
- 	if (err)
- 		goto fail;
--- 
-2.49.0
+Thanks,
+NeilBrown
+
+>=20
+> > >
+> > > And apropos lock helper names, at the tip of your branch
+>=20
+> Reference for people who just joined:
+>=20
+>    https://github.com/neilbrown/linux/commits/pdirops
+>=20
+> > > the lock helpers used in ovl_cleanup() are named:
+> > > lock_and_check_dentry()/dentry_unlock()
+> > >
+> > > I have multiple comments on your choice of names for those helpers:
+> > > 1. Please use a consistent name pattern for lock/unlock.
+> > >     The pattern <obj-or-lock-type>_{lock,unlock}_* is far more common
+> > >     then the pattern lock_<obj-or-lock-type> in the kernel, but at least
+> > >     be consistent with dentry_lock_and_check() or better yet
+> > >     parent_lock() and later parent_lock_get_child()
+> >
+> > dentry_lock_and_check() does make sense - thanks.
+> >
+> > > 2. dentry_unlock() is a very strange name for a helper that
+> > >     unlocks the parent. The fact that you document what it does
+> > >     in Kernel-doc does not stop people reading the code using it
+> > >     from being confused and writing bugs.
+> >
+> > The plan is that dentry_lookup_and_lock() will only lock the parent durin=
+g a
+> > short interim period.  Maybe there will be one full release where that
+> > is the case.  As soon a practical (and we know this sort of large change
+> > cannot move quickly) dentry_lookup_and_lock() etc will only lock the
+> > dentry, not the directory.  The directory will only get locked
+> > immediately before call the inode_operations - for filesystems that
+> > haven't opted out.  Thus patches in my git tree don't full reflect this
+> > yet (Though the hints are there are the end) but that is my current
+> > plan, based on most recent feedback from Al Viro.
+> >
+> > > 3. Why not call it parent_unlock() like I suggested and like you
+> > >     used in this patch set and why not introduce it in VFS to begin wit=
+h?
+> > >     For that matter parent_unlock_{put,return}_child() is more clear IM=
+O.
+> >
+> > Because, as I say about, it is only incidentally about the parent. It is
+> > primarily about the dentry.
+>=20
+> When you have a helper named dentry_unlock() that unlocks the
+> parent inode, it's not good naming IMO.
+>=20
+> When you have a helper called parent_unlock_put_child()
+> or dentry_put_and_unlock_parent() there is no ambiguity about
+> the subject of the operations.
+>=20
+> >
+> > > 4. The name dentry_unlock_rename(&rd) also does not balance nicely with
+> > >     the name lookup_and_lock_rename(&rd) and has nothing to do with the
+> > >     dentry_ prefix. How about lookup_done_and_unlock_rename(&rd)?
+> >
+> > The is probably my least favourite name....  I did try some "done"
+> > variants (following one from done_path_create()).  But if felt it should
+> > be "done_$function-that-started-this-interaction()" and that resulted in
+> >    done_dentry_lookup_and_lock()
+> > or similar, and having "lock" in an unlock function was weird.
+> > Your "done_and_unlock" addresses this but results and long name that
+> > feels clumsy to me.
+> >
+> > I chose the dentry_ prefix before I decided to pass the renamedata
+> > around (and I'm really happy about that latter choice).  So
+> > reconsidering the name is definitely appropriate.
+> > Maybe  renamedata_lock() and renamedata_unlock() ???
+> > renamedata_lock() can do lookups as well as locking, but maybe that is
+> > implied by the presense of old_last and new_last in renamedata...
+> >
+>=20
+> My biggest complaint was about the non balanced lock/unlock name pattern.
+> renamedata_lock/unlock() is fine by me and aligns very well with existing
+> lock helper name patterns.
+>=20
+> Thanks,
+> Amir.
+>=20
 
