@@ -1,120 +1,108 @@
-Received: from neil.brown.name (neil.brown.name [103.29.64.221])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71409533D6;
-	Wed, 16 Jul 2025 07:19:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86603289E0B;
+	Wed, 16 Jul 2025 07:35:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752650362; cv=none; b=LhJzRnvmDTTpinHXafxrVLJIeOCOyke7DuimODU2Uq60a9QDsjvEDSvhj3mZfrk1PGnzK/+NKfwOV8CFz48qPoVdxXvn2sGQMupERIiHL3/b+UorT4fFv+fyGZ1fjmgdsrbigwPOrTdUCL7kHq5TIeL+u/u9K5FXf1bmBMlQ678=
+	t=1752651335; cv=none; b=hEx18pikaDeYCCRmH8KEqpNy2YAtAkyF115r68lHNrqJbDiZydRPX5kVF2FSvMw2x/UEyG1Qwwp0k0BUdUaEqtqIMTEDUMlMZINTlLvGbB8AJJnx/DB1TXbuzHrPTEedTIvj2sm4wkiiG+wuBRdG+IQnaOZEAZThIYQujxNUyDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752650362; c=relaxed/simple;
-	bh=1bfrUDxm/b/XeEJlWjk9pPAxJua45ejSCUwZPLFurHk=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=YPZGRiRiElsq/HrNpBGdLOZ7F4GOGM/WAuxBVUrWMPEQQ1I0GyEx5XaxP4ceeCN0h/tX7QFljDeBzy13KOnSQZ/I+JlkFjirxH+c3KyHHnkmBFH6mBn3CHcSsu3f5GVIv2xxwed45XT71U3rXTxCgbDH6M968c6PYqIvkRMJiA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
-Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
-	by neil.brown.name with esmtp (Exim 4.95)
-	(envelope-from <mr@neil.brown.name>)
-	id 1ubwQ8-002C31-IR;
-	Wed, 16 Jul 2025 07:19:18 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=arc-20240116; t=1752651335; c=relaxed/simple;
+	bh=78+tpBJn33hSd9/wsG3MetwMUSK6DTYQtDO6aBY7PKA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=e9RNA8NAo5ISxmStU/tTgA7X9x8Oj56UBZI8Ud9JfDWx1TVhmlYBe+2UcHGAQwl3XHWgJ2yjIreGo8JKOgsFnfvoLVCoaitU5wRx10teq3H7yWuilpsB8V+aMooC1FHc5N13i8ARFUSRsCn5Sf6b7wpLYYAH1uhERBgpa3UDUvo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SdMDdEb1; arc=none smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SdMDdEb1"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-60c60f7eeaaso9887161a12.0;
+        Wed, 16 Jul 2025 00:35:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1752651332; x=1753256132; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=78+tpBJn33hSd9/wsG3MetwMUSK6DTYQtDO6aBY7PKA=;
+        b=SdMDdEb1WZg+atzaZf2CI0PWaBNWDtX+kuN+lZQHd/0zksP+tJTm/kJDL3i3J6VYsT
+         vqSQP0OsSdM47eAKwnJhXm2o0J1Gl5kI3TyphcU5idMWZiug+EGQ9hhCqdMIYKYbiwF0
+         ykvdNmZQgWTC9WthNQlOfU3sB06zF2qgpKB4CnVauC3O5X8WyUAYUlHlGo3F0F55wXln
+         Q1+m9wxarax1CHGFgANu3qLCJ3hvAHkPdOqouUoxGsR37HT8fCGuAdStzfFtM8R2p6l2
+         7z6hLOMbps1Nb5PlHO7JrnbuErmCOAWPFWTt7PvRrvTES8TIouhAdJhu5qsWz2hteCwr
+         2qJA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752651332; x=1753256132;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=78+tpBJn33hSd9/wsG3MetwMUSK6DTYQtDO6aBY7PKA=;
+        b=BPJJYIel1jGE3+cNvsBfPgXic/hfAI6NHnxWz3OclRyT2IBWNs5xQn3oFSmyIQ32RL
+         /C97HaIzcQllHVzK2cB6X8W8hZ4Zbz5IedZh8OZw0LwEPInxqrtJ/O+i1JzZSJ5qQPG3
+         Q3sQjH6hAqYl3SepnJqkUyKf3LedYCj1cH0MGMeWLv6mCrg6IVSmei6u/ViFFpcAstYS
+         06dKDojXhx47yX2JUUxyHEGCGN8ZdyeQe07s8Czy7AAf4eBSQ9RDGhBtFyYykLu6KuzQ
+         BxXA+d859ekhEevLE/ZDG5jbo0gDYE/wiC/wAd/raUzOD1Qr/w+CQiL2ZnA998TNzfRU
+         xruw==
+X-Forwarded-Encrypted: i=1; AJvYcCVPrFpMRNaohwpebE3Wb3UT4L6GpjM3x3Mc99ly01qYdtdX58Px5QV4BWe74+z/9CJa1NTX0GmQL8kLqADs@vger.kernel.org, AJvYcCXBI2AMn89RT1rXipLQXNE8J7PCgKbooZ9yLvCcU1zOwHyVsuB65Svxn63gnXVIfuo3zDfJbIZG2uqAmB+ufA==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzb4saXesX/jH8Woou2OVuw8Sclq2aXYCxnd5PBnBAhOzbQs75N
+	tqQhri3HyjSUEeJJkDNLrkt4Mmoz3P2JvNphcJJpl6lE77GWjIJ3fyKnqhe/fDNC7B/RA7WjepV
+	JFfFFsSqKJrpN/KMBG/wzuXtx3mCF78w=
+X-Gm-Gg: ASbGnct4+mjCb/9b+3IBx8vvnGBLfDBY6kZCecbU78DYb0z4Qi+gN587JmLq7Tw10SX
+	+BbKOx6Keerex6XtUCDxqR29EG7EYltBVbhGazVEfXqzBpVVSM4UH/NgzZtaxZZf7jUe5REM0Nz
+	x0wld5HIi6xmRcBsHMmvE8Iq2fXR4IhkHJe82UfMNYA8lHUMgtEcanbs/FP4xhjzZOsvJ8ABO6d
+	mTsPJo=
+X-Google-Smtp-Source: AGHT+IElvPGDS0hJdML+UHi4/NTXulOE/GszBzY9OMYjD4DZtXJIygZyGCT57CaIZ3SIsf2o2OYftA2TQ+O9EFLmtQU=
+X-Received: by 2002:a17:907:f1e5:b0:ae3:f294:2b3c with SMTP id
+ a640c23a62f3a-ae9c9ac15ebmr221819866b.28.1752651331392; Wed, 16 Jul 2025
+ 00:35:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "NeilBrown" <neil@brown.name>
-To: "Amir Goldstein" <amir73il@gmail.com>
-Cc: "Miklos Szeredi" <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
- linux-fsdevel@vger.kernel.org
+References: <20250716004725.1206467-1-neil@brown.name> <CAOQ4uxhyaJnqPvwpVyonb1QLpyFaeRYr1bUZQkCvN882v4vCaQ@mail.gmail.com>
+ <175265035807.2234665.12851015773166459586@noble.neil.brown.name>
+In-Reply-To: <175265035807.2234665.12851015773166459586@noble.neil.brown.name>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 16 Jul 2025 09:35:20 +0200
+X-Gm-Features: Ac12FXw3ryWDBMArglkQiFlUSTTAGp7AoZI6YsL7uByD0Vq07mkDqJtqT3t5VzM
+Message-ID: <CAOQ4uxiHNyBmJUSwFxpvkor_-h=GJEeZuD4Kkxus-1X81bgVEQ@mail.gmail.com>
 Subject: Re: [PATCH v3 00/21] ovl: narrow regions protected by i_rw_sem
-In-reply-to:
- <CAOQ4uxhyaJnqPvwpVyonb1QLpyFaeRYr1bUZQkCvN882v4vCaQ@mail.gmail.com>
-References: <20250716004725.1206467-1-neil@brown.name>,
- <CAOQ4uxhyaJnqPvwpVyonb1QLpyFaeRYr1bUZQkCvN882v4vCaQ@mail.gmail.com>
-Date: Wed, 16 Jul 2025 17:19:18 +1000
-Message-id: <175265035807.2234665.12851015773166459586@noble.neil.brown.name>
+To: NeilBrown <neil@brown.name>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 16 Jul 2025, Amir Goldstein wrote:
-> On Wed, Jul 16, 2025 at 2:47 AM NeilBrown <neil@brown.name> wrote:
+On Wed, Jul 16, 2025 at 9:19=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+>
+> On Wed, 16 Jul 2025, Amir Goldstein wrote:
+> > On Wed, Jul 16, 2025 at 2:47=E2=80=AFAM NeilBrown <neil@brown.name> wro=
+te:
+> > >
+> > > More excellent review feedback - more patches :-)
+> > >
+> > > I've chosen to use ovl_parent_lock() here as a temporary and leave th=
+e
+> > > debate over naming for the VFS version of the function until all the =
+new
+> > > names are introduced later.
 > >
-> > More excellent review feedback - more patches :-)
+> > Perfect.
 > >
-> > I've chosen to use ovl_parent_lock() here as a temporary and leave the
-> > debate over naming for the VFS version of the function until all the new
-> > names are introduced later.
-> 
-> Perfect.
-> 
-> Please push v3 patches to branch pdirops, or to a clean branch
-> based on vfs-6.17.file, so I can test them.
+> > Please push v3 patches to branch pdirops, or to a clean branch
+> > based on vfs-6.17.file, so I can test them.
+>
+> There is a branch "ovl" which is based on vfs.all as I depend on a
+> couple of other vfs changes.
 
-There is a branch "ovl" which is based on vfs.all as I depend on a
-couple of other vfs changes.
+ok I will test this one.
+
+Do you mean that ovl branch depends on other vfs changes or that pdirops
+which is based on ovl branch depends on other vfs changes?
+
+Just asking because I did not notice any other dependencies in ovl branch,
+so wanted to know which are they.
 
 Thanks,
-NeilBrown
-
-
-> 
-> Thanks,
-> Amir.
-> 
-> 
-> >
-> >
-> > Original description:
-> >
-> > This series of patches for overlayfs is primarily focussed on preparing
-> > for some proposed changes to directory locking.  In the new scheme we
-> > will lock individual dentries in a directory rather than the whole
-> > directory.
-> >
-> > ovl currently will sometimes lock a directory on the upper filesystem
-> > and do a few different things while holding the lock.  This is
-> > incompatible with the new scheme.
-> >
-> > This series narrows the region of code protected by the directory lock,
-> > taking it multiple times when necessary.  This theoretically open up the
-> > possibilty of other changes happening on the upper filesytem between the
-> > unlock and the lock.  To some extent the patches guard against that by
-> > checking the dentries still have the expect parent after retaking the
-> > lock.  In general, I think ovl would have trouble if upperfs were being
-> > changed independantly, and I don't think the changes here increase the
-> > problem in any important way.
-> >
-> > After this series (with any needed changes) lands I will resubmit my
-> > change to vfs_rmdir() behaviour to have it drop the lock on error.  ovl
-> > will be much better positioned to handle that change.  It will come with
-> > the new "lookup_and_lock" API that I am proposing.
-> >
-> > Thanks,
-> > NeilBrown
-> >
-> >  [PATCH v3 01/21] ovl: simplify an error path in ovl_copy_up_workdir()
-> >  [PATCH v3 02/21] ovl: change ovl_create_index() to take dir locks
-> >  [PATCH v3 03/21] ovl: Call ovl_create_temp() without lock held.
-> >  [PATCH v3 04/21] ovl: narrow the locked region in
-> >  [PATCH v3 05/21] ovl: narrow locking in ovl_create_upper()
-> >  [PATCH v3 06/21] ovl: narrow locking in ovl_clear_empty()
-> >  [PATCH v3 07/21] ovl: narrow locking in ovl_create_over_whiteout()
-> >  [PATCH v3 08/21] ovl: simplify gotos in ovl_rename()
-> >  [PATCH v3 09/21] ovl: narrow locking in ovl_rename()
-> >  [PATCH v3 10/21] ovl: narrow locking in ovl_cleanup_whiteouts()
-> >  [PATCH v3 11/21] ovl: narrow locking in ovl_cleanup_index()
-> >  [PATCH v3 12/21] ovl: narrow locking in ovl_workdir_create()
-> >  [PATCH v3 13/21] ovl: narrow locking in ovl_indexdir_cleanup()
-> >  [PATCH v3 14/21] ovl: narrow locking in ovl_workdir_cleanup_recurse()
-> >  [PATCH v3 15/21] ovl: change ovl_workdir_cleanup() to take dir lock
-> >  [PATCH v3 16/21] ovl: narrow locking on ovl_remove_and_whiteout()
-> >  [PATCH v3 17/21] ovl: change ovl_cleanup_and_whiteout() to take
-> >  [PATCH v3 18/21] ovl: narrow locking in ovl_whiteout()
-> >  [PATCH v3 19/21] ovl: narrow locking in ovl_check_rename_whiteout()
-> >  [PATCH v3 20/21] ovl: change ovl_create_real() to receive dentry
-> >  [PATCH v3 21/21] ovl: rename ovl_cleanup_unlocked() to ovl_cleanup()
-> 
-
+Amir.
