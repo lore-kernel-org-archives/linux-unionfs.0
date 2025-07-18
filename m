@@ -1,78 +1,119 @@
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1BC323B609
-	for <linux-unionfs@vger.kernel.org>; Thu, 17 Jul 2025 07:47:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.69
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2446729345E;
+	Fri, 18 Jul 2025 09:11:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752738425; cv=none; b=Ey8JNtrmNDwJFdu1PTZSO5Okv19Hu0ZukRh13v1KGKNf1lU6Qlktd8ngAYxeuPmM8aA/+vg5g+svshdqF3+eCSOM2529gEyb6A1izwZ8UUKFHjwnzaWZRFhXy/w/yVA28TYzdAaI5Q6TB3F1ur0aemgdvOAZVfhO/D2PhVvGCzY=
+	t=1752829890; cv=none; b=FSlDGovdlTrkGM2VrM8QpZgCsKTu/obHr8AlLb3XDmxV9lHaht8oL+6DDxKhts1GdgKgB5PYzTF8zrd+f7tG2PldXiW/obyvd6Nz0KXYDN/C6CkzKCejKo7WevC00lvl15P42TPclfBAFuNilHjNQWyWjmM/ub+WDOuH+Gno0go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752738425; c=relaxed/simple;
-	bh=oAushCkBvV9QVtlmVzcvZy/T7QeVNIgehZzoxP8tyJI=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=Z0mHPk4vJgmufb2LTjPyu9FRbQDQxnVOyhVZjoBSUwBB+tCC7wiqxVRj3o9br7hlnt9iTKfW7rbWlKLsWChlQZF4U6wP5Of/fe5lGrFkz7im6hmoZwHV7Xcu/fnHvKCb+VJ8kcPY3qbpAqBmdtIQ1ZMgHCTKOAWRj3xVgGUx8OQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.69
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-8649be94fa1so129218639f.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Jul 2025 00:47:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752738423; x=1753343223;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=i4XNUZgAi+l283TvCsQpiUhvK+cuI7VeHcRlXxmM9i8=;
-        b=i9UAl8TPx4ODpwTPnNNMaTkIUXTpCr+IExSBp21PbkGxyPL6OKu6jNP65VwFavMsR4
-         6BdqRIixuYGVY7uljR4lXR0qGSIAZvV6y8i/myoRPRq3CGxJNm0Ba34KRe+LqgfCCbY7
-         61pjKwGiZRhIpN9fUzJYc3VuS3xgJoD7pyUi7Q+tc8BQWNlWRXDK5OSSluYl3b6ufbGe
-         E+y9/rSECmfGo5zPLYyDG4VhVQQGXE0ICThUDkb3ZO4qM2sYxGxeZbBmUbZx4LS3Rsac
-         pZOlBtkp4x9L1FBgsd0rtTGWUMPuT/qeTUu3U3cTsMUbmByAWmGyVcsmVFUBLD/3BXyU
-         2qeQ==
-X-Forwarded-Encrypted: i=1; AJvYcCV1Ex7MUrj/PwbGaltu2OsxW4CohHEZZzSI8a2BZ2Ad+/E2Tpj3ZBIAKbVQ5jcfvHL8U0YXzC/0jqKpG0Cl@vger.kernel.org
-X-Gm-Message-State: AOJu0YwRQfsUL+MXtVmkCAfcZAaQ72Cd2hjdnDo6y94slYysTEs+DhMu
-	8ERg1dwK7WQ98MrszmGXeSlrEFUPOaAQbz79TqopbzrhsieJ7QxTuD2LtmV5mIZC5I2rzlmrucC
-	+5tGMlv+Wu11i8exGUSGKhp5j/Z078+eYVFxFG7Z5UrEiG6DiV5jUUv5/NnU=
-X-Google-Smtp-Source: AGHT+IGz8aHEsyxj7rtahA3L5ydsmqjP1wxPohxhGBIyDbGW2LUyNzgIO3XefJSSds12HTndVIt9ieUIDcFlGhYdL3f9rFlmxmh/
+	s=arc-20240116; t=1752829890; c=relaxed/simple;
+	bh=MbCdnea9ZJyq6fhP0c/zVlePTXr7pc5/kKRdCAy0I6k=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KsjJj2Ix1bjKI6K9GlztlNG6XgdAeQaO78ioeN2Bt2ONw/Re5pakvrIAf8XE9hG0Wh4WS004yIOzDfJd+HdJ9WahTTpgKLyYCxAxLwapD1QgE3VbuGkTIHro+RCQ+VsX9DXSObx1zvj70hfh9M65TmwhiKtEiBtPZWpcF7EF4XA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ry2CK0u5; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ry2CK0u5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 087DBC4CEEB;
+	Fri, 18 Jul 2025 09:11:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1752829889;
+	bh=MbCdnea9ZJyq6fhP0c/zVlePTXr7pc5/kKRdCAy0I6k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Ry2CK0u53wG5ldih4cSB0LgXH6k94lU8ydkgE/npWdfSZaKoJsvYukupsHz6mnooX
+	 xPHGxwDdqjqXWNOpyJWF97VZpMwrcQStbnjijsz4pFB1eC/4tb+6q8BNODdC5JILF2
+	 aM6g6SdncxwmLwTdyIhiKl9OaKSnxSgU7xnIRjQjJ5chJye1Q4WjZpJduUwgNCP4lF
+	 lEnZj8kG/Y8ifaiaXljWTSuc1LyyVgA9tKdGSTGR/RlNhuJuCkKW/Pcl/qXZBF8ExC
+	 ji0eSmkKrLegEDputyHT8nWrGT+/49YiMqeqxSK/SFuOZUXzc2dm6RvAHE5lytEyBD
+	 7qsxL7X7QY7aA==
+From: Christian Brauner <brauner@kernel.org>
+To: NeilBrown <neil@brown.name>
+Cc: Christian Brauner <brauner@kernel.org>,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3 00/21] ovl: narrow regions protected by i_rw_sem
+Date: Fri, 18 Jul 2025 11:11:18 +0200
+Message-ID: <20250718-querverbindung-knieoperation-40867cf9097f@brauner>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250716004725.1206467-1-neil@brown.name>
+References: <20250716004725.1206467-1-neil@brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6602:6c0d:b0:86c:e686:ca29 with SMTP id
- ca18e2360f4ac-879c0892211mr769810239f.2.1752738423049; Thu, 17 Jul 2025
- 00:47:03 -0700 (PDT)
-Date: Thu, 17 Jul 2025 00:47:03 -0700
-In-Reply-To: <6828591c.a00a0220.398d88.0248.GAE@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6878aa77.a70a0220.693ce.0040.GAE@google.com>
-Subject: Re: [syzbot] [overlayfs?] WARNING in ovl_listxattr
-From: syzbot <syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, brauner@kernel.org, eadavis@qq.com, jack@suse.cz, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, lizhi.xu@windriver.com, miklos@szeredi.hu, 
-	stephen.smalley.work@gmail.com, syzkaller-bugs@googlegroups.com, 
-	viro@zeniv.linux.org.uk
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3337; i=brauner@kernel.org; h=from:subject:message-id; bh=MbCdnea9ZJyq6fhP0c/zVlePTXr7pc5/kKRdCAy0I6k=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWRU8e8RXGh83i6hU431z/MNh85/2WKn/nLFor2FhV4na zao79r1qaOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiaZ2MDDtK9Z/6be429upd MbXuck7u5Ene3um3Zzg4eR86u+pEVy4jw6Y3f5as77Nrkt5hmtfZpyC1lf1HtKrk/3/bzh1MMTJ TYAQA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-syzbot suspects this issue was fixed by commit:
+On Wed, 16 Jul 2025 10:44:11 +1000, NeilBrown wrote:
+> More excellent review feedback - more patches :-)
+> 
+> I've chosen to use ovl_parent_lock() here as a temporary and leave the
+> debate over naming for the VFS version of the function until all the new
+> names are introduced later.
+> 
+> 
+> [...]
 
-commit 800d0b9b6a8b1b354637b4194cc167ad1ce2bdd3
-Author: Stephen Smalley <stephen.smalley.work@gmail.com>
-Date:   Thu Jun 5 16:51:16 2025 +0000
+Applied to the vfs-6.17.file branch of the vfs/vfs.git tree.
+Patches in the vfs-6.17.file branch should appear in linux-next soon.
 
-    fs/xattr.c: fix simple_xattr_list()
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=173de382580000
-start commit:   e9565e23cd89 Merge tag 'sched_ext-for-6.15-rc6-fixes' of g..
-git tree:       upstream
-kernel config:  https://syzkaller.appspot.com/x/.config?x=5929ac65be9baf3c
-dashboard link: https://syzkaller.appspot.com/bug?extid=4125590f2a9f5b3cdf43
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12cb6af4580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1301f670580000
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
-If the result looks correct, please mark the issue as fixed by replying with:
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
 
-#syz fix: fs/xattr.c: fix simple_xattr_list()
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs-6.17.file
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+[01/21] ovl: simplify an error path in ovl_copy_up_workdir()
+        https://git.kernel.org/vfs/vfs/c/9d23967b18c6
+[02/21] ovl: change ovl_create_index() to take dir locks
+        https://git.kernel.org/vfs/vfs/c/c4f8f862b31c
+[03/21] ovl: Call ovl_create_temp() without lock held.
+        https://git.kernel.org/vfs/vfs/c/d2c995581c7c
+[04/21] ovl: narrow the locked region in ovl_copy_up_workdir()
+        https://git.kernel.org/vfs/vfs/c/a735bdf0b785
+[05/21] ovl: narrow locking in ovl_create_upper()
+        https://git.kernel.org/vfs/vfs/c/a07052e07b67
+[06/21] ovl: narrow locking in ovl_clear_empty()
+        https://git.kernel.org/vfs/vfs/c/4f622bd9f3e5
+[07/21] ovl: narrow locking in ovl_create_over_whiteout()
+        https://git.kernel.org/vfs/vfs/c/e460bc4d012c
+[08/21] ovl: simplify gotos in ovl_rename()
+        https://git.kernel.org/vfs/vfs/c/76342c9eb8e2
+[09/21] ovl: narrow locking in ovl_rename()
+        https://git.kernel.org/vfs/vfs/c/05468498cd2f
+[10/21] ovl: narrow locking in ovl_cleanup_whiteouts()
+        https://git.kernel.org/vfs/vfs/c/7dfb0722ad07
+[11/21] ovl: narrow locking in ovl_cleanup_index()
+        https://git.kernel.org/vfs/vfs/c/8290fb412d2f
+[12/21] ovl: narrow locking in ovl_workdir_create()
+        https://git.kernel.org/vfs/vfs/c/61eb7fec9e79
+[13/21] ovl: narrow locking in ovl_indexdir_cleanup()
+        https://git.kernel.org/vfs/vfs/c/d56c6feb69cb
+[14/21] ovl: narrow locking in ovl_workdir_cleanup_recurse()
+        https://git.kernel.org/vfs/vfs/c/a45ee87ded78
+[15/21] ovl: change ovl_workdir_cleanup() to take dir lock as needed.
+        https://git.kernel.org/vfs/vfs/c/241062ae5d87
+[16/21] ovl: narrow locking on ovl_remove_and_whiteout()
+        https://git.kernel.org/vfs/vfs/c/c69566b1d11d
+[17/21] ovl: change ovl_cleanup_and_whiteout() to take rename lock as needed
+        https://git.kernel.org/vfs/vfs/c/2fa14cf2dca1
+[18/21] ovl: narrow locking in ovl_whiteout()
+        https://git.kernel.org/vfs/vfs/c/8afa0a736713
+[19/21] ovl: narrow locking in ovl_check_rename_whiteout()
+        https://git.kernel.org/vfs/vfs/c/09d56cc88c24
+[20/21] ovl: change ovl_create_real() to receive dentry parent
+        https://git.kernel.org/vfs/vfs/c/ee37c3cfc5df
+[21/21] ovl: rename ovl_cleanup_unlocked() to ovl_cleanup()
+        https://git.kernel.org/vfs/vfs/c/fe4d3360f9cb
