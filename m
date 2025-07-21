@@ -1,119 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2446729345E;
-	Fri, 18 Jul 2025 09:11:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2640623C50D
+	for <linux-unionfs@vger.kernel.org>; Mon, 21 Jul 2025 20:38:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752829890; cv=none; b=FSlDGovdlTrkGM2VrM8QpZgCsKTu/obHr8AlLb3XDmxV9lHaht8oL+6DDxKhts1GdgKgB5PYzTF8zrd+f7tG2PldXiW/obyvd6Nz0KXYDN/C6CkzKCejKo7WevC00lvl15P42TPclfBAFuNilHjNQWyWjmM/ub+WDOuH+Gno0go=
+	t=1753130322; cv=none; b=XPeQYZOYQ9x1QC2Xh0QMk/VjeEk/abAYJ9oLvuC3+qunMH6d4gl3D/FLlqHUFpJfFNrsc1P7HMBS6NMB0IBTNvLnYidFHRfaU/xO/gSWnVuoKDZI+31Zim9NBAj8yG07mX1dR17Vo5HrjnwjDJT6c0N0mCSmsqLhdz8bIDu/Jn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752829890; c=relaxed/simple;
-	bh=MbCdnea9ZJyq6fhP0c/zVlePTXr7pc5/kKRdCAy0I6k=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KsjJj2Ix1bjKI6K9GlztlNG6XgdAeQaO78ioeN2Bt2ONw/Re5pakvrIAf8XE9hG0Wh4WS004yIOzDfJd+HdJ9WahTTpgKLyYCxAxLwapD1QgE3VbuGkTIHro+RCQ+VsX9DXSObx1zvj70hfh9M65TmwhiKtEiBtPZWpcF7EF4XA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ry2CK0u5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753130322; c=relaxed/simple;
+	bh=cF0cDblRxaBqv+zuy1VnJ8EjpAZtAl/rxcErRzGHO1Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pr9iv+SC5Nu959MxWGt/3s/Crqr8kJCwFJjnQZXv1UnGJSuEYyvm3fb1mExzrzZOqK5vgWnYKLLQtChA+dRqBbmpmBm88E2QZlbx7508ui2fBAKv8ttLvJKA9nwys4L608CcYZID905/hKnVKZk8JUxAjNEd4/8tTvU7hKGP1+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com; spf=pass smtp.mailfrom=mandelbit.com; dkim=pass (2048-bit key) header.d=mandelbit.com header.i=@mandelbit.com header.b=ETGwTXqI; arc=none smtp.client-ip=209.85.128.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ry2CK0u5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 087DBC4CEEB;
-	Fri, 18 Jul 2025 09:11:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752829889;
-	bh=MbCdnea9ZJyq6fhP0c/zVlePTXr7pc5/kKRdCAy0I6k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ry2CK0u53wG5ldih4cSB0LgXH6k94lU8ydkgE/npWdfSZaKoJsvYukupsHz6mnooX
-	 xPHGxwDdqjqXWNOpyJWF97VZpMwrcQStbnjijsz4pFB1eC/4tb+6q8BNODdC5JILF2
-	 aM6g6SdncxwmLwTdyIhiKl9OaKSnxSgU7xnIRjQjJ5chJye1Q4WjZpJduUwgNCP4lF
-	 lEnZj8kG/Y8ifaiaXljWTSuc1LyyVgA9tKdGSTGR/RlNhuJuCkKW/Pcl/qXZBF8ExC
-	 ji0eSmkKrLegEDputyHT8nWrGT+/49YiMqeqxSK/SFuOZUXzc2dm6RvAHE5lytEyBD
-	 7qsxL7X7QY7aA==
-From: Christian Brauner <brauner@kernel.org>
-To: NeilBrown <neil@brown.name>
-Cc: Christian Brauner <brauner@kernel.org>,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=mandelbit.com header.i=@mandelbit.com header.b="ETGwTXqI"
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-4560cdf235cso23659775e9.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Jul 2025 13:38:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mandelbit.com; s=google; t=1753130318; x=1753735118; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZwS9SNcnm3V7/gtRA8ZdfIBKvMjo4/gCeN6JSpiTM+Q=;
+        b=ETGwTXqIwSiaPnp29AN16G0HQrGYjuiQC5XtwKOOtZdVFvBMwqKcn//DhssNNZvV3+
+         VMD41cLCdUPnDPfbWboaNLYfouHHwzcDcs5edh5MZ1sE509TK+cmZCo7snGlgBh7BWa8
+         y//LVQtDHevsk13jcvsscG1nAW1BBENWZ8EQtnFRYjAfP/uMd3pybuDabY/KBq1LcyNw
+         MDujUGTb2nEXFrrWJUt58NCpGS1Pcw4OeBawQfiQsQTw7mLKXNLNYbyzVmlWrBYRFV+w
+         S9c8LlpMZNh1uTR9dy2/7q8jiPRHLI5L2teEhW/Bj7dmH1kPrJvM0WYhCUWgxQoz6WWZ
+         SZww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1753130318; x=1753735118;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ZwS9SNcnm3V7/gtRA8ZdfIBKvMjo4/gCeN6JSpiTM+Q=;
+        b=lMP0R59g7qDi6cf2vAdE2vlHQC9/HV46sJI1ft3Ud0XpCWmee+axUlk+nLEyAs3Ixl
+         7z9Hoy89VFJ+VDkiLujffT3ad8t+lH0bQsuQdkxaOh+p2gmjMrDjkzooZnW5OltEOCc2
+         cIET2TaPE+yXABVWYPyDhYEOD7j8MEFI7GHY8Df8PTolVAbVnyaqhh5gDpdEo7EaBTJ4
+         S1fucP3DkLLbtn1EXiZE88qZE3w9OJ4M+eAr+IZ/AQM7FNas9w1CTXoh1BHgKGjTVGzv
+         qIyw3EFYhDQzX0sEvdqJgnfeITABYqlflFAlorVJxazSMBcXsOe/n1n2acyBiI4RZjRb
+         0UnA==
+X-Gm-Message-State: AOJu0YwkhanF3AJrsvmhvyy67MY6H0DDAS6Rxg7VUES9tEX9XfwQiphT
+	jcf5h+br370se2ge8D3B5SnE0ns6VCwBuMMtbv4BTHSLPg/cHCG89+DhShHIwPyj0wuIQxoqcHK
+	zLACEpd7/EQ==
+X-Gm-Gg: ASbGncsZXca2Zw8mwvyk0+tJiP/SA0jQbsc2m+A4USDg9RHST6pCMPYjxgQb3kX9/NG
+	BUoySCJeZC08CZKKouxEehTyO2r2lF3nZf6ta5ilUdCjAqFUisBOIV1rloNGne1QovX0I8qSkIb
+	d6ALil2v/d1DTzAK3GR66+6GqxLfOn4H9FS4nQKA9U32peRXKQqO7EYpP/hg2L8AAzsHmoNzFFS
+	dmceaGOe1tExTpl2j45KIJ5nXJRWJ/nZteLRpeijEleh8N+HW/alnvUqQMI38cmE6Qas/PiyxDY
+	G15E3Roh31a4++UxKR3kqQytmms5i6dIatemKPNBFyTgBoYhcA9M7WSz+TPUxl04FPgqovo+MJw
+	FVdad2V8l4TwuuCtCb0O1pFC//Je+DHTnB6Z2DB00IAk67OLy
+X-Google-Smtp-Source: AGHT+IF/iZmqKymYg+U3PZCXI47bCs/Ql/JnJsK6vTJXVmDfZEfm5WcgXvuETrr+JfJyIxtQ9lNg/w==
+X-Received: by 2002:a05:6000:64a:b0:3b6:1a2c:2543 with SMTP id ffacd0b85a97d-3b61a2c2743mr9765082f8f.6.1753130318177;
+        Mon, 21 Jul 2025 13:38:38 -0700 (PDT)
+Received: from inifinity.homelan.mandelbit.com ([2001:67c:2fbc:1:834d:bc8d:cdb5:bc29])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4563b75e9e9sm111090215e9.34.2025.07.21.13.38.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Jul 2025 13:38:37 -0700 (PDT)
+From: Antonio Quartulli <antonio@mandelbit.com>
+To: linux-unionfs@vger.kernel.org
+Cc: Antonio Quartulli <antonio@mandelbit.com>,
 	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 00/21] ovl: narrow regions protected by i_rw_sem
-Date: Fri, 18 Jul 2025 11:11:18 +0200
-Message-ID: <20250718-querverbindung-knieoperation-40867cf9097f@brauner>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250716004725.1206467-1-neil@brown.name>
-References: <20250716004725.1206467-1-neil@brown.name>
+	Amir Goldstein <amir73il@gmail.com>,
+	Christian Brauner <brauner@kernel.org>,
+	NeilBrown <neil@brown.name>
+Subject: [PATCH] ovl: properly print correct variable
+Date: Mon, 21 Jul 2025 22:38:21 +0200
+Message-ID: <20250721203821.7812-1-antonio@mandelbit.com>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3337; i=brauner@kernel.org; h=from:subject:message-id; bh=MbCdnea9ZJyq6fhP0c/zVlePTXr7pc5/kKRdCAy0I6k=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWRU8e8RXGh83i6hU431z/MNh85/2WKn/nLFor2FhV4na zao79r1qaOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiaZ2MDDtK9Z/6be429upd MbXuck7u5Ene3um3Zzg4eR86u+pEVy4jw6Y3f5as77Nrkt5hmtfZpyC1lf1HtKrk/3/bzh1MMTJ TYAQA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-On Wed, 16 Jul 2025 10:44:11 +1000, NeilBrown wrote:
-> More excellent review feedback - more patches :-)
-> 
-> I've chosen to use ovl_parent_lock() here as a temporary and leave the
-> debate over naming for the VFS version of the function until all the new
-> names are introduced later.
-> 
-> 
-> [...]
+In case of ovl_lookup_temp() failure, we currently print `err`
+which is actually not initialized at all.
 
-Applied to the vfs-6.17.file branch of the vfs/vfs.git tree.
-Patches in the vfs-6.17.file branch should appear in linux-next soon.
+Instead, properly print PTR_ERR(whiteout) which is where the
+actual error really is.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+Address-Coverity-ID: 1647983 ("Uninitialized variables  (UNINIT)")
+Fixes: 8afa0a7367138 ("ovl: narrow locking in ovl_whiteout()")
+Signed-off-by: Antonio Quartulli <antonio@mandelbit.com>
+---
+ fs/overlayfs/dir.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 30619777f0f6..70b8687dc45e 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -117,8 +117,9 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
+ 		if (!IS_ERR(whiteout))
+ 			return whiteout;
+ 		if (PTR_ERR(whiteout) != -EMLINK) {
+-			pr_warn("Failed to link whiteout - disabling whiteout inode sharing(nlink=%u, err=%i)\n",
+-				ofs->whiteout->d_inode->i_nlink, err);
++			pr_warn("Failed to link whiteout - disabling whiteout inode sharing(nlink=%u, err=%lu)\n",
++				ofs->whiteout->d_inode->i_nlink,
++				PTR_ERR(whiteout));
+ 			ofs->no_shared_whiteout = true;
+ 		}
+ 	}
+-- 
+2.49.1
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-6.17.file
-
-[01/21] ovl: simplify an error path in ovl_copy_up_workdir()
-        https://git.kernel.org/vfs/vfs/c/9d23967b18c6
-[02/21] ovl: change ovl_create_index() to take dir locks
-        https://git.kernel.org/vfs/vfs/c/c4f8f862b31c
-[03/21] ovl: Call ovl_create_temp() without lock held.
-        https://git.kernel.org/vfs/vfs/c/d2c995581c7c
-[04/21] ovl: narrow the locked region in ovl_copy_up_workdir()
-        https://git.kernel.org/vfs/vfs/c/a735bdf0b785
-[05/21] ovl: narrow locking in ovl_create_upper()
-        https://git.kernel.org/vfs/vfs/c/a07052e07b67
-[06/21] ovl: narrow locking in ovl_clear_empty()
-        https://git.kernel.org/vfs/vfs/c/4f622bd9f3e5
-[07/21] ovl: narrow locking in ovl_create_over_whiteout()
-        https://git.kernel.org/vfs/vfs/c/e460bc4d012c
-[08/21] ovl: simplify gotos in ovl_rename()
-        https://git.kernel.org/vfs/vfs/c/76342c9eb8e2
-[09/21] ovl: narrow locking in ovl_rename()
-        https://git.kernel.org/vfs/vfs/c/05468498cd2f
-[10/21] ovl: narrow locking in ovl_cleanup_whiteouts()
-        https://git.kernel.org/vfs/vfs/c/7dfb0722ad07
-[11/21] ovl: narrow locking in ovl_cleanup_index()
-        https://git.kernel.org/vfs/vfs/c/8290fb412d2f
-[12/21] ovl: narrow locking in ovl_workdir_create()
-        https://git.kernel.org/vfs/vfs/c/61eb7fec9e79
-[13/21] ovl: narrow locking in ovl_indexdir_cleanup()
-        https://git.kernel.org/vfs/vfs/c/d56c6feb69cb
-[14/21] ovl: narrow locking in ovl_workdir_cleanup_recurse()
-        https://git.kernel.org/vfs/vfs/c/a45ee87ded78
-[15/21] ovl: change ovl_workdir_cleanup() to take dir lock as needed.
-        https://git.kernel.org/vfs/vfs/c/241062ae5d87
-[16/21] ovl: narrow locking on ovl_remove_and_whiteout()
-        https://git.kernel.org/vfs/vfs/c/c69566b1d11d
-[17/21] ovl: change ovl_cleanup_and_whiteout() to take rename lock as needed
-        https://git.kernel.org/vfs/vfs/c/2fa14cf2dca1
-[18/21] ovl: narrow locking in ovl_whiteout()
-        https://git.kernel.org/vfs/vfs/c/8afa0a736713
-[19/21] ovl: narrow locking in ovl_check_rename_whiteout()
-        https://git.kernel.org/vfs/vfs/c/09d56cc88c24
-[20/21] ovl: change ovl_create_real() to receive dentry parent
-        https://git.kernel.org/vfs/vfs/c/ee37c3cfc5df
-[21/21] ovl: rename ovl_cleanup_unlocked() to ovl_cleanup()
-        https://git.kernel.org/vfs/vfs/c/fe4d3360f9cb
