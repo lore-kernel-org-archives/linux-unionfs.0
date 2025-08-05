@@ -1,40 +1,40 @@
 Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 328BE72615;
-	Tue,  5 Aug 2025 03:48:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B8421F4C98;
+	Tue,  5 Aug 2025 03:48:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754365711; cv=none; b=CbjSVVHr4VRCp0pQrocGNTtQhvWG6+MYC3y48rVQd1UrlH3Ny85LW109b9AS5pHo2r+T5gsEGBXMmEuNqj4KlhTd4monCfApS/SwJztDnjck6H0RYRcJf2+Df32CY+LiT7cOlHvxgdlsmFSdMGexbM8ILkKtImU2HiaeJFptwtI=
+	t=1754365715; cv=none; b=MuTAnSDZacakEHVNRfHs2KcUfjjB2kCGGUuXNlJARAXcvbH+tdgCQOdsz/tRWMPkHK2FUgv8/nsl24BkgofndoBWRHfB7aNOMoEtbK2ShfUjMP9ENgYqIHzX2r6WJuEC+cMHL//YkmHSaITv8Q+CFBsZKLSJkswbAfBEEmjd/bE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754365711; c=relaxed/simple;
-	bh=2NYG8G2h5AQQlHz2qPx5CzpuSIMUYeDTyFMImmoO7UA=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=CkFCE8F/HbFdvVjiRdc7S6HkoCYalKo4NffW6B+KvH48vALEb/dt9lk5Apky3Q1hWe1y7MfkCxWcQj8EKWH877GrPUbKJGKuvHMUR3PC1uXksEU2uQIceTqaH3tGnKNrQC+L1foRfPgjeMSuVSOXVRoUcst6HLEFLCGhgNXUm+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=cg121kSb; arc=none smtp.client-ip=213.97.179.56
+	s=arc-20240116; t=1754365715; c=relaxed/simple;
+	bh=EYVcJJ8bfz3bNTOwkL5RV1S1s/hR28agLQ7wpNzKsP0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=UWH1GHaD+rz8NLx9DflKqU10+d4fXSlVL3Akv+GvBou5Ov7KgLqulvW+ZQAc+cEMNvMkkFEYLfIcPv4Jn8V624UqIjUYjv2xHBmRjPFosCNbFlMFu7Q4kbwI9owfHOsdOanlqL0Wi9NyGiq6nwxrEHpxru4e61NmAKhsJB6/FZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=j+oVwIlc; arc=none smtp.client-ip=213.97.179.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="cg121kSb"
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="j+oVwIlc"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Cc:To:Content-Transfer-Encoding:Content-Type:MIME-Version:
-	Message-Id:Date:Subject:From:Sender:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=PUdM4E1mQH13KKw+cr4oA8dVQ/P7q9l6p3ARqB/UHdU=; b=cg121kSbJksjOxfX9P3HAtlqH0
-	RYTeauJh7VjKt4cdzWXRygLqUEUYVHLxYzkBUiw2HnuFuAy84EbV9lZLFRbcQTaKPpG0A6hDmuTRN
-	3g95hH2yEI/gxqvBAdHM30vbP2dXaVMCBI4Cmn1av/RH7Gx7xs3a9BjHnw02fVeYExEKFyE8cfaK8
-	ZhrOXhKil1+76VRL9B/HN7PWaOd9dEIoM1kD9ntj72q7jgE7Ew+wCmOHVcRalguIU+n48lOFqrn98
-	nzrQwl8hPV0r5DNbsN6EYyHqzXXJnu+3aIaPRwFi4BqnUun60qHAKwEMFlzxmn+fS4wiO/JH+WXpQ
-	hbarEVzw==;
+	s=20170329; h=Cc:To:In-Reply-To:References:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:Sender:
+	Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender
+	:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=pUYS2ar/dZ4GwLjmvmUrrILIiZNezw9UlzI6p1tNZ2w=; b=j+oVwIlcycL3fosiHoQNZEDLqo
+	TNGxKb87OoMBS414e+GFSF/rZFfhpNlThH7B1D49DIbHLdpemy7pp+9ookYKWQZ1J3LtnqG0gc6OX
+	cRuEujziN6uiNulMp6kv0qU71l9oyGOQeSR++Knm6EZb4BnZX7JhQOohH4pBuaxNNVis6xAx4ou6M
+	xPUH9kWvtUK5VaoZx6ybyZZtF097d9CNQJtJ1i7lrMqTMxGomV8Ns35Gnbu7dpoL6WackMg/j/Jez
+	etIFo1/v/6g3e9hhnJ8/ccM+Qru5auXQk9egxA1qHwWPvUE5wf4KtJTZ531qHq3fIE+QaE7HIPO9X
+	+bcPgJ0g==;
 Received: from [191.204.199.202] (helo=[192.168.15.100])
 	by fanzine2.igalia.com with esmtpsa 
 	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1uj838-009TiJ-Dp; Tue, 05 Aug 2025 05:09:14 +0200
+	id 1uj83E-009TiJ-2H; Tue, 05 Aug 2025 05:09:20 +0200
 From: =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Subject: [PATCH RFC v2 0/8] ovl: Enable support for casefold filesystems
-Date: Tue, 05 Aug 2025 00:09:04 -0300
-Message-Id: <20250805-tonyk-overlayfs-v2-0-0e54281da318@igalia.com>
+Date: Tue, 05 Aug 2025 00:09:06 -0300
+Subject: [PATCH RFC v2 2/8] ovl: Create ovl_strcmp() with casefold support
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -43,11 +43,9 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIANB1kWgC/3WNzQrCMBCEX6Xs2UjSP4knQfABvEoPS7tpF9tEk
- hIsJe9u6N3jN8N8s0MgzxTgWuzgKXJgZzOUpwL6Ce1IgofMUMqykbXUYnV2ewsXyc+4mSAarUx
- D9VDLC0JefTwZ/h7GFzwfd+hyOHFYnd+Ol6iO6q8wKiFFpbVqVWtIY3XjEWfGc+8W6FJKPypXW
- si0AAAA
-X-Change-ID: 20250409-tonyk-overlayfs-591f5e4d407a
+Message-Id: <20250805-tonyk-overlayfs-v2-2-0e54281da318@igalia.com>
+References: <20250805-tonyk-overlayfs-v2-0-0e54281da318@igalia.com>
+In-Reply-To: <20250805-tonyk-overlayfs-v2-0-0e54281da318@igalia.com>
 To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
  Theodore Tso <tytso@mit.edu>, Gabriel Krisman Bertazi <krisman@kernel.org>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
@@ -57,61 +55,99 @@ Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
  =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
 X-Mailer: b4 0.14.2
 
-Hi all,
+To add overlayfs support casefold filesystems, create a new function
+ovl_strcmp() with support for casefold names.
 
-We would like to support the usage of casefold filesystems with
-overlayfs to be used with container tools. This use case requires a
-simple setup, where every layer will have the same encoding setting
-(i.e. Unicode version and flags), using one upper and one lower layer.
+If the ovl_cache_entry have stored a casefold name, use it and create
+a casfold version of the name that is going to be compared to.
 
-* Implementation
+For the casefold support, just comparing the strings does not work
+because we need the dentry enconding, so make this function find the
+equivalent dentry for a giving directory, if any.
 
-When merge layers, ovl uses a red-black tree to check if a given dentry
-name from a lower layers already exists in the upper layer. For merging
-case-insensitive names, we need to store then in tree casefolded.
-However, when displaying to the user the dentry name, we need to respect
-the name chosen when the file was created (e.g. Picture.PNG, instead of
-picture.png). To achieve this, I create a new field for cache entries
-that stores the casefolded names and a function ovl_strcmp() that uses
-this name for searching the rb_tree. For composing the layer, ovl uses
-the original name, keeping it consistency with whatever name the user
-created.
+As this function is used for search and insertion in the red-black tree,
+that means that the tree node keys are going to be the casefolded
+version of the dentry's names. Otherwise, the search would not work for
+case-insensitive mount points.
 
-The rest of the patches are mostly for checking if casefold is being
-consistently used across the layers and dropping the mount restrictions
-that prevented case-insensitive filesystems to be mounted.
+For the non-casefold names, nothing changes.
 
-Thanks for the feedback!
-
+Signed-off-by: André Almeida <andrealmeid@igalia.com>
 ---
-Changes in v2:
-- Almost a full rewritten from the v1.
-v1: https://lore.kernel.org/lkml/20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com/
-
+I wonder what should be done here if kmalloc fails, if the strcmp()
+should fail as well or just fallback to the normal name?
 ---
-André Almeida (8):
-      olv: Store casefold name for case-insentive dentries
-      ovl: Create ovl_strcmp() with casefold support
-      fs: Create sb_same_encoding() helper
-      ovl: Ensure that all mount points have the same encoding
-      ovl: Set case-insensitive dentry operations for ovl sb
-      ovl: Set inode S_CASEFOLD for casefolded dentries
-      ovl: Check casefold consistency in ovl stack
-      ovl: Drop restrictions for casefolded dentries
+ fs/overlayfs/readdir.c | 42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
 
- fs/overlayfs/inode.c   |  7 +++++
- fs/overlayfs/namei.c   | 25 ++++++---------
- fs/overlayfs/params.c  |  7 -----
- fs/overlayfs/readdir.c | 82 ++++++++++++++++++++++++++++++++++++++++++++++++--
- fs/overlayfs/super.c   | 21 +++++++++++++
- fs/overlayfs/util.c    |  8 ++---
- include/linux/fs.h     | 22 ++++++++++++++
- 7 files changed, 143 insertions(+), 29 deletions(-)
----
-base-commit: ba04dc6f8768e61d6de2d0c5c5079a8b54e62fbb
-change-id: 20250409-tonyk-overlayfs-591f5e4d407a
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 83bca1bcb0488461b08effa70b32ff2fefba134e..1b8eb10e72a229ade40d18795746d3c779797a06 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -72,6 +72,44 @@ static struct ovl_cache_entry *ovl_cache_entry_from_node(struct rb_node *n)
+ 	return rb_entry(n, struct ovl_cache_entry, node);
+ }
+ 
++/*
++ * Compare a string with a cache entry, with support for casefold names.
++ */
++static int ovl_strcmp(const char *str, struct ovl_cache_entry *p, int len)
++{
++
++	const struct qstr qstr = { .name = str, .len = len };
++	const char *p_name = p->name, *name = str;
++	char *dst = NULL;
++	int cmp, cf_len;
++
++	if (p->cf_name)
++		p_name = p->cf_name;
++
++	if (p->map && !is_dot_dotdot(str, len)) {
++		dst = kmalloc(OVL_NAME_LEN, GFP_KERNEL);
++
++		/*
++		 * strcmp can't fail, so we fallback to the use the original
++		 * name
++		 */
++		if (dst) {
++			cf_len = utf8_casefold(p->map, &qstr, dst, OVL_NAME_LEN);
++
++			if (cf_len > 0) {
++				name = dst;
++				dst[cf_len] = '\0';
++			}
++		}
++	}
++
++	cmp = strncmp(name, p_name, cf_len);
++
++	kfree(dst);
++
++	return cmp;
++}
++
+ static bool ovl_cache_entry_find_link(const char *name, int len,
+ 				      struct rb_node ***link,
+ 				      struct rb_node **parent)
+@@ -85,7 +123,7 @@ static bool ovl_cache_entry_find_link(const char *name, int len,
+ 
+ 		*parent = *newp;
+ 		tmp = ovl_cache_entry_from_node(*newp);
+-		cmp = strncmp(name, tmp->name, len);
++		cmp = ovl_strcmp(name, tmp, len);
+ 		if (cmp > 0)
+ 			newp = &tmp->node.rb_right;
+ 		else if (cmp < 0 || len < tmp->len)
+@@ -107,7 +145,7 @@ static struct ovl_cache_entry *ovl_cache_entry_find(struct rb_root *root,
+ 	while (node) {
+ 		struct ovl_cache_entry *p = ovl_cache_entry_from_node(node);
+ 
+-		cmp = strncmp(name, p->name, len);
++		cmp = ovl_strcmp(name, p, len);
+ 		if (cmp > 0)
+ 			node = p->node.rb_right;
+ 		else if (cmp < 0 || len < p->len)
 
-Best regards,
 -- 
-André Almeida <andrealmeid@igalia.com>
+2.50.1
 
