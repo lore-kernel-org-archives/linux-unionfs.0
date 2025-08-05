@@ -1,103 +1,84 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7885E204583;
-	Tue,  5 Aug 2025 03:48:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CF092AD0B;
+	Tue,  5 Aug 2025 05:08:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754365724; cv=none; b=iY352Ey/9NoKj8z4aJjYFpr8nSUdGsS8Sr2QuflqXNSKWoszNiPdab7nAawPcsgWq1W+US+xCyUdek6wIybDAZnB0tuYUVVnVf99k4Sc2hNZjsLqu53BH2bzTPCxXfcCMlYDJJsXRjTJk1tgqEwEn9JoR4wctTxxgfP8CXhgb70=
+	t=1754370496; cv=none; b=XtjNpWIj9Au4uLIsceLcRLCUrxOBHFcH53z2NFdidLm5aNz8snqd2bJXTWVzUayn588YTrj2RAXG7QbQo2hZ7mjDXZ5CIIJLgezYbX0GwvUvAGRo06m0YrGr/h3nrHYIkQy7zDNnUAN9sTNwABb2lC7KswYLSqLo8Gy4N/AGb20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754365724; c=relaxed/simple;
-	bh=38BjtSCjK+HP9uqEYbMeA3yku5edNnFjXtFDcME+jqo=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=t6xSK6gYiizOXg8HOtpSpyMPIAPi1FysZ+RuU+aE0Thi+dgRcWOT4hTSVG9v3IF+m7xl6kIX+AsHg6qXMOqIaKBTa1YVUMXqLXKEKqGutY2Hi8HuEQVxwlUDPc/iRNKOqqYoEibd65/C2yikimEqVux+tjIFpuXRaqUxOLF45FQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=HCqttV7M; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1754370496; c=relaxed/simple;
+	bh=BJsYSkptW/Gg0j+GjEzbmB5TlwxyI1N0SYcghDZO9HU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iputEOgK6tKOilffj2sWtzXGip9k2C6Q8R/krr20OzRbKdhWFzVgTgrTDCpDBuuPtO0BvfIpGDmSSpJUsXz9durvR8n9epLppGQiQvAGdPFU5LoFEGArhP6qslhl32qwVRt6azj2e/feLGxXBESYUA6zQUcEeS935BYU2IVlRAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=vcUc10On; arc=none smtp.client-ip=62.89.141.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="HCqttV7M"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Cc:To:In-Reply-To:References:Message-Id:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:Sender:
-	Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender
-	:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=ZDamLIHjZ0U9g0xjh5flX+ookgZBZvbyP3scFrG6bUU=; b=HCqttV7Mw6lfzGp5OiCVf4riHQ
-	36OMv+uyEx24Ks+/XLzf5dKKq2KU1vVtrUqI29xhboQvRsHvKNGVPv/ggI72P4HDu9YnH2rHp+iyM
-	qEv3qzioCOMauxuSVQJdJgcMxWBDRwTPKy0ECBOLh2MlFf9+rVxfOL1Tr4RLFBOZFYY1GNQ5V48fV
-	BbvgKHZX2iTudMMdXJqxHW8cNvVQt9K6EfVroFWZ9KB0QUVBBgqf7GoAWSldCBRJ3UGoca4PtdO0A
-	yZpgt5Ws47P7WSI5bTOzRKTHOii+zOXnlhE7hg2wuqkmLxTc35pL+0mFvRJloEoSx27vXvl733oe+
-	+m4ukxLQ==;
-Received: from [191.204.199.202] (helo=[192.168.15.100])
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1uj83G-009TiJ-Sf; Tue, 05 Aug 2025 05:09:23 +0200
-From: =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Date: Tue, 05 Aug 2025 00:09:07 -0300
-Subject: [PATCH RFC v2 3/8] fs: Create sb_same_encoding() helper
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="vcUc10On"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description;
+	bh=ly6DSdUr2XbxUhMhtav5my3WakhtZnB56NBTKhEPeCM=; b=vcUc10OnYD2Riy40ESV/uGoLxI
+	Il4eRKfMWEvKa/ujC2PPuZcXvE4wyNLMmiRogn6UJPyYcG1DWBezUBPs6fzwRdfRTHmTRuqxNL4nm
+	viOW1systuSjbJYKYLUHlJ9A1K0hahi8cB749ZIDWa89m2k9Wa12urbOWGaWJ2wvb2B14kljHYL8P
+	v3ay+FX+5QOqsyQMJO6r2lZed33gURFTwt8N0QxTDNGWC6OQ40QunsOBf59mks7AjxSFOeKYc4WAC
+	wG2DJK0qdx7TK3vnkygovoD6eeP8pp1CgtOifKqs+WDaAfAtAZ+w7y37KPrd/paoBmKQ+I9t1CXOr
+	Yf9IFTvQ==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uj9uD-0000000HQPe-1q0O;
+	Tue, 05 Aug 2025 05:08:09 +0000
+Date: Tue, 5 Aug 2025 06:08:09 +0100
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: =?iso-8859-1?Q?Andr=E9?= Almeida <andrealmeid@igalia.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
+	Theodore Tso <tytso@mit.edu>,
+	Gabriel Krisman Bertazi <krisman@kernel.org>,
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	kernel-dev@igalia.com
+Subject: Re: [PATCH RFC v2 2/8] ovl: Create ovl_strcmp() with casefold support
+Message-ID: <20250805050809.GA222315@ZenIV>
+References: <20250805-tonyk-overlayfs-v2-0-0e54281da318@igalia.com>
+ <20250805-tonyk-overlayfs-v2-2-0e54281da318@igalia.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250805-tonyk-overlayfs-v2-3-0e54281da318@igalia.com>
-References: <20250805-tonyk-overlayfs-v2-0-0e54281da318@igalia.com>
-In-Reply-To: <20250805-tonyk-overlayfs-v2-0-0e54281da318@igalia.com>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Theodore Tso <tytso@mit.edu>, Gabriel Krisman Bertazi <krisman@kernel.org>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, 
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
- kernel-dev@igalia.com, 
- =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-X-Mailer: b4 0.14.2
+In-Reply-To: <20250805-tonyk-overlayfs-v2-2-0e54281da318@igalia.com>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-For cases where a file lookup can go to different mount points (like in
-overlayfs), both super blocks must have the same encoding and the same
-flags. To help with that, create a sb_same_encoding() function.
+On Tue, Aug 05, 2025 at 12:09:06AM -0300, André Almeida wrote:
 
-Signed-off-by: AndrÃ© Almeida <andrealmeid@igalia.com>
----
- include/linux/fs.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+> +static int ovl_strcmp(const char *str, struct ovl_cache_entry *p, int len)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 1948b2c828d3e83691f0b0892b4a7a87501c11db..413d4b2b7a41c0706324d01e71963bc481f383e4 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3744,6 +3744,28 @@ static inline bool sb_has_encoding(const struct super_block *sb)
- #endif
- }
- 
-+/*
-+ * Compare if two super blocks have the same encoding and flags
-+ */
-+static inline bool sb_same_encoding(const struct super_block *sb1,
-+				    const struct super_block *sb2)
-+{
-+#if IS_ENABLED(CONFIG_UNICODE)
-+	if (sb1->s_encoding == sb2->s_encoding)
-+		return true;
-+
-+	if (sb1->s_encoding && sb2->s_encoding &&
-+	    (sb1->s_encoding->version == sb2->s_encoding->version) &&
-+	    (sb1->s_encoding_flags == sb2->s_encoding_flags))
-+		return true;
-+	else
-+		return false;
-+#else
-+	return true;
-+#endif
-+}
-+
-+
- int may_setattr(struct mnt_idmap *idmap, struct inode *inode,
- 		unsigned int ia_valid);
- int setattr_prepare(struct mnt_idmap *, struct dentry *, struct iattr *);
+> +	if (p->map && !is_dot_dotdot(str, len)) {
+> +		dst = kmalloc(OVL_NAME_LEN, GFP_KERNEL);
 
--- 
-2.50.1
+...`
 
+> +	kfree(dst);
+> +
+> +	return cmp;
+> +}
+> +
+
+> @@ -107,7 +145,7 @@ static struct ovl_cache_entry *ovl_cache_entry_find(struct rb_root *root,
+>  	while (node) {
+>  		struct ovl_cache_entry *p = ovl_cache_entry_from_node(node);
+>  
+> -		cmp = strncmp(name, p->name, len);
+> +		cmp = ovl_strcmp(name, p, len);
+>  		if (cmp > 0)
+>  			node = p->node.rb_right;
+>  		else if (cmp < 0 || len < p->len)
+
+Am I misreading that, or do really we get a kmalloc()/kfree() for each
+sodding tree node we traverse on rbtree lookup here?
