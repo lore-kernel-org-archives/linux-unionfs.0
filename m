@@ -1,72 +1,74 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EE3E190692;
-	Sat,  9 Aug 2025 16:08:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88BF1C683;
+	Sun, 10 Aug 2025 13:02:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754755700; cv=none; b=OXOGui/dLBd+tqWHvxiwHLjZabG1g+s2NA+ujrk9/V+jmii7x/TxA+5JxsqnWlX04Igosjoe+fNR9EDYYebMoUfM9SnDs6VNI05RrXZs8pDeR8VMMNRRobL9nfggTJNZZd42zokIaNCZWwTFZlXvljcTm5btGipGTb/VFDx8EW4=
+	t=1754830955; cv=none; b=TPqbKU7Z/YYVY6yQjBLR+oOhPPWp3Qtay7UCDSp0XT9P+M/bii5voAyl8PWjcC1HwMuNqqucjvGuedsDl+NOmY52hpf/fNXvVEfWhETfwDWg6otLCjoDzPhWWhB57vVJAimrJSKgkfN9eMNJTlN6m9KPv6PuIGASeYuFIlJPFiw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754755700; c=relaxed/simple;
-	bh=Ufaxx+IfF2XAwJC0bJUHBGNG54r+MorybcTOPrfdJaA=;
+	s=arc-20240116; t=1754830955; c=relaxed/simple;
+	bh=7vETKwtpidENX53WjwI6MHM6eVFOckiWgacFT/qG6FM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=c4RtoUhN7mAq8qr0/qQhpcS3DFaJ5ThMtANB/Nj4wPjml3wJTnQzNpwCF4N1txiy1cRZRspnU3BOXTY9uYp3mJj7pZ/QNEZ4NFppUD2LVg5tExyJ5phldiUGkpFHkJoGh/ZyvYhiyDFqqVKctB8JkIzVHDAwEeiHIVdKxzl/eo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Tx73WWHc; arc=none smtp.client-ip=209.85.218.42
+	 To:Cc:Content-Type; b=Fl4MDNWKxcSeDyX9fGiD3qYEfAY3f8vWVJlxs8NrVEyjzIyin/oaXZjWGLJoijUSkpYpzn8lfXy4ScTa9V2R8lXXpvyTe7vNyuX55hLQvNDlm/HmMXaGEasGBIkmaM8BKUpJykNKoqAhzx7MAUEB9cju9QKuqi9DF66UnaCzrsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A5x6GaxY; arc=none smtp.client-ip=209.85.218.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tx73WWHc"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-af922ab4849so463281066b.3;
-        Sat, 09 Aug 2025 09:08:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A5x6GaxY"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-af98b77d2f0so660647066b.3;
+        Sun, 10 Aug 2025 06:02:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1754755694; x=1755360494; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1754830952; x=1755435752; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Ufaxx+IfF2XAwJC0bJUHBGNG54r+MorybcTOPrfdJaA=;
-        b=Tx73WWHcNZxOoVC6Tl8ZICfvnLBOWG8As34DjDnVjML2701Pajwj2xNAZQidS7T+lY
-         FT33xwdieUPfu3dx+AjuVWQ4BJ4ZIkivR8is8y7MWO2VJ5Wodo9dBkEMlEId5wUXFoJe
-         e4Z/M46MJSNdfQZp1Rbf2E1MJFeaek2dYab2sP6lO+38hrS8iOr+p7H4bdsrzwTPL9Du
-         AoFim+Ys4FeUhufP3pNzMBZcs7j9Yk293MLgI7sDvnBfpi76cdZregS1QBHC2+rl06HA
-         4hnqjxLg9h2sOawnzGnk2YSZDqL85hKYuU9ivR5p3Vj26UtnZx3Q209Ue8aSvlgPbnfB
-         Tcrw==
+        bh=oSlOOEhHSp0QmqGAVt0Ofk92yXA+aQmJze++Vd3SO3g=;
+        b=A5x6GaxYRh9k6qmp5rI3dT/W1fNYdHygpTq9FZOkjs4ur1PMpqvCoIE+R8CAh+NJ1N
+         U/ubZ+2T3KT/ED0yDs0Ok0a93IcbgZRQ0e5S1qb94GO0RPC2eDv2e00C4uH/WO6iDM4u
+         IvhYOnIbMsIXnh8U3IvE49PhAf/HDRzN6pwHvXs0Zmb9tEYRgHTlM735mzkkgqzIwSq0
+         OCxnnONIGFU21b14mYgXBbUC/tzuZvzb5f1xumV6Nwo1qkRaMvO4ekDJ9zUhQJHzfJM6
+         Pal6iuqmkZZ3E6XSVeTPutOeE2FC53IMqhKYDArsXx7CYnUcDyQApv9Que54rs+q2ZmV
+         2hIw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754755694; x=1755360494;
+        d=1e100.net; s=20230601; t=1754830952; x=1755435752;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Ufaxx+IfF2XAwJC0bJUHBGNG54r+MorybcTOPrfdJaA=;
-        b=ZuTDHTYDRakMUMTOPJKAOEaJIO6zODd1vsbmnThhX+i/rqlP16aogll0IsxCb+NaP6
-         QMN3ciwys23vCRuiUWGBZM1H7lSDZ4n0TcCdeBRu7cqGQzDjz0USTqFL9otLLHCze8nV
-         gfouXDWOkVUEXflbmJd//sdaasyPdSbvf13/RybOPDpGZC6RNDod4aUEbcrBposgZ43k
-         ifAlQqi8y7soK6hUJz8TVRLiuX9LL7fCt4vJ3jzhVyY+3F+GDHJ9/vd4cc4mVufuM5Ef
-         eaABzZFYJCE3ZGTMJcY4klrj3o43YFo/R+8ILsUadBYJGOl8n7q2gf7XbooRhU9B+VFL
-         VUgw==
-X-Forwarded-Encrypted: i=1; AJvYcCUf9LO0ChTOLT3fNPxbXsBW8c2v7Ib2t44pu9R+/BJ9zO62mwC9/7fGjvjnrMcZx2la0O3kBjvgHbGftqr9bQ==@vger.kernel.org, AJvYcCVgWeBtpWyGiNPXW+iLJv/Egp0kZ1Zaao6AWkqVs7zDCrbD1B9VJSamFmXeBa+gTPHSsYkN6tw8G3MrowQn@vger.kernel.org, AJvYcCXXdOIaf/uImgJMhYaE5gnH0T71rOwbMeG3DDs5chFc1krH3NIau/49bB2I60nkI9AIbJfZPKF3bT6rOTVL@vger.kernel.org
-X-Gm-Message-State: AOJu0YybTdHIHweDTRA392MKXNA67yOH0wutQi0XuIZe2zYxgmOBElQZ
-	tLNGOJTRZYxlHRIIsKWCPa+ek+xmZi6Q4H1P9rZGGB11W9mXTqNbp/wNIlGWyQzzBkWyqbhKWDr
-	9VHOsp4B0CGe5vMTQS94+/CqsXuIhxG0=
-X-Gm-Gg: ASbGnctU83VgdHM7ofbggxOIve44Vw0cqJphGLJBpjKinm7Mk0rPPV2T7IayNJYk80W
-	hDJDktGTG9VMPqeIDcs1YIuEaSa0X/kLYhy0fRDGYkida2G9eXgWeM4Fkws9pxeD6q1Hr1O0AvF
-	D/IWhXDP4ireFkDxPq7VKyfqhmf/lJkl5OrvMnW90+1PJDqRq3G7W/FfS2GJSiOTA44Y7iHlqo0
-	tbD/C0=
-X-Google-Smtp-Source: AGHT+IF2wokC1FoGnEmT8nxhTkWU0r3sYovpSj4TMBjhgpqFblGVc6zJxH12qFYUNW6qhfkU9b5EX09xCEQsNhxAq0E=
-X-Received: by 2002:a17:907:7e9c:b0:af9:bdfd:c60c with SMTP id
- a640c23a62f3a-af9c65b5604mr600478666b.47.1754755694159; Sat, 09 Aug 2025
- 09:08:14 -0700 (PDT)
+        bh=oSlOOEhHSp0QmqGAVt0Ofk92yXA+aQmJze++Vd3SO3g=;
+        b=T1MJVp2Cgp4Yx/An4kkdNZx9TWnalEP9DLwJGUsH7oOTsfbBKu5Nu/eTIzDtc6pMT2
+         XfOFO+pJOwlfQYBS/qL2zGISUorwNQdDagRNMuVv4d7Y/995iY8lAJ90mcH05ydI07m5
+         iHo36g17NO5AM8KtegwYIzf9J4NRZftDLRExgFIEABVTLdkaiQKS8QdyCVzdNnWiIyhf
+         ZOPDKe9ryK39ZGWw1cspP4YFOHBSG2CCPqRe6r/27zKorypl6mGa/ejqFpveoj7YB3CH
+         bgueCgzDGUOO29TEmMvn/kPd3OZ/3CCtk5Y/2JMTgFOEmF9/lMRrCC/pMyE5JjuVr599
+         j6Gw==
+X-Forwarded-Encrypted: i=1; AJvYcCUC9hv1TYBBQmE7lJMm2Se/nSzw88TiZl+ZthezESdcJkI8O0AvGhSw7piNhZbJj8xNYUQYmbTcK/hU/BoT@vger.kernel.org, AJvYcCUh2u3regHOZTnbZoXORDB13c0NECUiIgW/2bUWNVIFBlz1QAUKOpqq/1Pmk8DNMo22J5BPdtWK1OdurHFphw==@vger.kernel.org, AJvYcCVpWqG3Tz5zWdogboKLTBUexBlMbCUPBIE+TXA8nM26qDTW6Zq45r3FMySJuxoGas5vy6EqoUQREDufbMMY@vger.kernel.org
+X-Gm-Message-State: AOJu0YzWhLu44rIWbYKiO1KSyV93HXbsG/LFwSFRmTnWmEPXPPyCMRSe
+	WTCZqaGa0oDPHayQ4+kC6oTjXpD65yr7mbqNo0WS48q0px5gknOrIePUY2lMmd4/G+NvwrWFgop
+	ITnU/2yf+jgVjR2B7nkl5WSTRLouye4s=
+X-Gm-Gg: ASbGnctG6dnL6AAt+YgIV6N28RjybKwVFTWUEKBuKa0c0fWsWfmJ8oQtEfy53yZOqX8
+	fAKPWiYZDGM52lWhDL3ZrX3EUMv2TJXOMCWtumpFF3LQu+biXpHYMz6Gel+/xYY8qNWDn8B8ttR
+	+2zQQWiJN5OGcLA5L0uBa0HOFVgxG543FkxiZVe5WrDdhnsVw2PN49ACIFgr5RHnBI96QuIVX8Y
+	iDcnRY=
+X-Google-Smtp-Source: AGHT+IGc1LjBDs581anLLqxndQtaeysDoGVU+r3AisBDGvFqnux7ki0lPq5hSFTSlEIgP20ONz/YoIpX6TnfSC527jk=
+X-Received: by 2002:a17:906:9f8b:b0:ae6:f087:953 with SMTP id
+ a640c23a62f3a-af9c63b0a87mr823318466b.12.1754830951730; Sun, 10 Aug 2025
+ 06:02:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250808-tonyk-overlayfs-v3-0-30f9be426ba8@igalia.com> <CAOQ4uxgPiANxXsfnga-oa1ccx3KKc1qeVWLkyv=PPczY-m9zhg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgPiANxXsfnga-oa1ccx3KKc1qeVWLkyv=PPczY-m9zhg@mail.gmail.com>
+References: <20250808-tonyk-overlayfs-v3-0-30f9be426ba8@igalia.com>
+ <20250808-tonyk-overlayfs-v3-6-30f9be426ba8@igalia.com> <CAOQ4uxiDtq4LF-OVtQ6ufmcAZqLn-jqynM06RgHLgUYOW-uHHA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiDtq4LF-OVtQ6ufmcAZqLn-jqynM06RgHLgUYOW-uHHA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 9 Aug 2025 18:08:02 +0200
-X-Gm-Features: Ac12FXwRowk5MZdjdmJvl1wX56Mra6b_t3cSUtI9Q_rWJBumfeUkBqo2hWtl_qE
-Message-ID: <CAOQ4uxj13iGDE-tz91BLpjOcJror77-pG4CkxQB18YDXX0kUkg@mail.gmail.com>
-Subject: Re: [PATCH RFC v3 0/7] ovl: Enable support for casefold filesystems
+Date: Sun, 10 Aug 2025 15:02:20 +0200
+X-Gm-Features: Ac12FXz3sd9nkTZqSLTKZCKnaQeDmVdIW_6sTRxrlBzilIXPWIRh2FNlF3TnYpg
+Message-ID: <CAOQ4uxg326bEDdfKCKnoV0MnBBgRbxPEgN_41kBJv9HUdb-5dg@mail.gmail.com>
+Subject: Re: [PATCH RFC v3 6/7] ovl: Add S_CASEFOLD as part of the inode flag
+ to be copied
 To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
 	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
@@ -76,58 +78,95 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Aug 9, 2025 at 11:17=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+On Sat, Aug 9, 2025 at 11:51=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
  wrote:
 >
 > On Fri, Aug 8, 2025 at 10:59=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@i=
 galia.com> wrote:
 > >
-> > Hi all,
+> > To keep ovl's inodes consistent with their real inodes, add the
+> > S_CASEFOLD flag as part of the flags that need to be copied.
 > >
-> > We would like to support the usage of casefold filesystems with
-> > overlayfs to be used with container tools. This use case requires a
-> > simple setup, where every layer will have the same encoding setting
-> > (i.e. Unicode version and flags), using one upper and one lower layer.
+> > Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> > ---
+> > Changes from v2:
+> > - Instead of manually setting the flag if the realpath dentry is
+> >   casefolded, just add this flag as part of the flags that need to be
+> >   copied.
+> > ---
+> >  fs/overlayfs/overlayfs.h | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
 > >
-> > * Implementation
+> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> > index bb0d7ded8e763a4a7a6fc506d966ed2f3bdb4f06..8a9a67d2933173c61b0fa0a=
+f5634d91e092e00b2 100644
+> > --- a/fs/overlayfs/overlayfs.h
+> > +++ b/fs/overlayfs/overlayfs.h
+> > @@ -822,7 +822,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+> >  void ovl_copyattr(struct inode *to);
 > >
-> > When merge layers, ovl uses a red-black tree to check if a given dentry
-> > name from a lower layers already exists in the upper layer. For merging
-> > case-insensitive names, we need to store then in tree casefolded.
-> > However, when displaying to the user the dentry name, we need to respec=
-t
-> > the name chosen when the file was created (e.g. Picture.PNG, instead of
-> > picture.png). To achieve this, I create a new field for cache entries
-> > that stores the casefolded names and a function ovl_strcmp() that uses
-> > this name for searching the rb_tree. For composing the layer, ovl uses
-> > the original name, keeping it consistency with whatever name the user
-> > created.
+> >  /* vfs inode flags copied from real to ovl inode */
+> > -#define OVL_COPY_I_FLAGS_MASK  (S_SYNC | S_NOATIME | S_APPEND | S_IMMU=
+TABLE)
+> > +#define OVL_COPY_I_FLAGS_MASK  (S_SYNC | S_NOATIME | S_APPEND | S_IMMU=
+TABLE | S_CASEFOLD)
+> >  /* vfs inode flags read from overlay.protattr xattr to ovl inode */
+> >  #define OVL_PROT_I_FLAGS_MASK  (S_APPEND | S_IMMUTABLE)
 > >
-> > The rest of the patches are mostly for checking if casefold is being
-> > consistently used across the layers and dropping the mount restrictions
-> > that prevented case-insensitive filesystems to be mounted.
-> >
-> > Thanks for the feedback!
 >
-> Hi Andre,
+> Ok, this is simpler, but it's too simple.
+> OVL_COPY_I_FLAGS_MASK is used in copy up with the assumption that
+> all copied i_flags are related to fileattr flags, so you need something l=
+ike:
 >
-> This v3 is getting close.
-> Still some small details to fix.
-> With v4, please include a link to fstest so I can test your work.
-> I already had a draft for the casefold capable and disabled layers
-> in 6.17 but I did not post it yet.
-> Decide it would be better to test the final result after your work.
-> I'd started to adapt the test to the expected behavior for 6.18,
-> but it's just an untested draft for you to extend:
-> https://github.com/amir73il/xfstests/commits/ovl-casefold/
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 27396fe63f6d..66bd43a99d2e 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -670,7 +670,7 @@ static int ovl_copy_up_metadata(struct
+> ovl_copy_up_ctx *c, struct dentry *temp)
+>         if (err)
+>                 return err;
 >
-> Please make sure that you run at least check -overlay -g overlay/quick
-> sanity check for v4 and that you run check -g casefold,
-> which should run the new generic test.
->
+> -       if (inode->i_flags & OVL_COPY_I_FLAGS_MASK &&
+> +       if (inode->i_flags & OVL_FATTR_I_FLAGS_MASK &&
+>             (S_ISREG(c->stat.mode) || S_ISDIR(c->stat.mode))) {
+>                 /*
+>                  * Copy the fileattr inode flags that are the source of a=
+lready
 
-Also, please remove the RFC label for v4.
-We are pass the point of RFC.
+Which reminds me that you also need to verify that a copied up directory
+conforms to the ofs->casefold expectation, because there is no code
+to make the copied up directory casefolded.
+
+We can assume that layers check has already verified that upperdir/workdir
+are casefold correct, but we need to verify that $workdir/work/$tmpdir crea=
+ted
+by ovl_create_temp() has inherited the expected casefolding.
+
+Same goes for ovl_mkdir(), we must verify that the new created dentry/inode
+conform to the expected ofs->casefold.
+
+I think this check in ovl_create_real() should cover both cases:
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 70b8687dc45e..be8c5d02302d 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -187,6 +187,11 @@ struct dentry *ovl_create_real(struct ovl_fs
+*ofs, struct dentry *parent,
+                        /* mkdir is special... */
+                        newdentry =3D  ovl_do_mkdir(ofs, dir, newdentry,
+attr->mode);
+                        err =3D PTR_ERR_OR_ZERO(newdentry);
++                       /* expect to inherit casefolding from
+workdir/upperdir */
++                       if (!err && ofs->casefold !=3D
+ovl_dentry_casefolded(newdentry)) {
++                               dput(newdentry);
++                               err =3D -EINVAL;
++                       }
+                        break;
 
 Thanks,
 Amir.
