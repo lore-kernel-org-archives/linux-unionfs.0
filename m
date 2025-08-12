@@ -1,24 +1,24 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BF022DA748;
-	Tue, 12 Aug 2025 23:53:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1651D2D97B0;
+	Tue, 12 Aug 2025 23:53:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755042785; cv=none; b=M6dOi1pshgtrnjE5SLKe8fDVYxbgu+LOf++Gav6duEohtsMQScDFBazZZ42DqrfQOheWtQqjD9OOCNAFK/DmFB6VxoEDPfx8fvksXQOlRirzivNRjabgdKTDL2QgdVZ0JfNPVtBDZstOX7ySAhWvRI/1JLXo+yuA3ER393bxm6M=
+	t=1755042786; cv=none; b=d+cW59WnT9Z74PysFhXypjzuP+O6khVNzgj3LilWArd5VVtbpsm86b5A5phZ2K0eOJ9Fk5TAz8d9mo6+Cf2NQO4EtlxsEgCMGxJKWPcKTjotIgDDOgnvxJymo/EmcMZZQWP5F891xkfP+DLLJHOY7TUoFBnDAxLIE0r/IT/+tEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755042785; c=relaxed/simple;
-	bh=HLwZNSV4EuquBD4lmvIGOiNO4VtG3s2BTrwse/wYOcM=;
+	s=arc-20240116; t=1755042786; c=relaxed/simple;
+	bh=Fxzyw9jaYjDcrQDDTrdlviF3rA886DmUXWc9I/mH1Po=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CMA50OLtucp/WznmF75/2I0WZEnfgvy/khCcIA0TT5dOBhVseTm2XOOhZm2zyiSsB+ZbZJSdGd5MvsjHTbb+w1hqRNqK1haXhui1vFwN0Bv4KKnrnP8NwIcslVyqFdOFkKx8o0QBNMdflPIcDFTEvz/fMtB7v/068eTzLTgZbSk=
+	 MIME-Version; b=TgZc7KnYsd303yW2WSubI5lUywODwzN+/y/3yjE6AfqILT8bphRxSU2IRDhIQ5913Oov0KV3KVnN4l9uSsoGk4Cd+bueCsf7HjU2hNyMFihJVF76AnHl6LBfVxSVFo+L5o8I3wv1ekd9sYt5qlY1BPz6/gKeKrP9ZEBmYX5E54Y=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ulynN-005Y27-QZ;
-	Tue, 12 Aug 2025 23:52:47 +0000
+	id 1ulynM-005Y23-70;
+	Tue, 12 Aug 2025 23:52:45 +0000
 From: NeilBrown <neil@brown.name>
 To: Alexander Viro <viro@zeniv.linux.org.uk>,
 	Christian Brauner <brauner@kernel.org>,
@@ -51,9 +51,9 @@ Cc: David Howells <dhowells@redhat.com>,
 	linux-cifs@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 07/11] VFS: Change vfs_mkdir() to unlock on failure.
-Date: Tue, 12 Aug 2025 12:25:10 +1000
-Message-ID: <20250812235228.3072318-8-neil@brown.name>
+Subject: [PATCH 05/11] VFS: add rename_lookup()
+Date: Tue, 12 Aug 2025 12:25:08 +1000
+Message-ID: <20250812235228.3072318-6-neil@brown.name>
 X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
 In-Reply-To: <20250812235228.3072318-1-neil@brown.name>
 References: <20250812235228.3072318-1-neil@brown.name>
@@ -65,322 +65,452 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Proposed changes to directory-op locking will lock the dentry rather
-than the whole directory.  So the dentry will need to be unlocked.
+rename_lookup() combines lookup and locking for a rename.
 
-vfs_mkdir() consumes the dentry on error, so there will be no dentry to
-be unlocked.
+Two names - new_last and old_last - are added to struct renamedata so it
+can be passed to rename_lookup() to have the old and new dentries filled
+in.
 
-So this patch changes vfs_mkdir() to unlock on error as well as
-releasing the dentry.  This requires various other functions in various
-callers to also unlock on error - particularly in nfsd and overlayfs.
+__rename_lookup() in vfs-internal and assumes that the names are already
+hashed and skips permission checking.  This is appropriate for use after
+filename_parentat().
 
-At present this results in some clumsy code.  Once the transition to
-dentry locking is complete the clumsiness will be gone.
+rename_lookup_noperm() does hash the name but avoids permission
+checking.  This will be used by debugfs.
 
-Callers of vfs_mkdir() in ecrypytfs, nfsd, xfs, cachefiles, and
-overlayfs are changed to make the new behaviour.
+If either old_dentry or new_dentry are not NULL, the corresponding
+"last" is ignored and the dentry is used as-is.  This provides similar
+functionality to dentry_lookup_continue().  After locks are obtained we
+check that the parent is still correct.  If old_parent was not given,
+then it is set to the parent of old_dentry which was locked.  new_parent
+must never be NULL.
 
-The usage in smb/server does not need any direct change as the change
-to done_path_create() is sufficient.
+On success new references are geld on old_dentry, new_dentry and old_parent.
+
+done_rename_lookup() unlocks and drops those three references.
+
+No __free() support is provided as done_rename_lookup() cannot be safely
+called after rename_lookup() returns an error.
 
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- fs/cachefiles/namei.c    |  9 +++++----
- fs/ecryptfs/inode.c      |  3 ++-
- fs/namei.c               | 15 ++++++++++-----
- fs/nfsd/nfs4recover.c    | 12 +++++-------
- fs/nfsd/vfs.c            | 12 ++++++++++--
- fs/overlayfs/dir.c       | 17 ++++++++---------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/super.c     |  7 +++++--
- fs/xfs/scrub/orphanage.c |  2 +-
- 9 files changed, 47 insertions(+), 31 deletions(-)
+ fs/namei.c            | 318 ++++++++++++++++++++++++++++++++++--------
+ include/linux/fs.h    |   4 +
+ include/linux/namei.h |   3 +
+ 3 files changed, 263 insertions(+), 62 deletions(-)
 
-diff --git a/fs/cachefiles/namei.c b/fs/cachefiles/namei.c
-index d1edb2ac3837..732d78911bed 100644
---- a/fs/cachefiles/namei.c
-+++ b/fs/cachefiles/namei.c
-@@ -131,8 +131,11 @@ struct dentry *cachefiles_get_directory(struct cachefiles_cache *cache,
- 		ret = cachefiles_inject_write_error();
- 		if (ret == 0)
- 			subdir = vfs_mkdir(&nop_mnt_idmap, d_inode(dir), subdir, 0700);
--		else
-+		else {
-+			/* vfs_mkdir() unlocks on failure so we must too */
-+			inode_unlock(d_inode(dir));
- 			subdir = ERR_PTR(ret);
-+		}
- 		if (IS_ERR(subdir)) {
- 			trace_cachefiles_vfs_error(NULL, d_inode(dir), ret,
- 						   cachefiles_trace_mkdir_error);
-@@ -196,9 +199,7 @@ struct dentry *cachefiles_get_directory(struct cachefiles_cache *cache,
- 	return ERR_PTR(-EBUSY);
- 
- mkdir_error:
--	inode_unlock(d_inode(dir));
--	if (!IS_ERR(subdir))
--		dput(subdir);
-+	done_dentry_lookup(subdir);
- 	pr_err("mkdir %s failed with error %d\n", dirname, ret);
- 	return ERR_PTR(ret);
- 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index abd954c6a14e..5d8cb042aa57 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -520,7 +520,7 @@ static struct dentry *ecryptfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
- 				 lower_dentry, mode);
- 	rc = PTR_ERR(lower_dentry);
- 	if (IS_ERR(lower_dentry))
--		goto out;
-+		goto out_unlocked;
- 	rc = 0;
- 	if (d_unhashed(lower_dentry))
- 		goto out;
-@@ -532,6 +532,7 @@ static struct dentry *ecryptfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
- 	set_nlink(dir, lower_dir->i_nlink);
- out:
- 	inode_unlock(lower_dir);
-+out_unlocked:
- 	if (d_really_is_negative(dentry))
- 		d_drop(dentry);
- 	return ERR_PTR(rc);
 diff --git a/fs/namei.c b/fs/namei.c
-index 3f930811e952..fb075573157a 100644
+index df21b6fa5a0e..cead810d53c6 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -1787,6 +1787,9 @@ static struct dentry *__dentry_lookup(struct qstr *last,
-  * @last: the name in the given directory
-  * @base: the directory in which the name is to be found
-  * @lookup_flags: %LOOKUP_xxx flags
-+ * If the dentry is an error - as can happen after vfs_mkdir() -
-+ * the unlock is skipped as unneeded.
+@@ -3507,6 +3507,233 @@ void unlock_rename(struct dentry *p1, struct dentry *p2)
+ }
+ EXPORT_SYMBOL(unlock_rename);
+ 
++/**
++ * __rename_lookup - lookup and lock names for rename
++ * @rd:           rename data containing relevant details
++ * @lookup_flags: extra flags to pass to ->lookup (e.g. LOOKUP_REVAL,
++ *                LOOKUP_NO_SYMLINKS etc).
 + *
-  *
-  * The name is looked up and necessary locks are taken so that
-  * the name can be created or removed.
-@@ -1921,6 +1924,9 @@ EXPORT_SYMBOL(dentry_lookup_continue);
-  * @dentry is not an error, the lock and the reference to the dentry
-  * are dropped.
-  *
-+ * If the dentry is an error - as can happen after vfs_mkdir() -
-+ * the unlock is skipped as unneeded.
++ * Optionally look up two names and ensure locks are in place for
++ * rename.
++ * Normally @rd.old_dentry and @rd.new_dentry are %NULL and the
++ * old and new directories and last names are given in @rd.  In this
++ * case the names are looked up with appropriate locking and the
++ * results stored in @rd.old_dentry and @rd.new_dentry.
 + *
-  * This interface allows a smooth transition from parent-dir based
-  * locking to dentry based locking.
-  *
-@@ -4570,9 +4576,7 @@ EXPORT_SYMBOL(kern_path_create);
- 
- void done_path_create(struct path *path, struct dentry *dentry)
- {
--	if (!IS_ERR(dentry))
--		dput(dentry);
--	inode_unlock(path->dentry->d_inode);
-+	done_dentry_lookup(dentry);
- 	mnt_drop_write(path->mnt);
- 	path_put(path);
- }
-@@ -4735,7 +4739,8 @@ SYSCALL_DEFINE3(mknod, const char __user *, filename, umode_t, mode, unsigned, d
-  * negative or unhashes it and possibly splices a different one returning it,
-  * the original dentry is dput() and the alternate is returned.
-  *
-- * In case of an error the dentry is dput() and an ERR_PTR() is returned.
-+ * In case of an error the dentry is dput(), the parent is unlocked, and
-+ * an ERR_PTR() is returned.
-  */
- struct dentry *vfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
- 			 struct dentry *dentry, umode_t mode)
-@@ -4773,7 +4778,7 @@ struct dentry *vfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
- 	return dentry;
- 
- err:
--	dput(dentry);
-+	done_dentry_lookup(dentry);
- 	return ERR_PTR(error);
- }
- EXPORT_SYMBOL(vfs_mkdir);
-diff --git a/fs/nfsd/nfs4recover.c b/fs/nfsd/nfs4recover.c
-index 2231192ec33f..19f5bc5586bb 100644
---- a/fs/nfsd/nfs4recover.c
-+++ b/fs/nfsd/nfs4recover.c
-@@ -222,7 +222,8 @@ nfsd4_create_clid_dir(struct nfs4_client *clp)
- 	dentry = lookup_one(&nop_mnt_idmap, &QSTR(dname), dir);
- 	if (IS_ERR(dentry)) {
- 		status = PTR_ERR(dentry);
--		goto out_unlock;
-+		inode_unlock(d_inode(dir));
-+		goto out;
- 	}
- 	if (d_really_is_positive(dentry))
- 		/*
-@@ -233,15 +234,12 @@ nfsd4_create_clid_dir(struct nfs4_client *clp)
- 		 * In the 4.0 case, we should never get here; but we may
- 		 * as well be forgiving and just succeed silently.
- 		 */
--		goto out_put;
-+		goto out;
- 	dentry = vfs_mkdir(&nop_mnt_idmap, d_inode(dir), dentry, S_IRWXU);
- 	if (IS_ERR(dentry))
- 		status = PTR_ERR(dentry);
--out_put:
--	if (!status)
--		dput(dentry);
--out_unlock:
--	inode_unlock(d_inode(dir));
-+out:
-+	done_dentry_lookup(dentry);
- 	if (status == 0) {
- 		if (nn->in_grace)
- 			__nfsd4_create_reclaim_record_grace(clp, dname,
-diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
-index 5f3e99f956ca..a13e982e5b91 100644
---- a/fs/nfsd/vfs.c
-+++ b/fs/nfsd/vfs.c
-@@ -1492,7 +1492,9 @@ nfsd_check_ignore_resizing(struct iattr *iap)
- 		iap->ia_valid &= ~ATTR_SIZE;
- }
- 
--/* The parent directory should already be locked: */
-+/* The parent directory should already be locked.  The lock
-+ * will be dropped on error.
++ * If either are not NULL, then the corresponding lookup is avoided but
++ * the required locks are still taken.  In this case @rd.old_parent may
++ * be %NULL, otherwise @rd.old_dentry must still have @rd.old_parent as
++ * its d_parent after the locks are obtained.  @rd.new_parent must
++ * always be non-NULL, and must always be the correct parent after
++ * locking.
++ *
++ * On success a reference is held on @rd.old_dentry, @rd.new_dentry,
++ * and @rd.old_parent whether they were originally %NULL or not.  These
++ * references are dropped by done_rename_lookup().  @rd.new_parent
++ * must always be non-NULL and no extra reference is taken.
++ *
++ * The passed in qstrs must have the hash calculated, and no permission
++ * checking is performed.
++ *
++ * Returns: zero or an error.
 + */
- __be32
- nfsd_create_locked(struct svc_rqst *rqstp, struct svc_fh *fhp,
- 		   struct nfsd_attrs *attrs,
-@@ -1558,8 +1560,11 @@ nfsd_create_locked(struct svc_rqst *rqstp, struct svc_fh *fhp,
- 	err = nfsd_create_setattr(rqstp, fhp, resfhp, attrs);
- 
- out:
--	if (!IS_ERR(dchild))
-+	if (!IS_ERR(dchild)) {
-+		if (err)
-+			inode_unlock(dirp);
- 		dput(dchild);
-+	}
- 	return err;
- 
- out_nfserr:
-@@ -1616,6 +1621,9 @@ nfsd_create(struct svc_rqst *rqstp, struct svc_fh *fhp,
- 	if (err != nfs_ok)
- 		goto out_unlock;
- 	err = nfsd_create_locked(rqstp, fhp, attrs, type, rdev, resfhp);
-+	if (err)
-+		/* lock will have been dropped */
-+		return err;
- 	fh_fill_post_attrs(fhp);
- out_unlock:
- 	inode_unlock(dentry->d_inode);
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 70b8687dc45e..24f7e28b9a4f 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -162,14 +162,18 @@ int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *dir,
- 	goto out;
- }
- 
-+/* dir will be unlocked on return */
- struct dentry *ovl_create_real(struct ovl_fs *ofs, struct dentry *parent,
--			       struct dentry *newdentry, struct ovl_cattr *attr)
-+			       struct dentry *newdentry_arg, struct ovl_cattr *attr)
- {
- 	struct inode *dir = parent->d_inode;
-+	struct dentry *newdentry __free(dentry_lookup) = newdentry_arg;
- 	int err;
- 
--	if (IS_ERR(newdentry))
-+	if (IS_ERR(newdentry)) {
-+		inode_unlock(dir);
- 		return newdentry;
-+	}
- 
- 	err = -ESTALE;
- 	if (newdentry->d_inode)
-@@ -213,12 +217,9 @@ struct dentry *ovl_create_real(struct ovl_fs *ofs, struct dentry *parent,
- 		err = -EIO;
- 	}
- out:
--	if (err) {
--		if (!IS_ERR(newdentry))
--			dput(newdentry);
-+	if (err)
- 		return ERR_PTR(err);
--	}
--	return newdentry;
-+	return dget(newdentry);
- }
- 
- struct dentry *ovl_create_temp(struct ovl_fs *ofs, struct dentry *workdir,
-@@ -228,7 +229,6 @@ struct dentry *ovl_create_temp(struct ovl_fs *ofs, struct dentry *workdir,
- 	inode_lock(workdir->d_inode);
- 	ret = ovl_create_real(ofs, workdir,
- 			      ovl_lookup_temp(ofs, workdir), attr);
--	inode_unlock(workdir->d_inode);
- 	return ret;
- }
- 
-@@ -336,7 +336,6 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 				    ovl_lookup_upper(ofs, dentry->d_name.name,
- 						     upperdir, dentry->d_name.len),
- 				    attr);
--	inode_unlock(udir);
- 	if (IS_ERR(newdentry))
- 		return PTR_ERR(newdentry);
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 4f84abaa0d68..238c26142318 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -250,6 +250,7 @@ static inline struct dentry *ovl_do_mkdir(struct ovl_fs *ofs,
- 
- 	ret = vfs_mkdir(ovl_upper_mnt_idmap(ofs), dir, dentry, mode);
- 	pr_debug("mkdir(%pd2, 0%o) = %i\n", dentry, mode, PTR_ERR_OR_ZERO(ret));
-+	/* Note: dir will have been unlocked on failure */
- 	return ret;
- }
- 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index df85a76597e9..5a4b0a05139c 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -328,11 +328,13 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 		}
- 
- 		work = ovl_do_mkdir(ofs, dir, work, attr.ia_mode);
--		inode_unlock(dir);
- 		err = PTR_ERR(work);
- 		if (IS_ERR(work))
- 			goto out_err;
- 
-+		dget(work); /* Need to return this */
++static int
++__rename_lookup(struct renamedata *rd, int lookup_flags)
++{
++	struct dentry *p;
++	struct dentry *d1, *d2;
++	int target_flags = LOOKUP_RENAME_TARGET | LOOKUP_CREATE;
++	int err;
 +
-+		done_dentry_lookup(work);
- 		/* Weird filesystem returning with hashed negative (kernfs)? */
- 		err = -EINVAL;
- 		if (d_really_is_negative(work))
-@@ -623,7 +625,8 @@ static struct dentry *ovl_lookup_or_create(struct ovl_fs *ofs,
- 	child = ovl_lookup_upper(ofs, name, parent, len);
- 	if (!IS_ERR(child) && !child->d_inode)
- 		child = ovl_create_real(ofs, parent, child, OVL_CATTR(mode));
--	inode_unlock(parent->d_inode);
-+	else
-+		inode_unlock(parent->d_inode);
- 	dput(parent);
++	if (rd->flags & RENAME_EXCHANGE)
++		target_flags = 0;
++	if (rd->flags & RENAME_NOREPLACE)
++		target_flags |= LOOKUP_EXCL;
++
++	if (rd->old_dentry) {
++		/* Already have the dentry - need to be sure to lock the correct parent */
++		p = lock_rename_child(rd->old_dentry, rd->new_parent);
++		if (IS_ERR(p))
++			return PTR_ERR(p);
++		if (d_unhashed(rd->old_dentry) ||
++		    (rd->old_parent && rd->old_parent != rd->old_dentry->d_parent)) {
++			/* dentry was removed, or moved and explicit parent requested */
++			unlock_rename(rd->old_dentry->d_parent, rd->new_parent);
++			return -EINVAL;
++		}
++		rd->old_parent = dget(rd->old_dentry->d_parent);
++		d1 = dget(rd->old_dentry);
++	} else {
++		p = lock_rename(rd->old_parent, rd->new_parent);
++		if (IS_ERR(p))
++			return PTR_ERR(p);
++		dget(rd->old_parent);
++
++		d1 = lookup_one_qstr_excl(&rd->old_last, rd->old_parent,
++					  lookup_flags);
++		if (IS_ERR(d1))
++			goto out_unlock_1;
++	}
++	if (rd->new_dentry) {
++		if (d_unhashed(rd->new_dentry) ||
++		    rd->new_dentry->d_parent != rd->new_parent) {
++			/* new_dentry was moved or removed! */
++			goto out_unlock_2;
++		}
++		d2 = dget(rd->new_dentry);
++	} else {
++		d2 = lookup_one_qstr_excl(&rd->new_last, rd->new_parent,
++					  lookup_flags | target_flags);
++		if (IS_ERR(d2))
++			goto out_unlock_2;
++	}
++
++	if (d1 == p) {
++		/* source is an ancestor of target */
++		err = -EINVAL;
++		goto out_unlock_3;
++	}
++
++	if (d2 == p) {
++		/* target is an ancestor of source */
++		if (rd->flags & RENAME_EXCHANGE)
++			err = -EINVAL;
++		else
++			err = -ENOTEMPTY;
++		goto out_unlock_3;
++	}
++
++	rd->old_dentry = d1;
++	rd->new_dentry = d2;
++	return 0;
++
++out_unlock_3:
++	dput(d2);
++	d2 = ERR_PTR(err);
++out_unlock_2:
++	dput(d1);
++	d1 = d2;
++out_unlock_1:
++	unlock_rename(rd->old_parent, rd->new_parent);
++	dput(rd->old_parent);
++	return PTR_ERR(d1);
++}
++
++/**
++ * rename_lookup_noperm - lookup and lock names for rename
++ * @rd:           rename data containing relevant details
++ * @lookup_flags: extra flags to pass to ->lookup (e.g. LOOKUP_REVAL,
++ *                LOOKUP_NO_SYMLINKS etc).
++ *
++ * Optionally look up two names and ensure locks are in place for
++ * rename.
++ * Normally @rd.old_dentry and @rd.new_dentry are %NULL and the
++ * old and new directories and last names are given in @rd.  In this
++ * case the names are looked up with appropriate locking and the
++ * results stored in @rd.old_dentry and @rd.new_dentry.
++ *
++ * If either are not NULL, then the corresponding lookup is avoided but
++ * the required locks are still taken.  In this case @rd.old_parent may
++ * be %NULL, otherwise @rd.old_dentry must still have @rd.old_parent as
++ * its d_parent after the locks are obtained.  @rd.new_parent must
++ * always be non-NULL, and must always be the correct parent after
++ * locking.
++ *
++ * On success a reference is held on @rd.old_dentry, @rd.new_dentry,
++ * and @rd.old_parent whether they were originally %NULL or not.  These
++ * references are dropped by done_rename_lookup().  @rd.new_parent
++ * must always be non-NULL and no extra reference is taken.
++ *
++ * The passed in qstrs need not have the hash calculated, and no
++ * permission checking is performed.
++ *
++ * Returns: zero or an error.
++ */
++int rename_lookup_noperm(struct renamedata *rd, int lookup_flags)
++{
++	int err;
++
++	if (!rd->old_dentry) {
++		err = lookup_noperm_common(&rd->old_last, rd->old_parent);
++		if (err)
++			return err;
++	}
++	if (!rd->new_dentry) {
++		err = lookup_noperm_common(&rd->new_last, rd->new_parent);
++		if (err)
++			return err;
++	}
++	return __rename_lookup(rd, lookup_flags);
++}
++EXPORT_SYMBOL(rename_lookup_noperm);
++
++/**
++ * rename_lookup - lookup and lock names for rename
++ * @rd:           rename data containing relevant details
++ * @lookup_flags: extra flags to pass to ->lookup (e.g. LOOKUP_REVAL,
++ *                LOOKUP_NO_SYMLINKS etc).
++ *
++ * Optionally look up two names and ensure locks are in place for
++ * rename.
++ * Normally @rd.old_dentry and @rd.new_dentry are %NULL and the
++ * old and new directories and last names are given in @rd.  In this
++ * case the names are looked up with appropriate locking and the
++ * results stored in @rd.old_dentry and @rd.new_dentry.
++ *
++ * If either are not NULL, then the corresponding lookup is avoided but
++ * the required locks are still taken.  In this case @rd.old_parent may
++ * be %NULL, otherwise @rd.old_dentry must still have @rd.old_parent as
++ * its d_parent after the locks are obtained.  @rd.new_parent must
++ * always be non-NULL, and must always be the correct parent after
++ * locking.
++ *
++ * On success a reference is held on @rd.old_dentry, @rd.new_dentry,
++ * and @rd.old_parent whether they were originally %NULL or not.  These
++ * references are dropped by done_rename_lookup().  @rd.new_parent
++ * must always be non-NULL and no extra reference is taken.
++ *
++ * The passed in qstrs need not have the hash calculated, and normal
++ * permission checking for MAY_EXEC is performed.
++ *
++ * Returns: zero or an error.
++ */
++int rename_lookup(struct renamedata *rd, int lookup_flags)
++{
++	int err;
++
++	if (!rd->old_dentry) {
++		err = lookup_one_common(rd->old_mnt_idmap, &rd->old_last,
++					rd->old_parent);
++		if (err)
++			return err;
++	}
++	if (!rd->new_dentry) {
++		err = lookup_one_common(rd->new_mnt_idmap, &rd->new_last,
++					rd->new_parent);
++		if (err)
++			return err;
++	}
++	return __rename_lookup(rd, lookup_flags);
++}
++EXPORT_SYMBOL(rename_lookup);
++
++/**
++ * done_rename_lookup - unlock dentries after rename
++ * @rd: the struct renamedata that was passed to rename_lookup()
++ *
++ * After a successful rename_lookup() (or similar) call, and after
++ * any required renaming is performed, done_rename_rename() must be called
++ * to drop any locks and references that were obtained by the earlier function.
++ */
++void done_rename_lookup(struct renamedata *rd)
++{
++	unlock_rename(rd->old_parent, rd->new_parent);
++	dput(rd->old_parent);
++	dput(rd->old_dentry);
++	dput(rd->new_dentry);
++}
++EXPORT_SYMBOL(done_rename_lookup);
++
+ /**
+  * vfs_prepare_mode - prepare the mode to be used for a new inode
+  * @idmap:	idmap of the mount the inode was found from
+@@ -5336,14 +5563,10 @@ int do_renameat2(int olddfd, struct filename *from, int newdfd,
+ 		 struct filename *to, unsigned int flags)
+ {
+ 	struct renamedata rd;
+-	struct dentry *old_dentry, *new_dentry;
+-	struct dentry *trap;
+ 	struct path old_path, new_path;
+-	struct qstr old_last, new_last;
+ 	int old_type, new_type;
+ 	struct inode *delegated_inode = NULL;
+-	unsigned int lookup_flags = 0, target_flags =
+-		LOOKUP_RENAME_TARGET | LOOKUP_CREATE;
++	unsigned int lookup_flags = 0;
+ 	bool should_retry = false;
+ 	int error = -EINVAL;
  
- 	return child;
-diff --git a/fs/xfs/scrub/orphanage.c b/fs/xfs/scrub/orphanage.c
-index 9c12cb844231..c95bded4e8a7 100644
---- a/fs/xfs/scrub/orphanage.c
-+++ b/fs/xfs/scrub/orphanage.c
-@@ -170,7 +170,7 @@ xrep_orphanage_create(
- 					     orphanage_dentry, 0750);
- 		error = PTR_ERR(orphanage_dentry);
- 		if (IS_ERR(orphanage_dentry))
--			goto out_unlock_root;
-+			goto out_dput_root;
+@@ -5354,19 +5577,14 @@ int do_renameat2(int olddfd, struct filename *from, int newdfd,
+ 	    (flags & RENAME_EXCHANGE))
+ 		goto put_names;
+ 
+-	if (flags & RENAME_EXCHANGE)
+-		target_flags = 0;
+-	if (flags & RENAME_NOREPLACE)
+-		target_flags |= LOOKUP_EXCL;
+-
+ retry:
+ 	error = filename_parentat(olddfd, from, lookup_flags, &old_path,
+-				  &old_last, &old_type);
++				  &rd.old_last, &old_type);
+ 	if (error)
+ 		goto put_names;
+ 
+-	error = filename_parentat(newdfd, to, lookup_flags, &new_path, &new_last,
+-				  &new_type);
++	error = filename_parentat(newdfd, to, lookup_flags, &new_path,
++				  &rd.new_last, &new_type);
+ 	if (error)
+ 		goto exit1;
+ 
+@@ -5388,67 +5606,43 @@ int do_renameat2(int olddfd, struct filename *from, int newdfd,
+ 		goto exit2;
+ 
+ retry_deleg:
+-	trap = lock_rename(new_path.dentry, old_path.dentry);
+-	if (IS_ERR(trap)) {
+-		error = PTR_ERR(trap);
++	rd.old_parent	   = old_path.dentry;
++	rd.old_mnt_idmap   = mnt_idmap(old_path.mnt);
++	rd.old_dentry	   = NULL;
++	rd.new_parent	   = new_path.dentry;
++	rd.new_mnt_idmap   = mnt_idmap(new_path.mnt);
++	rd.new_dentry	   = NULL;
++	rd.delegated_inode = &delegated_inode;
++	rd.flags	   = flags;
++
++	error = __rename_lookup(&rd, lookup_flags);
++	if (error)
+ 		goto exit_lock_rename;
+-	}
+ 
+-	old_dentry = lookup_one_qstr_excl(&old_last, old_path.dentry,
+-					  lookup_flags);
+-	error = PTR_ERR(old_dentry);
+-	if (IS_ERR(old_dentry))
+-		goto exit3;
+-	new_dentry = lookup_one_qstr_excl(&new_last, new_path.dentry,
+-					  lookup_flags | target_flags);
+-	error = PTR_ERR(new_dentry);
+-	if (IS_ERR(new_dentry))
+-		goto exit4;
+ 	if (flags & RENAME_EXCHANGE) {
+-		if (!d_is_dir(new_dentry)) {
++		if (!d_is_dir(rd.new_dentry)) {
+ 			error = -ENOTDIR;
+-			if (new_last.name[new_last.len])
+-				goto exit5;
++			if (rd.new_last.name[rd.new_last.len])
++				goto exit_unlock;
+ 		}
  	}
+ 	/* unless the source is a directory trailing slashes give -ENOTDIR */
+-	if (!d_is_dir(old_dentry)) {
++	if (!d_is_dir(rd.old_dentry)) {
+ 		error = -ENOTDIR;
+-		if (old_last.name[old_last.len])
+-			goto exit5;
+-		if (!(flags & RENAME_EXCHANGE) && new_last.name[new_last.len])
+-			goto exit5;
+-	}
+-	/* source should not be ancestor of target */
+-	error = -EINVAL;
+-	if (old_dentry == trap)
+-		goto exit5;
+-	/* target should not be an ancestor of source */
+-	if (!(flags & RENAME_EXCHANGE))
+-		error = -ENOTEMPTY;
+-	if (new_dentry == trap)
+-		goto exit5;
++		if (rd.old_last.name[rd.old_last.len])
++			goto exit_unlock;
++		if (!(flags & RENAME_EXCHANGE) && rd.new_last.name[rd.new_last.len])
++			goto exit_unlock;
++	}
  
- 	/* Not a directory? Bail out. */
+-	error = security_path_rename(&old_path, old_dentry,
+-				     &new_path, new_dentry, flags);
++	error = security_path_rename(&old_path, rd.old_dentry,
++				     &new_path, rd.new_dentry, flags);
+ 	if (error)
+-		goto exit5;
++		goto exit_unlock;
+ 
+-	rd.old_parent	   = old_path.dentry;
+-	rd.old_dentry	   = old_dentry;
+-	rd.old_mnt_idmap   = mnt_idmap(old_path.mnt);
+-	rd.new_parent	   = new_path.dentry;
+-	rd.new_dentry	   = new_dentry;
+-	rd.new_mnt_idmap   = mnt_idmap(new_path.mnt);
+-	rd.delegated_inode = &delegated_inode;
+-	rd.flags	   = flags;
+ 	error = vfs_rename(&rd);
+-exit5:
+-	dput(new_dentry);
+-exit4:
+-	dput(old_dentry);
+-exit3:
+-	unlock_rename(new_path.dentry, old_path.dentry);
++exit_unlock:
++	done_rename_lookup(&rd);
+ exit_lock_rename:
+ 	if (delegated_inode) {
+ 		error = break_deleg_wait(&delegated_inode);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index db644150b58f..b12203afa0da 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2011,9 +2011,11 @@ int vfs_unlink(struct mnt_idmap *, struct inode *, struct dentry *,
+  * @old_mnt_idmap:     idmap of the old mount the inode was found from
+  * @old_parent:        parent of source
+  * @old_dentry:                source
++ * @old_last:          name for old_dentry in old_dir, if old_dentry not given
+  * @new_mnt_idmap:     idmap of the new mount the inode was found from
+  * @new_parent:        parent of destination
+  * @new_dentry:                destination
++ * @new_last:          name for new_dentry in new_dir, if new_dentry not given
+  * @delegated_inode:   returns an inode needing a delegation break
+  * @flags:             rename flags
+  */
+@@ -2021,9 +2023,11 @@ struct renamedata {
+ 	struct mnt_idmap *old_mnt_idmap;
+ 	struct dentry *old_parent;
+ 	struct dentry *old_dentry;
++	struct qstr old_last;
+ 	struct mnt_idmap *new_mnt_idmap;
+ 	struct dentry *new_parent;
+ 	struct dentry *new_dentry;
++	struct qstr new_last;
+ 	struct inode **delegated_inode;
+ 	unsigned int flags;
+ } __randomize_layout;
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 67eef91603cc..26e5778c665f 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -108,6 +108,9 @@ extern int follow_up(struct path *);
+ extern struct dentry *lock_rename(struct dentry *, struct dentry *);
+ extern struct dentry *lock_rename_child(struct dentry *, struct dentry *);
+ extern void unlock_rename(struct dentry *, struct dentry *);
++int rename_lookup(struct renamedata *rd, int lookup_flags);
++int rename_lookup_noperm(struct renamedata *rd, int lookup_flags);
++void done_rename_lookup(struct renamedata *rd);
+ 
+ /**
+  * mode_strip_umask - handle vfs umask stripping
 -- 
 2.50.0.107.gf914562f5916.dirty
 
