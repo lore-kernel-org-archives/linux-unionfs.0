@@ -1,23 +1,24 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D46B2DAFCE;
-	Tue, 12 Aug 2025 23:53:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE902D6417;
+	Tue, 12 Aug 2025 23:53:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755042784; cv=none; b=qaD+ynXvSLH3xtSxD0AEqeyO/GzZDmpIPFvgh64IUR86OXISxzaXxxJkUnFLoFC3UNxCdBxeYfiClfrCnGxjRKw6ISULmcsEUBWDxtdRM6ubXAoyj67nVS9hdvnAmrAz2kgfPhGcvHfhbfmtV/+CBCNCdUZrExu96/nIq9mts/A=
+	t=1755042784; cv=none; b=dAziRD8LyXXnRJQj1klx2NSfcGpOb6fAAJ12RSPzjJtcq3SnHArEBx1lw+djbN0yRk5cWlg/gzCwDTqLfbw7h9juXF1EtapoEoGyVPHCv7kzgGSTa0mFQ0bYAZMe3Jn11SMPId1ghP/zXlH+0pnH0GtStByjcAweAK9aJDv7m2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1755042784; c=relaxed/simple;
-	bh=gn54IA1/q/Cn2j1DUaCUAMg4l43QdpVX0r604C6RKaY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sCDw1VF2S9Abc2JQPlRxAHaZtQqIS8HoQm2Iav8kVbIFb4Ssio3zWCX1WvMMGEfRgj4/mHt5qJDVMhbKJtzzXTqulEjLs2e9a5/aaOPgggn7A0r7grVEbmbNDd5UOXFUHTWpd+rZJudamba+eYGim4VhUA/rVciF8KDX5IG5ubw=
+	bh=aU9DH3a24782eit3wuuN3qUFohwYCIfssw2h5DYMqhw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=PZS4VWv8+LH53nXcRq7Fa5YW6o+6ueeIrsbwnpj1tLmx9fZ2uaM2gaYGNWqK6YPQwHxVD103RHwR1YXXGpg1D27guA3T/Rstz9hDqNmXDxMSnsnSrLBkKPG0WZmyK3AjpX+nZoOh1FpLjr8sNFhB7r+o/1p7SyiC1YcvG/9iLx0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1ulynI-005Y1s-6o;
-	Tue, 12 Aug 2025 23:52:41 +0000
+	id 1ulynQ-005Y2D-85;
+	Tue, 12 Aug 2025 23:52:49 +0000
 From: NeilBrown <neil@brown.name>
 To: Alexander Viro <viro@zeniv.linux.org.uk>,
 	Christian Brauner <brauner@kernel.org>,
@@ -50,10 +51,12 @@ Cc: David Howells <dhowells@redhat.com>,
 	linux-cifs@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 00/11] VFS: prepare for changes to directory locking
-Date: Tue, 12 Aug 2025 12:25:03 +1000
-Message-ID: <20250812235228.3072318-1-neil@brown.name>
+Subject: [PATCH 10/11] VFS: use d_alloc_parallel() in lookup_one_qstr_excl().
+Date: Tue, 12 Aug 2025 12:25:13 +1000
+Message-ID: <20250812235228.3072318-11-neil@brown.name>
 X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
+In-Reply-To: <20250812235228.3072318-1-neil@brown.name>
+References: <20250812235228.3072318-1-neil@brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -62,117 +65,205 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is the first of 3 sets of patches which, together, allow
-filesystems to opt-out of having the directory inode lock held over
-directory operations (except readdir).
-- This set creates some new APIs in the VFS and makes a few changes in
-  callers either because they are trivial (patch 08) or because they
-  involve a flag-day change (patches 06, 07, and 09).
-- The second set rolls the new APIs out to all non-VFS code which 
-  invokes directory operations.
-- The third (which isn't yet bug-free) changes the implementation
-  of these APIs to make the use of inode_lock() optional.
+lookup_one_qstr_excl() is used for lookups prior to directory
+modifications, whether create, unlink, rename, or whatever.
 
-I imagine these three set landing in three different merge windows,
-though some of the second set could get in the same window as the first.
+To prepare for allowing modification to happen in parallel, change
+lookup_one_qstr_excl() to use d_alloc_parallel().
 
-The patches are listed below and are available at 
-   https://github.com/neilbrown/linux
-in branch pdirops.
+As a result, ->lookup is now only ever called with a d_in_lookup()
+dentry.  Consequently we can remove the d_in_lookup() check from
+d_add_ci() which is only used in ->lookup.
 
-This first set adds and updates APIs with three particular goals:
-1/ centralising all lookup and locking for directory ops.  This
-  includes a variety of dentry_lookup() calls with done_dentry_lookup(),
-  and rename_lookup() with done_rename_lookup().
-2/ Removing the use of d_drop() during a directory operation (it is
-   OK for d_drop to happen at the end).  As the goal is for locks
-   to be based on the dentry, a dropped dentry will no longer protect the name.
-   The only change in this patch set is 08 which changes d_splice_alias()
-   and d_add() to not require a preceding d_drop(), and then removes
-   the unnecessary d_drop()s.
-3/ No blocking in d_alloc_parallel() within readdir() (iterate_shared()) requests.
-   We will need to invert the ordering between d_alloc_parallel() and
-   inode_lock(), so blocking in d_alloc_parallel() to, e.g., prime the
-   dcache during readdir must be avoided.  The last patch introduces
-   new interfaces that can be used instead and explains them.
-   Patches 9 and 10 prepare for this.
+If LOOKUP_EXCL or LOOKUP_RENAME_TARGET is passed, the caller must ensure
+d_lookup_done() is called at an appropriate time, and must not assume
+that it can test for positive or negative dentries without confirming
+that the dentry is no longer d_in_lookup() - unless it is filesystem
+code acting on itself and *knows* that ->lookup() always completes the
+lookup (currently true for all filesystems other than NFS).
 
-Please review and consider for 6.18.
+Signed-off-by: NeilBrown <neil@brown.name>
+---
+ Documentation/filesystems/porting.rst | 14 +++++++++
+ fs/dcache.c                           | 16 +++-------
+ fs/namei.c                            | 45 +++++++++++++++++++++------
+ 3 files changed, 53 insertions(+), 22 deletions(-)
 
-Thanks,
-NeilBrown
-
- [PATCH 01/11] VFS: discard err2 in filename_create()
- [PATCH 02/11] VFS: introduce dentry_lookup() and friends
- [PATCH 03/11] VFS: add dentry_lookup_killable()
- [PATCH 04/11] VFS: introduce dentry_lookup_continue()
- [PATCH 05/11] VFS: add rename_lookup()
- [PATCH 06/11] VFS: unify old_mnt_idmap and new_mnt_idmap in
- [PATCH 07/11] VFS: Change vfs_mkdir() to unlock on failure.
- [PATCH 08/11] VFS: allow d_splice_alias() and d_add() to work on
- [PATCH 09/11] VFS: use global wait-queue table for d_alloc_parallel()
- [PATCH 10/11] VFS: use d_alloc_parallel() in lookup_one_qstr_excl().
- [PATCH 11/11] VFS: introduce d_alloc_noblock() and d_alloc_locked()
-
-Future patches:
-
-set 2:
- devtmpfs: use new dentry locking APIs
- audit: use new dentry locking APIs
- debugfs: use new dentry locking APIs.
- binderfs: use new dentry locking APIs.
- binfmt_misc: use new dentry locking APIs.
- kernel/bpf: use new dentry locking APIs.
- devpts: use new dentry locking APIs.
- ipc/mqueue: use new dentry locking APIs.
- s390/hypfs: use new dentry locking APIs.
- security: use new dentry locking APIs.
- tracefs: use new dentry locking APIs.
-
- ecryptfs: use dentry_lookup_continue() in lock_parent()
- ecryptfs: use rename_lookup()
-
- fs/proc: Don't look root inode when creating "self" and "thread-self"
- proc: use d_alloc_locked() and lock_lookup()
-
- bcachefs: use new dentry locking APIs
- exfat: use d_splice_alias(), don't d_drop()
- coda: don't d_drop() early.
- smb/server: use new dentry locking APIs.
- nfsd: use new dentry locking APIs.
- cachefiles: use new dentry locking APIs.
- btrfs: use dentry_lookup_killable()
- fuse: use new dentry locking APIs.
- sunrpc/rpc_pipe: use new dentry locking APIs.
- xfs: use new dentry locking APIs.
-
- ovl: use is_subdir() for testing if one thing is a subdir of another
- ovl: introduce ovl_upper_dentry_lookup() and use it.
- ovl: switch from parent_lock() to dentry_lookup_continue() except for rename.
- ovl: use dentry_lookup_killable() in ovl_check_whiteouts()
- ovl: split ovl_tempname() out from ovl_lookup_temp().
- ovl: Change ovl_lookup_temp() to use ovl_upper_dentry_lookup()
- ovl: Change all rename code to use rename_lookup_noperm()
- ovl: don't dget_parent() in ovl_lookup_real_one()
- ovl: use new APIs in ovl_lookup_real_one()
- ovl: use new dir apis in ovl_cache_update()
-
- NFS: remove d_drop() from nfs_atomic_open()
- nfs: use d_alloc_noblock() in silly-rename
-
- afs: use d_splice_alias() in afs_vnode_new_inode()
- afs: use d_time instead of d_fsdata
- afs: don't unhash/rehash dentries during unlink/rename
- AFS: use new dir access APIs.
-
-set 3:
- VFS: make various namei.c functions static.
- VFS: Remove lookup_one() and lookup_noperm()
- VFS: Introduce S_DYING which warns that S_DEAD might follow.
- VFS: lift d_alloc_parallel above inode_lock
- VFS: provide alternative to s_vfs_rename_mutex
- VFS: Add ability to exclusively lock a dentry
- VFS: use new dentry locking for open/create/remove/rename
- VFS: allow a filesystem to opt out of directory locking.
- NFS: allow concurrent dir ops.
+diff --git a/Documentation/filesystems/porting.rst b/Documentation/filesystems/porting.rst
+index e4a326e8fa4c..c9210d3bd313 100644
+--- a/Documentation/filesystems/porting.rst
++++ b/Documentation/filesystems/porting.rst
+@@ -1291,3 +1291,17 @@ parameters for the file system to set this state.
+ 
+ d_alloc_parallel() no longer requires a waitqueue_head.  It uses one
+ from an internal table when needed.
++
++---
++
++** mandatory**
++
++All dentry_lookup* functions may return a d_in_lookup() dentry if passed
++"O_CREATE|O_EXCL" or "O_RENAME_TARGET".  done_dentry_lookup() calls the
++necessary d_lookup_done().  If the caller *knows* which filesystem is
++being used, it may know that this is not possible.  Otherwise it must be
++careful testing if the dentry is positive or negative as the lookup may
++not have been performed yet.
++
++inode_operations.lookup() is now only ever called with a d_in_lookup()
++dentry.
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 5473d906783e..7e3eb5576fa4 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -2136,18 +2136,10 @@ struct dentry *d_add_ci(struct dentry *dentry, struct inode *inode,
+ 		iput(inode);
+ 		return found;
+ 	}
+-	if (d_in_lookup(dentry)) {
+-		found = d_alloc_parallel(dentry->d_parent, name);
+-		if (IS_ERR(found) || !d_in_lookup(found)) {
+-			iput(inode);
+-			return found;
+-		}
+-	} else {
+-		found = d_alloc(dentry->d_parent, name);
+-		if (!found) {
+-			iput(inode);
+-			return ERR_PTR(-ENOMEM);
+-		}
++	found = d_alloc_parallel(dentry->d_parent, name);
++	if (IS_ERR(found) || !d_in_lookup(found)) {
++		iput(inode);
++		return found;
+ 	}
+ 	res = d_splice_alias(inode, found);
+ 	if (res) {
+diff --git a/fs/namei.c b/fs/namei.c
+index 2c98672fdb6a..6a645f3a2b20 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1666,13 +1666,14 @@ static struct dentry *lookup_dcache(const struct qstr *name,
+ }
+ 
+ /*
+- * Parent directory has inode locked exclusive.  This is one
+- * and only case when ->lookup() gets called on non in-lookup
+- * dentries - as the matter of fact, this only gets called
+- * when directory is guaranteed to have no in-lookup children
+- * at all.
+- * Will return -ENOENT if name isn't found and LOOKUP_CREATE wasn't passed.
+- * Will return -EEXIST if name is found and LOOKUP_EXCL was passed.
++ * Parent directory has inode locked.
++ * d_lookup_done() must be called before the dentry is dput()
++ * if LOOKUP_EXCL or LOOKUP_RENAME_TARGET is set.
++ * If the dentry is not d_in_lookup():
++ *   Will return -ENOENT if name isn't found and LOOKUP_CREATE wasn't passed.
++ *   Will return -EEXIST if name is found and LOOKUP_EXCL was passed.
++ * If it is d_in_lookup() then these conditions can only be checked by the
++ * file system when carrying out the intent (create or rename).
+  */
+ struct dentry *lookup_one_qstr_excl(const struct qstr *name,
+ 				    struct dentry *base, unsigned int flags)
+@@ -1690,18 +1691,27 @@ struct dentry *lookup_one_qstr_excl(const struct qstr *name,
+ 	if (unlikely(IS_DEADDIR(dir)))
+ 		return ERR_PTR(-ENOENT);
+ 
+-	dentry = d_alloc(base, name);
+-	if (unlikely(!dentry))
+-		return ERR_PTR(-ENOMEM);
++	dentry = d_alloc_parallel(base, name);
++	if (unlikely(IS_ERR(dentry)))
++		return dentry;
++	if (unlikely(!d_in_lookup(dentry)))
++		/* Raced with another thread which did the lookup */
++		goto found;
+ 
+ 	old = dir->i_op->lookup(dir, dentry, flags);
+ 	if (unlikely(old)) {
++		d_lookup_done(dentry);
+ 		dput(dentry);
+ 		dentry = old;
+ 	}
+ found:
+ 	if (IS_ERR(dentry))
+ 		return dentry;
++	if (d_in_lookup(dentry))
++		/* We cannot check for errors - the caller will have to
++		 * wait for any create-etc attempt to get relevant errors.
++		 */
++		return dentry;
+ 	if (d_is_negative(dentry) && !(flags & LOOKUP_CREATE)) {
+ 		dput(dentry);
+ 		return ERR_PTR(-ENOENT);
+@@ -1767,6 +1777,8 @@ static int lookup_one_common(struct mnt_idmap *idmap,
+  * This function is for VFS-internal use only.
+  *
+  * Returns: the dentry, suitably locked, or an ERR_PTR().
++ *    The dentry may be d_in_lookup() if LOOKUP_EXCL or LOOKUP_RENAME_TARGET
++ *    is given, depending on the filesystem.
+  */
+ static struct dentry *__dentry_lookup(struct qstr *last,
+ 				      struct dentry *base,
+@@ -1796,7 +1808,10 @@ static struct dentry *__dentry_lookup(struct qstr *last,
+  * The "necessary locks" are currently the inode lock on @base.
+  * The name @last is NOT expected to have the hash calculated.
+  * No permission checks are performed.
++ *
+  * Returns: the dentry, suitably locked, or an ERR_PTR().
++ *    The dentry may be d_in_lookup() if LOOKUP_EXCL or LOOKUP_RENAME_TARGET
++ *    is given, depending on the filesystem.
+  */
+ struct dentry *dentry_lookup_noperm(struct qstr *last,
+ 				    struct dentry *base,
+@@ -1825,6 +1840,8 @@ EXPORT_SYMBOL(dentry_lookup_noperm);
+  * Permission checks are performed to ensure %MAY_EXEC access to @base.
+  *
+  * Returns: the dentry, suitably locked, or an ERR_PTR().
++ *    The dentry may be d_in_lookup() if LOOKUP_EXCL or LOOKUP_RENAME_TARGET
++ *    is given, depending on the filesystem.
+  */
+ struct dentry *dentry_lookup(struct mnt_idmap *idmap,
+ 			     struct qstr *last,
+@@ -1852,7 +1869,10 @@ EXPORT_SYMBOL(dentry_lookup);
+  * If a fatal signal arrives, or is already pending, the operation is aborted.
+  * The name @last is NOT expected to already have the hash calculated.
+  * Permission checks are performed to ensure %MAY_EXEC access to @base.
++ *
+  * Returns: the dentry, suitably locked, or an ERR_PTR().
++ *    The dentry may be d_in_lookup() if LOOKUP_EXCL or LOOKUP_RENAME_TARGET
++ *    is given, depending on the filesystem.
+  */
+ struct dentry *dentry_lookup_killable(struct mnt_idmap *idmap,
+ 				      struct qstr *last,
+@@ -1937,6 +1957,7 @@ void done_dentry_lookup(struct dentry *dentry)
+ {
+ 	if (!IS_ERR(dentry)) {
+ 		inode_unlock(dentry->d_parent->d_inode);
++		d_lookup_done(dentry);
+ 		dput(dentry);
+ 	}
+ }
+@@ -3613,9 +3634,11 @@ __rename_lookup(struct renamedata *rd, int lookup_flags)
+ 	return 0;
+ 
+ out_unlock_3:
++	d_lookup_done(d2);
+ 	dput(d2);
+ 	d2 = ERR_PTR(err);
+ out_unlock_2:
++	d_lookup_done(d1);
+ 	dput(d1);
+ 	d1 = d2;
+ out_unlock_1:
+@@ -3732,6 +3755,8 @@ EXPORT_SYMBOL(rename_lookup);
+  */
+ void done_rename_lookup(struct renamedata *rd)
+ {
++	d_lookup_done(rd->old_dentry);
++	d_lookup_done(rd->new_dentry);
+ 	unlock_rename(rd->old_parent, rd->new_parent);
+ 	dput(rd->old_parent);
+ 	dput(rd->old_dentry);
+-- 
+2.50.0.107.gf914562f5916.dirty
 
