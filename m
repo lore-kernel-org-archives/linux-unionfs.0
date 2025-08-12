@@ -1,172 +1,146 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88BF1C683;
-	Sun, 10 Aug 2025 13:02:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE162D4B6D;
+	Tue, 12 Aug 2025 23:53:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754830955; cv=none; b=TPqbKU7Z/YYVY6yQjBLR+oOhPPWp3Qtay7UCDSp0XT9P+M/bii5voAyl8PWjcC1HwMuNqqucjvGuedsDl+NOmY52hpf/fNXvVEfWhETfwDWg6otLCjoDzPhWWhB57vVJAimrJSKgkfN9eMNJTlN6m9KPv6PuIGASeYuFIlJPFiw=
+	t=1755042784; cv=none; b=iV05z4v0d3gnUvprKJzocxpd0r2v/x7bR9Mh9jt0ryGYbLmOdoHJov/5avMIRmdJVJHHPhrhQSOA+DAWbLBugJ6pahtgJ0P7xSSUUMKfBOnWaWNiLMqkN+jbUW2QuJ/SJK6jB1zYwt4BFy+KzAZZJb825e4kNy7uL4wEoVmkOkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754830955; c=relaxed/simple;
-	bh=7vETKwtpidENX53WjwI6MHM6eVFOckiWgacFT/qG6FM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Fl4MDNWKxcSeDyX9fGiD3qYEfAY3f8vWVJlxs8NrVEyjzIyin/oaXZjWGLJoijUSkpYpzn8lfXy4ScTa9V2R8lXXpvyTe7vNyuX55hLQvNDlm/HmMXaGEasGBIkmaM8BKUpJykNKoqAhzx7MAUEB9cju9QKuqi9DF66UnaCzrsA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A5x6GaxY; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A5x6GaxY"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-af98b77d2f0so660647066b.3;
-        Sun, 10 Aug 2025 06:02:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1754830952; x=1755435752; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oSlOOEhHSp0QmqGAVt0Ofk92yXA+aQmJze++Vd3SO3g=;
-        b=A5x6GaxYRh9k6qmp5rI3dT/W1fNYdHygpTq9FZOkjs4ur1PMpqvCoIE+R8CAh+NJ1N
-         U/ubZ+2T3KT/ED0yDs0Ok0a93IcbgZRQ0e5S1qb94GO0RPC2eDv2e00C4uH/WO6iDM4u
-         IvhYOnIbMsIXnh8U3IvE49PhAf/HDRzN6pwHvXs0Zmb9tEYRgHTlM735mzkkgqzIwSq0
-         OCxnnONIGFU21b14mYgXBbUC/tzuZvzb5f1xumV6Nwo1qkRaMvO4ekDJ9zUhQJHzfJM6
-         Pal6iuqmkZZ3E6XSVeTPutOeE2FC53IMqhKYDArsXx7CYnUcDyQApv9Que54rs+q2ZmV
-         2hIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754830952; x=1755435752;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oSlOOEhHSp0QmqGAVt0Ofk92yXA+aQmJze++Vd3SO3g=;
-        b=T1MJVp2Cgp4Yx/An4kkdNZx9TWnalEP9DLwJGUsH7oOTsfbBKu5Nu/eTIzDtc6pMT2
-         XfOFO+pJOwlfQYBS/qL2zGISUorwNQdDagRNMuVv4d7Y/995iY8lAJ90mcH05ydI07m5
-         iHo36g17NO5AM8KtegwYIzf9J4NRZftDLRExgFIEABVTLdkaiQKS8QdyCVzdNnWiIyhf
-         ZOPDKe9ryK39ZGWw1cspP4YFOHBSG2CCPqRe6r/27zKorypl6mGa/ejqFpveoj7YB3CH
-         bgueCgzDGUOO29TEmMvn/kPd3OZ/3CCtk5Y/2JMTgFOEmF9/lMRrCC/pMyE5JjuVr599
-         j6Gw==
-X-Forwarded-Encrypted: i=1; AJvYcCUC9hv1TYBBQmE7lJMm2Se/nSzw88TiZl+ZthezESdcJkI8O0AvGhSw7piNhZbJj8xNYUQYmbTcK/hU/BoT@vger.kernel.org, AJvYcCUh2u3regHOZTnbZoXORDB13c0NECUiIgW/2bUWNVIFBlz1QAUKOpqq/1Pmk8DNMo22J5BPdtWK1OdurHFphw==@vger.kernel.org, AJvYcCVpWqG3Tz5zWdogboKLTBUexBlMbCUPBIE+TXA8nM26qDTW6Zq45r3FMySJuxoGas5vy6EqoUQREDufbMMY@vger.kernel.org
-X-Gm-Message-State: AOJu0YzWhLu44rIWbYKiO1KSyV93HXbsG/LFwSFRmTnWmEPXPPyCMRSe
-	WTCZqaGa0oDPHayQ4+kC6oTjXpD65yr7mbqNo0WS48q0px5gknOrIePUY2lMmd4/G+NvwrWFgop
-	ITnU/2yf+jgVjR2B7nkl5WSTRLouye4s=
-X-Gm-Gg: ASbGnctG6dnL6AAt+YgIV6N28RjybKwVFTWUEKBuKa0c0fWsWfmJ8oQtEfy53yZOqX8
-	fAKPWiYZDGM52lWhDL3ZrX3EUMv2TJXOMCWtumpFF3LQu+biXpHYMz6Gel+/xYY8qNWDn8B8ttR
-	+2zQQWiJN5OGcLA5L0uBa0HOFVgxG543FkxiZVe5WrDdhnsVw2PN49ACIFgr5RHnBI96QuIVX8Y
-	iDcnRY=
-X-Google-Smtp-Source: AGHT+IGc1LjBDs581anLLqxndQtaeysDoGVU+r3AisBDGvFqnux7ki0lPq5hSFTSlEIgP20ONz/YoIpX6TnfSC527jk=
-X-Received: by 2002:a17:906:9f8b:b0:ae6:f087:953 with SMTP id
- a640c23a62f3a-af9c63b0a87mr823318466b.12.1754830951730; Sun, 10 Aug 2025
- 06:02:31 -0700 (PDT)
+	s=arc-20240116; t=1755042784; c=relaxed/simple;
+	bh=wY0rj6H9uNX526KJkK3oQKoJg0U9wk/QJcI6qW2yVlg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rcoyDzD/BnJxPRfGx/DD2XPnTaNox/xWGCU137RLX0x7YyI6s/OxVQCkjLycdkjRTW9GfijiVUVyyYMCanZa6tM0qlyrnsdgftyGc3ra0dmSdbGBiE0b6XEdLZe/4NzfWnmQh/XmvybfrPFUXdDY7O8w3ERFsOTluHYDgAUeWp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1ulynK-005Y1y-Ic;
+	Tue, 12 Aug 2025 23:52:44 +0000
+From: NeilBrown <neil@brown.name>
+To: Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>
+Cc: David Howells <dhowells@redhat.com>,
+	Marc Dionne <marc.dionne@auristor.com>,
+	Xiubo Li <xiubli@redhat.com>,
+	Ilya Dryomov <idryomov@gmail.com>,
+	Tyler Hicks <code@tyhicks.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Trond Myklebust <trondmy@kernel.org>,
+	Anna Schumaker <anna@kernel.org>,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Steve French <sfrench@samba.org>,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Carlos Maiolino <cem@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	linux-afs@lists.infradead.org,
+	netfs@lists.linux.dev,
+	ceph-devel@vger.kernel.org,
+	ecryptfs@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-nfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-cifs@vger.kernel.org,
+	linux-xfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 03/11] VFS: add dentry_lookup_killable()
+Date: Tue, 12 Aug 2025 12:25:06 +1000
+Message-ID: <20250812235228.3072318-4-neil@brown.name>
+X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
+In-Reply-To: <20250812235228.3072318-1-neil@brown.name>
+References: <20250812235228.3072318-1-neil@brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250808-tonyk-overlayfs-v3-0-30f9be426ba8@igalia.com>
- <20250808-tonyk-overlayfs-v3-6-30f9be426ba8@igalia.com> <CAOQ4uxiDtq4LF-OVtQ6ufmcAZqLn-jqynM06RgHLgUYOW-uHHA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiDtq4LF-OVtQ6ufmcAZqLn-jqynM06RgHLgUYOW-uHHA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 10 Aug 2025 15:02:20 +0200
-X-Gm-Features: Ac12FXz3sd9nkTZqSLTKZCKnaQeDmVdIW_6sTRxrlBzilIXPWIRh2FNlF3TnYpg
-Message-ID: <CAOQ4uxg326bEDdfKCKnoV0MnBBgRbxPEgN_41kBJv9HUdb-5dg@mail.gmail.com>
-Subject: Re: [PATCH RFC v3 6/7] ovl: Add S_CASEFOLD as part of the inode flag
- to be copied
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
-	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	kernel-dev@igalia.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sat, Aug 9, 2025 at 11:51=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Fri, Aug 8, 2025 at 10:59=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@i=
-galia.com> wrote:
-> >
-> > To keep ovl's inodes consistent with their real inodes, add the
-> > S_CASEFOLD flag as part of the flags that need to be copied.
-> >
-> > Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> > ---
-> > Changes from v2:
-> > - Instead of manually setting the flag if the realpath dentry is
-> >   casefolded, just add this flag as part of the flags that need to be
-> >   copied.
-> > ---
-> >  fs/overlayfs/overlayfs.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index bb0d7ded8e763a4a7a6fc506d966ed2f3bdb4f06..8a9a67d2933173c61b0fa0a=
-f5634d91e092e00b2 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -822,7 +822,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
-> >  void ovl_copyattr(struct inode *to);
-> >
-> >  /* vfs inode flags copied from real to ovl inode */
-> > -#define OVL_COPY_I_FLAGS_MASK  (S_SYNC | S_NOATIME | S_APPEND | S_IMMU=
-TABLE)
-> > +#define OVL_COPY_I_FLAGS_MASK  (S_SYNC | S_NOATIME | S_APPEND | S_IMMU=
-TABLE | S_CASEFOLD)
-> >  /* vfs inode flags read from overlay.protattr xattr to ovl inode */
-> >  #define OVL_PROT_I_FLAGS_MASK  (S_APPEND | S_IMMUTABLE)
-> >
->
-> Ok, this is simpler, but it's too simple.
-> OVL_COPY_I_FLAGS_MASK is used in copy up with the assumption that
-> all copied i_flags are related to fileattr flags, so you need something l=
-ike:
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 27396fe63f6d..66bd43a99d2e 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -670,7 +670,7 @@ static int ovl_copy_up_metadata(struct
-> ovl_copy_up_ctx *c, struct dentry *temp)
->         if (err)
->                 return err;
->
-> -       if (inode->i_flags & OVL_COPY_I_FLAGS_MASK &&
-> +       if (inode->i_flags & OVL_FATTR_I_FLAGS_MASK &&
->             (S_ISREG(c->stat.mode) || S_ISDIR(c->stat.mode))) {
->                 /*
->                  * Copy the fileattr inode flags that are the source of a=
-lready
+btrfs/ioctl.c uses a "killable" lock on the directory when creating an
+destroying subvols.  overlayfs also does this.
 
-Which reminds me that you also need to verify that a copied up directory
-conforms to the ofs->casefold expectation, because there is no code
-to make the copied up directory casefolded.
+This patch adds dentry_lookup_killable() for these users.
 
-We can assume that layers check has already verified that upperdir/workdir
-are casefold correct, but we need to verify that $workdir/work/$tmpdir crea=
-ted
-by ovl_create_temp() has inherited the expected casefolding.
+Possibly all dentry_lookup should be killable as there is no down-side,
+but that can come in a later patch.
 
-Same goes for ovl_mkdir(), we must verify that the new created dentry/inode
-conform to the expected ofs->casefold.
+Signed-off-by: NeilBrown <neil@brown.name>
+---
+ fs/namei.c            | 37 +++++++++++++++++++++++++++++++++++++
+ include/linux/namei.h |  3 +++
+ 2 files changed, 40 insertions(+)
 
-I think this check in ovl_create_real() should cover both cases:
+diff --git a/fs/namei.c b/fs/namei.c
+index 85b981248a90..7af9b464886a 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1837,6 +1837,43 @@ struct dentry *dentry_lookup(struct mnt_idmap *idmap,
+ }
+ EXPORT_SYMBOL(dentry_lookup);
+ 
++/**
++ * dentry_lookup_killable - lookup and lock a name prior to dir ops
++ * @last: the name in the given directory
++ * @base: the directory in which the name is to be found
++ * @lookup_flags: %LOOKUP_xxx flags
++ *
++ * The name is looked up and necessary locks are taken so that
++ * the name can be created or removed.
++ * The "necessary locks" are currently the inode lock on @base.
++ * If a fatal signal arrives, or is already pending, the operation is aborted.
++ * The name @last is NOT expected to already have the hash calculated.
++ * Permission checks are performed to ensure %MAY_EXEC access to @base.
++ * Returns: the dentry, suitably locked, or an ERR_PTR().
++ */
++struct dentry *dentry_lookup_killable(struct mnt_idmap *idmap,
++				      struct qstr *last,
++				      struct dentry *base,
++				      unsigned int lookup_flags)
++{
++	struct dentry *dentry;
++	int err;
++
++	err = lookup_one_common(idmap, last, base);
++	if (err < 0)
++		return ERR_PTR(err);
++
++	err = down_write_killable_nested(&base->d_inode->i_rwsem, I_MUTEX_PARENT);
++	if (err)
++		return ERR_PTR(err);
++
++	dentry = lookup_one_qstr_excl(last, base, lookup_flags);
++	if (IS_ERR(dentry))
++		inode_unlock(base->d_inode);
++	return dentry;
++}
++EXPORT_SYMBOL(dentry_lookup_killable);
++
+ /**
+  * done_dentry_lookup - finish a lookup used for create/delete
+  * @dentry:  the target dentry
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 932cb94c3538..facb5852afa9 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -83,6 +83,9 @@ struct dentry *lookup_one_positive_unlocked(struct mnt_idmap *idmap,
+ struct dentry *dentry_lookup(struct mnt_idmap *idmap,
+ 			       struct qstr *last, struct dentry *base,
+ 			       unsigned int lookup_flags);
++struct dentry *dentry_lookup_killable(struct mnt_idmap *idmap,
++				      struct qstr *last, struct dentry *base,
++				      unsigned int lookup_flags);
+ struct dentry *dentry_lookup_noperm(struct qstr *name, struct dentry *base,
+ 				      unsigned int lookup_flags);
+ void done_dentry_lookup(struct dentry *dentry);
+-- 
+2.50.0.107.gf914562f5916.dirty
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 70b8687dc45e..be8c5d02302d 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -187,6 +187,11 @@ struct dentry *ovl_create_real(struct ovl_fs
-*ofs, struct dentry *parent,
-                        /* mkdir is special... */
-                        newdentry =3D  ovl_do_mkdir(ofs, dir, newdentry,
-attr->mode);
-                        err =3D PTR_ERR_OR_ZERO(newdentry);
-+                       /* expect to inherit casefolding from
-workdir/upperdir */
-+                       if (!err && ofs->casefold !=3D
-ovl_dentry_casefolded(newdentry)) {
-+                               dput(newdentry);
-+                               err =3D -EINVAL;
-+                       }
-                        break;
-
-Thanks,
-Amir.
