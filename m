@@ -1,72 +1,72 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A4BC1D63EF;
-	Thu, 14 Aug 2025 08:36:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73748289376;
+	Thu, 14 Aug 2025 08:45:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755160566; cv=none; b=JroUfFN722UwIrzLmI3RWZO7+km/8/tbUPSgfFTyNkV1oNDqwz0/mk5yqwPk98SIvoqE002S7HU1euEiquCNQCfaqiPwGFrjSQJ7i7eY+qhiH+bAFtDggBkU7aUvp+n+8BnEjTRt/sy/Skq7XPthVp1vH2RMjFotrnkyqvm2hxo=
+	t=1755161107; cv=none; b=Jl3Y7h8HIZkqU1Z2hez86zo4icrwtpnUNgzAfbodzY34QPfwjSOLlnqlp1MUlPnh+fYU32VC8NvZMkuxX32BVt94I+fIC3z8J4JTcS0HT5RJkOyZdLQBSTV6vMADy7FVnZnbAOY38y6RV/o1l1gK7uRP2T3kb6fAg79sxaIq6mo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755160566; c=relaxed/simple;
-	bh=3XYTDHvq2LcjmNTW0zfO8hXKhU53mqovkhniMJZUCHA=;
+	s=arc-20240116; t=1755161107; c=relaxed/simple;
+	bh=10IwBC/WvFs9XL+JDSUaSxNjsB4hNPa15Nw1/P4iZBw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZRZF0FN77gNA+Ev+Njt1sV3nvPuwv0fbL015Ta9j+cVyEAq3HG/SIMgaU5c1omiEoMmD7zoOyk8gSiyQxJAuWRjhRYcln/Nj8Fo2jamL/rED7aDToez+4s0qRjUSMZ2D/j1bHPd5Gbe23IN/WScdolrzN3HsQQtDsBqjzGxnfzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CXRPoDu3; arc=none smtp.client-ip=209.85.218.44
+	 To:Cc:Content-Type; b=BbUCoNBg1IkeR4mOhLBxBFEpL8DZQ7dZ7jY6UfIzZJlbAqkfJ5k5vrvW7geCdvhJ7ULvsLlf9vt7aDbvqoPDcPGoSoXDtv+quEY2vQvEjEuctckk3+HhYekY/FJvCd1ATfOE++WaOTm1VBGMBrypaAC43xACWrYWQ2IpKRxZHcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Xeh0Mgod; arc=none smtp.client-ip=209.85.208.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CXRPoDu3"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-afcb61f6044so133007766b.0;
-        Thu, 14 Aug 2025 01:36:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xeh0Mgod"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6188b7949f6so1380026a12.3;
+        Thu, 14 Aug 2025 01:45:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755160563; x=1755765363; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1755161103; x=1755765903; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=tOTX1FGjH4RiOoeNqx7UjWESbbgSSspa6JjPrJyJ8Ks=;
-        b=CXRPoDu3Niej7OfnA2rji7kzuuum/DreJDVYpeA7ymoepjokZGjRPOGw6Ppjg7IqmT
-         pY0M4tu6xYQ+9xRmMLScxJoOTJYLcRlYi446mUt56lfiQEKYYPGPCfNXD80fEA/0YAJ6
-         qCTXubrvObl7GfixpAeOj9qbNNWbchiaGJY9Hfj+WDMq9vU8PqZ1zslmwIxOBXF5E84X
-         qEC0FIW+Y5aqYckSGBs7J/nS2wJalS+DExTmCNqmr5DuPv7LLllseIFfcCj9jhYYyOLM
-         LD54ocC6KrSmxoe+frN8n2/lurKQQOSs4PiSwSth1cjRxY/j0jCfOpBxxfP3xht8Whr4
-         quow==
+        bh=ZYJNHNsyuuYBBv1uPrAiNz0Qv3N2mB6wq1CNl2jnaSw=;
+        b=Xeh0MgodIBMEm2hE08a8r2cbp4IzzuRCWEdFKGe2TEO4aSjQCjW6ai0NcctjxBFUkl
+         vJJVBsaOwwE56wFgs+0rnOL8L1p9cbKUNfcZbR82zeZ/iGmDyr50rh7oIXKCbUq7VxKG
+         3qUBq6waMUgTXXAMvKz8hylLcHse5wjkrzkwFan1Dq5P+IVL+bXmextF22FwdLkXkJKE
+         6hPhxxIis4Mywk0YAFgf7iImD8SGw82EMXea5Nw7fIMlg9GcC1/GSt7A3oT1owkwUrPp
+         pitN4keeceQm2W9a/bGK45SMHVJahxaq5nAbA6g60WfRE0+SKzMLA+Omzqcprigs34Ir
+         miXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755160563; x=1755765363;
+        d=1e100.net; s=20230601; t=1755161103; x=1755765903;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=tOTX1FGjH4RiOoeNqx7UjWESbbgSSspa6JjPrJyJ8Ks=;
-        b=H+7tM3KsR9W65ifsnruaOyuYt5kuoZhZvNTZt3p6+mDGKs/69HwL0xdL9L06PkyUsK
-         86I4oCreO2UxEOph/uRB4xQsvMhDNNHINHDDSxQ4dBSYop9Zhjgab0LMziF7SYyk9G7m
-         lSHjzNN/3w4Nifw/HFwVHJCCXfCupeO/rX5pUEEeP8RiEugAm5hIdUql+UF9Bjd7yQMN
-         YoTD+Wx/R+ROncFC2dNhtaV24isVrE6mxSpXkvrmjB0S9tWpr1+i5L7Yvfb/UkEFJ1ol
-         uq33ECAN5hIB44ojl+rb3bmKNdmag7u8b3drX8K48YGsfUg99oFQWNmZJEUZDphAa9Hw
-         N6Dg==
-X-Forwarded-Encrypted: i=1; AJvYcCUVccpXlD+U2wPNTGGKv6DlLJNH/K5Dx1b27j7oD0LsBKzhdxPijsHzZiWwSToPtxYLTWC69fzHO1EtZUHbFQ==@vger.kernel.org, AJvYcCUZooJaFEUlD1mMkZ8Wf4oNdbFeHb5cHzPLG+8bviVPqZaH2UeoP5oBoiXLnSBJkDz5er0LP89Iluq/mFAg@vger.kernel.org, AJvYcCXeJD8ryHjQ1ZtYZb9cJqn9wAMm47fdQ2QMwUaV/THbXFSBimQzi0BZpT6hCRwxEpss7Lwp1qWBfFEi/TAr@vger.kernel.org
-X-Gm-Message-State: AOJu0YwiZnz15/WjWyxt/ZThmTRqQL7JnTYaqNHcPGgCSXaDzWHMRwZS
-	zl5sl3Eyx/HbKS/pEs2q/N/85I2jheWIi+MKGohmAv0EtImhe5hjTu5VfWOAYT0NClzHWUgK6Zm
-	hqfV7jJa/roRXgpTZwLhMK933ongXWCIdqAKE7xM=
-X-Gm-Gg: ASbGncvkus6G5P6TNudacncn883dqrUN1KnE2RYh488o45qtjufCvlXOxtFU3oLpjfe
-	V+l7mHKm6b5lvxB/HhqAr3GXSlu48ryzEhEBL7XaOiVjSBu7KqDwbL4aM9Mudf/kyUHOIaLiD6L
-	+PlEjZR/cCIFT2MAljIcZCbW9+HxqFw3WqUldogAWftdIXyPM/rHgmQO0BZH4s5fb+RocXjn26x
-	PwGgc0=
-X-Google-Smtp-Source: AGHT+IGKKcOvuN1xDm8xMO/A263wHFSD+iuYL8w56j7NOwzuXtzyteYNUT8Uf2GHIeb7FSp0j9xzMB/PIYYKHbd/ZdY=
-X-Received: by 2002:a17:906:7310:b0:af8:fded:6b7a with SMTP id
- a640c23a62f3a-afcbd80b8bemr187546166b.17.1755160562402; Thu, 14 Aug 2025
- 01:36:02 -0700 (PDT)
+        bh=ZYJNHNsyuuYBBv1uPrAiNz0Qv3N2mB6wq1CNl2jnaSw=;
+        b=LaD3e3l55kBUsN1C/8lItMvrDpgc2oBSKxU9uo/ofm35yJYQQOIY1Fu6/vELoRUsuC
+         EMl4d8uyWPnBqacKD5qE9dBY4TPoJLiLWst56RZBjkhDBiZeZzFeoKYLpSl5E/zct2Uf
+         moiVz02yMi4Q5sypUpEDQTJdfvgLqigN4m6jsk7o1jWyaBB8MY7Tn69JNtLgaAj4StgH
+         +M5n5MbeZwRXQzondwN/AQtwywaAPb3AERr3tJwiuazwkoRAjGdD7gRS2pgB0e8+Rtki
+         YMsId11igYQnd4nwnAx4gysAWx9VLq0BVI0EhW1VZzAlS/u9TQUAyy0jthtMJnXnzcuk
+         P64Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUCxqJuwJwu84mCOs+m371G6eQlG+8gEDvy4D1hFNrYNbHy+i2R49bR3VqEH1xZ5VoZT+Gzx1grtZbL4NlC@vger.kernel.org, AJvYcCVRBTvdpX2tW35sL9Xjnj/dHoBulb4KD/yMd3SiK9p1XRLvvhVxykmZ6AGueOdbsezLu1nPwQZ63jok8gr2hQ==@vger.kernel.org, AJvYcCXdwNNIVR1kVngdN+O+D0LIxYnfLzp4xIUMYONixk584X6ejHGABrf/1S6F3HZA2wHZTF0LbIravmHrh7gR@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy9jPtPalItbqgXSMgTWJD5di2BGMwcuEpTxzqjYl1jYo1IiBdc
+	nTTY1wtYFiL5THNCDK7EKJ5tHq8G9XbtEtjpKT8fI79xqMnHllJMPW2kjU1qD366fJX7CMhujyf
+	NLHank1rw9AvNBL1p8zgDfXCYigW9z4U=
+X-Gm-Gg: ASbGnctgE7o5ycylT3/VICsXnwSPBFrPUwe+dJfSXl8g/wDqZGLygLpr3VmLupzgL9N
+	e2PO7DtjT9ol2BcGaBtNzFsekh6Z0c39jiwOhL1kvQaE3qCwzzLn3xyYNd67aE6Tep8uhCePzUJ
+	E1h6OikMSxuBLg5UkiXEpqZujk+D72lgucmMkj4EGQ27Jjo2+oryF8ZrCup91v2+Q8XiC90A0Zz
+	74tMcc=
+X-Google-Smtp-Source: AGHT+IED8T4lGIr3XBwn+rDYu37L+rQPjk8mJsBqCCcbjUvIdGd0rYEOqkLoxX/tb73gyEtV4gXB9RscYwa/XOI8xMQ=
+X-Received: by 2002:a50:cc81:0:b0:618:150e:7f3e with SMTP id
+ 4fb4d7f45d1cf-618919b584amr1201591a12.22.1755161102471; Thu, 14 Aug 2025
+ 01:45:02 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250813-tonyk-overlayfs-v4-0-357ccf2e12ad@igalia.com> <20250813-tonyk-overlayfs-v4-1-357ccf2e12ad@igalia.com>
-In-Reply-To: <20250813-tonyk-overlayfs-v4-1-357ccf2e12ad@igalia.com>
+References: <20250813-tonyk-overlayfs-v4-0-357ccf2e12ad@igalia.com> <20250813-tonyk-overlayfs-v4-9-357ccf2e12ad@igalia.com>
+In-Reply-To: <20250813-tonyk-overlayfs-v4-9-357ccf2e12ad@igalia.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 14 Aug 2025 10:35:50 +0200
-X-Gm-Features: Ac12FXyQFKZFtMXoO1ZIyMwxUcr7ZUnQIr-Bnp2f50ZUtWYRV8pIETgB3OmS4Es
-Message-ID: <CAOQ4uxiENaCd7RcAS8j+UUNmtmOzKZ3BwBWst=fKN6zWLZyvuQ@mail.gmail.com>
-Subject: Re: [PATCH v4 1/9] ovl: Support mounting case-insensitive enabled filesystems
+Date: Thu, 14 Aug 2025 10:44:51 +0200
+X-Gm-Features: Ac12FXznxloeoD2GxuVcDCMTO71nnDt0KiG-wsDggqz_qDIkKbDcUL54QuPhn2E
+Message-ID: <CAOQ4uxjbCN6NGmDECFRKK_1Auq7RTfT+ZmVfVxgatMVav1EfAA@mail.gmail.com>
+Subject: Re: [PATCH v4 9/9] ovl: Allow case-insensitive lookup
 To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
 	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
@@ -76,131 +76,96 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Andre,
+This last commit title should be like the title you gave patch 1:
 
-As a methodology in patch series, although they are often merged together
-we want to abide by the concept of bisectability of the series, so it is no=
-t
-good practice to "Support mounting case-insensitive enabled filesystems"
-before this support is fully implemented.
+ovl: Support mounting case-insensitive enabled layers
 
-Suggest to change the title of this patch to:
-"ovl: Prepare for mounting case-insensitive enabled filesystems"
-which implements the logic of enforcing "uniform casefolded layers"
-but do not change ovl_dentry_weird() yet - do that in patch 9, so that
-both lookup and mount of casefolded dirs are allowed together.
-
-commit message need to be changed of course.
+Because this is the commit that de-facto enabled the feature,
+which is why I also asked to move the ovl_dentry_weird() change to this com=
+mit.
 
 On Thu, Aug 14, 2025 at 12:37=E2=80=AFAM Andr=C3=A9 Almeida <andrealmeid@ig=
 alia.com> wrote:
 >
-> Enable mounting filesystems with case-insensitive dentries in order to
-> support such filesystems in overlayfs.
+> Drop the restriction for casefold dentries lookup to enable support for
+> case-insensitive filesystems in overlayfs.
+>
+> Support case-insensitive filesystems
+
+This is a problematic terminology
+Please use the word "layers" instead of "filesystems" because casefolding i=
+s
+not enabled at  the filesystem level. Could also say "subtrees"
+
+Same for the rest of the commit messages, e.g.
+
+"ovl: Prepare for mounting case-insensitive enabled layers"
+
+
+Thanks,
+Amir.
+
+
+> with the condition that they should
+> be uniformly enabled across the stack and the layers (i.e. if the root
+> mount dir has casefold enabled, so should all the dirs bellow for every
+> layer).
 >
 > Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
 > ---
 > Changes from v3:
-> - Move this patch to be ealier in the series
-> - Split this patch with the ovl_lookup_single() restriction patch
+> - New patch, splited from the patch that creates ofs->casefold
 > ---
->  fs/overlayfs/ovl_entry.h |  1 +
->  fs/overlayfs/params.c    | 15 ++++++++++++---
->  fs/overlayfs/params.h    |  1 +
->  fs/overlayfs/util.c      |  8 ++++----
->  4 files changed, 18 insertions(+), 7 deletions(-)
+>  fs/overlayfs/namei.c | 17 +++++++++--------
+>  1 file changed, 9 insertions(+), 8 deletions(-)
 >
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 4c1bae935ced274f93a0d23fe10d34455e226ec4..1d4828dbcf7ac4ba9657221e6=
-01bbf79d970d225 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -91,6 +91,7 @@ struct ovl_fs {
->         struct mutex whiteout_lock;
->         /* r/o snapshot of upperdir sb's only taken on volatile mounts */
->         errseq_t errseq;
-> +       bool casefold;
->  };
->
->  /* Number of lower layers, not including data-only layers */
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index f4e7fff909ac49e2f8c58a76273426c1158a7472..17d2354ba88d92e1d9653e8cb=
-1382d860a7329c5 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -277,16 +277,25 @@ static int ovl_mount_dir_check(struct fs_context *f=
-c, const struct path *path,
->                                enum ovl_opt layer, const char *name, bool=
- upper)
->  {
->         struct ovl_fs_context *ctx =3D fc->fs_private;
-> +       struct ovl_fs *ofs =3D fc->s_fs_info;
-> +       bool is_casefolded =3D ovl_dentry_casefolded(path->dentry);
->
->         if (!d_is_dir(path->dentry))
->                 return invalfc(fc, "%s is not a directory", name);
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 76d6248b625e7c58e09685e421aef616aadea40a..e93bcc5727bcafdc18a499b47=
+a7609fd41ecaec8 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -239,13 +239,14 @@ static int ovl_lookup_single(struct dentry *base, s=
+truct ovl_lookup_data *d,
+>         char val;
 >
 >         /*
->          * Allow filesystems that are case-folding capable but deny compo=
-sing
-> -        * ovl stack from case-folded directories.
-> +        * ovl stack from inconsistent case-folded directories.
+> -        * We allow filesystems that are case-folding capable but deny co=
+mposing
+> -        * ovl stack from case-folded directories. If someone has enabled=
+ case
+> -        * folding on a directory on underlying layer, the warranty of th=
+e ovl
+> -        * stack is voided.
+> +        * We allow filesystems that are case-folding capable as long as =
+the
+> +        * layers are consistently enabled in the stack, enabled for ever=
+y dir
+> +        * or disabled in all dirs. If someone has modified case folding =
+on a
+> +        * directory on underlying layer, the warranty of the ovl stack i=
+s
+> +        * voided.
 >          */
-> -       if (ovl_dentry_casefolded(path->dentry))
-> -               return invalfc(fc, "case-insensitive directory on %s not =
-supported", name);
-> +       if (!ctx->casefold_set) {
-> +               ofs->casefold =3D is_casefolded;
-> +               ctx->casefold_set =3D true;
-> +       }
-> +
-> +       if (ofs->casefold !=3D is_casefolded) {
-> +               return invalfc(fc, "case-%ssensitive directory on %s is i=
-nconsistent",
-> +                              is_casefolded ? "in" : "", name);
-> +       }
+> -       if (ovl_dentry_casefolded(base)) {
+> -               warn =3D "case folded parent";
+> +       if (ofs->casefold !=3D ovl_dentry_casefolded(base)) {
+> +               warn =3D "parent wrong casefold";
+>                 err =3D -ESTALE;
+>                 goto out_warn;
+>         }
+> @@ -259,8 +260,8 @@ static int ovl_lookup_single(struct dentry *base, str=
+uct ovl_lookup_data *d,
+>                 goto out_err;
+>         }
 >
->         if (ovl_dentry_weird(path->dentry))
->                 return invalfc(fc, "filesystem on %s not supported", name=
-);
-> diff --git a/fs/overlayfs/params.h b/fs/overlayfs/params.h
-> index c96d939820211ddc63e265670a2aff60d95eec49..ffd53cdd84827cce827e8852f=
-2de545f966ce60d 100644
-> --- a/fs/overlayfs/params.h
-> +++ b/fs/overlayfs/params.h
-> @@ -33,6 +33,7 @@ struct ovl_fs_context {
->         struct ovl_opt_set set;
->         struct ovl_fs_context_layer *lower;
->         char *lowerdir_all; /* user provided lowerdir string */
-> +       bool casefold_set;
->  };
+> -       if (ovl_dentry_casefolded(this)) {
+> -               warn =3D "case folded child";
+> +       if (ofs->casefold !=3D ovl_dentry_casefolded(this)) {
+> +               warn =3D "child wrong casefold";
+>                 err =3D -EREMOTE;
+>                 goto out_warn;
+>         }
 >
->  int ovl_init_fs_context(struct fs_context *fc);
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index a33115e7384c129c543746326642813add63f060..7a6ee058568283453350153c1=
-720c35e11ad4d1b 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -210,11 +210,11 @@ bool ovl_dentry_weird(struct dentry *dentry)
->                 return true;
+> --
+> 2.50.1
 >
->         /*
-> -        * Allow filesystems that are case-folding capable but deny compo=
-sing
-> -        * ovl stack from case-folded directories.
-> +        * Exceptionally for casefold dentries, we accept that they have =
-their
-> +        * own hash and compare operations
->          */
-> -       if (sb_has_encoding(dentry->d_sb))
-> -               return IS_CASEFOLDED(d_inode(dentry));
-> +       if (ovl_dentry_casefolded(dentry))
-> +               return false;
->
->         return dentry->d_flags & (DCACHE_OP_HASH | DCACHE_OP_COMPARE);
->  }
-
-Move relaxing of ovl_dentry_weird() to patch 9 please.
-
-Thanks,
-Amir.
