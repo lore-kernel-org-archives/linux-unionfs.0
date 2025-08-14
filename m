@@ -1,113 +1,98 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F5893002CD;
-	Wed, 13 Aug 2025 22:37:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4784B2FF66B;
+	Thu, 14 Aug 2025 00:57:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755124671; cv=none; b=fx3lBe9AZor2RqmEBUjHCe44GfRwP/Gh35p0CskRFhA8PgRQgP4J0C357+9ZSD6uKdoOA3ltLmDa38jUrxFuDapQ0YxSNgz6WBXek2gCeuOQ/nTQdzZZBQBi7LleVD1cZPS4KLtQNuak4zFMQZJ50RyMDt+geH5Y12bMqrCwgBI=
+	t=1755133051; cv=none; b=Lo79vIERZLY4OXBnNASC8tPJPCevC5ZBN0O6/gVOXbIfNun7ijIevObsKJghHTlfxTiRZL7ZfZb80nc+VoF7/00Rpm2ieDfZunuOSTUJfRgQzzI9778anLQs7pX578jtxuFvXjzoQ2iEoxTEZ8MreLEnwHVvo3NXTM7Dv6NJZu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755124671; c=relaxed/simple;
-	bh=A+N8wnRu45k2gcVZ9YAl5PweYWKQWyAh8iCFjdwnaUw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=NAZK+dZQl9GJ9x6hPUXGrdTx2RN6VaAwzmKBA2zBUjF5OlqjLn8rHB3FPe6q1srGPH1sjlUv1kETcNVoFWAib2soRskyir53GpAFI67BYHIwuinfvsV5cdS0grPAl+GcfAgJAQ8YLPhQwY+8guwuUWOnDfJ3Pzh9m5qS8do5/Cc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=NENZjkAk; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="NENZjkAk"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Cc:To:In-Reply-To:References:Message-Id:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:Sender:
-	Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender
-	:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=Cv3fcHf48DjB8ea0TBmFVJymw4b3vUHLc9r9wSKK1QU=; b=NENZjkAkg0YaCqKznsr8M1SjbV
-	xrctuqmXQ57qglbYbJnH2Bf1oqm3d1ygX6Tw1kfZDR7AfrixIH7DFML4i0aNacPPUeYsBdv1SUNP5
-	M5/8wqw2Fbx8WfbmZDHGwcSEek/855RxvZ0DPBcWHInmKrfzp2uO+KTRTKWLGoC9Ijw7O3KOzoDZ2
-	D7q+vaj2SviTgUxCb6rDnFhNrIZReIH30YqAbsYoCJz7naaQ2hYC3uVLCe04M+UB9oIio2oFrHxxp
-	1of96cxmFBzCIzzSZfiHcA07cpMWqOexgTJh7y24rh6mvmGygFX/O6bIEllwQvFa8Ok2DLqOvZDRc
-	9pPZ75Rg==;
-Received: from [152.250.7.37] (helo=[192.168.15.100])
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1umK6K-00Ds0c-Ic; Thu, 14 Aug 2025 00:37:44 +0200
-From: =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Date: Wed, 13 Aug 2025 19:36:45 -0300
-Subject: [PATCH v4 9/9] ovl: Allow case-insensitive lookup
+	s=arc-20240116; t=1755133051; c=relaxed/simple;
+	bh=FsILFVHrLouIwQUepaOtEF88P07nkFMv9H8p9pBzu1s=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=QXX7dQRFmIaRm787+WpgyN84Z7kTE0q5TEdGzxzkQUhADZ2jN2BV9C3BiyuNPXO1iLsZBVPu2gr+ue2HkCyNszQiCxzbkaPCX2e7rHgFCne6weORsrvHFmcjnLmH1vTAVEzzl1OahuUzaRtOIO6yYlkozF5hDt1SienQhBnzUDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1umMH3-005gzt-L3;
+	Thu, 14 Aug 2025 00:56:59 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20250813-tonyk-overlayfs-v4-9-357ccf2e12ad@igalia.com>
-References: <20250813-tonyk-overlayfs-v4-0-357ccf2e12ad@igalia.com>
-In-Reply-To: <20250813-tonyk-overlayfs-v4-0-357ccf2e12ad@igalia.com>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Theodore Tso <tytso@mit.edu>, Gabriel Krisman Bertazi <krisman@kernel.org>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, 
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
- kernel-dev@igalia.com, 
- =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-X-Mailer: b4 0.14.2
+From: "NeilBrown" <neil@brown.name>
+To: "Al Viro" <viro@zeniv.linux.org.uk>
+Cc: "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ "David Howells" <dhowells@redhat.com>,
+ "Marc Dionne" <marc.dionne@auristor.com>, "Xiubo Li" <xiubli@redhat.com>,
+ "Ilya Dryomov" <idryomov@gmail.com>, "Tyler Hicks" <code@tyhicks.com>,
+ "Miklos Szeredi" <miklos@szeredi.hu>, "Richard Weinberger" <richard@nod.at>,
+ "Anton Ivanov" <anton.ivanov@cambridgegreys.com>,
+ "Johannes Berg" <johannes@sipsolutions.net>,
+ "Trond Myklebust" <trondmy@kernel.org>, "Anna Schumaker" <anna@kernel.org>,
+ "Chuck Lever" <chuck.lever@oracle.com>, "Jeff Layton" <jlayton@kernel.org>,
+ "Amir Goldstein" <amir73il@gmail.com>, "Steve French" <sfrench@samba.org>,
+ "Namjae Jeon" <linkinjeon@kernel.org>, "Carlos Maiolino" <cem@kernel.org>,
+ linux-fsdevel@vger.kernel.org, linux-afs@lists.infradead.org,
+ netfs@lists.linux.dev, ceph-devel@vger.kernel.org, ecryptfs@vger.kernel.org,
+ linux-um@lists.infradead.org, linux-nfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+ linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject:
+ Re: [PATCH 10/11] VFS: use d_alloc_parallel() in lookup_one_qstr_excl().
+In-reply-to: <20250813051957.GE222315@ZenIV>
+References: <>, <20250813051957.GE222315@ZenIV>
+Date: Thu, 14 Aug 2025 10:56:58 +1000
+Message-id: <175513301880.2234665.7949166216437739702@noble.neil.brown.name>
 
-Drop the restriction for casefold dentries lookup to enable support for
-case-insensitive filesystems in overlayfs.
+On Wed, 13 Aug 2025, Al Viro wrote:
+> On Tue, Aug 12, 2025 at 12:25:13PM +1000, NeilBrown wrote:
+>=20
+> > + * If it is d_in_lookup() then these conditions can only be checked by t=
+he
+> > + * file system when carrying out the intent (create or rename).
+>=20
+> I do not understand.  In which cases would that happen and what would happen
+> prior to that patch in the same cases?
+>=20
 
-Support case-insensitive filesystems with the condition that they should
-be uniformly enabled across the stack and the layers (i.e. if the root
-mount dir has casefold enabled, so should all the dirs bellow for every
-layer).
+NFS (and I think it is only NFS) returns NULL from ->lookup() without
+instantiating the dentry and without clearing DENTRY_PAR_LOOKUP if
+passed "LOOKUP_CREATE | LOOKUP_EXCL" or "LOOKUP_RENAME_TARGET".
 
-Signed-off-by: André Almeida <andrealmeid@igalia.com>
----
-Changes from v3:
-- New patch, splited from the patch that creates ofs->casefold
----
- fs/overlayfs/namei.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+So when e.g. filename_create() calls lookup_one_qstr_excl() the result could
+be a d_in_lookup() dentry.  It could be that the name exists on the
+server, but the client hasn't bothered to check.  So determining that
+the result wasn't ERR_PTR(-EEXIST) does NOT assure us that the name
+doesn't exist.
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 76d6248b625e7c58e09685e421aef616aadea40a..e93bcc5727bcafdc18a499b47a7609fd41ecaec8 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -239,13 +239,14 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 	char val;
- 
- 	/*
--	 * We allow filesystems that are case-folding capable but deny composing
--	 * ovl stack from case-folded directories. If someone has enabled case
--	 * folding on a directory on underlying layer, the warranty of the ovl
--	 * stack is voided.
-+	 * We allow filesystems that are case-folding capable as long as the
-+	 * layers are consistently enabled in the stack, enabled for every dir
-+	 * or disabled in all dirs. If someone has modified case folding on a
-+	 * directory on underlying layer, the warranty of the ovl stack is
-+	 * voided.
- 	 */
--	if (ovl_dentry_casefolded(base)) {
--		warn = "case folded parent";
-+	if (ofs->casefold != ovl_dentry_casefolded(base)) {
-+		warn = "parent wrong casefold";
- 		err = -ESTALE;
- 		goto out_warn;
- 	}
-@@ -259,8 +260,8 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 		goto out_err;
- 	}
- 
--	if (ovl_dentry_casefolded(this)) {
--		warn = "case folded child";
-+	if (ofs->casefold != ovl_dentry_casefolded(this)) {
-+		warn = "child wrong casefold";
- 		err = -EREMOTE;
- 		goto out_warn;
- 	}
+The intent needs to be attempted, such as when do_mknodat() goes on to
+call e.g.  vfs_create().  Only once that returns an error can we know if
+the name existed.
 
--- 
-2.50.1
+i.e. the API promise:
 
++ *   Will return -EEXIST if name is found and LOOKUP_EXCL was passed.
+
+must be understood against the background that the name might not be
+found due to the lookup being short-circuited and not attempted.
+The other promise:
+
++ *   Will return -ENOENT if name isn't found and LOOKUP_CREATE wasn't passed.
+
+is currently safe from confusion, but I can imagine that one day a
+LOOKUP_UNLINK intent could allow a filesystem to short-circuit the
+lookup in do_unlinkat() and simply send an UNLINK request to a server
+and return the result.
+
+So I thought it worth highlighting the fact that these errors are
+best-effort, and that d_in_lookup() is a real possibility.
+
+NeilBrown
