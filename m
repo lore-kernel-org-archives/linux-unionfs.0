@@ -1,155 +1,145 @@
-Received: from mail-il1-f206.google.com (mail-il1-f206.google.com [209.85.166.206])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DDDE18CC1D
-	for <linux-unionfs@vger.kernel.org>; Sat, 16 Aug 2025 03:08:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.206
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A716E2853EB
+	for <linux-unionfs@vger.kernel.org>; Sat, 16 Aug 2025 12:14:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755313716; cv=none; b=WNXIMFWrigoiSrmlHl9T6mgNqmB0f0V0UOwiVc0eyztApsrQuD/Xf8ReCZ6IY/fVc6DK3f28H2YL5VXMx+8VQ2AzFeoS8Riz+KD1zgJdXh4CFpwT3LaysfTp1AdZhfGM2a7AtHrkB2w7dbC//aN94aUQbeitysfzzyku5BuwQWw=
+	t=1755346453; cv=none; b=ovh66yDROZi+mDUfPJR6dU9Uax+sfKVG/qNZ0Hj+Z0E09Srmi1ETn073NJ5pmwjdVE9aSB5rOtBetH2qmub8tDZJxMKqDgixWU5B3YnfdMNJyLv7ETL7HDb6OjMCsu/rfMfCKG3yLiuhlOO+qrxnF9iUy++c+CozoPSE/U57+0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755313716; c=relaxed/simple;
-	bh=O47n/p9fEaSXT5GZk8MWqXDWYNUEOxsivcokhH/6Kyg=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=tMsiGp6+KNss2VzWZGKVFp2Js3e8hvZeSAsV839RHNdFrKcyB7sdC9FjcUqQ+3hQJYTrTfRmhRxjrPUSGbcQHEquy5NfHdUp0EaiqCWmUsKn6CeSVZZLQm9MlYvb72dvizvDzg03V8D8ZGc3Cge+Ck75NOy3vqTbSDLyB2Q1Pis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.206
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f206.google.com with SMTP id e9e14a558f8ab-3e570090105so31540775ab.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 15 Aug 2025 20:08:34 -0700 (PDT)
+	s=arc-20240116; t=1755346453; c=relaxed/simple;
+	bh=BD10JVkC3R7DkPjy0YQFa8uERMYfZwc8NczxD31yOCk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=C9vRQbozI36tC4y0bZOYdi+mjx0xkO10PTy415N1NLCWXHvLZlUxnHQtKCho4a/CDP9/VFAB1uc3PWAvIy/8Ua67Y+AlZHk/1b35+TSv2E57VSrxG2UeK3d9AZn099jquNn5sUKWdNpUjfAv64QbjlrO4gm3zqwRWyB5KSZjkrE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=I+VjRDHZ; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="I+VjRDHZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1755346450;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qLWcRDhFZNlURBXrvT9Nk3wXpWaxYOYQFIQkZVfgJPw=;
+	b=I+VjRDHZB6HXoNVMOAPK0B5r1UIqk00qiBwattew+ZXHfr936kMBqIBxmyW8l0Ff/wMEri
+	cuWLH4JbQVoCAEdv4tmwEUDwjTwBuJ5O6zIOrTY0ObquG06Ca9HwKU2TIsULaGrwDoKrfH
+	1Lw2tMPzg17S7pjR3mWaknrI48wfPQc=
+Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
+ [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-416-M6cr69k5NKyoSQhT-lnjDw-1; Sat, 16 Aug 2025 08:14:08 -0400
+X-MC-Unique: M6cr69k5NKyoSQhT-lnjDw-1
+X-Mimecast-MFC-AGG-ID: M6cr69k5NKyoSQhT-lnjDw_1755346447
+Received: by mail-ed1-f71.google.com with SMTP id 4fb4d7f45d1cf-618b3c74f6fso1136568a12.2
+        for <linux-unionfs@vger.kernel.org>; Sat, 16 Aug 2025 05:14:08 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755313713; x=1755918513;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=JCL2FXRG+4DpeAE+/wOBcxOm5mvMocyxQgnRq8Vn9Nc=;
-        b=WIm8G1scqZEoWp1+2gvrdEQ0AcfWJGUc55H9HRIHICzu/FlDmQR90AS3noP0XAAokE
-         bYWGp2dK20T1Y4QTxs8OBAUsYaGvjMEwVeHf3SEzqfrsUWbDq45Yk34VI4oqcPfGXOTC
-         cqZYaoIJrdx7N1a0OCIb/pJXL6YIiiOgibyXRLuf7upgE/JsfuvW+fjeASGDRjdyEWK6
-         Jv6mPPYxK9NZNA/1LBA79lSy7DWWlxfKxiz7CMJXHr1GELKJscp1h0s8KNqENFv1r7rg
-         uKc7EFkBmIGVMR0YJ/vqSIUNP5e/qPbkxuuyRQh9U2GE9/32Sza3xWmmhdUcHua9A8WG
-         ABng==
-X-Forwarded-Encrypted: i=1; AJvYcCUpvjNy4bXYcbcJSTsuKuhcIXwK3VG5OOYqXXHDhblfj/OhKQaKn8SGB1fvh7YpPnmaKitwIqOXRaf08ubU@vger.kernel.org
-X-Gm-Message-State: AOJu0YyQocYdfbGGhtazF5TD3evi4lsvmNX4Ea12RA6JEXu4ZYwkItdQ
-	JUxCquYm4dRHWbr//z1n1MH2bjlwF5lYLlpcVYebYLaOkC4ckz8hxhj2MqSlTvEfwkHHopikXX7
-	96VioovBr8rOY2kzaSGBWUo15EA5kw5AmZxBCh9f3TSlHsvE8AXC7RfSU/ps=
-X-Google-Smtp-Source: AGHT+IFhnl6zUNc+nBEDR1GvUuQ7D1ApnAEUQgL+dGi/evYDaPzrn/Zj0k7+Rb7ZT8UONvdGrYqNvHijhAVr779rDdUXyDH6pYHA
+        d=1e100.net; s=20230601; t=1755346447; x=1755951247;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qLWcRDhFZNlURBXrvT9Nk3wXpWaxYOYQFIQkZVfgJPw=;
+        b=LvhwiD7/CBx1ZBcxcwOztGq37RzpXDC75reITQCqdYGElWPu8EkAG0Cz5gMrtP8pRj
+         OlnXm1fvdVjnj2B8ZrUMLWA6xiNurB44b9MrNnnlwPvcI1+8lSGq14SYAMzvlXs9S8Ev
+         fTQKuvOzQkoX7MBYZSY3FXG1AC1ZBCfUqzmSTUVjpzJj9P+TKQOUP9spOT8SYorP2PxA
+         I3cjLe51AmFUU+FxMNIepXUkj5Duyac0H8AXJQ5tUX+bkiT7yi5MroccrlPzCNboVByN
+         sEwFsYbGkY7lORKDULwHrdYZxJBOclaMaLHZjp5BL8Qu0eyXiozLIn07NkHyQCf08HyB
+         DOzQ==
+X-Gm-Message-State: AOJu0YyN11FLXs+xEjsuXCINcGG2THo3u5gTeUk79w6wS5jYBBDznjgX
+	50l5nC+2yPrP9kWSvazaMQf3FEVqpPezxlHegdcrORq9BTzjQQO0mgmhiq0vmeaaFwVM8+joh0n
+	psm/+ZLXlSnBmF5le/BkUidzMNYys6ktes0VeI1cKl0VXUGVjAOPiUPASXtCebtxvzVir+a6HE5
+	aqzOC1GCbHn8WLr5eaFT6un1tYnPReQs11qnedfuN+gJ/jhylwtw==
+X-Gm-Gg: ASbGnctP46lBD/mE4F4/BkjqM++6REu+0A7LxQ9M9fsMeaMEtEjVbTCyqc4fqwCJOy+
+	/lp4KwlOymkBdFVxbqTkjybMYQOJJLVrVqIVoAiDp1h38KyjMIxehZQFqxi2FZvm+jHZskaMHcj
+	NvSWsDWUHEG23/xrR4gFBsPg==
+X-Received: by 2002:a17:907:c10:b0:af9:e1f0:cd15 with SMTP id a640c23a62f3a-afcdc248af0mr532387866b.18.1755346447035;
+        Sat, 16 Aug 2025 05:14:07 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEQjCPkWO4xFP0qiVY7R9QAi0veIzidLpinD+pqaN5Uyb1WZU9VKvwtELaQDT2JopefoCUyt5sDBU30jM+wlgg=
+X-Received: by 2002:a17:907:c10:b0:af9:e1f0:cd15 with SMTP id
+ a640c23a62f3a-afcdc248af0mr532385966b.18.1755346446516; Sat, 16 Aug 2025
+ 05:14:06 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1c08:b0:3e5:67a6:d418 with SMTP id
- e9e14a558f8ab-3e57e83d558mr94546865ab.3.1755313713507; Fri, 15 Aug 2025
- 20:08:33 -0700 (PDT)
-Date: Fri, 15 Aug 2025 20:08:33 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <689ff631.050a0220.e29e5.0033.GAE@google.com>
-Subject: [syzbot] [overlayfs?] WARNING in shmem_unlink
-From: syzbot <syzbot+ec9fab8b7f0386b98a17@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
+References: <20250815144555.110780-1-zlang@kernel.org> <CAOQ4uxjVpVPVfiJPokpmu6pLDmjtYbeDr+j5jNHi8k9bK_2feg@mail.gmail.com>
+ <20250815153520.xzgxwuwc7slt34li@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxhNhs4MPC1ZOTC5_Kzxe9DeFxD75XK6wkSFPjNducVBWg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhNhs4MPC1ZOTC5_Kzxe9DeFxD75XK6wkSFPjNducVBWg@mail.gmail.com>
+From: Murphy Zhou <xzhou@redhat.com>
+Date: Sat, 16 Aug 2025 20:13:49 +0800
+X-Gm-Features: Ac12FXxOHZLATSVAHEA8quqmmu4KM6Oo8-ubvsyEeiu5_M_cGb5HNoU5IYLkzHY
+Message-ID: <CALWRkkjd6jY6iqy=iOcFB1ABZGEhx+E26=ioVfsW0Ax9ySR6xw@mail.gmail.com>
+Subject: Re: [PATCH] overlay/005: only run for xfs underlying fs
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Sat, Aug 16, 2025 at 12:09=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
+> wrote:
+>
+> On Fri, Aug 15, 2025 at 5:35=E2=80=AFPM Zorro Lang <zlang@redhat.com> wro=
+te:
+> >
+> > On Fri, Aug 15, 2025 at 05:16:51PM +0200, Amir Goldstein wrote:
+> > > On Fri, Aug 15, 2025 at 4:47=E2=80=AFPM Zorro Lang <zlang@kernel.org>=
+ wrote:
+> > > >
+> > > > When we runs overlay/005 on a system without xfs module, it always
+> > > > fails as "unknown filesystem type xfs", due to this case require xf=
+s
+> > > > to be the underlying fs explicitly:
+> > > >
+> > > >   $MKFS_XFS_PROG -f -n ftype=3D1 $upper_loop_dev >>$seqres.full 2>&=
+1
+> > > >
+> > > > So notrun this case if the underlying fs isn't 'xfs'.
+> > >
+> > > It would have been better if instead of mkfs.xfs, we would have
+> > > used a helper to format $upper_loop_dev as $OVL_BASE_FSTYP
+> > >
+> > > But this is easier, so unless anybody wants to take on the better fix
+> > >
+> > > Acked-by: Amir Goldstein <amir73il@gmail.com>
+> >
+> > Thanks Amir, No matter what kinds of underlying fs are all good?
+> >
+>
+> All I know is what I read in the comments and git history.
+> The documented kernel commit has nothing to do with xfs.
+>
+> > I saw this case use:
+> >
+> >   $MKFS_XFS_PROG -f -n ftype=3D1 $upper_loop_dev
+> >
+> > So I thought it need the xfs ftype feature :-D
+> >
+>
+> Ha no. Overlayfs needs underlying support for readdir d_type
+> but ftype is the default for xfs for a long long time.
+>
+> I think that when Xiong Zhou wrote tests 003,004,0005:
+>
+> https://lore.kernel.org/fstests/1461241438-24238-1-git-send-email-xzhou@r=
+edhat.com/
+>
+> One of the tests was supposed to test the non-default ftype=3D0
+> config and then 005 used explicit ftype=3D1, but I am pretty sure
+> that ftype=3D1 was the default long before those tests were written.
+>
+> IOW, any the loop devices could be formatted with any base fs.
+> The only thing that matters for the test is the small size of the
+> formatted loop devices.
 
-syzbot found the following issue on:
+Agree to remove the restrictions.
 
-HEAD commit:    0cc53520e68b Merge tag 'probes-fixes-v6.17-rc1' of git://g..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=14a003a2580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=13f39c6a0380a209
-dashboard link: https://syzkaller.appspot.com/bug?extid=ec9fab8b7f0386b98a17
-compiler:       Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1387bc34580000
+>
+>
+> Thanks,
+> Amir.
+>
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/1f4865acb167/disk-0cc53520.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/14540c5ef981/vmlinux-0cc53520.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/35534bfe1c7e/bzImage-0cc53520.xz
-
-Bisection is inconclusive: the first bad commit could be any of:
-
-241062ae5d87 ovl: change ovl_workdir_cleanup() to take dir lock as needed.
-a45ee87ded78 ovl: narrow locking in ovl_workdir_cleanup_recurse()
-c69566b1d11d ovl: narrow locking on ovl_remove_and_whiteout()
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=130d1dbc580000
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+ec9fab8b7f0386b98a17@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-WARNING: CPU: 1 PID: 9026 at fs/inode.c:417 drop_nlink+0xc5/0x110 fs/inode.c:417
-Modules linked in:
-CPU: 1 UID: 0 PID: 9026 Comm: syz.4.1430 Tainted: G        W           6.17.0-rc1-syzkaller-00038-g0cc53520e68b #0 PREEMPT_{RT,(full)} 
-Tainted: [W]=WARN
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/12/2025
-RIP: 0010:drop_nlink+0xc5/0x110 fs/inode.c:417
-Code: c8 08 00 00 be 08 00 00 00 e8 b7 90 ec ff f0 48 ff 83 c8 08 00 00 5b 41 5c 41 5e 41 5f 5d e9 82 9f c8 08 cc e8 dc 5a 8d ff 90 <0f> 0b 90 eb 81 44 89 f1 80 e1 07 80 c1 03 38 c1 0f 8c 5b ff ff ff
-RSP: 0018:ffffc9000f5ef600 EFLAGS: 00010293
-RAX: ffffffff82310064 RBX: ffff88803352c420 RCX: ffff88802cfcbb80
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: dffffc0000000000 R11: fffff52001ebdeb5 R12: 1ffff110066a588d
-R13: 00000000689e7afa R14: ffff88803352c468 R15: dffffc0000000000
-FS:  00007fec6bd366c0(0000) GS:ffff8881269c5000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000555591d73608 CR3: 00000000274f4000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- shmem_unlink+0x1f5/0x2d0 mm/shmem.c:4041
- vfs_unlink+0x39a/0x660 fs/namei.c:4586
- ovl_do_unlink fs/overlayfs/overlayfs.h:218 [inline]
- ovl_cleanup_locked fs/overlayfs/dir.c:36 [inline]
- ovl_cleanup+0x151/0x230 fs/overlayfs/dir.c:56
- ovl_check_rename_whiteout fs/overlayfs/super.c:607 [inline]
- ovl_make_workdir fs/overlayfs/super.c:704 [inline]
- ovl_get_workdir+0xabd/0x17c0 fs/overlayfs/super.c:827
- ovl_fill_super+0x1365/0x35b0 fs/overlayfs/super.c:1406
- vfs_get_super fs/super.c:1325 [inline]
- get_tree_nodev+0xbb/0x150 fs/super.c:1344
- vfs_get_tree+0x8f/0x2b0 fs/super.c:1815
- do_new_mount+0x2a2/0x9e0 fs/namespace.c:3805
- do_mount fs/namespace.c:4133 [inline]
- __do_sys_mount fs/namespace.c:4344 [inline]
- __se_sys_mount+0x317/0x410 fs/namespace.c:4321
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fec6c6cebe9
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fec6bd36038 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007fec6c8f5fa0 RCX: 00007fec6c6cebe9
-RDX: 0000200000000200 RSI: 0000200000000000 RDI: 0000000000000000
-RBP: 00007fec6c751e19 R08: 0000200000000140 R09: 0000000000000000
-R10: 00000000000000d4 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007fec6c8f6038 R14: 00007fec6c8f5fa0 R15: 00007ffc15eea8d8
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
