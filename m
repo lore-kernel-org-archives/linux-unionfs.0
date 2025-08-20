@@ -1,63 +1,111 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8D6255F31;
-	Tue, 19 Aug 2025 17:33:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 865ED2D9488;
+	Wed, 20 Aug 2025 09:29:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755624818; cv=none; b=Ex5JJRY/07P5jA0/mRQSEmActxpVqvgC0cL5sfcb8aEqP/QWgLtPNSWm1vVOOAMdYI5InpQlLPBNG11Hycf7TDrCy6do7scCFHSYuLA+nsBPjwD0pJaXaCqjlaICZ9BvDkB6V+Fc9mUvXpFVRL15Cj638SckC8oyc4KCRA3bnuI=
+	t=1755682169; cv=none; b=hr/7xqJ0zuYNViz83T7RGS4R6V1Zb4OaDtX5z3ZSQookqOSRBL4Mt0xNBBQMRUbmGiWCmhaH4lQLVXo2B0BdC8PPrVvgY5Fkpl0K7NpgHueR28G845kYFUhRruEcVroP40qvGMzkYs96wPO5F46ajJICVvpLHyYKj/10AAlLLGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755624818; c=relaxed/simple;
-	bh=L84S1KtXWdqA6M1nGKA5+wCQ5JD1fy2xx9oxSfrb390=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=LpA1NadTZoSLX1w121sYq4P55gHpZ9noTCFQRgiWD2A5+LqdsP6A8Vkh2AGyGOSNQcr9mm4mdRCgwSpBkWwTuWshn929dvAXniKC5EGJA59vkUZclDDkxLEQOwRnRXRGKQsfMkqaeUupibMJ/knhAV7vUm0kiODGLz93DhnMF5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qUyBlaIM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755682169; c=relaxed/simple;
+	bh=GkLjC+KujJhxq+DPeb9PooDpqdQAPzuF/3QH6BnY+UA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GzU6reWg83fR6EUAjpknBO2rRG3pcDhLPALWzBHU0blE0h+l+a4lA789XfpZjQVFaBv3Nv2R3E1UToG8ySAgCAkRckAbboeTH8b2RR0jzaDCNFMkMsy03FqUogjwurwwkLfV1aU7r/buqgt0KJrpB611tZc+AIuHrnye2Y2MYzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hqU6/gMJ; arc=none smtp.client-ip=209.85.210.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qUyBlaIM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56121C4CEF1;
-	Tue, 19 Aug 2025 17:33:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755624815;
-	bh=L84S1KtXWdqA6M1nGKA5+wCQ5JD1fy2xx9oxSfrb390=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=qUyBlaIMEQY0x3xHB45H/Dqjlmu5XJvq1+wV3ku+1CcjPdcl5uh7DFoR06xd6jRRO
-	 kXhHv2Lu7Fh9u3wN18xhulxmANr/puKiwHeonqF0j6L1HgiqYdpdq5LjR6VB9q/hNb
-	 gqT7NkL/tEytlqXykvBHpecWGpZ8FjEsIR6D8lB1x6OQqJUNsCfj86ES+qZKdfqL+N
-	 g4VxfYTG2dQLU7KzPdn2lr/eL8N+W4AFP/tFhQ5ugT0A6qGVPNvN2+x1dKL3VeMK2X
-	 aoT8nNhJKR6IL39Zs5PIBnDX22IzQMKJRAzl5c4eFuedsg4weaVkjU+9pF75Hi6b19
-	 LkqP37gYUTNZA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70E69383BF58;
-	Tue, 19 Aug 2025 17:33:46 +0000 (UTC)
-Subject: Re: [GIT PULL] overlayfs fixes for 6.17-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20250819151933.681698-1-amir73il@gmail.com>
-References: <20250819151933.681698-1-amir73il@gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20250819151933.681698-1-amir73il@gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.17-rc1
-X-PR-Tracked-Commit-Id: e8bd877fb76bb9f35253e8f41ce0c772269934dd
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 7cca555b94a2191d012837a37c891eca4e876c6b
-Message-Id: <175562482502.3631675.18385180455259333540.pr-tracker-bot@kernel.org>
-Date: Tue, 19 Aug 2025 17:33:45 +0000
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, NeilBrown <neil@brown.name>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hqU6/gMJ"
+Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-76e2e614b84so5942721b3a.0;
+        Wed, 20 Aug 2025 02:29:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1755682167; x=1756286967; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=FsexL88QY+SMath9De6iu++b8EvHqE86irPkpuaoREQ=;
+        b=hqU6/gMJB3eh2DhM8AbgzJblLAjntti47X/haLSnndHt4RGrYppVIg9yavxk28uT/w
+         KNRh45pYk2KA3nDPY5CcVKj2QBPnHkLm6gsYMyS8FI4YHMh5TEMI1Qa7z8cHlndmGFB2
+         QlpyvcTFbpTiEysVoMGVIDc5es5V3+QmrHFKyFE1czkd1QDwnEMKyhR+feRargrlJQfb
+         u5a8d6BPY9oOXjZD5hUMpf+9gAw01ATXFgF3Ze3Y8c4No0JpvANPynjyKFmc1cVWDEPv
+         Ght2udbKzTVuUyQ1jA3tac+w0oPRJRe261Ao1n/gPr2UGDwBzor2c7i3lJ8U3AqZ1Z34
+         OHWw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1755682167; x=1756286967;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=FsexL88QY+SMath9De6iu++b8EvHqE86irPkpuaoREQ=;
+        b=SElndIutVQRgxSlJxn3cdfWbBnhjlaKZDAM00H21TtwfaBdzy2uAia+8ixFkPOIg75
+         pgGEx8Qb1GxU5RFpSH/M72/8smtaM5t0Gr7/RbN8rzdVeRg8owL3Y+gr9Wq7YJ2DnWHj
+         nosseaXlcDXHIUbCWyJAHb1b4UHqU+e2X36XulrktVJ+O/8pLUu2gYjpCVUkHmBan02j
+         GCMhWZIdUPbHFp8sBn/BuXJjajU8xd3MxSWjkmNTXU6IgkmuoMNHQT0XNAfEsAP7VS1E
+         Yw1oBviKE3h4Su7JYA1gRJhrT2wjGWOmHR9vSu5buc3Du0SQBlhPXB1UBEuKvSpsWhgR
+         ksMw==
+X-Forwarded-Encrypted: i=1; AJvYcCVgWhsbKIf/xsPzXd6BfvkH1IecVyG4WmYVb0jjdlyNSuqN82bUiULHT9rr1DXo93eoqjBFBH/eDIOnToU=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yze1DmqB7RBfdOdyyQMaK9tJVSdpCUOZjRxvOz1U0S94DxkVY2Z
+	eBimEjN78jwVCfgAk3wANn+pBDPWvcyTuxvgKSE95n4Le626OITJbzCB/EOcNnxEzY8=
+X-Gm-Gg: ASbGncsVp0nwbWSDJR6x6316M983kV8TYPNZh61mradEN4np9QM+rzt3q7ytafr8plQ
+	6HmqcTLEe10VcoyZLdagiYOi/bDZQa30oYWl5QBXeL7CUift8cHBgYOwECqZ4BKQd2n/n93DTsh
+	yV5B0YvRCdpjBWViX2N+pyHLFxOwPmKtvlv5fPp4FqNzTGRINVSme2TcIsqGXVFiOyiy9hMGEIs
+	cLesXMxQVNIIO8GxfqzVMlnWNmo3hTWXLFGmIv3Jdrk3/n1xuUCvHG9eXxSm/ISzEwFrc+FZu6z
+	FhAGij8lY0kw3Mj96ORkZXNZLNZWWopNI4zJGU26l8UwsSxfwD8OdwosP5jaP5LCI+sfQ5Th6EX
+	tyjP4dVbDkaQ0WRIPLSo6mDmliDG94kC6eOUNHrZ5KYo=
+X-Google-Smtp-Source: AGHT+IGn68JTaRs07pPDRgCFtcGlNztT0yxQqHiSVS8QoTercV4jLxhlp4WSufdOVbDcRu2BeAYBOA==
+X-Received: by 2002:a05:6a00:17a5:b0:76e:885a:c344 with SMTP id d2e1a72fcca58-76e8dd4cb80mr3161982b3a.26.1755682166705;
+        Wed, 20 Aug 2025 02:29:26 -0700 (PDT)
+Received: from hh.localdomain ([223.153.149.237])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-76e7d0ffe93sm4830240b3a.28.2025.08.20.02.28.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 20 Aug 2025 02:29:26 -0700 (PDT)
+From: huhai <hhtracer@gmail.com>
+X-Google-Original-From: huhai <huhai@kylinos.cn>
+To: miklos@szeredi.hu,
+	amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	huhai <huhai@kylinos.cn>
+Subject: [PATCH] ovl: only assign err on error path
+Date: Wed, 20 Aug 2025 17:28:48 +0800
+Message-Id: <20250820092848.534-1-huhai@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-The pull request you sent on Tue, 19 Aug 2025 17:19:33 +0200:
+In ovl_get_upper(), the result of clone_private_mount() was
+unconditionally assigned to 'err' using PTR_ERR(), even when the
+returned 'upper_mnt' was valid. This assignment is unnecessary in
+the success path and can be avoided.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.17-rc1
+Move the 'err = PTR_ERR(upper_mnt)' assignment inside the
+IS_ERR(upper_mnt) branch so that 'err' is only set when an
+error actually occurred.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/7cca555b94a2191d012837a37c891eca4e876c6b
+No functional change intended.
 
-Thank you!
+Signed-off-by: huhai <huhai@kylinos.cn>
+---
+ fs/overlayfs/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index df85a76597e9..a29ce0bce6a5 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -512,9 +512,9 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+ 		goto out;
+ 
+ 	upper_mnt = clone_private_mount(upperpath);
+-	err = PTR_ERR(upper_mnt);
+ 	if (IS_ERR(upper_mnt)) {
+ 		pr_err("failed to clone upperpath\n");
++		err = PTR_ERR(upper_mnt);
+ 		goto out;
+ 	}
+ 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.40.1
+
