@@ -1,111 +1,119 @@
-Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 865ED2D9488;
-	Wed, 20 Aug 2025 09:29:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 981542797AF;
+	Wed, 20 Aug 2025 09:33:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755682169; cv=none; b=hr/7xqJ0zuYNViz83T7RGS4R6V1Zb4OaDtX5z3ZSQookqOSRBL4Mt0xNBBQMRUbmGiWCmhaH4lQLVXo2B0BdC8PPrVvgY5Fkpl0K7NpgHueR28G845kYFUhRruEcVroP40qvGMzkYs96wPO5F46ajJICVvpLHyYKj/10AAlLLGs=
+	t=1755682400; cv=none; b=BcVXTqIlcxqZUWRIiLbY00Z8cizjsuJpJ7zSeVzu4r5BdbiUImvwkf2/0VeJbIzbQxeRlilCbJ20SG9ASG+HtoC+HDAqO8z0pJhnnZuZSIpxfPhCp7xspj3w1iuyukk3ZOij+hyZJjyzNWFTINQlzt+UKRcoeYmt70vwl71j7vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755682169; c=relaxed/simple;
-	bh=GkLjC+KujJhxq+DPeb9PooDpqdQAPzuF/3QH6BnY+UA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GzU6reWg83fR6EUAjpknBO2rRG3pcDhLPALWzBHU0blE0h+l+a4lA789XfpZjQVFaBv3Nv2R3E1UToG8ySAgCAkRckAbboeTH8b2RR0jzaDCNFMkMsy03FqUogjwurwwkLfV1aU7r/buqgt0KJrpB611tZc+AIuHrnye2Y2MYzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hqU6/gMJ; arc=none smtp.client-ip=209.85.210.170
+	s=arc-20240116; t=1755682400; c=relaxed/simple;
+	bh=RBChi2DiMntzcyYhqGItraXPe/ev1K56OAUIaEaLbp4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dM+wmB79lo6ds6y+Ge8/9e2P0H1ikc1tQup7U1HjhSWcx9KaDq70z8O5ZQkfZNASqelM6s2k1gp2S2SX22SlmcluieRZ9CluwKvAUFUXhN+RWLb0FdzmWw1XDMYlkjc7N6vkKa2K2y4nRoZoBSCZlu9t4FsGBlg+ul58LUePgyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VC+/SiDU; arc=none smtp.client-ip=209.85.208.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hqU6/gMJ"
-Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-76e2e614b84so5942721b3a.0;
-        Wed, 20 Aug 2025 02:29:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VC+/SiDU"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-61aa702c9ebso58366a12.3;
+        Wed, 20 Aug 2025 02:33:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755682167; x=1756286967; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=FsexL88QY+SMath9De6iu++b8EvHqE86irPkpuaoREQ=;
-        b=hqU6/gMJB3eh2DhM8AbgzJblLAjntti47X/haLSnndHt4RGrYppVIg9yavxk28uT/w
-         KNRh45pYk2KA3nDPY5CcVKj2QBPnHkLm6gsYMyS8FI4YHMh5TEMI1Qa7z8cHlndmGFB2
-         QlpyvcTFbpTiEysVoMGVIDc5es5V3+QmrHFKyFE1czkd1QDwnEMKyhR+feRargrlJQfb
-         u5a8d6BPY9oOXjZD5hUMpf+9gAw01ATXFgF3Ze3Y8c4No0JpvANPynjyKFmc1cVWDEPv
-         Ght2udbKzTVuUyQ1jA3tac+w0oPRJRe261Ao1n/gPr2UGDwBzor2c7i3lJ8U3AqZ1Z34
-         OHWw==
+        d=gmail.com; s=20230601; t=1755682396; x=1756287196; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nC/ErX59hxj/M9+ZZ9xBj0Dkel5DuFBTrE0bcyg4loQ=;
+        b=VC+/SiDUU1Xf7Y7tMrwihzCsZiqgQ+shpoDlfuQ23dcJ5xD+v5S9ullX/Xt2h0oT/Y
+         kQS/FSvYKZ83t8CT8dWYrV9NFIhPzpvBBVXsp3yuJYwCWXYSNG9TksHFR59fQxE/JmDJ
+         xoNOYbQ7kywYVvuhj54ZEq0IPZC24W4FLLv3Daz03WsqyFqVOhnXqQFK/q9dd7tAmkcA
+         SNF/FeCWkGl77a7xZLIbm983JJi0DLH0Z/OtZtZ7sZMVU2KEgt75gWvyCZkDTHwaBJCo
+         L4WCaaJn9zi1TbBWhrYiEI+EaqWlwQbOB8Z3apMojAyqOKVZePUxT9v2RLouWZvPa2J7
+         HgFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755682167; x=1756286967;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=FsexL88QY+SMath9De6iu++b8EvHqE86irPkpuaoREQ=;
-        b=SElndIutVQRgxSlJxn3cdfWbBnhjlaKZDAM00H21TtwfaBdzy2uAia+8ixFkPOIg75
-         pgGEx8Qb1GxU5RFpSH/M72/8smtaM5t0Gr7/RbN8rzdVeRg8owL3Y+gr9Wq7YJ2DnWHj
-         nosseaXlcDXHIUbCWyJAHb1b4UHqU+e2X36XulrktVJ+O/8pLUu2gYjpCVUkHmBan02j
-         GCMhWZIdUPbHFp8sBn/BuXJjajU8xd3MxSWjkmNTXU6IgkmuoMNHQT0XNAfEsAP7VS1E
-         Yw1oBviKE3h4Su7JYA1gRJhrT2wjGWOmHR9vSu5buc3Du0SQBlhPXB1UBEuKvSpsWhgR
-         ksMw==
-X-Forwarded-Encrypted: i=1; AJvYcCVgWhsbKIf/xsPzXd6BfvkH1IecVyG4WmYVb0jjdlyNSuqN82bUiULHT9rr1DXo93eoqjBFBH/eDIOnToU=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yze1DmqB7RBfdOdyyQMaK9tJVSdpCUOZjRxvOz1U0S94DxkVY2Z
-	eBimEjN78jwVCfgAk3wANn+pBDPWvcyTuxvgKSE95n4Le626OITJbzCB/EOcNnxEzY8=
-X-Gm-Gg: ASbGncsVp0nwbWSDJR6x6316M983kV8TYPNZh61mradEN4np9QM+rzt3q7ytafr8plQ
-	6HmqcTLEe10VcoyZLdagiYOi/bDZQa30oYWl5QBXeL7CUift8cHBgYOwECqZ4BKQd2n/n93DTsh
-	yV5B0YvRCdpjBWViX2N+pyHLFxOwPmKtvlv5fPp4FqNzTGRINVSme2TcIsqGXVFiOyiy9hMGEIs
-	cLesXMxQVNIIO8GxfqzVMlnWNmo3hTWXLFGmIv3Jdrk3/n1xuUCvHG9eXxSm/ISzEwFrc+FZu6z
-	FhAGij8lY0kw3Mj96ORkZXNZLNZWWopNI4zJGU26l8UwsSxfwD8OdwosP5jaP5LCI+sfQ5Th6EX
-	tyjP4dVbDkaQ0WRIPLSo6mDmliDG94kC6eOUNHrZ5KYo=
-X-Google-Smtp-Source: AGHT+IGn68JTaRs07pPDRgCFtcGlNztT0yxQqHiSVS8QoTercV4jLxhlp4WSufdOVbDcRu2BeAYBOA==
-X-Received: by 2002:a05:6a00:17a5:b0:76e:885a:c344 with SMTP id d2e1a72fcca58-76e8dd4cb80mr3161982b3a.26.1755682166705;
-        Wed, 20 Aug 2025 02:29:26 -0700 (PDT)
-Received: from hh.localdomain ([223.153.149.237])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-76e7d0ffe93sm4830240b3a.28.2025.08.20.02.28.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 Aug 2025 02:29:26 -0700 (PDT)
-From: huhai <hhtracer@gmail.com>
-X-Google-Original-From: huhai <huhai@kylinos.cn>
-To: miklos@szeredi.hu,
-	amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	huhai <huhai@kylinos.cn>
-Subject: [PATCH] ovl: only assign err on error path
-Date: Wed, 20 Aug 2025 17:28:48 +0800
-Message-Id: <20250820092848.534-1-huhai@kylinos.cn>
-X-Mailer: git-send-email 2.25.1
+        d=1e100.net; s=20230601; t=1755682396; x=1756287196;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=nC/ErX59hxj/M9+ZZ9xBj0Dkel5DuFBTrE0bcyg4loQ=;
+        b=eNe9DDiQISW0iZHr6MFUg3NU91O0qKlr0DKqv43T/WXy2nBfaDzdaOvtDCIYJTerDb
+         Qa9yCOPv5v+D1+7CLqhZdpgMX7ta0Mhx5xWWbOWzHSo4wZ6P8zYt7hl7rr/dA5VUXSjY
+         Fs7nPH7UVb0WssoyI8/draLUH2+a+gEuy0sYt3nhFXSSRL1CgR/beO5Q6RAGfS6bmBju
+         BhyN/p27Y8jk2wTFp9sRKNHAVVp+fQJ0kvAdEoW1C9tzO/KTgpwzZy49sNGXuu0QaZGX
+         n2KF25axNaioQLk+TERNxU5WqemDrgrzOM8yG9ipegAOhjdmpAbZCOeumTyrB1s4IeGg
+         H5Yw==
+X-Forwarded-Encrypted: i=1; AJvYcCVwlJlaNQEp0YoWG4oApGvJBDPjn1ZxN/a/jugyEqMIj9dbxX6lzEh1gTGgOGCB4G44U4RsNPfe/kyMFWM=@vger.kernel.org, AJvYcCXRSFYzTNmGgPdNfg2ndlkgHU1jH+SyUJteUVJ21sk4FEnS9e6Rz9MIOPvyTZGYjSKDHSVdoIPCZ4ZmqO53Hw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YzIg+NKpozq2dSuLW/qVVeK7bTvKaZxWURXYw2d1HPTjxhVRDsU
+	fptRm5asJdN7tx/7kqj9xxYiUst+gwHvmefK97LrNFwTwWR34T64dgAN6MG7TnBSdMfdgt8heaU
+	oumTTq2ZUt2WdG5DAbJqLjVVonLFZuac=
+X-Gm-Gg: ASbGnctoUdIZBp/lf8QEM44K6hI2nVIgrHBE5fry1BqpEW/Xba5KUeXEVFoJq8e51JL
+	xHtCK/qqG1bG4/PGjFFk5mqrvZz8Led9NzJ3hUzNLWq0ybyD5VuHeS4jhTrvwucd2udbJ7FISng
+	z575OKMqr8hTeInbs9/RgONbC7sjaoMy4EB5BpCRa3uKxSdt6cbZ6e6Waip3sVWFL1GcBhB1H4p
+	JCzkQc=
+X-Google-Smtp-Source: AGHT+IEb8/Nho88DGGiiw1ulj4AneyBUzB3DShyiR49gbPNu9RkdQ0RDKyEG2k7cjOcRCKyL5pBS4K4rO3cwUwE3RN8=
+X-Received: by 2002:a05:6402:34d1:b0:618:1ccf:5d12 with SMTP id
+ 4fb4d7f45d1cf-61a96c69776mr1923910a12.0.1755682395661; Wed, 20 Aug 2025
+ 02:33:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20250820092848.534-1-huhai@kylinos.cn>
+In-Reply-To: <20250820092848.534-1-huhai@kylinos.cn>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 20 Aug 2025 11:33:04 +0200
+X-Gm-Features: Ac12FXxDHa82_d8nmLxd2oWup-p4EYB6zzv1ykW2nX8LHFAOae2CfMNixeutPy4
+Message-ID: <CAOQ4uxi3YSUsf1SOa9HA+8VFcFe1=5FKjZ-NvYnPaBZK2yOMwA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: only assign err on error path
+To: huhai <hhtracer@gmail.com>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, huhai <huhai@kylinos.cn>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-In ovl_get_upper(), the result of clone_private_mount() was
-unconditionally assigned to 'err' using PTR_ERR(), even when the
-returned 'upper_mnt' was valid. This assignment is unnecessary in
-the success path and can be avoided.
+On Wed, Aug 20, 2025 at 11:29=E2=80=AFAM huhai <hhtracer@gmail.com> wrote:
+>
+> In ovl_get_upper(), the result of clone_private_mount() was
+> unconditionally assigned to 'err' using PTR_ERR(), even when the
+> returned 'upper_mnt' was valid. This assignment is unnecessary in
+> the success path and can be avoided.
+>
+> Move the 'err =3D PTR_ERR(upper_mnt)' assignment inside the
+> IS_ERR(upper_mnt) branch so that 'err' is only set when an
+> error actually occurred.
+>
+> No functional change intended.
+>
+> Signed-off-by: huhai <huhai@kylinos.cn>
+> ---
+>  fs/overlayfs/super.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index df85a76597e9..a29ce0bce6a5 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -512,9 +512,9 @@ static int ovl_get_upper(struct super_block *sb, stru=
+ct ovl_fs *ofs,
+>                 goto out;
+>
+>         upper_mnt =3D clone_private_mount(upperpath);
+> -       err =3D PTR_ERR(upper_mnt);
+>         if (IS_ERR(upper_mnt)) {
+>                 pr_err("failed to clone upperpath\n");
+> +               err =3D PTR_ERR(upper_mnt);
+>                 goto out;
+>         }
+>
 
-Move the 'err = PTR_ERR(upper_mnt)' assignment inside the
-IS_ERR(upper_mnt) branch so that 'err' is only set when an
-error actually occurred.
+NAK.
 
-No functional change intended.
+No good reason to make this change.
+To be clear,
+"This assignment is unnecessary in the success path and can be avoided"
+is not a good enough reason.
 
-Signed-off-by: huhai <huhai@kylinos.cn>
----
- fs/overlayfs/super.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index df85a76597e9..a29ce0bce6a5 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -512,9 +512,9 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 		goto out;
- 
- 	upper_mnt = clone_private_mount(upperpath);
--	err = PTR_ERR(upper_mnt);
- 	if (IS_ERR(upper_mnt)) {
- 		pr_err("failed to clone upperpath\n");
-+		err = PTR_ERR(upper_mnt);
- 		goto out;
- 	}
- 
--- 
-2.40.1
-
+Thanks,
+Amir.
