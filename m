@@ -1,140 +1,125 @@
-Received: from mout.web.de (mout.web.de [212.227.17.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8D6C2E3B15;
-	Wed, 20 Aug 2025 09:43:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A52D342CAA;
+	Thu, 21 Aug 2025 13:43:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755683006; cv=none; b=Giy8SplGNae6f7IHZy6jjLax7+dEwKF1cggjTh6TTJnGX5gzGt2E9YPWBzn73cpA277XJI+LxNXLbzKCWu4s9ebtraY4IHhyZ88itbC4MJhaLTiZFTfCoMI/nIUf03i5+EgHRuGRcku/gP/k1hByKdadgUpaIuqLkltFf7pvurA=
+	t=1755783784; cv=none; b=oNldrTNzp4Dn5bCJlKlnNJQDF62XkUK1smDVhOCLik/gcIFUgSNakueqdVhqEjdkADpN9YR+kOwZ9680ueU7YX1AXQRY9He+fJz8gu8ORsb29+XwaoqYHb4yphuPB3AdcDAqES4rmwjAxep4UjWGKyOPfx2pCb3G43aZuDdgj9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755683006; c=relaxed/simple;
-	bh=pZd0AyTtMW4T9v3lPr/fbHbSMmV1kbXFbKhPDmLPbGw=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:Subject:From:
-	 In-Reply-To:Content-Type; b=SVFjkdpsHO1YP72uIFhGD7dGGAzNNiQqRX8aICjUuqLMaqhpF0VQEJUng6GxdVlXr0/7ZDlPANbcQY5fMSaz7cnZ4ZrglPLtVA5If7r3z8BntxITpzWiGkYGmUWymePu3/iUCNU6pQCPWyfV/1q11hz+/4xxWdpsbTv6Wa0H1Tg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=iVd2/qN4; arc=none smtp.client-ip=212.227.17.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+	s=arc-20240116; t=1755783784; c=relaxed/simple;
+	bh=U3lD0if9h0TDpItAoN/yVgGkOYGmElvkZDQn58wqc8g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=THv7sgTcl5ErbMPiu3vQxu6qaWoYvDbZpGeQU4SYaU3JeFZmxg8FrTcNYp3zSc4C6B7uGrYLjHpH+hW+dPOHpT8mPjlh6lIrNLWWSwNb4clIm5KPmf/5k20odyzejZAwCD1Yk648N/Rg1AO953vK39XH1TvYmUg8tfht3VWHXV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OUjrfAO/; arc=none smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="iVd2/qN4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
-	s=s29768273; t=1755682996; x=1756287796; i=markus.elfring@web.de;
-	bh=9GUVOi4zaxWUubC0jqwvWk+ixLptFXpzUwHRUh/T7ws=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
-	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 cc:content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=iVd2/qN4X6Qu/6irZMw/q6GNcQUYPA8UgjKFwdTNWNMlImXR2k70SAJKCs+gvMws
-	 AIZBRqSgZ/G3lByLOScZR5h8NKSyU5QA85MG9XJE5/028nX2ZHy5wfJJuODQ41WVU
-	 AgGx2IpVga/is9U0S7rJwj32zdLsifKC7NZX8yAkXfEfc7cK5Jl+e4bMUpJ1lSQ+a
-	 E0456/Y1+vruh8EMGh3nE+NqQmy05ukm92GsnAhyJff0eqCY6NC2gK2te0eyXmjzb
-	 u+NmKvcMM5Wkwp4YdBHIIlxazovXDl7tNnoVaD06nfTo0weolIN9dBtUbu7x9JOWv
-	 aGs7nVaA0V8lgUZaCA==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.29] ([94.31.92.226]) by smtp.web.de (mrweb105
- [213.165.67.124]) with ESMTPSA (Nemesis) id 1N5CUp-1uMraL2FJV-00yRGY; Wed, 20
- Aug 2025 11:43:16 +0200
-Message-ID: <35d4fc68-fe57-464e-a651-eede49fbf00f@web.de>
-Date: Wed, 20 Aug 2025 11:43:14 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OUjrfAO/"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-619487c8865so3587408a12.1;
+        Thu, 21 Aug 2025 06:43:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1755783781; x=1756388581; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=sPpRVfE3HiLUCQGB9lSpWUOTDrxZVT5obWAyeQ1uE04=;
+        b=OUjrfAO/Ha/BUe08VFXbaNksKVEtEuMZc/pGPU03BxMnSPRyAKqGV568PQrqGC1jwa
+         6xzGx5NA97MbFs8mw2+bW9FLXrDc8JFswWw+qwv5X09zv2zjjQDkuin1ZP6yrr86QbRK
+         /I6l3qa2yCnwzOVcTiolQNwox0wS+qjCC1LKwDgKT/LeCvqueqbbA5xuGDbzPKQfPrpw
+         yk+qQr49jmCEjrWqvqO9eXLPgaRUP7+g+s9m/EZpptj7sYewVgn8S9tWJuxBiNy4zJCj
+         tIqX6czfDTXcp/o/9JBNe7lHgzJQU8K4cPujFDcrF22JJf05EMY6bu5nkYpR07KrK1V/
+         EL8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1755783781; x=1756388581;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=sPpRVfE3HiLUCQGB9lSpWUOTDrxZVT5obWAyeQ1uE04=;
+        b=ONBWZ7FAblf0FN44ZA2C6+E5ADX2F02P+zEICIuMK8D17wIicnSaJ4yqFjnGMRHKZw
+         VtGFCN1v9+gNBMoLtVmbkVLwhqYbm0CLbiDzwZ2hipYJY1hn+G9dtu5l/BZp6KU6vq5g
+         a5utifZvLD/3zgjcFEyTTlsxIo/6qaHPyijHS9o0cpJ7Ugxoyw53T7dzwrspBj8WhnpZ
+         1g5/eDrdZZbPWdcO6dEX9Vql5dxVNdn4+2+GQ4obccZUDvFE3xBFTFkNbeUSx77uHoIz
+         CHB6Zs22mXZR6ipSpPTBBbJdeTdAygC0Y8dW1m7nUaChZTMe+VAWpikhKFUtJnt5f2IV
+         JRxg==
+X-Forwarded-Encrypted: i=1; AJvYcCUXhRuiFJA3UTKIkmafPWPIU0z/ka61g1/2vcSZt//Y8/uY1PN0Q+vuCurMyY722IQ5KD9/IYhw@vger.kernel.org, AJvYcCVwRGO0EBfMLslp+53bhHSVT04VeHrJS/+Nns1SW2JU8o+kykV/TyxEvWqtfTm4oL4XmlcAnyQBic0IjdJC@vger.kernel.org
+X-Gm-Message-State: AOJu0YwpNEGn+KKDpDmcKjW8H0zyJCh6MvgV+BEQdpgrXh62iZeTzDUQ
+	xgf2d3VtXI13GcocbMNvSsANZuvQWEDOWT/389+EuYU1P4kkbL95VysHKWi7JVE/
+X-Gm-Gg: ASbGnctRsSb9zm7i3M6OcKyBHd4brRGpMRvbk2Zov+IXpdvWMiBbJ8YMnpiZiwSjX4I
+	cEy947J88FWhqmaZfHIDjig2qv6PSnepP+hGY42Xf2pcm1ZKHhBfrx5puaopI2rv/8bVqIr4VYN
+	Vx4cG35C7eMBPLFkYa9PX5i2PH5/rN9CveWgX5fCfHZ78ygMzIPTYtjz9AqsJjasjIEmiCZBe1t
+	YXavTgSFM5Ykl6cOqrfghTEjqvX885AbNqY0vVcAd4IwADApH9kTvvf5mGIhdSUiD+oQN/Ifxlp
+	q77yDxKg6+dr9KL730od6c2JQIdYUOXDqh2jsqkosS+OgUGSU+el1LQ6kocUYfv84AoLr9rez2i
+	ecD/JiT3z5mXmnAi3qAoVSBRc/uDZzcGRwRrxvjL72F3UrFYsMvWusuPtwc7a8Kuk75GdXc/eqo
+	EAF4LDcuHyWOBVDqb3RR5lmug=
+X-Google-Smtp-Source: AGHT+IFB4KzrTSBfENNo1r7jRNPAT4PoioswUll+IRP6Eay4vEUXeuVwmHv0Ywop9yUKqEYE71QN3w==
+X-Received: by 2002:a17:907:c13:b0:acb:37ae:619c with SMTP id a640c23a62f3a-afe0ba5e269mr235879166b.15.1755783781088;
+        Thu, 21 Aug 2025 06:43:01 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-afdf24bc40dsm341995766b.109.2025.08.21.06.43.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Aug 2025 06:43:00 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sasha Levin <sashal@kernel.org>,
+	stable@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	NeilBrown <neil@brown.name>,
+	syzbot+7836a68852a10ec3d790@syzkaller.appspotmail.com
+Subject: [PATCH] ovl: use I_MUTEX_PARENT when locking parent in ovl_create_temp()
+Date: Thu, 21 Aug 2025 15:42:44 +0200
+Message-ID: <20250821134244.846376-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: huhai@kylinos.cn, linux-unionfs@vger.kernel.org
-Cc: hhtracer@gmail.com, LKML <linux-kernel@vger.kernel.org>,
- Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
-References: <20250820092848.534-1-huhai@kylinos.cn>
-Subject: Re: [PATCH] ovl: only assign err on error path
-Content-Language: en-GB, de-DE
-From: Markus Elfring <Markus.Elfring@web.de>
-In-Reply-To: <20250820092848.534-1-huhai@kylinos.cn>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:PzeuRhRioR6tgeBL/sfrYJascYhrxYj/h2Oo5mmMxMOWUTloBE0
- Bo6ihD+yg3tPkBjynPNkwsSdYBqTgz3GU1J0V5OzyuF7S5N9snSDB6UO+bljVHaSqRm59WD
- iT62Y0BsAan6dkQQ1NNPbvHA1thDP96f2Ir4YNfgyNYL6AMAmjwSzREONrRgqeUA7KJXReJ
- 3JTHcFuSjBulxlI9q5N8g==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:/7yQa+xvO+0=;YzZME5+vx0MSkd24S6Z2CP9hfHc
- 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
- 9WzX9RA=
+Content-Transfer-Encoding: 8bit
 
-=E2=80=A6
-> Signed-off-by: huhai <huhai@kylinos.cn>
-> ---
->  fs/overlayfs/super.c | 2 +-
-=E2=80=A6
+From: NeilBrown <neil@brown.name>
 
-Should the personal name be usually different from an email identifier
-according to requirements of the Developer's Certificate of Origin?
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Do=
-cumentation/process/submitting-patches.rst?h=3Dv6.17-rc2#n436
+commit 5f1c8965e748c150d580a2ea8fbee1bd80d07a24 upstream.
 
-Regards,
-Markus
+ovl_create_temp() treats "workdir" as a parent in which it creates an
+object so it should use I_MUTEX_PARENT.
+
+Prior to the commit identified below the lock was taken by the caller
+which sometimes used I_MUTEX_PARENT and sometimes used I_MUTEX_NORMAL.
+The use of I_MUTEX_NORMAL was incorrect but unfortunately copied into
+ovl_create_temp().
+
+Note to backporters: This patch only applies after the last Fixes given
+below (post v6.16).  To fix the bug in v6.7 and later the
+inode_lock() call in ovl_copy_up_workdir() needs to nest using
+I_MUTEX_PARENT.
+
+[Amir: backport to v6.16 when lock was taken by the callers]
+
+Link: https://lore.kernel.org/all/67a72070.050a0220.3d72c.0022.GAE@google.com/
+Cc: stable@vger.kernel.org
+Reported-by: syzbot+7836a68852a10ec3d790@syzkaller.appspotmail.com
+Tested-by: syzbot+7836a68852a10ec3d790@syzkaller.appspotmail.com
+Fixes: c63e56a4a652 ("ovl: do not open/llseek lower file with upper sb_writers held")
+Fixes: d2c995581c7c ("ovl: Call ovl_create_temp() without lock held.")
+Signed-off-by: NeilBrown <neil@brown.name>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d7310fcf38881..c2263148ff20a 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -779,7 +779,7 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 		return err;
+ 
+ 	ovl_start_write(c->dentry);
+-	inode_lock(wdir);
++	inode_lock_nested(wdir, I_MUTEX_PARENT);
+ 	temp = ovl_create_temp(ofs, c->workdir, &cattr);
+ 	inode_unlock(wdir);
+ 	ovl_end_write(c->dentry);
+-- 
+2.50.1
+
