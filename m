@@ -1,39 +1,39 @@
 Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A23A22C3261;
-	Fri, 22 Aug 2025 14:07:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21455303C83;
+	Fri, 22 Aug 2025 14:16:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755871655; cv=none; b=t9SiQNnruDhfrJ8v+bAsBYdEa8UvzOhKu6ROKTQKlCycyhWzlBTpzFVT7UA8SZM3ItQSn4D6ZLWCj/9zdVmK8hnRBQCiTAZM6Cl/pwtW6sgnLATCA7h4IIZVwwXQuMgFMJm6fGxImCkOKHz8FLandY6EZGXC9zC7vJAcy/VF89Y=
+	t=1755872168; cv=none; b=lt/WKzl09ezC0082/XbDm73jTu4IWaHhV4/oDNjJh48Qf7byXmyImcYJecG3AHOUaZa+gwiicOQ/VV7tdOyJ9cqGoUWfRdVUPslicSWjzcyHUc3n6PbXyuH/4LA5HEVdSqp77FgT4Bai/ZTL76J3OVdSu52tc6zaZvVfeKCnAsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755871655; c=relaxed/simple;
-	bh=j6Gt5IZtxTbNbjVeBp6YN/qynlfox9l4Yo9xkXt4ufM=;
+	s=arc-20240116; t=1755872168; c=relaxed/simple;
+	bh=GjRjHlx+8IVIK4VGLsw3756nQx9Hum+SOnAk0B/KELw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=A4InoKOwwCkxTaJLRKF/AdHpeYssvH4lnQ2nWOlFgrSkbzYjVUs9dpZo0VbNFOZsh3mIwv8bOmoaJSh5dJPOxSdULgGqVAkT9rOrgnEcq125udOGmQlwVjtQdKaB72M5GrRZQnzIxqspu2pL0hXFo5ULPdpsIVdwveI3g5TdhJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=VXVXOdnm; arc=none smtp.client-ip=213.97.179.56
+	 In-Reply-To:Content-Type; b=I1r3aIAm5IoXTC7xGDOCOAl+Wj98oIOYt8oKU3INiyUJRytGuLJy2nazTDgkyC1CKQ8kuTe0iN9f2KGJTcWgEU2FG6mMa4c4bB/Thm1y2N9l7KGR8agc/FuXWeRkUBeSwWN6vKDSGjTF0X/bNzbT6D0B+JZSANEMl3uLi6T4s/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=ORLdTg4E; arc=none smtp.client-ip=213.97.179.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="VXVXOdnm"
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="ORLdTg4E"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
 	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
 	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
 	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=/IcI3fs+CdosW5+lwwgmJ6BWeUSk0gNZDPTOXnVmqXs=; b=VXVXOdnmASDMqhMBxRarlqc5oi
-	GSBhG6C1yh0DvjPBGkYWez60anZn0mcR4t3SsgjRXcX51pnrUmFXPDRekFgx0ZESljE2usqNFKzjC
-	yjGPw3QrmHR+IE606lkgv6c7HmRg3zjKd5r8/pJq/t+iAudqyoIorJjIJ0THBzGk3syYkpb4UMLeN
-	0mDikYu2WgqHWeyKMDDrMu9RrQgVTu0BhJg0wuElpTm4qXYZkv1z0R56UhnpPTF9m455JesV+iiH0
-	eQ1If/ewF4NqrgYyOHiuAQPGUheugYdZXcV3oq381vqTQTdvfHnSMEw37ogUuiWNOr2fYs7OhXZw5
-	fjfzYoDQ==;
+	bh=AB1DTWmFI46rZseB1HIkiwEXCITFFpy1H7xYdXQNU9Y=; b=ORLdTg4Ecy2ssTwjsLqBptIF+9
+	Qwo9YCYxp+jyfZb2iDqrSpGP+Kj5dKBUvXgzjpp2N9UPkqOdjTlVh8RjRoB1nmou9NDOZ//SxO74l
+	sKP3KdKe1TCgY7BYYvi0BpP8r6KHcly6EBum6doS+DKJoJLYkA3nzcp/w++vJggdNJ5l4HLA3guXZ
+	rl7r1edN9foH4gqB+eA8UmYhflQb1UlgU5exHiT9hXslW83p5V3QFPEIcZw3Mkbi4/aplBiHXFWlL
+	Nk9nQWyA+wobfKLZKvkecxv75jrDOL3DpayYQ7QaYpPSo42KeH50LPPdukbv9MxDOH5bZlFwBCL1O
+	WvCRvqWg==;
 Received: from [152.250.7.37] (helo=[192.168.15.100])
 	by fanzine2.igalia.com with esmtpsa 
 	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-	id 1upSQJ-00080K-Mc; Fri, 22 Aug 2025 16:07:19 +0200
-Message-ID: <c1e1f4b3-e3a0-4a9a-982d-9fd6f6e96090@igalia.com>
-Date: Fri, 22 Aug 2025 11:07:14 -0300
+	id 1upSYi-0008E8-MV; Fri, 22 Aug 2025 16:16:00 +0200
+Message-ID: <5da6b0f4-2730-4783-9c57-c46c2d13e848@igalia.com>
+Date: Fri, 22 Aug 2025 11:15:56 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -41,193 +41,117 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 4/9] ovl: Create ovl_casefold() to support casefolded
- strncmp()
+Subject: Re: [PATCH v5 0/9] ovl: Enable support for casefold layers
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>,
- Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Alexander Viro <viro@zeniv.linux.org.uk>,
+ linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>,
  Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- kernel-dev@igalia.com
+ kernel-dev@igalia.com, Gabriel Krisman Bertazi <krisman@kernel.org>
 References: <20250814-tonyk-overlayfs-v5-0-c5b80a909cbd@igalia.com>
- <20250814-tonyk-overlayfs-v5-4-c5b80a909cbd@igalia.com>
- <CAOQ4uxiX+ZURzvNdJw+UJw-2OTS5DRGr4LLr9YnHjjPKOv57TA@mail.gmail.com>
+ <cffb248a-87ce-434e-bd64-2c8112872a18@igalia.com>
+ <CAOQ4uxiVFubhiC9Ftwt3kG=RoGSK7rBpPv5Z0GdZfk17dBO6YQ@mail.gmail.com>
+ <e2238a17-3d0a-4c30-bc81-65c8c4da98e6@igalia.com>
+ <CAOQ4uxgfKcey301gZRBHf=2YfWmNg5zkj7Bh+DwVwpztMR1uOg@mail.gmail.com>
+ <CAOQ4uxjf6S7xX+LiMaxoz7Rg03jU1-4A4o3FZ_Hi8z6EyEc7PQ@mail.gmail.com>
 Content-Language: en-US
 From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-In-Reply-To: <CAOQ4uxiX+ZURzvNdJw+UJw-2OTS5DRGr4LLr9YnHjjPKOv57TA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjf6S7xX+LiMaxoz7Rg03jU1-4A4o3FZ_Hi8z6EyEc7PQ@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Em 17/08/2025 11:33, Amir Goldstein escreveu:
-> On Thu, Aug 14, 2025 at 7:22 PM André Almeida <andrealmeid@igalia.com> wrote:
+Em 17/08/2025 12:03, Amir Goldstein escreveu:
+> On Fri, Aug 15, 2025 at 3:50 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >>
->> To add overlayfs support casefold layers, create a new function
->> ovl_casefold(), to be able to do case-insensitive strncmp().
+>> On Fri, Aug 15, 2025 at 3:34 PM André Almeida <andrealmeid@igalia.com> wrote:
+>>>
+>>> Hi Amir,
+>>>
+>>> On 8/14/25 21:06, Amir Goldstein wrote:
+>>>> On Thu, Aug 14, 2025 at 7:30 PM André Almeida <andrealmeid@igalia.com> wrote:
+>>>>> Em 14/08/2025 14:22, André Almeida escreveu:
+>>>>>> Hi all,
+>>>>>>
+>>>>>> We would like to support the usage of casefold layers with overlayfs to
+>>>>>> be used with container tools. This use case requires a simple setup,
+>>>>>> where every layer will have the same encoding setting (i.e. Unicode
+>>>>>> version and flags), using one upper and one lower layer.
+>>>>>>
+>>>>> Amir,
+>>>>>
+>>>>> I tried to run your xfstest for casefolded ovl[1] but I can see that it
+>>>>> still requires some work. I tried to fix some of the TODO's but I didn't
+>>>>> managed to mkfs the base fs with casefold enabled...
+>>>> When you write mkfs the base fs, I suspect that you are running
+>>>> check -overlay or something.
+>>>>
+>>>> This is not how this test should be run.
+>>>> It should run as a normal test on ext4 or any other fs  that supports casefold.
+>>>>
+>>>> When you run check -g casefold, the generic test generic/556 will
+>>>> be run if the test fs supports casefold (e.g. ext4).
+>>>>
+>>>> The new added test belongs to the same group and should run
+>>>> if you run check -g casefold if the test fs supports casefold (e.g. ext4).
+>>>>
+>>> I see, I used `check -overlay` indeed, thanks!
+>>>
 >>
->> ovl_casefold() allocates a new buffer and stores the casefolded version
->> of the string on it. If the allocation or the casefold operation fails,
->> fallback to use the original string.
+>> Yeh that's a bit confusing I'll admit.
+>> It's an overlayfs test that "does not run on overlayfs"
+>> but requires extra overlayfs:
 >>
->> The case-insentive name is then used in the rb-tree search/insertion
->> operation. If the name is found in the rb-tree, the name can be
->> discarded and the buffer is freed. If the name isn't found, it's then
->> stored at struct ovl_cache_entry to be used later.
+>> _exclude_fs overlay
+>> _require_extra_fs overlay
 >>
->> Signed-off-by: André Almeida <andrealmeid@igalia.com>
->> ---
->> Changes from v4:
->>   - Move the consumer/free buffer logic out to the caller
->>   - s/aux/c_name
+>> Because it does the overlayfs mount itself.
+>> That's the easiest way to test features (e.g. casefold) in basefs
 >>
->> Changes from v3:
->>   - Improve commit message text
->>   - s/OVL_NAME_LEN/NAME_MAX
->>   - drop #ifdef in favor of if(IS_ENABLED)
->>   - use new helper sb_encoding
->>   - merged patch "Store casefold name..." and "Create ovl_casefold()..."
->>   - Guard all the casefolding inside of IS_ENABLED(UNICODE)
->>
->> Changes from v2:
->> - Refactor the patch to do a single kmalloc() per rb_tree operation
->> - Instead of casefolding the cache entry name everytime per strncmp(),
->>    casefold it once and reuse it for every strncmp().
->> ---
->>   fs/overlayfs/readdir.c | 115 +++++++++++++++++++++++++++++++++++++++++--------
->>   1 file changed, 97 insertions(+), 18 deletions(-)
->>
->> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
->> index b65cdfce31ce27172d28d879559f1008b9c87320..803ac6a7516d0156ae7793ee1ff884dbbf2e20b0 100644
->> --- a/fs/overlayfs/readdir.c
->> +++ b/fs/overlayfs/readdir.c
->> @@ -27,6 +27,8 @@ struct ovl_cache_entry {
->>          bool is_upper;
->>          bool is_whiteout;
->>          bool check_xwhiteout;
->> +       const char *cf_name;
->> +       int cf_len;
 > 
-> We should also change these member names to c_name
-> Because they are the "compare/canonicalized" name, which
-> may or may not be casefolded.
+> I tried to run the new test, which is able to mount an overlayfs
+> with layers with disabled casefolding with kernel 6.17-rc1.
 > 
->>          char name[];
->>   };
->>
->> @@ -45,6 +47,7 @@ struct ovl_readdir_data {
->>          struct list_head *list;
->>          struct list_head middle;
->>          struct ovl_cache_entry *first_maybe_whiteout;
->> +       struct unicode_map *map;
->>          int count;
->>          int err;
->>          bool is_upper;
->> @@ -66,6 +69,27 @@ static struct ovl_cache_entry *ovl_cache_entry_from_node(struct rb_node *n)
->>          return rb_entry(n, struct ovl_cache_entry, node);
->>   }
->>
->> +static int ovl_casefold(struct unicode_map *map, const char *str, int len, char **dst)
->> +{
->> +       const struct qstr qstr = { .name = str, .len = len };
->> +       int cf_len;
->> +
->> +       if (!IS_ENABLED(CONFIG_UNICODE) || !map || is_dot_dotdot(str, len))
->> +               return 0;
->> +
->> +       *dst = kmalloc(NAME_MAX, GFP_KERNEL);
->> +
->> +       if (dst) {
->> +               cf_len = utf8_casefold(map, &qstr, *dst, NAME_MAX);
->> +
->> +               if (cf_len > 0)
->> +                       return cf_len;
->> +       }
->> +
->> +       kfree(*dst);
->> +       return 0;
->> +}
->> +
->>   static bool ovl_cache_entry_find_link(const char *name, int len,
->>                                        struct rb_node ***link,
->>                                        struct rb_node **parent)
->> @@ -79,7 +103,7 @@ static bool ovl_cache_entry_find_link(const char *name, int len,
->>
->>                  *parent = *newp;
->>                  tmp = ovl_cache_entry_from_node(*newp);
->> -               cmp = strncmp(name, tmp->name, len);
->> +               cmp = strncmp(name, tmp->cf_name, tmp->cf_len);
->>                  if (cmp > 0)
->>                          newp = &tmp->node.rb_right;
->>                  else if (cmp < 0 || len < tmp->len)
-> 
-> This looks like a bug - should be len < tmp->c_len
-> 
->> @@ -101,7 +125,7 @@ static struct ovl_cache_entry *ovl_cache_entry_find(struct rb_root *root,
->>          while (node) {
->>                  struct ovl_cache_entry *p = ovl_cache_entry_from_node(node);
->>
->> -               cmp = strncmp(name, p->name, len);
->> +               cmp = strncmp(name, p->cf_name, p->cf_len);
->>                  if (cmp > 0)
->>                          node = p->node.rb_right;
->>                  else if (cmp < 0 || len < p->len)
-> 
-> Same here.
-> 
-> But it's not the only bug, because this patch regresses 3 fstests without
-> enabling any casefolding:
-> 
+> It does not even succeed in passing this simple test with
+> your patches, so something is clearly off.
 
-That was due to the following change:
+Apart from the other changes I had done for v6, I also had to change the 
+test itself. The directories need to be empty to set the +F attribute, 
+so I had to do this change:
 
--               cmp = strncmp(name, p->name, len);
-+               cmp = strncmp(name, p->cf_name, p->cf_len);
+--- a/tests/generic/999
++++ b/tests/generic/999
+@@ -104,6 +104,9 @@ mount_overlay $lowerdir >>$seqres.full
+  ls $merge/casefold/subdir |& _filter_scratch
+  unmount_overlay
 
-Keeping len (instead of p->cf_len) as the third argument fixed it. I 
-will send a v6 with that and the other changes.
++# workdir needs to be empty to set casefold attribute
++rm -rf $workdir/*
++
+  _casefold_set_attr $upperdir >>$seqres.full
+  _casefold_set_attr $workdir >>$seqres.full
 
-> overlay/038 12s ...  [14:16:39] [14:16:50]- output mismatch (see
-> /results/overlay/results-large/overlay/038.out.bad)
->      --- tests/overlay/038.out 2025-05-25 08:52:54.000000000 +0000
->      +++ /results/overlay/results-large/overlay/038.out.bad 2025-08-17
-> 14:16:50.549367654 +0000
->      @@ -1,2 +1,3 @@
->       QA output created by 038
->      +Merged dir: Invalid d_ino reported for ..
->       Silence is golden
+@@ -112,7 +115,10 @@ mount_overlay $lowerdir >>$seqres.full 2>&1 && \
+         echo "Overlayfs mount with casefold enabled upperdir should 
+have failed" && \
+         unmount_overlay
+
++# lowerdir needs to be empty to set casefold attribute
++rm -rf $lowerdir/*
+  _casefold_set_attr $lowerdir >>$seqres.full
++mkdir $casefolddir
+
+  # Try to mount an overlay with casefold enabled layers.
+  # On kernels older than v6.18 expect failure and skip the rest of the test
+
 > 
-> overlay/041 11s ...  [14:16:54] [14:17:05]- output mismatch (see
-> /results/overlay/results-large/overlay/041.out.bad)
->      --- tests/overlay/041.out 2025-05-25 08:52:54.000000000 +0000
->      +++ /results/overlay/results-large/overlay/041.out.bad 2025-08-17
-> 14:17:05.275206922 +0000
->      @@ -1,2 +1,3 @@
->       QA output created by 041
->      +Merged dir: Invalid d_ino reported for ..
->       Silence is golden
+>> You should also run check -overlay -g overlay/quick,
+>> but that's only to verify your patches did not regress any
+>> non-casefolded test.
+>>
+>>
 > 
-> overlay/077 19s ...  [14:17:08][  107.348626] WARNING: CPU: 3 PID:
-> 5414 at fs/overlayfs/readdir.c:677 ovl_dir_read_impure+0x178/0x1c0
-> [  107.354647] ---[ end trace 0000000000000000 ]---
-> [  107.399525] WARNING: CPU: 2 PID: 5415 at fs/overlayfs/readdir.c:677
-> ovl_dir_read_impure+0x178/0x1c0
-> [  107.406826] ---[ end trace 0000000000000000 ]---
-> _check_dmesg: something found in dmesg (see
-> /results/overlay/results-large/overlay/077.dmesg)
->   [14:17:28]- output mismatch (see
-> /results/overlay/results-large/overlay/077.out.bad)
->      --- tests/overlay/077.out 2025-05-25 08:52:54.000000000 +0000
->      +++ /results/overlay/results-large/overlay/077.out.bad 2025-08-17
-> 14:17:28.762250671 +0000
->      @@ -1,2 +1,6 @@
->       QA output created by 077
->      +getdents: Input/output error
->      +Missing created file in impure upper dir (see
-> /results/overlay/results-large/overlay/077.full for details)
->      +getdents: Input/output error
->      +Found unlinked file in impure upper dir (see
-> /results/overlay/results-large/overlay/077.full for details)
->       Silence is golden
+> My tests also indicate that there are several regressions, so your patches
+> must have changed code paths that should not have been changed.
 > 
 > Thanks,
 > Amir.
