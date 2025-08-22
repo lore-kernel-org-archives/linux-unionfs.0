@@ -1,403 +1,175 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7DBC23D7D4;
-	Fri, 22 Aug 2025 16:53:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0601F1A0BE0;
+	Fri, 22 Aug 2025 17:21:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755881616; cv=none; b=eZkOJOQ91sfrg1GGwgBG1027rgISdkXxe99CfK/2bNLOU2lTwK56r2bjDPtODyXo0qXP35XXGm59r58W8+xeL7SpTWvUSGz+SIZADKVnjPMYsez7LrL5HoL4oEcoGGYo9XI+fL1eA5TobptPNPPiry9bEZcohx3KLl7Kq+yvN6I=
+	t=1755883310; cv=none; b=t55ki9UT7Un6Sl1Ilftu7210micwXGa2bDJF4JuJFjY6iDsDmU9C9rTLxUTMNz2wtSwNEvjMp+/qFwBOuYPgoaGYcAhvUBf5QDHWx/BaIY7DJiHFr9ZN78iSTBhJa/asL1r/X6vTeQ7B1rN1+G9D9gVA8Od+pwgNQvDP4q0nG3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755881616; c=relaxed/simple;
-	bh=v0KLKGk6Owdd8Zj574QjQel3qf53+K5W14mGX5GjALE=;
+	s=arc-20240116; t=1755883310; c=relaxed/simple;
+	bh=UQVmH+W2b3VdbyYnjMav2xV0xKXp+0QKEtY33NRm3pM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=K6KyK1nIOB+P6vaMXxJ8NMbxmkAigDlioXwqsRUtaEK7CC0WpO895TaUwi81EmsBBAPKcTbP3S2ClnEtUzECVny1WyJZl+g8zSsrEBUnDlTTPRvdQTdNs6p6CJ24qmWJBO8gEprrHPvNHilKOYg3k2yWlI33vQMOxPQSk5OQ3O8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LYr25e8t; arc=none smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=GXxMFaIy9yRmsYHa1qvieGQfXd9FUK6L5A8jrE8WbijTdg2qvbS6Q3Rt23pQsONTqe7h4GAimN49erIfvyF1BlzHA5oM7JaOERC1Zkjujw6KFCl8Fp/FIVL4aneirpb4ms/fUGTPg7dFM6/B3ths/i3c/7pjj4C5uDBJtJyEjJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dloSzF+R; arc=none smtp.client-ip=209.85.218.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LYr25e8t"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6188b5ad681so3212636a12.0;
-        Fri, 22 Aug 2025 09:53:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dloSzF+R"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-afcb7af30a5so386172866b.3;
+        Fri, 22 Aug 2025 10:21:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755881613; x=1756486413; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1755883307; x=1756488107; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=slgHuffTEn7c1vy4b+fQXSvlwJ7sYn0p5p9oEVi/KlE=;
-        b=LYr25e8t/DEQQVNUAL00bux0/nIfTR0/UR4juu5zhxzSQrXI3KtJX/F50VEckPEw1y
-         WRyKC3I4rMOfRN4q5IhlwoCjtx5+x7adyKx5OJncHxxFOJn7PeqluSmB5uVj4KA5NFCp
-         7oGOGQ8pbV+IKNnoMLvtKHyCRoyDntxnFXv64s62XMkfOG/9dAa4PyPJkM/Yx6Ebjct1
-         zmLFFQtH4uOVqrwV7GEFQhP06tnenHTGAx7/L0/71GByAGxRcxPKLa1K4FU+NKmBm0C1
-         Ro0C/Bju5/CZ5Il8tmgW1dQs2ustm9UXq83gFwUU1wjw+MFn7gDZeVHcEorpTFljxSfE
-         riJQ==
+        bh=NgDuTNLynSXNTkQgfpkIz1Ab0tGbrgPIhu41LDy/Qgs=;
+        b=dloSzF+RYkFReJw1TSBBfhxjvVzzl+JclxGwHkSCd55O128vbCwwhM+xH+9Zuf1ZF1
+         1ji2SohYJWicV4I5kEvZithGYHviHBFIMvrCgUEcFBgHLJNN4fsHQ6MeiXIJcr2beNOR
+         FPYHpSMq5AiMo5xz6dD3APDKTy0gPCrLHsv0uI41oet74H7sSOWF0vyhNO0GOGAmRmj2
+         stmimSrrttJtMOe/SDtXupjhH6uXqwZV0j7tBN8sW/pJD8tBNWBVDGeR6QmyfEq+AnWp
+         JljlIIpplkVZ24QoDFQar5CpMyNp9klK7p1EZ8kBNRZa1auAcn0j9QA31pJxVtBWjalf
+         MYfQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755881613; x=1756486413;
+        d=1e100.net; s=20230601; t=1755883307; x=1756488107;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=slgHuffTEn7c1vy4b+fQXSvlwJ7sYn0p5p9oEVi/KlE=;
-        b=ustzsE8fA/hWaR2RPhffF52AA5Ie3xl7WxvRBNWhHNUJGsjlPziVzF7VfE//qvTgAK
-         fWk/S8oRLwnpKrJZtS8c+TPTmvvGSc+0OIjXqdCyH3EsUp0ms9znWQvi/xozHtf2aXGy
-         QrVw1TjxRIZ3thZrKzS/HtLEf+HrJEb6U8JZakPxwypu2xuYA+IU3mz5T3XuFj2bj7tu
-         AsEYhR/hHXd9rixAGYOIckr8/QrXk3Q+T5N3KBTpZdoAx2E4KuXrH7BlD0OkuI2Wx7ql
-         hbi+7yeq4Pmi3x2Pxqs3zppjthxJx5kPjvubt+HG+nz53xA2KnN5563YmsEpHtOwqfHA
-         xjMw==
-X-Forwarded-Encrypted: i=1; AJvYcCVAHOIx3+OmLMWlDZsFOWUrpWvQ+sS709RvokOEB8x250TEBi3OXrT0IX6Jo9y5EyGIK3m4sPDpx3vr5G1m@vger.kernel.org, AJvYcCVkVxg6rH39mrqNs9i7h/fPuXoMvFMRHYwPvAR0iL9224/6DV++QZnYalFS9eRKlpl3sJAWFlaZ7RSOmQLQ@vger.kernel.org, AJvYcCWrEw43yuYq+Rat72bmDr3LQMvfjeUTMlRektassGEDHJ7TfvaZSzIw65afLxmktBz6LV8jEJvr4gijZcJEog==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy/zTCYWPo7IXD1YxEzDNMrxsUou4kDLUoKMaTtoijo/OHneTVp
-	ZFCHqZ5iAlbpZwunUSYi8ah6zMW50XeLm2l+uht1/RTt/aM+jZtgQIf4qH0e7u7Zux2FWqjOiHm
-	84eYjEjOAbvgsiS/4ZMXIfBkejGGuXr0=
-X-Gm-Gg: ASbGncvWSaGDLYTBVkQUh/smqam8CWeKmzvJIlp6gNzNKLOvK0ycGZ6oqwazMvf2LEF
-	5PtiZyMA3SekT6vL/D+VtXbY1gPbGW6NoWlH0YSR575sj8TxBRC5U+l2D6VasB97f+CJ0wGZ+/V
-	q8CPZpLR2kbsNjcpwfhtAfBS/WuWb7sdQl2e5Cn93ZNkTYOjevtGQE6/9qKv6DQzmYddPrEceCP
-	XyiZRU=
-X-Google-Smtp-Source: AGHT+IGNyPZYASwO0sJmnQ76GoCBnN67oQPWQ8NwlDT36KIeh5FKychF9EVlou+eUSe6VobY/qd6SfpUclxbp9jxybg=
-X-Received: by 2002:a05:6402:210c:b0:615:5563:548e with SMTP id
- 4fb4d7f45d1cf-61c1b45bd8dmr2990524a12.7.1755881612890; Fri, 22 Aug 2025
- 09:53:32 -0700 (PDT)
+        bh=NgDuTNLynSXNTkQgfpkIz1Ab0tGbrgPIhu41LDy/Qgs=;
+        b=ef8kPagSkIpU+wnnB+nqr+4iM6q8tJxvQhbKWHQ0zjU/QEoP0AsQ01ucMLEwtZSWZQ
+         xHfiRX9eMTMLwGSBxmUZrWISFhZXtpHnk1S1MgusKW0bKfRH43qizDZYihfuI31VVnd1
+         zmbiLmxxS70v1Ajy0iQi1cbNvAuF26squKZRKpxe9JwEerywjuboJU0j18hiaGYc7jqB
+         F0ZqL6Ny0FORrxf8cakF1C0BfJ6tGV0j0EQhiiBCq39QAgb2LFpRXB0EcI21UBdYGiDn
+         yJ6JzRNfNu7/Vkf5iOAF8zcPECrb3Bpi3mO8FvOp5eJjZerhM/MsQaxvEiCXxb8OlhHV
+         l8ng==
+X-Forwarded-Encrypted: i=1; AJvYcCUQuy5mF/kbESSVA/3cHSeuwAFs7sMtOtc/NsL04bhTGhh5QS7oJ0rgblGffht9rtbqfaJC+TxqepFhbqWP9Q==@vger.kernel.org, AJvYcCUmXHEwQDaTi6IxLYmJH1tnNh250hL5+A5PH97DhIFjYo+zi7nKsn/u02DnbjJIdW0s1nTs8icPhj63so3l@vger.kernel.org, AJvYcCXs53Ms3FTXZiKuFquR2OLhphnlkjP5z1j2sXpPOcnr8R9n+wjKk5Q3tqkeK3TOhgqRk0lmvXKc+412ZM42@vger.kernel.org
+X-Gm-Message-State: AOJu0YzfOn4iKgWsijbDsJP6ptN503bU9Tcg1s63ZHc3Wxl/TSOup4ef
+	VQHTtf54hieXUOZ0AQIRzi2QON3Lhsa4pQCkBozzYRqfdehrlPkmupxKCvV6NE+ZPDG2NX/VL6o
+	JYAbLpUrGPERQOVVw4048zvyfZFC4LSuV1id0nq4=
+X-Gm-Gg: ASbGncueu6T8hL13btYcEG0V24RHciGo4jvEn+XWXK7lWunMHU011X/x3cG04LUSpnI
+	fii7gmNRv0RMUm5v2zi2DqNnA7fQOdIqeAx/SXM8txoddxO9Vk9ZoZO1Ply5stKbvxsi63b3oBi
+	yK9zJaOGL3YdZg5wUDgK/dJrS+Sbm+kDNnfgo0FlQV6aItR9DNkR6onuMChi6CLnkdJdgpG0V4p
+	O7ddJQ=
+X-Google-Smtp-Source: AGHT+IFIPX+o5BtzIBMWnGiIi3/9pweFKAEQNA/aM2RgKA/e/9JlzGrNSwMeGUPGXgMjqLDzgsWPGJrm6bpifoek04w=
+X-Received: by 2002:a17:907:3f29:b0:af9:3ed3:eda2 with SMTP id
+ a640c23a62f3a-afe2963b02cmr333013866b.60.1755883307128; Fri, 22 Aug 2025
+ 10:21:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com> <20250822-tonyk-overlayfs-v6-4-8b6e9e604fa2@igalia.com>
-In-Reply-To: <20250822-tonyk-overlayfs-v6-4-8b6e9e604fa2@igalia.com>
+References: <20250814-tonyk-overlayfs-v5-0-c5b80a909cbd@igalia.com>
+ <cffb248a-87ce-434e-bd64-2c8112872a18@igalia.com> <CAOQ4uxiVFubhiC9Ftwt3kG=RoGSK7rBpPv5Z0GdZfk17dBO6YQ@mail.gmail.com>
+ <e2238a17-3d0a-4c30-bc81-65c8c4da98e6@igalia.com> <CAOQ4uxgfKcey301gZRBHf=2YfWmNg5zkj7Bh+DwVwpztMR1uOg@mail.gmail.com>
+ <CAOQ4uxjf6S7xX+LiMaxoz7Rg03jU1-4A4o3FZ_Hi8z6EyEc7PQ@mail.gmail.com> <5da6b0f4-2730-4783-9c57-c46c2d13e848@igalia.com>
+In-Reply-To: <5da6b0f4-2730-4783-9c57-c46c2d13e848@igalia.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 22 Aug 2025 18:53:21 +0200
-X-Gm-Features: Ac12FXw_k3EzAsjyfkTL5NnteB1vrgP3nwburCZTGBRF4TdolD0utomj-QglgVs
-Message-ID: <CAOQ4uxjG9+Vwpn6n=j2-PrK8u5DMA_oVmnZvbSpstWAMVBOsPg@mail.gmail.com>
-Subject: Re: [PATCH v6 4/9] ovl: Create ovl_casefold() to support casefolded strncmp()
+Date: Fri, 22 Aug 2025 19:21:36 +0200
+X-Gm-Features: Ac12FXzjdRE-FW95dgJeQZId-J94AmwhsO1uTKTsNjV-vzA_p72a4t3oR2NACBM
+Message-ID: <CAOQ4uxiOYFf_qUZAwCZ2DO0qemUdAbOWyUD2+oqewVPGn2+0cw@mail.gmail.com>
+Subject: Re: [PATCH v5 0/9] ovl: Enable support for casefold layers
 To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
-	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, linux-unionfs@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	kernel-dev@igalia.com
+	kernel-dev@igalia.com, Gabriel Krisman Bertazi <krisman@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 22, 2025 at 4:17=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@iga=
+On Fri, Aug 22, 2025 at 4:16=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@iga=
 lia.com> wrote:
 >
-> To add overlayfs support casefold layers, create a new function
-> ovl_casefold(), to be able to do case-insensitive strncmp().
+> Em 17/08/2025 12:03, Amir Goldstein escreveu:
+> > On Fri, Aug 15, 2025 at 3:50=E2=80=AFPM Amir Goldstein <amir73il@gmail.=
+com> wrote:
+> >>
+> >> On Fri, Aug 15, 2025 at 3:34=E2=80=AFPM Andr=C3=A9 Almeida <andrealmei=
+d@igalia.com> wrote:
+> >>>
+> >>> Hi Amir,
+> >>>
+> >>> On 8/14/25 21:06, Amir Goldstein wrote:
+> >>>> On Thu, Aug 14, 2025 at 7:30=E2=80=AFPM Andr=C3=A9 Almeida <andrealm=
+eid@igalia.com> wrote:
+> >>>>> Em 14/08/2025 14:22, Andr=C3=A9 Almeida escreveu:
+> >>>>>> Hi all,
+> >>>>>>
+> >>>>>> We would like to support the usage of casefold layers with overlay=
+fs to
+> >>>>>> be used with container tools. This use case requires a simple setu=
+p,
+> >>>>>> where every layer will have the same encoding setting (i.e. Unicod=
+e
+> >>>>>> version and flags), using one upper and one lower layer.
+> >>>>>>
+> >>>>> Amir,
+> >>>>>
+> >>>>> I tried to run your xfstest for casefolded ovl[1] but I can see tha=
+t it
+> >>>>> still requires some work. I tried to fix some of the TODO's but I d=
+idn't
+> >>>>> managed to mkfs the base fs with casefold enabled...
+> >>>> When you write mkfs the base fs, I suspect that you are running
+> >>>> check -overlay or something.
+> >>>>
+> >>>> This is not how this test should be run.
+> >>>> It should run as a normal test on ext4 or any other fs  that support=
+s casefold.
+> >>>>
+> >>>> When you run check -g casefold, the generic test generic/556 will
+> >>>> be run if the test fs supports casefold (e.g. ext4).
+> >>>>
+> >>>> The new added test belongs to the same group and should run
+> >>>> if you run check -g casefold if the test fs supports casefold (e.g. =
+ext4).
+> >>>>
+> >>> I see, I used `check -overlay` indeed, thanks!
+> >>>
+> >>
+> >> Yeh that's a bit confusing I'll admit.
+> >> It's an overlayfs test that "does not run on overlayfs"
+> >> but requires extra overlayfs:
+> >>
+> >> _exclude_fs overlay
+> >> _require_extra_fs overlay
+> >>
+> >> Because it does the overlayfs mount itself.
+> >> That's the easiest way to test features (e.g. casefold) in basefs
+> >>
+> >
+> > I tried to run the new test, which is able to mount an overlayfs
+> > with layers with disabled casefolding with kernel 6.17-rc1.
+> >
+> > It does not even succeed in passing this simple test with
+> > your patches, so something is clearly off.
 >
-> ovl_casefold() allocates a new buffer and stores the casefolded version
-> of the string on it. If the allocation or the casefold operation fails,
-> fallback to use the original string.
->
-> The case-insentive name is then used in the rb-tree search/insertion
-> operation. If the name is found in the rb-tree, the name can be
-> discarded and the buffer is freed. If the name isn't found, it's then
-> stored at struct ovl_cache_entry to be used later.
->
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> ---
-> Changes from v6:
->  - Last version was using `strncmp(... tmp->len)` which was causing
->    regressions. It should be `strncmp(... len)`.
->  - Rename cf_len to c_len
->  - Use c_len for tree operation: (cmp < 0 || len < tmp->c_len)
->  - Remove needless kfree(cf_name)
-> ---
->  fs/overlayfs/readdir.c | 113 ++++++++++++++++++++++++++++++++++++++++---=
-------
->  1 file changed, 94 insertions(+), 19 deletions(-)
->
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index b65cdfce31ce27172d28d879559f1008b9c87320..dfc661b7bc3f87efbf14991e9=
-7cee169400d823b 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -27,6 +27,8 @@ struct ovl_cache_entry {
->         bool is_upper;
->         bool is_whiteout;
->         bool check_xwhiteout;
-> +       const char *c_name;
-> +       int c_len;
->         char name[];
->  };
->
-> @@ -45,6 +47,7 @@ struct ovl_readdir_data {
->         struct list_head *list;
->         struct list_head middle;
->         struct ovl_cache_entry *first_maybe_whiteout;
-> +       struct unicode_map *map;
->         int count;
->         int err;
->         bool is_upper;
-> @@ -66,6 +69,27 @@ static struct ovl_cache_entry *ovl_cache_entry_from_no=
-de(struct rb_node *n)
->         return rb_entry(n, struct ovl_cache_entry, node);
->  }
->
-> +static int ovl_casefold(struct unicode_map *map, const char *str, int le=
-n, char **dst)
-> +{
-> +       const struct qstr qstr =3D { .name =3D str, .len =3D len };
-> +       int cf_len;
-> +
-> +       if (!IS_ENABLED(CONFIG_UNICODE) || !map || is_dot_dotdot(str, len=
-))
-> +               return 0;
-> +
-> +       *dst =3D kmalloc(NAME_MAX, GFP_KERNEL);
-> +
-> +       if (dst) {
-> +               cf_len =3D utf8_casefold(map, &qstr, *dst, NAME_MAX);
-> +
-> +               if (cf_len > 0)
-> +                       return cf_len;
-> +       }
-> +
-> +       kfree(*dst);
-> +       return 0;
-> +}
-> +
->  static bool ovl_cache_entry_find_link(const char *name, int len,
->                                       struct rb_node ***link,
->                                       struct rb_node **parent)
-> @@ -79,10 +103,10 @@ static bool ovl_cache_entry_find_link(const char *na=
-me, int len,
->
->                 *parent =3D *newp;
->                 tmp =3D ovl_cache_entry_from_node(*newp);
-> -               cmp =3D strncmp(name, tmp->name, len);
-> +               cmp =3D strncmp(name, tmp->c_name, len);
->                 if (cmp > 0)
->                         newp =3D &tmp->node.rb_right;
-> -               else if (cmp < 0 || len < tmp->len)
-> +               else if (cmp < 0 || len < tmp->c_len)
->                         newp =3D &tmp->node.rb_left;
->                 else
->                         found =3D true;
-> @@ -101,10 +125,10 @@ static struct ovl_cache_entry *ovl_cache_entry_find=
-(struct rb_root *root,
->         while (node) {
->                 struct ovl_cache_entry *p =3D ovl_cache_entry_from_node(n=
-ode);
->
-> -               cmp =3D strncmp(name, p->name, len);
-> +               cmp =3D strncmp(name, p->c_name, len);
->                 if (cmp > 0)
->                         node =3D p->node.rb_right;
-> -               else if (cmp < 0 || len < p->len)
-> +               else if (cmp < 0 || len < p->c_len)
->                         node =3D p->node.rb_left;
->                 else
->                         return p;
-> @@ -145,6 +169,7 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *r=
-dd,
->
->  static struct ovl_cache_entry *ovl_cache_entry_new(struct ovl_readdir_da=
-ta *rdd,
->                                                    const char *name, int =
-len,
-> +                                                  const char *c_name, in=
-t c_len,
->                                                    u64 ino, unsigned int =
-d_type)
->  {
->         struct ovl_cache_entry *p;
-> @@ -167,6 +192,14 @@ static struct ovl_cache_entry *ovl_cache_entry_new(s=
-truct ovl_readdir_data *rdd,
->         /* Defer check for overlay.whiteout to ovl_iterate() */
->         p->check_xwhiteout =3D rdd->in_xwhiteouts_dir && d_type =3D=3D DT=
-_REG;
->
-> +       if (c_name && c_name !=3D name) {
-> +               p->c_name =3D c_name;
-> +               p->c_len =3D c_len;
-> +       } else {
-> +               p->c_name =3D p->name;
-> +               p->c_len =3D len;
-> +       }
-> +
->         if (d_type =3D=3D DT_CHR) {
->                 p->next_maybe_whiteout =3D rdd->first_maybe_whiteout;
->                 rdd->first_maybe_whiteout =3D p;
-> @@ -174,48 +207,55 @@ static struct ovl_cache_entry *ovl_cache_entry_new(=
-struct ovl_readdir_data *rdd,
->         return p;
->  }
->
-> -static bool ovl_cache_entry_add_rb(struct ovl_readdir_data *rdd,
-> -                                 const char *name, int len, u64 ino,
-> +/* Return 0 for found, 1 for added, <0 for error */
-> +static int ovl_cache_entry_add_rb(struct ovl_readdir_data *rdd,
-> +                                 const char *name, int len,
-> +                                 const char *c_name, int c_len,
-> +                                 u64 ino,
->                                   unsigned int d_type)
->  {
->         struct rb_node **newp =3D &rdd->root->rb_node;
->         struct rb_node *parent =3D NULL;
->         struct ovl_cache_entry *p;
->
-> -       if (ovl_cache_entry_find_link(name, len, &newp, &parent))
-> -               return true;
-> +       if (ovl_cache_entry_find_link(c_name, c_len, &newp, &parent))
-> +               return 0;
->
-> -       p =3D ovl_cache_entry_new(rdd, name, len, ino, d_type);
-> +       p =3D ovl_cache_entry_new(rdd, name, len, c_name, c_len, ino, d_t=
-ype);
->         if (p =3D=3D NULL) {
->                 rdd->err =3D -ENOMEM;
-> -               return false;
-> +               return -ENOMEM;
->         }
->
->         list_add_tail(&p->l_node, rdd->list);
->         rb_link_node(&p->node, parent, newp);
->         rb_insert_color(&p->node, rdd->root);
->
-> -       return true;
-> +       return 1;
->  }
->
-> -static bool ovl_fill_lowest(struct ovl_readdir_data *rdd,
-> +/* Return 0 for found, 1 for added, <0 for error */
-> +static int ovl_fill_lowest(struct ovl_readdir_data *rdd,
->                            const char *name, int namelen,
-> +                          const char *c_name, int c_len,
->                            loff_t offset, u64 ino, unsigned int d_type)
->  {
->         struct ovl_cache_entry *p;
->
-> -       p =3D ovl_cache_entry_find(rdd->root, name, namelen);
-> +       p =3D ovl_cache_entry_find(rdd->root, c_name, c_len);
->         if (p) {
->                 list_move_tail(&p->l_node, &rdd->middle);
-> +               return 0;
->         } else {
-> -               p =3D ovl_cache_entry_new(rdd, name, namelen, ino, d_type=
-);
-> +               p =3D ovl_cache_entry_new(rdd, name, namelen, c_name, c_l=
-en,
-> +                                       ino, d_type);
->                 if (p =3D=3D NULL)
->                         rdd->err =3D -ENOMEM;
->                 else
->                         list_add_tail(&p->l_node, &rdd->middle);
->         }
->
-> -       return rdd->err =3D=3D 0;
-> +       return rdd->err ?: 1;
->  }
->
->  void ovl_cache_free(struct list_head *list)
-> @@ -223,8 +263,11 @@ void ovl_cache_free(struct list_head *list)
->         struct ovl_cache_entry *p;
->         struct ovl_cache_entry *n;
->
-> -       list_for_each_entry_safe(p, n, list, l_node)
-> +       list_for_each_entry_safe(p, n, list, l_node) {
-> +               if (p->c_name !=3D p->name)
-> +                       kfree(p->c_name);
->                 kfree(p);
-> +       }
->
->         INIT_LIST_HEAD(list);
->  }
-> @@ -260,12 +303,36 @@ static bool ovl_fill_merge(struct dir_context *ctx,=
- const char *name,
->  {
->         struct ovl_readdir_data *rdd =3D
->                 container_of(ctx, struct ovl_readdir_data, ctx);
-> +       struct ovl_fs *ofs =3D OVL_FS(rdd->dentry->d_sb);
-> +       const char *c_name =3D NULL;
-> +       char *cf_name =3D NULL;
-> +       int c_len =3D 0, ret;
-> +
-> +       if (ofs->casefold)
-> +               c_len =3D ovl_casefold(rdd->map, name, namelen, &cf_name)=
-;
-> +
-> +       if (c_len <=3D 0) {
-> +               c_name =3D name;
-> +               c_len =3D namelen;
-> +       } else {
-> +               c_name =3D cf_name;
-> +       }
->
->         rdd->count++;
->         if (!rdd->is_lowest)
-> -               return ovl_cache_entry_add_rb(rdd, name, namelen, ino, d_=
-type);
-> +               ret =3D ovl_cache_entry_add_rb(rdd, name, namelen, c_name=
-, c_len, ino, d_type);
->         else
-> -               return ovl_fill_lowest(rdd, name, namelen, offset, ino, d=
-_type);
-> +               ret =3D ovl_fill_lowest(rdd, name, namelen, c_name, c_len=
-, offset, ino, d_type);
-> +
-> +       /*
-> +        * If ret =3D=3D 1, that means that c_name is being used as part =
-of struct
-> +        * ovl_cache_entry and will be freed at ovl_cache_free(). Otherwi=
-se,
-> +        * c_name was found in the rb-tree so we can free it here.
-> +        */
-> +       if (ret !=3D 1 && c_name !=3D name)
-> +               kfree(c_name);
-> +
-> +       return ret >=3D 0;
->  }
->
->  static int ovl_check_whiteouts(const struct path *path, struct ovl_readd=
-ir_data *rdd)
-> @@ -357,12 +424,18 @@ static int ovl_dir_read_merged(struct dentry *dentr=
-y, struct list_head *list,
->                 .list =3D list,
->                 .root =3D root,
->                 .is_lowest =3D false,
-> +               .map =3D NULL,
->         };
->         int idx, next;
->         const struct ovl_layer *layer;
-> +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->
->         for (idx =3D 0; idx !=3D -1; idx =3D next) {
->                 next =3D ovl_path_next(idx, dentry, &realpath, &layer);
-> +
-> +               if (ofs->casefold)
-> +                       rdd.map =3D sb_encoding(realpath.dentry->d_sb);
-> +
->                 rdd.is_upper =3D ovl_dentry_upper(dentry) =3D=3D realpath=
-.dentry;
->                 rdd.in_xwhiteouts_dir =3D layer->has_xwhiteouts &&
->                                         ovl_dentry_has_xwhiteouts(dentry)=
-;
-> @@ -555,7 +628,7 @@ static bool ovl_fill_plain(struct dir_context *ctx, c=
-onst char *name,
->                 container_of(ctx, struct ovl_readdir_data, ctx);
->
->         rdd->count++;
-> -       p =3D ovl_cache_entry_new(rdd, name, namelen, ino, d_type);
-> +       p =3D ovl_cache_entry_new(rdd, name, namelen, NULL, 0, ino, d_typ=
-e);
->         if (p =3D=3D NULL) {
->                 rdd->err =3D -ENOMEM;
->                 return false;
-> @@ -1023,6 +1096,8 @@ int ovl_check_empty_dir(struct dentry *dentry, stru=
-ct list_head *list)
->
->  del_entry:
->                 list_del(&p->l_node);
-> +               if (p->c_name !=3D p->name)
-> +                       kfree(p->c_name);
->                 kfree(p);
+> Apart from the other changes I had done for v6, I also had to change the
+> test itself. The directories need to be empty to set the +F attribute,
+> so I had to do this change:
 
-OK I thought this was contained in ovl_cache_free().
-If we need to repeat this check, we need a helper
-ovl_cache_entry_free() to use instead of kfree(p)
-everywhere even in ovl_dir_read_impure() when it won't
-actually be needed.
+Nice, so I suppose this test is passing with v6. I will try it.
+Can you help to complete the TODO:
 
-I can make this change on commit no need to repost.
+# TODO: test non-casefold subdir and casefold disabled after mount
+The test now ends with the ofs->casefold =3D=3D true mount,
+but we need to test the error conditions same as the test cases
+for ofs->casefold =3D=3D false:
+
+1. Casefold disabled after mount
+2. Casefold disabled lower subdir
+
+Those test cases are designed to trigger the "wrong parent casefold"
+and "wrong child casefold" lookup warnings.
+
+If you have an idea how to trigger the "wrong inherited casefold"
+warning that would be nice.
+
+Technically, test can delete the whiteout file inside $workdir/work
+and remove casefold from $workdir/work and then trigger a copy up.
+It may work. I am not sure if deleting the whietout file from work dir
+is going to break something though.
 
 Thanks,
 Amir.
