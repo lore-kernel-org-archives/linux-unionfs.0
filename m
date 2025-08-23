@@ -1,147 +1,145 @@
-Received: from mail-io1-f72.google.com (mail-io1-f72.google.com [209.85.166.72])
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2ED921ABD0
-	for <linux-unionfs@vger.kernel.org>; Fri, 22 Aug 2025 19:28:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB40B1F2C45;
+	Sat, 23 Aug 2025 10:02:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755890906; cv=none; b=pnFUW17Xeusl5Tw50heV1+eUnnWxLhc4RblUxCJB2V31IZV9rakxKChZtJAzVatatExWkQRU80Pzfv1lhy8U9csiFSalDbHrXetM9oY4f85oz3KOuvayCGP8KbQvY4KhOHG23YL/UmBFpbJjvVsUn6K69DDqSHZybBfaGpeTFJw=
+	t=1755943373; cv=none; b=O2PfJ8EXOu8eSGt2vgGz2J2+ZC1RgZ8jU3NuxAIX+M3qPOlkf8ZmMb8Z3ZQRf8ItsG2pN827wk+vRWSRjfL2XasVEhTgWjGMYAl9kZyv5x37gOZCESz8pmbdc4+qy8JD4Zi6s+vQIQcv7u07np2TUmpztAIx0a3FbN12gMSe7+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755890906; c=relaxed/simple;
-	bh=35igRbOXzOT+aygBasJmYZRDoSWiSChONhMzreTISto=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
-	 Content-Type; b=bCQ+EphSN5O16hGdzI/8S0SGgEW7inKTS4KWGfi+AoG8hW5xOYqbq3vFkwqJMWhtvDxyLTPx5hFCEfvxCddd62viM/qZ7ZuyJvFeiai6/uISevFrIe2xqQBsBvOAzPQp9eEAsj7J9bqGk2IL27+DfwsWVaq0eL6nHXAqY7OxVO8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f72.google.com with SMTP id ca18e2360f4ac-88432da0cfdso584106139f.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 Aug 2025 12:28:24 -0700 (PDT)
+	s=arc-20240116; t=1755943373; c=relaxed/simple;
+	bh=7V+riBu/TSWMv7su8MopPg5UAPNiviKLlZcwADamPos=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Z4b7EsHEP4quyTE3OWN64QMOXL2MIYVO8m4qD2IwkFtt8axdPVeFE4UwRpWz2KiA64rPjsNCly63upWWxKNbPg/CfksLqUUzUAXjm/pWcQ/UNveQ+oVWaqWslt1yZ8TPTxMGDqfrWW3dhC8T1Ab6tAlC/SZnonqm0PTOb92f/9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FOZsMpcG; arc=none smtp.client-ip=209.85.208.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FOZsMpcG"
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-61c325a4d83so846754a12.0;
+        Sat, 23 Aug 2025 03:02:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1755943370; x=1756548170; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=n0ZKn4qQ49gFDS9dc5vaF+XJg9oDHte3UNoENZ55Hu4=;
+        b=FOZsMpcG1Av26frHeq2w6hqLbSZz/3lbOQbXqJAmc+p0v7cSxQ0XQQZLzaHRojdD6R
+         c91tMg8h5oabghxDE4jcfm3Mmh83mRMPAyGPIG32OdcDXqDbCnGaSPWfGiX2bklYI3VC
+         3v9kYDkaKIQcg4el8nfLpf1AipdJtWWaTO51HN507sMsoLZVWoXSjgfgn1x/9l0exueJ
+         s2/qnvfpF3mJDho8d9EFPyItpQmBfwRnRtgwTikHZD25pb2nl7XOYpFEKbeUmNHn0s0r
+         8aBuR0srdm93eeJWnCvUhJnni9W6/iobLjV/acj4aLbzz1nA2beo6DyWk69y6hXJV2il
+         +UeQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755890904; x=1756495704;
-        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=i4R3au6CNsIn/pqv5n1ncdda6pzTzrRFDv2YWrqK32g=;
-        b=kMWr68iNxHNFsnXZJB8JDPL5I868Q93jlUqoUp6jP1JLCjGSY/zkXaPMQ2UpXOp6wH
-         MyWmHpQAKLy29HdnsAJ2yu0Qt9w1GqYxYpfYG9txVVAJusS3oAk3LN+Kz1xP5IXR1Ws4
-         QYTumG0Fqsx1XErHwQUN5KmI/jswhKP03WINf6RvFdgLBwco6ZHV0+5QN5Xw227vHoJG
-         X9bkjNjt2+j2obgbs8+30SM+Ku78A6p2z9n9rTgshkl58e/KM5PxeOAuBi2N5rv9prhH
-         1FWWmY3rkVSnfoy465L1CAPwxqAiDmt+CjYIqVdjvBLonXD2xHj//r7sGEFvCHGxO7S8
-         r7yw==
-X-Forwarded-Encrypted: i=1; AJvYcCUEpwILXkWasP9L2uZp+9pQE5A2XYM+dXzmq9hkip599c9cUuLkvhWkXsq5t+yXIDL2MxnZK0AmHRo6rOOt@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyrzw+noPvtV/aYkxQlTI8d5xGVKLOJJ9BBCE0rJcxnp6vM5O60
-	3hK+uddL7KKOlCzGG6KGzD0JbngU7OQShEqqNBXDJ/SZjrDvwhYyLsE6dm2slEolOkbHnQFrIbt
-	wd8kD/1+Kezf68ES9hvdIOSwJuYGUYNet6D9AoIC64d9kCgTxEQVvgnnhqAc=
-X-Google-Smtp-Source: AGHT+IG3U36EMnJ1g2gMt2B8U8DuDa3xFIgQkIPGGoFgSqtFehP53nVfp0x16ED8BLcY8flXUeXz6TWMwbwRdSbl8hZUTfb7NWqK
+        d=1e100.net; s=20230601; t=1755943370; x=1756548170;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=n0ZKn4qQ49gFDS9dc5vaF+XJg9oDHte3UNoENZ55Hu4=;
+        b=uBI1gNUseTpiD8UUPAF2nJ+14kxfSM+SV9HYz+j0qhmiqXDq4zaMGE4r0T5/h6H2Kr
+         A83+QH/nWWUemVlIrdqYRTYuU1ODfNjvIijCyLkw3il5yM2DZJL4CqZzmZ/iS4Eoxgko
+         1/wzOtY2LeHWX60S15tVLChPxCpsSdIJjX5TiCRqtEe/t7W5hCMel29Th1mTskU0KsB+
+         sk/jLQ+wkYQ21h51MAt/ZSc8WgKvw8v5WFXfgfZfNkYCQEufrsl3xDrWAYbtVgztDinl
+         e7TyHn1kPe4ByifnuPwYJgzGgCOTYjhxybNUNqHCGF6qOV/y6Hn8/NfIO54JY0fYAzqN
+         vx0g==
+X-Forwarded-Encrypted: i=1; AJvYcCVYP9DbGQZMnDDykkRZFmh6vNaftaU9isyF9qQk4ZLmV70wZuxDotD++siwvWye51fJIbdOPmPBs8fxERr0@vger.kernel.org, AJvYcCWFLB5Fs+lKWwK6QgCwE2t7vhNnhxAR+Q8m//cU5YOxaZE7Xg2ctFlcYG24q+da8vTQFky39iBbcBKvJtTV@vger.kernel.org, AJvYcCWgTKn4o1FaO3sY7tQlxrlsxmeFDrxaIO4vWXHkt2qC6Mb9cDkFiYIqKSVROgtTz+vSfNGoPTuecjGnczzgLw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YyZEjaOqcoiwZxoBjX7n0yrAIKshTx2tGJnrJww1c6QW+Z+bTi6
+	lUMCWMz8ITGp2T2/g6CL1YJMRdEhdede28vWoZPG0HGh+ouS2KV2V++jowQH7wnpczZkn5kB8Ta
+	ArBf3k3xzs2RYeTqiAy/YTGmjxGQ9GOI=
+X-Gm-Gg: ASbGncsr0MbZocKivkV/L+7n1wW6anWoqH3usTq5WIAZZEZx8x8GlGmzEVetjel8IFZ
+	eljstKl23UFJsNOa9BU7WJfntKa6vwj0oSbvTTgneDQY5qPq5QlvdydEkYesLKn4kT+z7zlvK6+
+	TVv1ofjvTJe7BK2toURZauejZ+n8C+12IwKjDWSKeW1/Y5J/Fh3FDOYF8r6RPkRIZi3GJO1lVpr
+	VtiosMeXyS1SaSqWA==
+X-Google-Smtp-Source: AGHT+IGueSDVfR8eJHyiBOfKvqb5OZh+6j+LyzHYKOTPDC4Lgyc4CzAt29Eso4AG2gaSNLnFDcx6p6g4+98YgsocFl0=
+X-Received: by 2002:a05:6402:26cb:b0:61a:89aa:8d16 with SMTP id
+ 4fb4d7f45d1cf-61c1b4f8650mr5425039a12.23.1755943369647; Sat, 23 Aug 2025
+ 03:02:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a92:cdad:0:b0:3e5:5937:e576 with SMTP id
- e9e14a558f8ab-3e921581390mr67420845ab.13.1755890903892; Fri, 22 Aug 2025
- 12:28:23 -0700 (PDT)
-Date: Fri, 22 Aug 2025 12:28:23 -0700
-In-Reply-To: <20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <68a8c4d7.050a0220.37038e.005c.GAE@google.com>
-Subject: [syzbot ci] Re: ovl: Enable support for casefold layers
-From: syzbot ci <syzbot+cie307097d7feb4e34@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, andrealmeid@igalia.com, brauner@kernel.org, 
-	jack@suse.cz, kernel-dev@igalia.com, krisman@kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, tytso@mit.edu, 
-	viro@zeniv.linux.org.uk
-Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+References: <20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com> <20250822-tonyk-overlayfs-v6-2-8b6e9e604fa2@igalia.com>
+In-Reply-To: <20250822-tonyk-overlayfs-v6-2-8b6e9e604fa2@igalia.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 23 Aug 2025 12:02:38 +0200
+X-Gm-Features: Ac12FXyINJJg90278Mh_WCb6o_3c6fPm-nNtHCmRYx1ro6IP3nRWY_W0jN26xe0
+Message-ID: <CAOQ4uxjjjYy2eg14J_267R5x+un_zGRNdESYjbRve4TYBb5sCw@mail.gmail.com>
+Subject: Re: [PATCH v6 2/9] fs: Create sb_same_encoding() helper
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
+	Christian Brauner <brauner@kernel.org>, Gabriel Krisman Bertazi <krisman@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, kernel-dev@igalia.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-syzbot ci has tested the following series
+On Fri, Aug 22, 2025 at 4:17=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@iga=
+lia.com> wrote:
+>
+> For cases where a file lookup can look in different filesystems (like in
+> overlayfs), both super blocks must have the same encoding and the same
+> flags. To help with that, create a sb_same_encoding() function.
+>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> ---
+>  include/linux/fs.h | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+>
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index a4d353a871b094b562a87ddcffe8336a26c5a3e2..7de9e1e4839a2726f4355ddf2=
+0b9babb74cc9681 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -3747,6 +3747,24 @@ static inline bool sb_has_encoding(const struct su=
+per_block *sb)
+>         return !!sb_encoding(sb);
+>  }
+>
+> +/*
+> + * Compare if two super blocks have the same encoding and flags
+> + */
+> +static inline bool sb_same_encoding(const struct super_block *sb1,
+> +                                   const struct super_block *sb2)
+> +{
+> +#if IS_ENABLED(CONFIG_UNICODE)
+> +       if (sb1->s_encoding =3D=3D sb2->s_encoding)
+> +               return true;
+> +
+> +       return (sb1->s_encoding && sb2->s_encoding &&
+> +              (sb1->s_encoding->version =3D=3D sb2->s_encoding->version)=
+ &&
+> +              (sb1->s_encoding_flags =3D=3D sb2->s_encoding_flags));
+> +#else
+> +       return true;
+> +#endif
+> +}
+> +
+>  int may_setattr(struct mnt_idmap *idmap, struct inode *inode,
+>                 unsigned int ia_valid);
+>  int setattr_prepare(struct mnt_idmap *, struct dentry *, struct iattr *)=
+;
+>
 
-[v6] ovl: Enable support for casefold layers
-https://lore.kernel.org/all/20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com
-* [PATCH v6 1/9] fs: Create sb_encoding() helper
-* [PATCH v6 2/9] fs: Create sb_same_encoding() helper
-* [PATCH v6 3/9] ovl: Prepare for mounting case-insensitive enabled layers
-* [PATCH v6 4/9] ovl: Create ovl_casefold() to support casefolded strncmp()
-* [PATCH v6 5/9] ovl: Ensure that all layers have the same encoding
-* [PATCH v6 6/9] ovl: Set case-insensitive dentry operations for ovl sb
-* [PATCH v6 7/9] ovl: Add S_CASEFOLD as part of the inode flag to be copied
-* [PATCH v6 8/9] ovl: Check for casefold consistency when creating new dentries
-* [PATCH v6 9/9] ovl: Support mounting case-insensitive enabled layers
+Christian,
 
-and found the following issue:
-WARNING in ovl_dentry_weird
+I am planning to stage this series for v6.18 [1].
+I think it would be better to avoid splitting the two minor vfs helpers
+in first two patches from this series into a stable vfs branch and
+would be better to get you RVB on the two vfs patches and let them
+go upstream via the ovl tree.
 
-Full report is available here:
-https://ci.syzbot.org/series/efd002b5-e585-4cf8-86e7-4f24ba2247c7
+WDYT?
 
-***
+Gabriel,
 
-WARNING in ovl_dentry_weird
+It would be great if you could also provide RVB for the vfs helpers
+and of course, review for the entire series would be most welcome as well.
 
-tree:      torvalds
-URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux
-base:      068a56e56fa81e42fc5f08dff34fab149bb60a09
-arch:      amd64
-compiler:  Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
-config:    https://ci.syzbot.org/builds/039eb31b-2b45-4207-b63e-71a25ed89f00/config
-C repro:   https://ci.syzbot.org/findings/726ae90b-83b6-49e2-a496-9bfe444dc24f/c_repro
-syz repro: https://ci.syzbot.org/findings/726ae90b-83b6-49e2-a496-9bfe444dc24f/syz_repro
+Thanks,
+Amir.
 
-EXT4-fs (loop0): 1 orphan inode deleted
-EXT4-fs (loop0): mounted filesystem 00000000-0000-0000-0000-000000000000 r/w without journal. Quota mode: none.
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 6001 at fs/overlayfs/ovl_entry.h:118 OVL_FS fs/overlayfs/ovl_entry.h:118 [inline]
-WARNING: CPU: 0 PID: 6001 at fs/overlayfs/ovl_entry.h:118 ovl_dentry_weird+0x15a/0x1a0 fs/overlayfs/util.c:206
-Modules linked in:
-CPU: 0 UID: 0 PID: 6001 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
-RIP: 0010:OVL_FS fs/overlayfs/ovl_entry.h:118 [inline]
-RIP: 0010:ovl_dentry_weird+0x15a/0x1a0 fs/overlayfs/util.c:206
-Code: e8 6b f9 8f fe 83 e5 03 0f 95 c3 31 ff 89 ee e8 9c fd 8f fe 89 d8 5b 41 5c 41 5e 41 5f 5d e9 3d b9 4c 08 cc e8 47 f9 8f fe 90 <0f> 0b 90 e9 08 ff ff ff 44 89 f1 80 e1 07 80 c1 03 38 c1 0f 8c 0b
-RSP: 0018:ffffc90002caf9c8 EFLAGS: 00010293
-RAX: ffffffff832fb1e9 RBX: ffff888109730000 RCX: ffff888023295640
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88802b624a48
-RBP: dffffc0000000000 R08: 0000000030656c69 R09: 1ffff110048d0ce0
-R10: dffffc0000000000 R11: ffffed10048d0ce1 R12: dffffc0000000000
-R13: 0000000000000003 R14: ffff88802b624a48 R15: ffff888109730028
-FS:  0000555581e17500(0000) GS:ffff8880b861b000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000200000001000 CR3: 00000000242f4000 CR4: 00000000000006f0
-Call Trace:
- <TASK>
- ovl_mount_dir_check fs/overlayfs/params.c:300 [inline]
- ovl_do_parse_layer+0x307/0xbb0 fs/overlayfs/params.c:422
- ovl_parse_layer fs/overlayfs/params.c:448 [inline]
- ovl_parse_param+0xb62/0xee0 fs/overlayfs/params.c:633
- vfs_parse_fs_param+0x1a9/0x420 fs/fs_context.c:146
- vfs_parse_fs_string fs/fs_context.c:188 [inline]
- vfs_parse_monolithic_sep+0x24d/0x310 fs/fs_context.c:230
- do_new_mount+0x273/0x9e0 fs/namespace.c:3804
- do_mount fs/namespace.c:4136 [inline]
- __do_sys_mount fs/namespace.c:4347 [inline]
- __se_sys_mount+0x317/0x410 fs/namespace.c:4324
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f0c2558ebe9
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffd67150878 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007f0c257b5fa0 RCX: 00007f0c2558ebe9
-RDX: 0000200000000b80 RSI: 0000200000000100 RDI: 0000000000000000
-RBP: 00007f0c25611e19 R08: 0000200000000180 R09: 0000000000000000
-R10: 0000000000000008 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007f0c257b5fa0 R14: 00007f0c257b5fa0 R15: 0000000000000005
- </TASK>
-
-
-***
-
-If these findings have caused you to resend the series or submit a
-separate fix, please add the following tag to your commit message:
-  Tested-by: syzbot@syzkaller.appspotmail.com
-
----
-This report is generated by a bot. It may contain errors.
-syzbot ci engineers can be reached at syzkaller@googlegroups.com.
+[1] https://lore.kernel.org/linux-unionfs/20250822-tonyk-overlayfs-v6-0-8b6=
+e9e604fa2@igalia.com/
