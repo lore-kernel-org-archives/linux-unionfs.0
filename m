@@ -1,35 +1,35 @@
-Received: from relay6-d.mail.gandi.net (relay6-d.mail.gandi.net [217.70.183.198])
+Received: from relay1-d.mail.gandi.net (relay1-d.mail.gandi.net [217.70.183.193])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11D032E5411;
-	Mon, 25 Aug 2025 11:17:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.198
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B8CC2E62C7;
+	Mon, 25 Aug 2025 11:24:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.193
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756120629; cv=none; b=L70j6v2wo4GRWSWThtmcrvLFSfzWSYjbWD5DF6LiBQRlDpnTb2UDTWtQNjRaPQgD5L1dv5WcBJnqnZ5OFVGGlCq6mOg8gi3JCbDLSXLcW2Pw49kgq6ZztzJtDLrSw8Ypg1YoVHOoblx51xxQiY8rIiB2W3akLdHZYAyB3BeBOIc=
+	t=1756121059; cv=none; b=FMtU/hATdAmSHf8hte64n5HX9aZztDuyrXQpVtQMtQ/VF+U0pCqyYHSKSJa/UFrrhv2KVuEu6BpVFgb/9JV6hRbiwRWNSLalSa9ih+3gj4FBwoec6uGuDb3IF52MVXW4WglZm9ukspZIhq0RzfDQCTXLyRQxKeOLAqlQo83P31c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756120629; c=relaxed/simple;
-	bh=Nex9WygFR2p/2v+xa5Xt7H2GQpWFE3o8wISvk7723OA=;
+	s=arc-20240116; t=1756121059; c=relaxed/simple;
+	bh=zPygxx/vRoMNtqmzghKwOct92xDJT5deX0kr36f1lmE=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=VK77lbF08+JUm7+KsdDIrao8V4oETjlUjfuHvt8YRxCw5R59DLGWpokOj3std9BfAgJL2akj3Y4uF8VkIKW7firTgKg4DN9E1A+P1tWbyEAXE5yc/Xw4bNm+Zy/S6SpaKkRo6t9np3IHNzs9ybwB03mMkNnmkIiEjaKgQJGowNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=krisman.be; spf=pass smtp.mailfrom=krisman.be; dkim=pass (2048-bit key) header.d=krisman.be header.i=@krisman.be header.b=ntGJgKcP; arc=none smtp.client-ip=217.70.183.198
+	 MIME-Version:Content-Type; b=VAkvksNfPpB8F7CtiJTdFCJSg8lqLbMkfecJJ21aDlMKfDLcIGEohE3pOCkLBRE8hxWzrZFV4vS9ighPLkUUKX8ETlZOQaf5ushJhQitAVVljKa1D0hw61jM/SkbKQcJNzTqY5GooOqzKLUQt4VqRdpaT6fZSSWnmNoqT2Ey73Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=krisman.be; spf=pass smtp.mailfrom=krisman.be; dkim=pass (2048-bit key) header.d=krisman.be header.i=@krisman.be header.b=Mqq5WU5o; arc=none smtp.client-ip=217.70.183.193
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=krisman.be
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=krisman.be
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=krisman.be header.i=@krisman.be header.b="ntGJgKcP"
-Received: by mail.gandi.net (Postfix) with ESMTPSA id EF3EB43252;
-	Mon, 25 Aug 2025 11:17:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=krisman.be header.i=@krisman.be header.b="Mqq5WU5o"
+Received: by mail.gandi.net (Postfix) with ESMTPSA id 8A5B243A68;
+	Mon, 25 Aug 2025 11:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=krisman.be; s=gm1;
-	t=1756120625;
+	t=1756121048;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=5HDYS8rY76FdOS8DdrTzgO2ornOcFriVXaaNrkTiLRc=;
-	b=ntGJgKcPwygDSo8XHovhiLbW8PanYDet/O1PWhUNSekNiUb0bFkN7rczY03UNHCMrFFocl
-	def0G2ZHn7xwYDw2R5Jyfo0qsQdA3JBc41uaxKQdBsGJvqTfQ7R3A8aXqOD2BkqGdWqNON
-	8DEjJfTiBtbZI08SUw3p4ByWCLukuPH94fLmbtAmZBqhYPnp3WW+WgwA+EBvAOfQDQ9o65
-	3RLAl1rygZVlIqtdDkorK5OffrSMZp8B51KsmiXTSS+jTEqxPOXp2nGDCh58/2wvy7p9d9
-	VDxbi1//c1DrurpszuQgOV36JKnSDWM09MCiECPYLoIPnNpkXdqhZ1xyG3e4vg==
+	bh=Mt4SUYjj6vEAPWrFWoIAkYL+7ohn6J8jCx8g/+XReEU=;
+	b=Mqq5WU5oQJntazEicGPnLe5AXMktQ73Ns2GOziWyMEfEmIV4lSAbf/bp3c2j6KNkHhAVhX
+	pAnOOtMAyQoJzOYuGw1BlnO0oGWXAzP18OBZvQ5gb0HcPNZlWejXERcmZQDKibdhKYZ+M1
+	M2l7uhgUbd5AZQdp2WWjvnZZEzV3RH9NGBuwmAZg5MoVoa/uja2/e5DJ14WAP/mW+0Yxpf
+	wv/Q+JI9AjC16KFB/znSuvSILYmDVtKyCOc/TVf0cMS65Fbh6Iw9oXP5mMUuk9lhod4izZ
+	i4P1ZVy7Zc9F9KxarKRF9/EtG2V5j3NdYHaGrOG1DvI//UzBUdiTZc3sc+pJuw==
 From: Gabriel Krisman Bertazi <gabriel@krisman.be>
 To: =?utf-8?Q?Andr=C3=A9?= Almeida <andrealmeid@igalia.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,  Amir Goldstein
@@ -38,14 +38,15 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>,  Amir Goldstein
   linux-fsdevel@vger.kernel.org,  Alexander Viro <viro@zeniv.linux.org.uk>,
   Christian Brauner <brauner@kernel.org>,  Jan Kara <jack@suse.cz>,
   kernel-dev@igalia.com
-Subject: Re: [PATCH v6 5/9] ovl: Ensure that all layers have the same encoding
-In-Reply-To: <20250822-tonyk-overlayfs-v6-5-8b6e9e604fa2@igalia.com>
+Subject: Re: [PATCH v6 6/9] ovl: Set case-insensitive dentry operations for
+ ovl sb
+In-Reply-To: <20250822-tonyk-overlayfs-v6-6-8b6e9e604fa2@igalia.com>
  (=?utf-8?Q?=22Andr=C3=A9?=
-	Almeida"'s message of "Fri, 22 Aug 2025 11:17:08 -0300")
+	Almeida"'s message of "Fri, 22 Aug 2025 11:17:09 -0300")
 References: <20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com>
-	<20250822-tonyk-overlayfs-v6-5-8b6e9e604fa2@igalia.com>
-Date: Mon, 25 Aug 2025 07:17:02 -0400
-Message-ID: <871poz647l.fsf@mailhost.krisman.be>
+	<20250822-tonyk-overlayfs-v6-6-8b6e9e604fa2@igalia.com>
+Date: Mon, 25 Aug 2025 07:24:04 -0400
+Message-ID: <87wm6r4pbf.fsf@mailhost.krisman.be>
 User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -57,84 +58,83 @@ Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 X-GND-State: clean
 X-GND-Score: -100
-X-GND-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgddujedvvdegucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuifetpfffkfdpucggtfgfnhhsuhgsshgtrhhisggvnecuuegrihhlohhuthemuceftddunecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufgjfhffkfgfgggtgfesthhqredttderjeenucfhrhhomhepifgrsghrihgvlhcumfhrihhsmhgrnhcuuegvrhhtrgiiihcuoehgrggsrhhivghlsehkrhhishhmrghnrdgsvgeqnecuggftrfgrthhtvghrnhepfedtvdehffevtddujeffffejudeuuefgvdeujeduhedtgfehkeefheegjefgueeknecukfhppeejtddrkedvrddukedvrdeikeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeejtddrkedvrddukedvrdeikedphhgvlhhopehlohgtrghlhhhoshhtpdhmrghilhhfrhhomhepghgrsghrihgvlheskhhrihhsmhgrnhdrsggvpdhnsggprhgtphhtthhopeduuddprhgtphhtthhopegrnhgurhgvrghlmhgvihgusehighgrlhhirgdrtghomhdprhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtoheprghmihhrjeefihhlsehgmhgrihhlrdgtohhmpdhrtghpthhtohepthihthhsohesmhhithdrvgguuhdprhgtphhtthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvr
+X-GND-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgddujedvvdeiucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuifetpfffkfdpucggtfgfnhhsuhgsshgtrhhisggvnecuuegrihhlohhuthemuceftddunecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufgjfhffkfgfgggtgfesthhqredttderjeenucfhrhhomhepifgrsghrihgvlhcumfhrihhsmhgrnhcuuegvrhhtrgiiihcuoehgrggsrhhivghlsehkrhhishhmrghnrdgsvgeqnecuggftrfgrthhtvghrnhepfedtvdehffevtddujeffffejudeuuefgvdeujeduhedtgfehkeefheegjefgueeknecukfhppeejtddrkedvrddukedvrdeikeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeejtddrkedvrddukedvrdeikedphhgvlhhopehlohgtrghlhhhoshhtpdhmrghilhhfrhhomhepghgrsghrihgvlheskhhrihhsmhgrnhdrsggvpdhnsggprhgtphhtthhopeduuddprhgtphhtthhopegrnhgurhgvrghlmhgvihgusehighgrlhhirgdrtghomhdprhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtoheprghmihhrjeefihhlsehgmhgrihhlrdgtohhmpdhrtghpthhtohepthihthhsohesmhhithdrvgguuhdprhgtphhtthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvr
  hhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhk
 X-GND-Sasl: gabriel@krisman.be
 
 Andr=C3=A9 Almeida <andrealmeid@igalia.com> writes:
 
-> When merging layers from different filesystems with casefold enabled,
-> all layers should use the same encoding version and have the same flags
-> to avoid any kind of incompatibility issues.
->
-> Also, set the encoding and the encoding flags for the ovl super block as
-> the same as used by the first valid layer.
+> For filesystems with encoding (i.e. with case-insensitive support), set
+> the dentry operations for the super block as ovl_dentry_ci_operations.
 >
 > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> ---
+> Changes in v6:
+> - Fix kernel bot warning: unused variable 'ofs'
 > ---
 >  fs/overlayfs/super.c | 25 +++++++++++++++++++++++++
 >  1 file changed, 25 insertions(+)
 >
 > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index df85a76597e910d00323018f1d2cd720c5db921d..b1dbd3c79961094d00c7f99cc=
-622e515d544d22f 100644
+> index b1dbd3c79961094d00c7f99cc622e515d544d22f..8db4e55d5027cb975fec9b922=
+51f62fe5924af4f 100644
 > --- a/fs/overlayfs/super.c
 > +++ b/fs/overlayfs/super.c
-> @@ -991,6 +991,18 @@ static int ovl_get_data_fsid(struct ovl_fs *ofs)
->  	return ofs->numfs;
+> @@ -161,6 +161,16 @@ static const struct dentry_operations ovl_dentry_ope=
+rations =3D {
+>  	.d_weak_revalidate =3D ovl_dentry_weak_revalidate,
+>  };
+>=20=20
+> +#if IS_ENABLED(CONFIG_UNICODE)
+> +static const struct dentry_operations ovl_dentry_ci_operations =3D {
+> +	.d_real =3D ovl_d_real,
+> +	.d_revalidate =3D ovl_dentry_revalidate,
+> +	.d_weak_revalidate =3D ovl_dentry_weak_revalidate,
+> +	.d_hash =3D generic_ci_d_hash,
+> +	.d_compare =3D generic_ci_d_compare,
+> +};
+> +#endif
+> +
+>  static struct kmem_cache *ovl_inode_cachep;
+>=20=20
+>  static struct inode *ovl_alloc_inode(struct super_block *sb)
+> @@ -1332,6 +1342,19 @@ static struct dentry *ovl_get_root(struct super_bl=
+ock *sb,
+>  	return root;
 >  }
 >=20=20
-> +/*
-> + * Set the ovl sb encoding as the same one used by the first layer
-> + */
-> +static void ovl_set_encoding(struct super_block *sb, struct super_block =
-*fs_sb)
+> +static void ovl_set_d_op(struct super_block *sb)
 > +{
 > +#if IS_ENABLED(CONFIG_UNICODE)
-> +	if (sb_has_encoding(fs_sb)) {
-> +		sb->s_encoding =3D fs_sb->s_encoding;
-> +		sb->s_encoding_flags =3D fs_sb->s_encoding_flags;
+> +	struct ovl_fs *ofs =3D sb->s_fs_info;
+> +
+> +	if (ofs->casefold) {
+> +		set_default_d_op(sb, &ovl_dentry_ci_operations);
+> +		return;
 > +	}
 > +#endif
+> +	set_default_d_op(sb, &ovl_dentry_operations);
 > +}
+> +
+>  int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+>  {
+>  	struct ovl_fs *ofs =3D sb->s_fs_info;
+> @@ -1443,6 +1466,8 @@ int ovl_fill_super(struct super_block *sb, struct f=
+s_context *fc)
+>  	if (IS_ERR(oe))
+>  		goto out_err;
 >=20=20
->  static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
->  			  struct ovl_fs_context *ctx, struct ovl_layer *layers)
-> @@ -1024,6 +1036,9 @@ static int ovl_get_layers(struct super_block *sb, s=
-truct ovl_fs *ofs,
->  	if (ovl_upper_mnt(ofs)) {
->  		ofs->fs[0].sb =3D ovl_upper_mnt(ofs)->mnt_sb;
->  		ofs->fs[0].is_lower =3D false;
+> +	ovl_set_d_op(sb);
 > +
-> +		if (ofs->casefold)
-> +			ovl_set_encoding(sb, ofs->fs[0].sb);
->  	}
->=20=20
->  	nr_merged_lower =3D ctx->nr - ctx->nr_data;
-> @@ -1083,6 +1098,16 @@ static int ovl_get_layers(struct super_block *sb, =
-struct ovl_fs *ofs,
->  		l->name =3D NULL;
->  		ofs->numlayer++;
->  		ofs->fs[fsid].is_lower =3D true;
-> +
-> +		if (ofs->casefold) {
-> +			if (!ovl_upper_mnt(ofs) && !sb_has_encoding(sb))
-> +				ovl_set_encoding(sb, ofs->fs[fsid].sb);
-> +
-> +			if (!sb_has_encoding(sb) || !sb_same_encoding(sb, mnt->mnt_sb)) {
 
-Minor nit, but isn't the sb_has_encoding()  check redundant here?  sb_same_=
-encoding
-will check the sb->encoding matches the mnt_sb already.
+Absolutely minor, but fill_super is now calling
+set_default_d_op(sb, &ovl_dentry_operations) twice, once here and once
+at the beginning of the function.  You can remove the original call.
 
-> +				pr_err("all layers must have the same encoding\n");
-> +				return -EINVAL;
-> +			}
-> +		}
->  	}
->
->  	/*
+>  	/* If the upper fs is nonexistent, we mark overlayfs r/o too */
+>  	if (!ovl_upper_mnt(ofs))
+>  		sb->s_flags |=3D SB_RDONLY;
 
 --=20
 Gabriel Krisman Bertazi
