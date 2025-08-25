@@ -1,187 +1,160 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503DD7FBA1
-	for <linux-unionfs@vger.kernel.org>; Mon, 25 Aug 2025 12:38:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 035C027510B;
+	Mon, 25 Aug 2025 13:31:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756125521; cv=none; b=NOUOUIMTIUunCqA+IsGlTkNUpOIuABmcrBP/LUzSE+SRknr70K5jgfegiSJYAVWSRIycfce1COda4do29fCWeUj7+2gf/TNcITju0a8JV4pnMGNWolw9OUkR3gpO/OECp9uc5O7I5iRTRgTXlufayokrGNItWkQPTnHzJ6XJYk4=
+	t=1756128702; cv=none; b=rAjg29egX9Hjne9diDyNaCc3R7h0Kv0MnJUsWuqUGIpRBWaDdEBFtdohJWYLtViDDm6hGnM+QqmiLzFJmBJJR2jOrc3csa3tpPqlSTCyowX6QFmvsPYqyhxvLWltonT1lhSe5XngZUz4NJGeGV92yCdpxopE1iYemu2ZJ1cajHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756125521; c=relaxed/simple;
-	bh=X3I3acS3cdFFshCVRbV9y/PaUCtuRZm5VUxrSZbBRfA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=p596sjwwEoJki+K8epLQb83w+O1FU3OlrYGFVfNUw2ZnnqiKKe9G1+w3KqHhsIYdQtTgnbNYxL4HOCFFtIYvgjtpPVXsQewCgFhur6G2q1/SBwsn+sa7lVEFnVNXpYfzLjO/mLv/RZnlVlBt+mC8cWmMlNGeiqe+qNiMElS/Gyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KLeFCrbJ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2um9rrJW; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KLeFCrbJ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2um9rrJW; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1756128702; c=relaxed/simple;
+	bh=6O5W/y80iaKkDYIuTZU5ULjARvkCS0FnEOvGtJR9bwU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=qyQ2vbuhx6RFR9/XfFfhXXGZzHGJhM3dLkq/5UWLaEsC+U5HtbrqcPtoqTh6RpBPl1Hf25bTp/Bah+ty1YwuFFvldrv4hf1MYqLSVQA3QI4+ErcVr+u2MrTRQWDPRpCY/0qNB0AZuuNfd1Exp4d5n8fRaKSkSY0NH6KU1Craics=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=RjQZU9H2; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KLeFCrbJ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2um9rrJW";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KLeFCrbJ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2um9rrJW"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 3088D1F7A0;
-	Mon, 25 Aug 2025 12:38:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1756125517; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Pj8WWGkayyH3J/FhPAZ32Ye1VixZrdXbP3zOfgCaq/4=;
-	b=KLeFCrbJhdwyZ0Oo7tMhI6sC+dsJAVO0CFKXCNKTnCqm+n9oS4MDSAimXzkKMqpawUuiip
-	UMNtJnGZblt/E6Oj3o6ixEIa9HX4LxENL7SSwzOj/fPRdY+Mp9nrN/AdWbVwZDobCPyfLf
-	D4unlpvoQqyjZM6ZM0k1P4/q0Tdp6IU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1756125517;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Pj8WWGkayyH3J/FhPAZ32Ye1VixZrdXbP3zOfgCaq/4=;
-	b=2um9rrJWZuu/1symJbkCaFgW1ClTpD+3HaMp/VeEgL7P4NR7pgaed4QhzcgD10hgLYyK5R
-	nP4MC80m8E4wQBAw==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=KLeFCrbJ;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=2um9rrJW
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1756125517; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Pj8WWGkayyH3J/FhPAZ32Ye1VixZrdXbP3zOfgCaq/4=;
-	b=KLeFCrbJhdwyZ0Oo7tMhI6sC+dsJAVO0CFKXCNKTnCqm+n9oS4MDSAimXzkKMqpawUuiip
-	UMNtJnGZblt/E6Oj3o6ixEIa9HX4LxENL7SSwzOj/fPRdY+Mp9nrN/AdWbVwZDobCPyfLf
-	D4unlpvoQqyjZM6ZM0k1P4/q0Tdp6IU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1756125517;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Pj8WWGkayyH3J/FhPAZ32Ye1VixZrdXbP3zOfgCaq/4=;
-	b=2um9rrJWZuu/1symJbkCaFgW1ClTpD+3HaMp/VeEgL7P4NR7pgaed4QhzcgD10hgLYyK5R
-	nP4MC80m8E4wQBAw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id DF2FD136DB;
-	Mon, 25 Aug 2025 12:38:36 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id hyG0KUxZrGjJFgAAD6G6ig
-	(envelope-from <krisman@suse.de>); Mon, 25 Aug 2025 12:38:36 +0000
-From: Gabriel Krisman Bertazi <krisman@suse.de>
-To: =?utf-8?Q?Andr=C3=A9?= Almeida <andrealmeid@igalia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,  Amir Goldstein
- <amir73il@gmail.com>,  Theodore Tso <tytso@mit.edu>,
-  linux-unionfs@vger.kernel.org,  linux-kernel@vger.kernel.org,
-  linux-fsdevel@vger.kernel.org,  Alexander Viro <viro@zeniv.linux.org.uk>,
-  Christian Brauner <brauner@kernel.org>,  Jan Kara <jack@suse.cz>,
-  kernel-dev@igalia.com
-Subject: Re: [PATCH v6 1/9] fs: Create sb_encoding() helper
-In-Reply-To: <20250822-tonyk-overlayfs-v6-1-8b6e9e604fa2@igalia.com>
- (=?utf-8?Q?=22Andr=C3=A9?=
-	Almeida"'s message of "Fri, 22 Aug 2025 11:17:04 -0300")
-References: <20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com>
-	<20250822-tonyk-overlayfs-v6-1-8b6e9e604fa2@igalia.com>
-Date: Mon, 25 Aug 2025 08:38:34 -0400
-Message-ID: <87sehf4lv9.fsf@mailhost.krisman.be>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="RjQZU9H2"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=vXizZ6L0n8V782CYb3FHXRs1CctnBrwFXRGLWjyJOok=; b=RjQZU9H2eLaeNbY+/Xvon5f24G
+	H2wYLPrTIIfQck+LUpB1PV9QSoUakr7mivtpkJTyg7SICW6BSGSRX5B6tBKcF4sUktzAEMz9DaYEf
+	gYKPcwAi+Lwj8PQQnofEe5iyiK2io0K1SjSEJsMiHfecJlnfvqCEGHd9soWeWz0IwG/n8HFJ6Lg7w
+	ui2AvLdB5SY1wLOMPCGysM2ORPZYgQ7j5kjfJNeuMWANksMgBbevtqwWwYKCVrfk5aBYDjFL1QwSF
+	5aEmWRlkm8ZP3TnOoapdSVBZW3DRZYA4Md9IPAldpqH2Q5QvjBQG+0t81zNoJjGoKih1uMlnndsvS
+	ayEauFcw==;
+Received: from [187.57.78.222] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+	id 1uqXI9-001Pu6-Ip; Mon, 25 Aug 2025 15:31:21 +0200
+Message-ID: <6235a4c0-2b28-4dd6-8f18-4c1f98015de6@igalia.com>
+Date: Mon, 25 Aug 2025 10:31:16 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Rspamd-Queue-Id: 3088D1F7A0
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RCPT_COUNT_SEVEN(0.00)[11];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[szeredi.hu,gmail.com,mit.edu,vger.kernel.org,zeniv.linux.org.uk,kernel.org,suse.cz,igalia.com];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Score: -4.51
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 9/9] ovl: Support mounting case-insensitive enabled
+ layers
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>,
+ Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ kernel-dev@igalia.com
+References: <20250822-tonyk-overlayfs-v6-0-8b6e9e604fa2@igalia.com>
+ <20250822-tonyk-overlayfs-v6-9-8b6e9e604fa2@igalia.com>
+ <CAOQ4uxhWE=5_+DBx7OJ94NVCZXztxf1d4sxyMuakDGKUmbNyTg@mail.gmail.com>
+ <62e60933-1c43-40c2-a166-91dd27b0e581@igalia.com>
+ <CAOQ4uxjgp20vQuMO4GoMxva_8yR+kcW3EJxDuB=T-8KtvDr4kg@mail.gmail.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+In-Reply-To: <CAOQ4uxjgp20vQuMO4GoMxva_8yR+kcW3EJxDuB=T-8KtvDr4kg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Andr=C3=A9 Almeida <andrealmeid@igalia.com> writes:
+Hi Amir,
 
-> Filesystems that need to deal with the super block encoding need to use
-> a if IS_ENABLED(CONFIG_UNICODE) around it because this struct member is
-> not declared otherwise. In order to move this if/endif guards outside of
-> the filesytem code and make it simpler, create a new function that
-> returns the s_encoding member of struct super_block if Unicode is
-> enabled, and return NULL otherwise.
->
-> Suggested-by: Amir Goldstein <amir73il@gmail.com>
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> ---
->  include/linux/fs.h | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index e1d4fef5c181d291a7c685e5897b2c018df439ae..a4d353a871b094b562a87ddcf=
-fe8336a26c5a3e2 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -3733,15 +3733,20 @@ static inline bool generic_ci_validate_strict_nam=
-e(struct inode *dir, struct qst
->  }
->  #endif
->=20=20
-> -static inline bool sb_has_encoding(const struct super_block *sb)
-> +static inline struct unicode_map *sb_encoding(const struct super_block *=
-sb)
->  {
->  #if IS_ENABLED(CONFIG_UNICODE)
-> -	return !!sb->s_encoding;
-> +	return sb->s_encoding;
->  #else
-> -	return false;
-> +	return NULL;
->  #endif
->  }
->=20=20
-> +static inline bool sb_has_encoding(const struct super_block *sb)
-> +{
-> +	return !!sb_encoding(sb);
-> +}
-> +
+Em 22/08/2025 16:17, Amir Goldstein escreveu:
 
-FWIW, sb_has_encoding is completely superfluous now.  It is also only
-used by overlayfs itself, so it should be easy to drop in favor of your
-new helper in the following patches.  It even has a smaller function
-name :)
+[...]
 
->  int may_setattr(struct mnt_idmap *idmap, struct inode *inode,
->  		unsigned int ia_valid);
->  int setattr_prepare(struct mnt_idmap *, struct dentry *, struct iattr *);
+   /*
+>>>> -        * Allow filesystems that are case-folding capable but deny composing
+>>>> -        * ovl stack from case-folded directories.
+>>>> +        * Exceptionally for layers with casefold, we accept that they have
+>>>> +        * their own hash and compare operations
+>>>>            */
+>>>> -       if (sb_has_encoding(dentry->d_sb))
+>>>> -               return IS_CASEFOLDED(d_inode(dentry));
+>>>> +       if (ofs->casefold)
+>>>> +               return false;
+>>>
+>>> I think this is better as:
+>>>           if (sb_has_encoding(dentry->d_sb))
+>>>                   return false;
+>>>
+> 
+> And this still fails the test "Casefold enabled" for me.
+> 
+> Maybe you are confused because this does not look like
+> a test failure. It looks like this:
+> 
+> generic/999 5s ...  [19:10:21][  150.667994] overlayfs: failed lookup
+> in lower (ovl-lower/casefold, name='subdir', err=-116): parent wrong
+> casefold
+> [  150.669741] overlayfs: failed lookup in lower (ovl-lower/casefold,
+> name='subdir', err=-116): parent wrong casefold
+> [  150.760644] overlayfs: failed lookup in lower (/ovl-lower,
+> name='casefold', err=-66): child wrong casefold
+>   [19:10:24] [not run]
+> generic/999 -- overlayfs does not support casefold enabled layers
+> Ran: generic/999
+> Not run: generic/999
+> Passed all 1 tests
+> 
 
---=20
-Gabriel Krisman Bertazi
+This is how the test output looks before my changes[1] to the test:
+
+$ ./run.sh
+FSTYP         -- ext4
+PLATFORM      -- Linux/x86_64 archlinux 6.17.0-rc1+ #1174 SMP 
+PREEMPT_DYNAMIC Mon Aug 25 10:18:09 -03 2025
+MKFS_OPTIONS  -- -F /dev/vdc
+MOUNT_OPTIONS -- -o acl,user_xattr /dev/vdc /tmp/dir2
+
+generic/999 1s ... [not run] overlayfs does not support casefold enabled 
+layers
+Ran: generic/999
+Not run: generic/999
+Passed all 1 tests
+
+
+And this is how it looks after my changes[1] to the test:
+
+$ ./run.sh
+FSTYP         -- ext4
+PLATFORM      -- Linux/x86_64 archlinux 6.17.0-rc1+ #1174 SMP 
+PREEMPT_DYNAMIC Mon Aug 25 10:18:09 -03 2025
+MKFS_OPTIONS  -- -F /dev/vdc
+MOUNT_OPTIONS -- -o acl,user_xattr /dev/vdc /tmp/dir2
+
+generic/999        1s
+Ran: generic/999
+Passed all 1 tests
+
+So, as far as I can tell, the casefold enabled is not being skipped 
+after the fix to the test.
+
+[1] 
+https://lore.kernel.org/lkml/5da6b0f4-2730-4783-9c57-c46c2d13e848@igalia.com/
+
+
+> I'm not sure I will keep the test this way. This is not very standard nor
+> good practice, to run half of the test and then skip it.
+> I would probably split it into two tests.
+> The first one as it is now will run to completion on kenrels >= v6.17
+> and the Casefold enable test will run on kernels >= v6.18.
+> 
+> In any case, please make sure that the test is not skipped when testing
+> Casefold enabled layers
+> 
+> And then continue with the missing test cases.
+> 
+> When you have a test that passes please send the test itself or
+> a fstest branch for me to test.
+
+Ok!
+
+> 
+> Thanks,
+> Amir.
+
