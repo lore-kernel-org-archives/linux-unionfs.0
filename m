@@ -1,24 +1,24 @@
 Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C4921D61BB;
-	Fri, 29 Aug 2025 01:25:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87B97288A2;
+	Fri, 29 Aug 2025 01:27:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756430740; cv=none; b=LSiMShp4IxF/iCSBNOAgdso6hU8iYAsD+joNxqqRnp75hsYGiTVnybv3dLfhh6IQ+51vd9Or24+VWuFgRM55OzRrMUtN1JUbbeEWXKf2+wfDmt0uWqoDCT/JL/U2k3nLoDcf3qHqSyoySPvunWy+3+zVzn7cixDMjTZmsSTUprI=
+	t=1756430858; cv=none; b=s6GTPMprDVnNeYHIfr+EPsxWNJEUiVbxAcxIPCM6nmykZcut7UTq0yvzC3ewvKg7ADc+Ktg6A8YYhlj488i5Ncld/cUtZ6Kd/zeYi2R7/ENxujSxJrdInjOE70fT4GXCnf9P1/xy2//IBSTzBNAZly7yFQIOx5LjSJds4ApeD7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756430740; c=relaxed/simple;
-	bh=HTik/mRy0YAuUpRxyKqqPX/Z8owfs1XAdZfL0aBgMEA=;
+	s=arc-20240116; t=1756430858; c=relaxed/simple;
+	bh=qDucb++wbXkYYanQTjKbsVv7wwjV5r+NQhGtCLLjIt0=;
 	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=QvYHvbRfSCyN41vrxmpr0psZtbPfd3cLftPeTg+OnXEJkzGwUOTF+U/uRhhAC1YAMgdNvtxnkWL13A/SlYNzgErhTiyAKLBbm/U82Qn5bYobWnbEekjZtNVqTuipkZkjgWdf3n8RAyxTE9RDBsspigzcKyIECl+5my+5rhOWlU8=
+	 References:Date:Message-id; b=rip6rvBECWrLqvdS+AeGHucf3lOnITAgdYiPGudkIRMVSNkYMm1hezL6+aQUgjO6riEyKTdnBa8VjeyjOwY350ef2QiGXM+gq6Pgr8oiayA2vUIbZw+GnbUAU5z1Jzus/KMMCMBx7bQKyb+Al1k+Ovy0FaG9k7Yev+pBLlUGIx4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
 Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
 	by neil.brown.name with esmtp (Exim 4.95)
 	(envelope-from <mr@neil.brown.name>)
-	id 1urnrp-007Xii-4T;
-	Fri, 29 Aug 2025 01:25:26 +0000
+	id 1urntp-007XjZ-Il;
+	Fri, 29 Aug 2025 01:27:31 +0000
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
@@ -29,81 +29,98 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 From: "NeilBrown" <neil@brown.name>
 To: "Amir Goldstein" <amir73il@gmail.com>
-Cc: "Gabriel Krisman Bertazi" <gabriel@krisman.be>,
- =?utf-8?q?Andr=C3=A9?= Almeida <andrealmeid@igalia.com>,
+Cc: =?utf-8?q?Andr=C3=A9?= Almeida <andrealmeid@igalia.com>,
  "Miklos Szeredi" <miklos@szeredi.hu>, "Theodore Tso" <tytso@mit.edu>,
  linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-fsdevel@vger.kernel.org, "Alexander Viro" <viro@zeniv.linux.org.uk>,
  "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- kernel-dev@igalia.com
+ kernel-dev@igalia.com, "Gabriel Krisman Bertazi" <gabriel@krisman.be>
 Subject:
  Re: [PATCH v6 9/9] ovl: Support mounting case-insensitive enabled layers
 In-reply-to:
- <CAOQ4uxhJfFgpUKHy0c23i0dsvxZoRuGxMVXbasEn3zf3s0ORYg@mail.gmail.com>
+ <CAOQ4uxhGmTbCJMz8C2gKzU5hjBBzKqR2eOtRJz4J83AxSD5djg@mail.gmail.com>
 References:
- <>, <CAOQ4uxhJfFgpUKHy0c23i0dsvxZoRuGxMVXbasEn3zf3s0ORYg@mail.gmail.com>
-Date: Fri, 29 Aug 2025 11:25:26 +1000
-Message-id: <175643072654.2234665.6159276626818244997@noble.neil.brown.name>
+ <>, <CAOQ4uxhGmTbCJMz8C2gKzU5hjBBzKqR2eOtRJz4J83AxSD5djg@mail.gmail.com>
+Date: Fri, 29 Aug 2025 11:27:30 +1000
+Message-id: <175643085095.2234665.7900009371607929733@noble.neil.brown.name>
 
-On Thu, 28 Aug 2025, Amir Goldstein wrote:
+On Fri, 29 Aug 2025, Amir Goldstein wrote:
 >=20
-> Neil,
+> commit 32786370148617766043f6d054ff40758ce79f21 (HEAD -> ovl_casefold)
+> Author: Amir Goldstein <amir73il@gmail.com>
+> Date:   Wed Aug 27 19:55:26 2025 +0200
 >=20
-> FYI, if your future work for vfs assumes that fs will alway have the
-> dentry hashed after create, you may want to look at:
+>     ovl: make sure that ovl_create_real() returns a hashed dentry
 >=20
-> static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
-> ...
->         /* Force lookup of new upper hardlink to find its lower */
->         if (hardlink)
->                 d_drop(dentry);
+>     e8bd877fb76bb9f3 ("ovl: fix possible double unlink") added a sanity
+>     check of !d_unhashed(child) to try to verify that child dentry was not
+>     unlinked while parent dir was unlocked.
 >=20
->         return 0;
-> }
+>     This "was not unlink" check has a false positive result in the case of
+>     casefolded parent dir, because in that case, ovl_create_temp() returns
+>     an unhashed dentry after ovl_create_real() gets an unhashed dentry from
+>     ovl_lookup_upper() and makes it positive.
 >=20
-> If your assumption is not true for overlayfs, it may not be true for other =
-fs
-> as well. How could you verify that it is correct?
-
-I don't need the dentry to be hashed after the create has completed (or
-failed).
-I only need it to be hashed when the create starts, and ideally for the
-duration of the creation process.
-Several filesystems d_drop() a newly created dentry so as to trigger a
-lookup - overlayfs is not unique.
-
+>     To avoid returning unhashed dentry from ovl_create_temp(), let
+>     ovl_create_real() lookup again after making the newdentry positive,
+>     so it always returns a hashed positive dentry (or an error).
 >=20
-> I really hope that you have some opt-in strategy in mind, so those new
-> dirops assumptions would not have to include all possible filesystems.
+>     This fixes the error in ovl_parent_lock() in ovl_check_rename_whiteout()
+>     after ovl_create_temp() and allows mount of overlayfs with casefolding
+>     enabled layers.
+>=20
+>     Reported-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+>     Closes: https://lore.kernel.org/r/18704e8c-c734-43f3-bc7c-b8be345e1bf5@=
+igalia.com/
+>     Suggested-by: Neil Brown <neil@brown.name>
+>     Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-Filesystems will need to opt-in to not having the parent locked.  If
-a fs still has the parent locked across operations it doesn't really
-matter when the d_drop() happens.  However I want to move all the
-d_drop()s to the end (which is where ovl has it) to ensure there are no
-structural issues that mean an early d_drop() is needed.  e.g. Some
-filesystems d_drop() and then d_splice_alias() and I want to add a new
-d_splice_alias() variant that doesn't require the d_drop().
-
-So it is only at the start of an operation (create, remove, rename) that
-I need the dentry to be hashed.  That raises questions about ext4_lookup
-not hashing a negative dentry as a lookup-create pair in do_mknodat or
-lookup_open could call vfs_create with a non-hashed dentry.
-That isn't *actually* a problem (I think - I should double-check) as the
-dentry is still d_in_lookup() so it is hashed in the separate
-in_lookup_hashtable().  So a d_lookup() will find it even though it
-isn't hashed.
-
-That suggests an alternate fix for ovl_parent_lock().  Rather than
-insisting that the child is hashed, we can insist that either
-    d_in_lookup(child) || !d_unhashed(child)
-
-Such a dentry really is hashed: it might be hashed in one table, it
-might be hashed in the other.
-
-However that wouldn't protect against filesystems which deliberately
-d_drop() during create, so I think ovl still needs to perform a lookup
-after a create and before a rename - if the create succeeds but the
-dentry is negative.
+Reviewed-by NeilBrown <neil@brown.name>
 
 Thanks,
 NeilBrown
+
+
+>=20
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 538a1b2dbb387..a5e9ddf3023b3 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -212,12 +212,32 @@ struct dentry *ovl_create_real(struct ovl_fs
+> *ofs, struct dentry *parent,
+>                         err =3D -EPERM;
+>                 }
+>         }
+> -       if (!err && WARN_ON(!newdentry->d_inode)) {
+> +       if (err)
+> +               goto out;
+> +
+> +       if (WARN_ON(!newdentry->d_inode)) {
+>                 /*
+>                  * Not quite sure if non-instantiated dentry is legal or no=
+t.
+>                  * VFS doesn't seem to care so check and warn here.
+>                  */
+>                 err =3D -EIO;
+> +       } else if (d_unhashed(newdentry)) {
+> +               struct dentry *d;
+> +               /*
+> +                * Some filesystems (i.e. casefolded) may return an unhashed
+> +                * negative dentry from the ovl_lookup_upper() call before
+> +                * ovl_create_real().
+> +                * In that case, lookup again after making the newdentry
+> +                * positive, so ovl_create_upper() always returns a hashed
+> +                * positive dentry.
+> +                */
+> +               d =3D ovl_lookup_upper(ofs, newdentry->d_name.name, parent,
+> +                                    newdentry->d_name.len);
+> +               dput(newdentry);
+> +               if (IS_ERR_OR_NULL(d))
+> +                       err =3D d ? PTR_ERR(d) : -ENOENT;
+> +               else
+> +                       return d;
+>         }
+>  out:
+>         if (err) {
+>=20
+
