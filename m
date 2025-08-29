@@ -1,126 +1,128 @@
-Received: from neil.brown.name (neil.brown.name [103.29.64.221])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87B97288A2;
-	Fri, 29 Aug 2025 01:27:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2352264CA;
+	Fri, 29 Aug 2025 09:31:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756430858; cv=none; b=s6GTPMprDVnNeYHIfr+EPsxWNJEUiVbxAcxIPCM6nmykZcut7UTq0yvzC3ewvKg7ADc+Ktg6A8YYhlj488i5Ncld/cUtZ6Kd/zeYi2R7/ENxujSxJrdInjOE70fT4GXCnf9P1/xy2//IBSTzBNAZly7yFQIOx5LjSJds4ApeD7s=
+	t=1756459905; cv=none; b=a2OCOXD3jro286gz1Mz0HW6D1dc3uKAV1lqY1H3Q1z0ZFDjRwjguhsUhct3PtTIBCnBBP3VrZuiRayn2QqnqECuG43nsXH8qhvFtSXrB6KSEy2MGwS3qV68CpU2KAnQfQTdZUeTJfiL5xeJQSV+K+/yMntlmVnV7RrUWWmy9zJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756430858; c=relaxed/simple;
-	bh=qDucb++wbXkYYanQTjKbsVv7wwjV5r+NQhGtCLLjIt0=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=rip6rvBECWrLqvdS+AeGHucf3lOnITAgdYiPGudkIRMVSNkYMm1hezL6+aQUgjO6riEyKTdnBa8VjeyjOwY350ef2QiGXM+gq6Pgr8oiayA2vUIbZw+GnbUAU5z1Jzus/KMMCMBx7bQKyb+Al1k+Ovy0FaG9k7Yev+pBLlUGIx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
-Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
-	by neil.brown.name with esmtp (Exim 4.95)
-	(envelope-from <mr@neil.brown.name>)
-	id 1urntp-007XjZ-Il;
-	Fri, 29 Aug 2025 01:27:31 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1756459905; c=relaxed/simple;
+	bh=TFmpqrDuZzk1PfENqc6BHFvUgs39QSPGfIFjT0wJQyo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aByyEfErEVP9uAaqrW3ycG2Tvcy/vvsrew6+4LYsK5AuZ1mlVB2cgYgo+ySfZR0KELPGnCQazsi/1hlq17WRvBS2atCTnSS9Y3KT/6OSZ2X65lWbWyTCXoiuVN+TPXN6jhagrxbaq306iiXNfYFlwtDO7lgjoH/2D3y/YKAoRDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IzP1EoUB; arc=none smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IzP1EoUB"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-61cf0901a72so1851265a12.1;
+        Fri, 29 Aug 2025 02:31:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1756459902; x=1757064702; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tXubTchbwvZaUajIutsCKJWz5ri+uL4LtwyyfrFR0Fc=;
+        b=IzP1EoUBDgpXkfJugwlRF8TMTSqQFkdEuidmPLmDY58E53wE2eWWAQgHyPNO8wW3N7
+         L4L2lSUEsDuvjZCrctOSJeUo8XCn3fO0TbM/XZmIcdoZgMbQuA0dW/2W37PecLp8KNPG
+         DzySQaer6+dIZ0zyhS2mBS7foqNh0mRxSuqR/3HW+InJjsEFKWVlmdwWz9N5w1ykgU8r
+         vd/a09uVwdC4F8+XQA5OeTcrAt8p0MuXCB3iiPHGo3Z01EFvmi52hFS0Gne7/eBMp3OE
+         FdTCGA3R1kB532JsGNqJqbOH7ZDjm3swTOyldVtDZnv++irdzCmeDQJtN0qX1LMY+ive
+         5lOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756459902; x=1757064702;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=tXubTchbwvZaUajIutsCKJWz5ri+uL4LtwyyfrFR0Fc=;
+        b=khSBj7ncqqp0UBG0qEpqsFn0UowncB/A5R9JNGD0HYttCE8fknUvaLHpqcWx/Z5EEG
+         P8f5/hmnn1t1jpkCewZIxNv72aeI73JUj0FW+GpjQmNZkkTfkrZwy5fp1U66lbtBVaQH
+         lgnZKDTE/b2igJGz1rTKGF6CVNMSPOA8gU2CwVlKXic8EZfNCixheLgT21V1PdJ6/tCo
+         fwicz9LBdheyoY7icz87fGNrt/LFxCTpb5rCtwsUEwys3HkKiaF4PNl7RBPB5XT5KUkQ
+         nl+0a47BBKvJPBLO+5fCTYa7ELiGQqXK57+mLvWe5n3Vy36vRXIjACdUrWE9nt/opMQM
+         4arQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWOumb2nu0P9CYESBtrBKI7Onu0HQORgzFMi6YDu03qAO/jqxbsl/GlmMnsHPABsqhN6XoDKcH3AhxNDtDyAA==@vger.kernel.org, AJvYcCWpgNCahyVJEt1R/DvmA4z/FgSOJio+zuhX7VvCHanecIGRAnhfbRJ9WQwsRcAkQymSYw8KEmFEj30R8XsP@vger.kernel.org, AJvYcCXvnNjMz5yN7DTuNcfiu9hfJ5sZ7zfaWp9/2G4NJsR7gSVYg3CvdMJYNYR0M0WgPNC4q9lccqmaOQc6MqnE@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxk4gvkRRJ8SdcfMnF/zd2Zj5g6Yenl5HySxkBE80V5Vm1cvrh8
+	UhceD20H+GLr3SrvEIk6XdGOqtkH+30QTCDi5Wxsu/Ts73khy+6C6AV2SGona2GG3foSsol8N9/
+	EDF1Vkk2ex4Z1y3G++egdMiQw71U6d8g=
+X-Gm-Gg: ASbGncsyrqSzkQnirsONmxl0zKeChvfo9wn2orW5gxknK62KvaeKZJyh2QgvXVZv9m+
+	0myYvYXv3wXu+Aj+YRWnhF/KObFXkRWTCtLS2onaH/mcEYmA7KTcYv96yMd0S+uUKBLLSh3Gffa
+	3Jbt+c7gZ7Sv/Y9e2+D/xI5A4t1AqwO57DYxChNqwSIbvQYwVBd9S/5EAvA/Ec0j7L+Lu6Fb77G
+	AlBNl204G7MS+cpOw==
+X-Google-Smtp-Source: AGHT+IEW56i3uuLsjGQiYtEQTu3jJWGM5XY6MhFx8dSCG2ClW4Hg6swCYE/xgcVP5dLk5jPgz3dG8IAKo4D+VljZbFs=
+X-Received: by 2002:a05:6402:278d:b0:61c:e86b:8e3b with SMTP id
+ 4fb4d7f45d1cf-61ce86b91e7mr4358538a12.23.1756459902081; Fri, 29 Aug 2025
+ 02:31:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "NeilBrown" <neil@brown.name>
-To: "Amir Goldstein" <amir73il@gmail.com>
-Cc: =?utf-8?q?Andr=C3=A9?= Almeida <andrealmeid@igalia.com>,
- "Miklos Szeredi" <miklos@szeredi.hu>, "Theodore Tso" <tytso@mit.edu>,
- linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- kernel-dev@igalia.com, "Gabriel Krisman Bertazi" <gabriel@krisman.be>
-Subject:
- Re: [PATCH v6 9/9] ovl: Support mounting case-insensitive enabled layers
-In-reply-to:
- <CAOQ4uxhGmTbCJMz8C2gKzU5hjBBzKqR2eOtRJz4J83AxSD5djg@mail.gmail.com>
-References:
- <>, <CAOQ4uxhGmTbCJMz8C2gKzU5hjBBzKqR2eOtRJz4J83AxSD5djg@mail.gmail.com>
-Date: Fri, 29 Aug 2025 11:27:30 +1000
-Message-id: <175643085095.2234665.7900009371607929733@noble.neil.brown.name>
+References: <CAOQ4uxhJfFgpUKHy0c23i0dsvxZoRuGxMVXbasEn3zf3s0ORYg@mail.gmail.com>
+ <175643072654.2234665.6159276626818244997@noble.neil.brown.name>
+In-Reply-To: <175643072654.2234665.6159276626818244997@noble.neil.brown.name>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 29 Aug 2025 11:31:30 +0200
+X-Gm-Features: Ac12FXyFDId4PisLZWHYgIvi5BD8hYRBeEN948zp6qMmMuRPOygZuJneTqW6DiA
+Message-ID: <CAOQ4uxj8mncxy_LOYejGWtokh=C2WpDcGFqj+-k+imVtEk-84A@mail.gmail.com>
+Subject: Re: [PATCH v6 9/9] ovl: Support mounting case-insensitive enabled layers
+To: NeilBrown <neil@brown.name>
+Cc: Gabriel Krisman Bertazi <gabriel@krisman.be>, =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	kernel-dev@igalia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 29 Aug 2025, Amir Goldstein wrote:
->=20
-> commit 32786370148617766043f6d054ff40758ce79f21 (HEAD -> ovl_casefold)
-> Author: Amir Goldstein <amir73il@gmail.com>
-> Date:   Wed Aug 27 19:55:26 2025 +0200
->=20
->     ovl: make sure that ovl_create_real() returns a hashed dentry
->=20
->     e8bd877fb76bb9f3 ("ovl: fix possible double unlink") added a sanity
->     check of !d_unhashed(child) to try to verify that child dentry was not
->     unlinked while parent dir was unlocked.
->=20
->     This "was not unlink" check has a false positive result in the case of
->     casefolded parent dir, because in that case, ovl_create_temp() returns
->     an unhashed dentry after ovl_create_real() gets an unhashed dentry from
->     ovl_lookup_upper() and makes it positive.
->=20
->     To avoid returning unhashed dentry from ovl_create_temp(), let
->     ovl_create_real() lookup again after making the newdentry positive,
->     so it always returns a hashed positive dentry (or an error).
->=20
->     This fixes the error in ovl_parent_lock() in ovl_check_rename_whiteout()
->     after ovl_create_temp() and allows mount of overlayfs with casefolding
->     enabled layers.
->=20
->     Reported-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
->     Closes: https://lore.kernel.org/r/18704e8c-c734-43f3-bc7c-b8be345e1bf5@=
-igalia.com/
->     Suggested-by: Neil Brown <neil@brown.name>
->     Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+On Fri, Aug 29, 2025 at 3:25=E2=80=AFAM NeilBrown <neil@brown.name> wrote:
+>
+> On Thu, 28 Aug 2025, Amir Goldstein wrote:
+> >
+> > Neil,
+> >
+> > FYI, if your future work for vfs assumes that fs will alway have the
+> > dentry hashed after create, you may want to look at:
+> >
+> > static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
+> > ...
+> >         /* Force lookup of new upper hardlink to find its lower */
+> >         if (hardlink)
+> >                 d_drop(dentry);
+> >
+> >         return 0;
+> > }
+> >
+> > If your assumption is not true for overlayfs, it may not be true for ot=
+her fs
+> > as well. How could you verify that it is correct?
+>
+> I don't need the dentry to be hashed after the create has completed (or
+> failed).
+> I only need it to be hashed when the create starts, and ideally for the
+> duration of the creation process.
+> Several filesystems d_drop() a newly created dentry so as to trigger a
+> lookup - overlayfs is not unique.
+>
+> >
+> > I really hope that you have some opt-in strategy in mind, so those new
+> > dirops assumptions would not have to include all possible filesystems.
+>
+> Filesystems will need to opt-in to not having the parent locked.  If
+> a fs still has the parent locked across operations it doesn't really
+> matter when the d_drop() happens.  However I want to move all the
+> d_drop()s to the end (which is where ovl has it) to ensure there are no
+> structural issues that mean an early d_drop() is needed.  e.g. Some
+> filesystems d_drop() and then d_splice_alias() and I want to add a new
+> d_splice_alias() variant that doesn't require the d_drop().
+>
 
-Reviewed-by NeilBrown <neil@brown.name>
+Do you mean revert c971e6a006175 kill d_instantiate_no_diralias()?
+
+In any case, I hope that in the end the semantics of state of dentry after
+lookup/create will be more clear than they are now...
 
 Thanks,
-NeilBrown
-
-
->=20
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 538a1b2dbb387..a5e9ddf3023b3 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -212,12 +212,32 @@ struct dentry *ovl_create_real(struct ovl_fs
-> *ofs, struct dentry *parent,
->                         err =3D -EPERM;
->                 }
->         }
-> -       if (!err && WARN_ON(!newdentry->d_inode)) {
-> +       if (err)
-> +               goto out;
-> +
-> +       if (WARN_ON(!newdentry->d_inode)) {
->                 /*
->                  * Not quite sure if non-instantiated dentry is legal or no=
-t.
->                  * VFS doesn't seem to care so check and warn here.
->                  */
->                 err =3D -EIO;
-> +       } else if (d_unhashed(newdentry)) {
-> +               struct dentry *d;
-> +               /*
-> +                * Some filesystems (i.e. casefolded) may return an unhashed
-> +                * negative dentry from the ovl_lookup_upper() call before
-> +                * ovl_create_real().
-> +                * In that case, lookup again after making the newdentry
-> +                * positive, so ovl_create_upper() always returns a hashed
-> +                * positive dentry.
-> +                */
-> +               d =3D ovl_lookup_upper(ofs, newdentry->d_name.name, parent,
-> +                                    newdentry->d_name.len);
-> +               dput(newdentry);
-> +               if (IS_ERR_OR_NULL(d))
-> +                       err =3D d ? PTR_ERR(d) : -ENOENT;
-> +               else
-> +                       return d;
->         }
->  out:
->         if (err) {
->=20
-
+Amir.
