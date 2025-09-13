@@ -1,112 +1,150 @@
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F5D19ABD8
-	for <linux-unionfs@vger.kernel.org>; Fri, 12 Sep 2025 15:32:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B11662DC796
+	for <linux-unionfs@vger.kernel.org>; Sat, 13 Sep 2025 04:22:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757691154; cv=none; b=LgI91JPf2S/rUU3G7mPSSRmZZmXOz7Aa+x8eWRxKrlNBkTX6v589f781oPB+8UFYWLcpzSQSYRoWRgcWN+IDrYyBofm7/LVYrue5HrpUJaSaDCRnBFRw/0yDC4VBLOFi+pZAIfRA25GCbRs2xYczMTb5Vz4cRAosXt4r1Nsj5G4=
+	t=1757737322; cv=none; b=bTD7lR6ahLZp+Smw8vwesI9yjLGpytpJq/WTW5yohhTVQOaTZ1EO4L32tNPKr/qj7paxoA4oMlGEEzUKHXAyabxvAsBg44wkGiBreXlgzHNJoFQVzMYjDYfzB+wyWzG6mcCi8+gtFSwOdFej/TEbs60alNQGQA2c4xh0n8coLdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757691154; c=relaxed/simple;
-	bh=SLQ7ShI3cjyhcYd8hqed5EOccgJbaNdA/DCM7QMU6nQ=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=izpA4tLm7A1NS0m8B28I1CiOp/9iap//sX3bsXcrqf+hr0YbITuFepME4ZP3znkXYbi9bfbYk67MqPmGeAGlTHEYXsBM+a0Br9Rw4X0/O/V6eNqfu7f4DGd8WA45zD4OaGh5N+wrv4xXkxbkyopiRcvsDDQN49t57wMmfnU1L0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.net; spf=pass smtp.mailfrom=posteo.net; dkim=pass (2048-bit key) header.d=posteo.net header.i=@posteo.net header.b=fVACUB16; arc=none smtp.client-ip=185.67.36.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.net
+	s=arc-20240116; t=1757737322; c=relaxed/simple;
+	bh=uRhPeUlqyAStsXwoFa9GR0+NRKe2mAQp2rqLkRRGLS0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=CZ6kFx5FdEvY7z4aeld9KFQ15Bvvk+dOeF+SngGxWwVXHGsxa8he1tcRGtVTqSG+wrshvuiarwcen7m6D6PnqodbIQdBbU1qDp2ZbNgVsZU2KeQ8R5SFrrC+vkUiD9a4j+e06W9lJlFHKW9Xt2OcKUWXI4dbKCFzPa6cRvK8R1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bKLYFGqO; arc=none smtp.client-ip=209.85.208.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.net header.i=@posteo.net header.b="fVACUB16"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id 45D6C240029
-	for <linux-unionfs@vger.kernel.org>; Fri, 12 Sep 2025 17:32:30 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.net; s=2017;
-	t=1757691150; bh=IA5YNAoVNsEwinWOmnpmB4qrPZxT2JToTJ4rBj7Ifb8=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:From;
-	b=fVACUB1637j70F0nGEjP26fGFuqcHyj9SgDGbpOrbW3FlCDkLmSNFZRxRpXSMqZlj
-	 upPQMz8ALJQ8d+8h7EavcStwNk4kR8QUwyS6HkUicD/gKVswdj35KMugjk9lfQiZj5
-	 G7w1OSbgTfAbbMx4ikuPJBbXMudXo7bTtExjgJWSyQmQ9O4rDr63TA8I4EireDdsPg
-	 ie+h9m8nRVb/Vka9TRjdECeahLh8/89klKe3QhUW9YfTm4xb+lVIhNjFcMrfOiE4Hf
-	 UeH08jxunTPGfWiL1opqLUK+CB4qm66szqLzu+hurBdD8F2cKRWHa4qcad81c2wsIr
-	 OfFi/5DsrnGpw==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4cNdhs2N0Mz6tx2
-	for <linux-unionfs@vger.kernel.org>; Fri, 12 Sep 2025 17:32:29 +0200 (CEST)
-From: Nicholas Hubbard <nicholashubbard@posteo.net>
-To: linux-unionfs@vger.kernel.org
-Subject: Support for including nested mountpoints in overlay?
-Date: Fri, 12 Sep 2025 15:32:29 +0000
-Message-ID: <87plbvadpw.fsf@slackpad.slackpad.domain>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bKLYFGqO"
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-61cc281171cso4584540a12.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 12 Sep 2025 21:22:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1757737319; x=1758342119; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=JCzrcIcSARHxmGL/M4lqmRXldDtZV569bzzYZk5Ve0s=;
+        b=bKLYFGqOhAK36EE2Mo+5JBP+TtjEO2gEwou7nmzHeWAEfoI2z8OIUtxiN54LpCQxA+
+         jhr2MpNQtwBI5Pba60ZmOIJxqk/aavywzwnMKb1ZF8LIGbsbMoX8yDqCkGNsfpd2LTPo
+         R1d4/1SIyYemS2ed0oTzvtNG+Pxfo//Yjtne1cKMra+MsFMZQBv8KkT4n6SRLYTXNUrN
+         yJfhVsC2cqGqnCmhdVXgV/tjzivXEWRrAYrMUquPIDS31skvNLD/+B8c4CiiXZU8p/KR
+         0739Tzge4Ad4lnzmbbSmdH+VAVNpOKfUWshAUfCaZM/ya8L4KwtWR5Z44XtLQIsUnRyk
+         1zJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1757737319; x=1758342119;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=JCzrcIcSARHxmGL/M4lqmRXldDtZV569bzzYZk5Ve0s=;
+        b=tGlpGPtJUGHxqx0tG3vLRt6VQgf3pYnbVGSvycGUDN/64apedZQhr1qT0+vOFkqe9V
+         jNICoXoFTBe+iMYl3u781GM7a9/tR6Ois6dEzbUKm2ye0ZslHRlZmkgh8CBX+l0fD0Gj
+         tqb7up46geQuBSQ83Onx2V1LrmuZyGx7j0l5z1aJFoIMsNliybkFTYmoS7/8TmysjEtT
+         zMQfBxY6qp6iWBmMATy9PbUuxY2F766IqiROH62VEgO12F7Np0KQWqlqUb+CKWMDH79h
+         yBTQVifIfC/jAeqNkIzMGD5+iLD7iuNMjkLAA4xhPAvW0MNMQIA1XyKCL1D6xrmI2JvN
+         Y00A==
+X-Gm-Message-State: AOJu0YxzEfjZSIKLjvlQE1aVib5vASM9zuwkuWUnQ9ZKrq4M4nZWNZL0
+	cmdbXlcm4EvaWCY/CUFKKHe6achBOnk0NRHVDtlmXZtZ/5umP0vPL8XsDxKoWEVk7XY3uReZK4B
+	C1Yn8qSr/W2qOCiQdmaWxE+eR5A/u5fM=
+X-Gm-Gg: ASbGncsazjxG+Q891ErBZZ0JM8SilZGJAmoGsircdILowUa2P994EsLZkz200+GBfiD
+	IJlkOaMGD9pRLuH6NGZEyN/I4+cBbXg3IRHYSiDyUzegOkCGQepIbnRJaF7OKp1stQSRbEhYGZn
+	jPr+27+kNbgJbzhU6SZuBIvsIx0rVbFGyygom0Bfx+B7TWkz1Bi6n5v812bZgvEY79KzbqSVhMG
+	GIZkWc=
+X-Google-Smtp-Source: AGHT+IFepm1FbWcP+64RKyihgwcpbWxnOUU+/c2gMUIZRhSEOrX4dBwblM9Q9Ccja2smHCVu7RRfgMLCNcfIzhRlUms=
+X-Received: by 2002:a05:6402:4548:b0:62d:bfd:b3af with SMTP id
+ 4fb4d7f45d1cf-62ed8301f7emr4732078a12.27.1757737318699; Fri, 12 Sep 2025
+ 21:21:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha512; protocol="application/pgp-signature"
-
---=-=-=
-Content-Type: text/plain
+References: <87plbvadpw.fsf@slackpad.slackpad.domain>
+In-Reply-To: <87plbvadpw.fsf@slackpad.slackpad.domain>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 13 Sep 2025 06:21:47 +0200
+X-Gm-Features: Ac12FXw3QROKXvTkPTrtypnOmA0T8Ycg59W6gzc0DO-rNPnsnMxQSw2zB8IieCE
+Message-ID: <CAOQ4uxiXXz6rev8KESgeBamy-EJAm2-Yan-721SPp2PMtb6ttw@mail.gmail.com>
+Subject: Re: Support for including nested mountpoints in overlay?
+To: Nicholas Hubbard <nicholashubbard@posteo.net>
+Cc: linux-unionfs@vger.kernel.org, Antonio SJ Musumeci <trapexit@spawn.link>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hello everybody,
-
-I have just started working with overlayfs, and ran into a problem. Specifi=
-cally
-I wanted to overlay the root of my filesystem with a command like the follo=
-wing:
-
-# mount -t overlay overlay -o lowerdir=3D/,upperdir=3D./tmp-upper,workdir=
+On Fri, Sep 12, 2025 at 5:55=E2=80=AFPM Nicholas Hubbard
+<nicholashubbard@posteo.net> wrote:
+>
+> Hello everybody,
+>
+> I have just started working with overlayfs, and ran into a problem. Speci=
+fically
+> I wanted to overlay the root of my filesystem with a command like the fol=
+lowing:
+>
+> # mount -t overlay overlay -o lowerdir=3D/,upperdir=3D./tmp-upper,workdir=
 =3D./tmp-work ./merged
+>
+> However, I noticed that my nested btrfs subvolumes and boot partition wer=
+e not
+> included in ./merged. I quickly learned though that you could have multip=
+le
+> lowerdirs. So next I tried the following command (I have a nested btrfs s=
+ubvolume
+> at /home, and my boot partition mounted at /boot):
+>
+> # mount -t overlay overlay -o lowerdir=3D/:/home:/boot,upperdir=3D./tmp-u=
+pper,workdir=3D./tmp-work ./merged
+>
+> I was expecting that now I would have (for example) the following directo=
+ries:
+>
+> ./merged/home/$USER
+> ./merged/boot/grub
+>
+> However I instead had:
+>
+> ./merged/$USER
+> ./merged/grub
+>
+> Which shows that all the lowerdirs are placed right at the root of the me=
+rgedir.
+>
+> So I have two questions.
+>
+> 1. Is there a (easy) way say "I want to include all nested mountpoints in=
+to the
+>    overlay in their same directories"?
 
-However, I noticed that my nested btrfs subvolumes and boot partition were =
-not
-included in ./merged. I quickly learned though that you could have multiple
-lowerdirs. So next I tried the following command (I have a nested btrfs sub=
-volume
-at /home, and my boot partition mounted at /boot):
+No. not in general. but maybe specifically for btrfs subvolumes
+you can do it because they are all accessible via the btrfs root mount.
 
-# mount -t overlay overlay -o lowerdir=3D/:/home:/boot,upperdir=3D./tmp-upp=
-er,workdir=3D./tmp-work ./merged
+If all your lower dirs are on the same btrfs filesystem
+and the subvolumes are also accessible via some path is root mount
+(e.g. /subvols), then something like may work for you:
 
-I was expecting that now I would have (for example) the following directori=
-es:
+mount -t overlay overlay -o
+lowerdir=3D/,upperdir=3D./tmp-upper,workdir=3D./tmp-work ./merged
 
-./merged/home/$USER
-./merged/boot/grub
+rmdir ./merged/home
+rmdir ./merged/boot
+mv ./merged/subvols/home ./merged/home
+mv ./merged/subvols/boot ./merged/boot
 
-However I instead had:
+Never tried it with btrfs subvols, so it may not work.
 
-./merged/$USER
-./merged/grub
+> 2. If there is not a (easy) way to do this, do you think it would be both=
+ feasible
+>    and useful to add such a feature?
 
-Which shows that all the lowerdirs are placed right at the root of the merg=
-edir.
+The general case of "include all nested mountpoints" is just way too far of=
+f
+from the current overlayfs design. Too hard to explain why.
 
-So I have two questions.
+I suggest that you look at FUSE alternatives like
+https://github.com/trapexit/mergerfs
 
-1. Is there a (easy) way say "I want to include all nested mountpoints into=
- the
-   overlay in their same directories"?
-2. If there is not a (easy) way to do this, do you think it would be both f=
-easible
-   and useful to add such a feature?
+Not sure if mergerfs supports this use case, but I think a userspace
+union fs is in a better position to add support to this if desired.
 
-If the answer to question 2 is "yes", then I would be happy to take a try a=
-t this :)
-
-=2D-=20
-Nicholas B. Hubbard
-Keys: https://github.com/NicholasBHubbard/public-keys
-Key ID: 508022AE06C2C446D8072447C700A066BB25F148
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYKAB0WIQRQgCKuBsLERtgHJEfHAKBmuyXxSAUCaMQ9CwAKCRDHAKBmuyXx
-SDVdAP4tK/Zrnh7EHJWTlgbiN1X6Gs94zb56sC2ypt7vrmCmGQD/SF50rj/a6OYA
-jNeeAsYzDWtWLzm1zh09Zm8GgR0t3wg=
-=Xhuq
------END PGP SIGNATURE-----
---=-=-=--
+Thanks,
+Amir.
