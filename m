@@ -1,150 +1,168 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.83.148.184])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B11662DC796
-	for <linux-unionfs@vger.kernel.org>; Sat, 13 Sep 2025 04:22:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C0B2E6122;
+	Mon, 15 Sep 2025 10:15:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.83.148.184
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757737322; cv=none; b=bTD7lR6ahLZp+Smw8vwesI9yjLGpytpJq/WTW5yohhTVQOaTZ1EO4L32tNPKr/qj7paxoA4oMlGEEzUKHXAyabxvAsBg44wkGiBreXlgzHNJoFQVzMYjDYfzB+wyWzG6mcCi8+gtFSwOdFej/TEbs60alNQGQA2c4xh0n8coLdY=
+	t=1757931332; cv=none; b=EmvZiYD4WQ3W2hxA449i3mCGCQ5o1135pnsm6Fy8F/tMgvdhrz+4rwepiN/Eqpc/cvsmQF/fLAoUz7RqFmoKMP+UqHl7KVIgvMGLyMoVnBu1iaZm7B6L9rh41pe9scxoGCHPIrUhEJoMZrIZunYbZZ3XnIlleArZGcCcOly6A1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757737322; c=relaxed/simple;
-	bh=uRhPeUlqyAStsXwoFa9GR0+NRKe2mAQp2rqLkRRGLS0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CZ6kFx5FdEvY7z4aeld9KFQ15Bvvk+dOeF+SngGxWwVXHGsxa8he1tcRGtVTqSG+wrshvuiarwcen7m6D6PnqodbIQdBbU1qDp2ZbNgVsZU2KeQ8R5SFrrC+vkUiD9a4j+e06W9lJlFHKW9Xt2OcKUWXI4dbKCFzPa6cRvK8R1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bKLYFGqO; arc=none smtp.client-ip=209.85.208.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1757931332; c=relaxed/simple;
+	bh=+gcpMbiu9oLbl6QoezcqlIaQLCZv0/EesdUcLulXk/s=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=bkTf+Opj2PSzBuycoxfop3AzmS92FdSnLJ2k8epQPEMezJNnixWxrbdVeHlUY9D29la1Zg4ygqQxVT/sSB+JSjTT/fD89h1BvFpBpP8E1UYAuhqLnZHUtTkPmPC5J3bkoRxAc17HUg3H7bb/tnLu6Ca0Pn2WgCFDrIMKfH7PA1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de; spf=pass smtp.mailfrom=amazon.de; dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b=H24x3boB; arc=none smtp.client-ip=35.83.148.184
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bKLYFGqO"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-61cc281171cso4584540a12.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 12 Sep 2025 21:22:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b="H24x3boB"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1757737319; x=1758342119; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JCzrcIcSARHxmGL/M4lqmRXldDtZV569bzzYZk5Ve0s=;
-        b=bKLYFGqOhAK36EE2Mo+5JBP+TtjEO2gEwou7nmzHeWAEfoI2z8OIUtxiN54LpCQxA+
-         jhr2MpNQtwBI5Pba60ZmOIJxqk/aavywzwnMKb1ZF8LIGbsbMoX8yDqCkGNsfpd2LTPo
-         R1d4/1SIyYemS2ed0oTzvtNG+Pxfo//Yjtne1cKMra+MsFMZQBv8KkT4n6SRLYTXNUrN
-         yJfhVsC2cqGqnCmhdVXgV/tjzivXEWRrAYrMUquPIDS31skvNLD/+B8c4CiiXZU8p/KR
-         0739Tzge4Ad4lnzmbbSmdH+VAVNpOKfUWshAUfCaZM/ya8L4KwtWR5Z44XtLQIsUnRyk
-         1zJg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757737319; x=1758342119;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=JCzrcIcSARHxmGL/M4lqmRXldDtZV569bzzYZk5Ve0s=;
-        b=tGlpGPtJUGHxqx0tG3vLRt6VQgf3pYnbVGSvycGUDN/64apedZQhr1qT0+vOFkqe9V
-         jNICoXoFTBe+iMYl3u781GM7a9/tR6Ois6dEzbUKm2ye0ZslHRlZmkgh8CBX+l0fD0Gj
-         tqb7up46geQuBSQ83Onx2V1LrmuZyGx7j0l5z1aJFoIMsNliybkFTYmoS7/8TmysjEtT
-         zMQfBxY6qp6iWBmMATy9PbUuxY2F766IqiROH62VEgO12F7Np0KQWqlqUb+CKWMDH79h
-         yBTQVifIfC/jAeqNkIzMGD5+iLD7iuNMjkLAA4xhPAvW0MNMQIA1XyKCL1D6xrmI2JvN
-         Y00A==
-X-Gm-Message-State: AOJu0YxzEfjZSIKLjvlQE1aVib5vASM9zuwkuWUnQ9ZKrq4M4nZWNZL0
-	cmdbXlcm4EvaWCY/CUFKKHe6achBOnk0NRHVDtlmXZtZ/5umP0vPL8XsDxKoWEVk7XY3uReZK4B
-	C1Yn8qSr/W2qOCiQdmaWxE+eR5A/u5fM=
-X-Gm-Gg: ASbGncsazjxG+Q891ErBZZ0JM8SilZGJAmoGsircdILowUa2P994EsLZkz200+GBfiD
-	IJlkOaMGD9pRLuH6NGZEyN/I4+cBbXg3IRHYSiDyUzegOkCGQepIbnRJaF7OKp1stQSRbEhYGZn
-	jPr+27+kNbgJbzhU6SZuBIvsIx0rVbFGyygom0Bfx+B7TWkz1Bi6n5v812bZgvEY79KzbqSVhMG
-	GIZkWc=
-X-Google-Smtp-Source: AGHT+IFepm1FbWcP+64RKyihgwcpbWxnOUU+/c2gMUIZRhSEOrX4dBwblM9Q9Ccja2smHCVu7RRfgMLCNcfIzhRlUms=
-X-Received: by 2002:a05:6402:4548:b0:62d:bfd:b3af with SMTP id
- 4fb4d7f45d1cf-62ed8301f7emr4732078a12.27.1757737318699; Fri, 12 Sep 2025
- 21:21:58 -0700 (PDT)
+  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazoncorp2;
+  t=1757931330; x=1789467330;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=ZvQ+c1vVkSnOsX9uWa42mm4Y1xQwU137w0177dY9K94=;
+  b=H24x3boBcu7v1A3/uJTfnOxp8P981JG2swrZSt9XU7DucuDjV3VyLivX
+   4yWT2n2Zj9yQePOQ0ME79SqLNp53SJMacUH3aAwvS1dr7Zg0mJ1/LCMoh
+   QtY315muCAZSL2VP36DBtlJ5NNlJsa5UciTDt/eRwuizOxdLBtLYZ+7J5
+   aw+BQ+X15D+zKthFF1QKCtnVm9ClZvk/8+Dd6sGitJFcMmfvYjcDz9iN7
+   GhqEslj/cYLymWDGCYtu8/jl+z9r2maGO5tIPT3JgEkX8Cwf2SkyM6qWs
+   EgZvM1S5oWOlnNaABvGstPVuYTQ8h1HDPJ+j1ov12k2Wg9BgzLBPU6uD5
+   g==;
+X-CSE-ConnectionGUID: 7V3sTs8+QaOed5oQ3RG/4A==
+X-CSE-MsgGUID: nBUeqQLETPOV8up8YAT6gQ==
+X-IronPort-AV: E=Sophos;i="6.18,265,1751241600"; 
+   d="scan'208";a="2890406"
+Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
+  by internal-pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2025 10:15:28 +0000
+Received: from EX19MTAUWB002.ant.amazon.com [10.0.21.151:44557]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.60.76:2525] with esmtp (Farcaster)
+ id 0f51da61-bb62-4199-98c0-c13ee554b8ea; Mon, 15 Sep 2025 10:15:28 +0000 (UTC)
+X-Farcaster-Flow-ID: 0f51da61-bb62-4199-98c0-c13ee554b8ea
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20;
+ Mon, 15 Sep 2025 10:15:25 +0000
+Received: from dev-dsk-acsjakub-1b-6f9934e2.eu-west-1.amazon.com
+ (172.19.75.107) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20; Mon, 15 Sep 2025
+ 10:15:24 +0000
+From: Jakub Acs <acsjakub@amazon.de>
+To: <linux-unionfs@vger.kernel.org>
+CC: <acsjakub@amazon.de>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein
+	<amir73il@gmail.com>, <linux-kernel@vger.kernel.org>,
+	<stable@vger.kernel.org>
+Subject: [PATCH] ovl: check before dereferencing s_root field
+Date: Mon, 15 Sep 2025 10:15:10 +0000
+Message-ID: <20250915101510.7994-1-acsjakub@amazon.de>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <87plbvadpw.fsf@slackpad.slackpad.domain>
-In-Reply-To: <87plbvadpw.fsf@slackpad.slackpad.domain>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 13 Sep 2025 06:21:47 +0200
-X-Gm-Features: Ac12FXw3QROKXvTkPTrtypnOmA0T8Ycg59W6gzc0DO-rNPnsnMxQSw2zB8IieCE
-Message-ID: <CAOQ4uxiXXz6rev8KESgeBamy-EJAm2-Yan-721SPp2PMtb6ttw@mail.gmail.com>
-Subject: Re: Support for including nested mountpoints in overlay?
-To: Nicholas Hubbard <nicholashubbard@posteo.net>
-Cc: linux-unionfs@vger.kernel.org, Antonio SJ Musumeci <trapexit@spawn.link>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-ClientProxiedBy: EX19D033UWA004.ant.amazon.com (10.13.139.85) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 12, 2025 at 5:55=E2=80=AFPM Nicholas Hubbard
-<nicholashubbard@posteo.net> wrote:
->
-> Hello everybody,
->
-> I have just started working with overlayfs, and ran into a problem. Speci=
-fically
-> I wanted to overlay the root of my filesystem with a command like the fol=
-lowing:
->
-> # mount -t overlay overlay -o lowerdir=3D/,upperdir=3D./tmp-upper,workdir=
-=3D./tmp-work ./merged
->
-> However, I noticed that my nested btrfs subvolumes and boot partition wer=
-e not
-> included in ./merged. I quickly learned though that you could have multip=
-le
-> lowerdirs. So next I tried the following command (I have a nested btrfs s=
-ubvolume
-> at /home, and my boot partition mounted at /boot):
->
-> # mount -t overlay overlay -o lowerdir=3D/:/home:/boot,upperdir=3D./tmp-u=
-pper,workdir=3D./tmp-work ./merged
->
-> I was expecting that now I would have (for example) the following directo=
-ries:
->
-> ./merged/home/$USER
-> ./merged/boot/grub
->
-> However I instead had:
->
-> ./merged/$USER
-> ./merged/grub
->
-> Which shows that all the lowerdirs are placed right at the root of the me=
-rgedir.
->
-> So I have two questions.
->
-> 1. Is there a (easy) way say "I want to include all nested mountpoints in=
-to the
->    overlay in their same directories"?
+Calling intotify_show_fdinfo() on fd watching an overlayfs inode, while
+the overlayfs is being unmounted, can lead to dereferencing NULL ptr.
 
-No. not in general. but maybe specifically for btrfs subvolumes
-you can do it because they are all accessible via the btrfs root mount.
+This issue was found by syzkaller.
 
-If all your lower dirs are on the same btrfs filesystem
-and the subvolumes are also accessible via some path is root mount
-(e.g. /subvols), then something like may work for you:
+Race Condition Diagram:
 
-mount -t overlay overlay -o
-lowerdir=3D/,upperdir=3D./tmp-upper,workdir=3D./tmp-work ./merged
+Thread 1                           Thread 2
+--------                           --------
 
-rmdir ./merged/home
-rmdir ./merged/boot
-mv ./merged/subvols/home ./merged/home
-mv ./merged/subvols/boot ./merged/boot
+generic_shutdown_super()
+ shrink_dcache_for_umount
+  sb->s_root = NULL
 
-Never tried it with btrfs subvols, so it may not work.
+                    |
+                    |             vfs_read()
+                    |              inotify_fdinfo()
+                    |               * inode get from mark *
+                    |               show_mark_fhandle(m, inode)
+                    |                exportfs_encode_fid(inode, ..)
+                    |                 ovl_encode_fh(inode, ..)
+                    |                  ovl_check_encode_origin(inode)
+                    |                   * deref i_sb->s_root *
+                    |
+                    |
+                    v
+ fsnotify_sb_delete(sb)
 
-> 2. If there is not a (easy) way to do this, do you think it would be both=
- feasible
->    and useful to add such a feature?
+Which then leads to:
 
-The general case of "include all nested mountpoints" is just way too far of=
-f
-from the current overlayfs design. Too hard to explain why.
+[   32.133461] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000006: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
+[   32.134438] KASAN: null-ptr-deref in range [0x0000000000000030-0x0000000000000037]
+[   32.135032] CPU: 1 UID: 0 PID: 4468 Comm: systemd-coredum Not tainted 6.17.0-rc6 #22 PREEMPT(none)
 
-I suggest that you look at FUSE alternatives like
-https://github.com/trapexit/mergerfs
+<snip registers, unreliable trace>
 
-Not sure if mergerfs supports this use case, but I think a userspace
-union fs is in a better position to add support to this if desired.
+[   32.143353] Call Trace:
+[   32.143732]  ovl_encode_fh+0xd5/0x170
+[   32.144031]  exportfs_encode_inode_fh+0x12f/0x300
+[   32.144425]  show_mark_fhandle+0xbe/0x1f0
+[   32.145805]  inotify_fdinfo+0x226/0x2d0
+[   32.146442]  inotify_show_fdinfo+0x1c5/0x350
+[   32.147168]  seq_show+0x530/0x6f0
+[   32.147449]  seq_read_iter+0x503/0x12a0
+[   32.148419]  seq_read+0x31f/0x410
+[   32.150714]  vfs_read+0x1f0/0x9e0
+[   32.152297]  ksys_read+0x125/0x240
 
-Thanks,
-Amir.
+IOW ovl_check_encode_origin derefs inode->i_sb->s_root, after it was set
+to NULL in the unmount path.
+
+Minimize the window of opportunity by adding explicit check.
+
+Fixes: c45beebfde34 ("ovl: support encoding fid from inode with no alias")
+Signed-off-by: Jakub Acs <acsjakub@amazon.de>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+---
+
+I'm happy to take suggestions for a better fix - I looked at taking
+s_umount for reading, but it wasn't clear to me for how long would the
+fdinfo path need to hold it. Hence the most primitive suggestion in this
+v1.
+
+I'm also not sure if ENOENT or EBUSY is better?.. or even something else?
+
+ fs/overlayfs/export.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 83f80fdb1567..424c73188e06 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -195,6 +195,8 @@ static int ovl_check_encode_origin(struct inode *inode)
+ 	if (!ovl_inode_lower(inode))
+ 		return 0;
+ 
++	if (!inode->i_sb->s_root)
++		return -ENOENT;
+ 	/*
+ 	 * Root is never indexed, so if there's an upper layer, encode upper for
+ 	 * root.
+-- 
+2.47.3
+
+
+
+
+Amazon Web Services Development Center Germany GmbH
+Tamara-Danz-Str. 13
+10243 Berlin
+Geschaeftsfuehrung: Christian Schlaeger, Jonathan Weiss
+Eingetragen am Amtsgericht Charlottenburg unter HRB 257764 B
+Sitz: Berlin
+Ust-ID: DE 365 538 597
+
