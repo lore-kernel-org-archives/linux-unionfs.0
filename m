@@ -1,44 +1,85 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3B9277C8A;
-	Wed, 17 Sep 2025 20:46:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8479F2DF124
+	for <linux-unionfs@vger.kernel.org>; Thu, 18 Sep 2025 09:59:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758142009; cv=none; b=Bqv+dSYMpO7Wm9LIr/mVt76gHcHqaNMXQiq8KrAcAstwfl8G+8PVneheO9aywMHttoAB4niVjJIqcNb45nthpMb9QCLML8tCvUrp92uu7QufylrrjgB1zRfyUjGuuhzHKDonAOyTgXvPCRieUT1RCusf34f5bcrWtuwEMUQWHWs=
+	t=1758189559; cv=none; b=uNNT5yYOhjJZJBHfBVK0voejWaenh0GjPN/6COBOkPh8Nv6dnaXSodfh1Fp0q2gvtAR1uCtKq0E8FSGxOucBV6N/oLxKYoG3hh6BpLvJK1IVgv25CaM88XMjZYDfxNaG5VbY/aw2aq43VYLyade1YPsMGL7nUojCfti1qGYlJ9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758142009; c=relaxed/simple;
-	bh=uIun9QFzl3LeXOGiX/5tJwz7Yglvx13McHScv+ZZybE=;
+	s=arc-20240116; t=1758189559; c=relaxed/simple;
+	bh=0RqsuiwyKINatYSR4jMGpA2kcsw74TNDR71ONXIxGVw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rJlgIy/HtTrMg2JzuJgZt1z0PEh8EJpmPzgP3uPn7b/yMJvWYMOdkNJXqS+7NPR07iNR3xRoUOqC4o2sqCPhTujpuC+syLKpkyEQmnb+YRtCRCNjg4oGlzXsREyXI2kfYjowJjjx1l+5HrGOP3aQ3IFyQOMa5CGc5TGSzWddTbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=rVD7Ywv0; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	 Content-Type:Content-Disposition:In-Reply-To; b=agPRdmjZyW8zZR/uQozeBrdfFq77EPEdSggvYHGGIegt09vh5ZhR1EVQnniQ6QrfmrwKsF3OSnxcQvIz1B+nq3qhHPaGzaq/vHbdjWbrQ4ATFCvO5Uk2GDuuo/DlA2Fr46LQPKBM8SsQ1VObo9kwQXMBNnMngTgvgkByN6wrkvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=3GuC4/0E; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=6C39Yrta; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=3GuC4/0E; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=6C39Yrta; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="rVD7Ywv0"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=+xTNLmr82yCIG6ykRBw7UqLF/vhCLhwnMm6IP4Jqnss=; b=rVD7Ywv076+SZ0KBpBwwpCL+3y
-	4a3VLKiCodruLJ1FR7pzgXGQPWZncQThl7GXLrgL0Zd6COgD5xwtIkU05QctyLNav8tliPCIe40fz
-	G0tPNAhz3ZLCW+tx1hYTn4xcgJKMfAjjmYDKEjTEqCmV5f0In5BEDqWxzzZ76GSvLn+OSsbjTbB9f
-	MSN2Im71Gq4S5/cFEflhKwDe4CZWrKbBlA2ycHdPEa6r9fI1UP59cD0j3OKvNn+MivPb1pwimaTRc
-	0/oH0m2Vfq4kDQkJwlT5elDFPyE59LeJEyuKWtndGzkOUbliUFWS9i7BPtMiRl1BZTsN7m4vjrPpm
-	xCj1WQiA==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uyz37-000000089QW-2x1E;
-	Wed, 17 Sep 2025 20:46:45 +0000
-Date: Wed, 17 Sep 2025 21:46:45 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Jan Kara <jack@suse.cz>, Jakub Acs <acsjakub@amazon.de>,
-	linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="3GuC4/0E";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="6C39Yrta";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="3GuC4/0E";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="6C39Yrta"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id A50FF3370E;
+	Thu, 18 Sep 2025 09:59:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1758189555; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=v86nF+pbQuZ2GvN5imRKeIaZ48Qi34wAMqRkUSzBUxg=;
+	b=3GuC4/0ESPjQC3pmzIZ8bUCKHTf/JnNQrCqYYL9kmgf85s872lNOzwXwhKUuxkWBLC2WyB
+	s2R6wFu5VsG+nCwu65iLBy8RDidVPcj+vriWINrK6M18sij6Y/TJ2um4t+qOLPBnx4drYq
+	bL0D9MtXtRERWp3NFmAKgwD1rwe74LA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1758189555;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=v86nF+pbQuZ2GvN5imRKeIaZ48Qi34wAMqRkUSzBUxg=;
+	b=6C39YrtawpyxD3kT6zBqWw3NoYY63UzNAjAlne7/PNQwND2TcTzmnUMngyuaa7EIaYb43S
+	t41Z2/gB+1zvY9DA==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1758189555; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=v86nF+pbQuZ2GvN5imRKeIaZ48Qi34wAMqRkUSzBUxg=;
+	b=3GuC4/0ESPjQC3pmzIZ8bUCKHTf/JnNQrCqYYL9kmgf85s872lNOzwXwhKUuxkWBLC2WyB
+	s2R6wFu5VsG+nCwu65iLBy8RDidVPcj+vriWINrK6M18sij6Y/TJ2um4t+qOLPBnx4drYq
+	bL0D9MtXtRERWp3NFmAKgwD1rwe74LA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1758189555;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=v86nF+pbQuZ2GvN5imRKeIaZ48Qi34wAMqRkUSzBUxg=;
+	b=6C39YrtawpyxD3kT6zBqWw3NoYY63UzNAjAlne7/PNQwND2TcTzmnUMngyuaa7EIaYb43S
+	t41Z2/gB+1zvY9DA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 902A913A51;
+	Thu, 18 Sep 2025 09:59:15 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id C//kIvPXy2giZQAAD6G6ig
+	(envelope-from <jack@suse.cz>); Thu, 18 Sep 2025 09:59:15 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id DA616A09B1; Thu, 18 Sep 2025 11:59:14 +0200 (CEST)
+Date: Thu, 18 Sep 2025 11:59:14 +0200
+From: Jan Kara <jack@suse.cz>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Amir Goldstein <amir73il@gmail.com>, Jan Kara <jack@suse.cz>, 
+	Jakub Acs <acsjakub@amazon.de>, linux-unionfs@vger.kernel.org, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
+	Christian Brauner <brauner@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Subject: Re: [PATCH] ovl: check before dereferencing s_root field
-Message-ID: <20250917204645.GC39973@ZenIV>
+Message-ID: <vtan7uaf5mf35zxy6pma6sdahxr7idv2awaf7yh7vtyhxsoram@2au7ec4hto7i>
 References: <20250915101510.7994-1-acsjakub@amazon.de>
  <CAOQ4uxgXvwumYvJm3cLDFfx-TsU3g5-yVsTiG=6i8KS48dn0mQ@mail.gmail.com>
  <x4q65t5ar5bskvinirqjbrs4btoqvvvdsce2bdygoe33fnwdtm@eqxfv357dyke>
@@ -57,9 +98,32 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20250917204200.GB39973@ZenIV>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_TLS_LAST(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	RCVD_COUNT_THREE(0.00)[3];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	ARC_NA(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FREEMAIL_CC(0.00)[gmail.com,suse.cz,amazon.de,vger.kernel.org,szeredi.hu,kernel.org];
+	MISSING_XM_UA(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[10];
+	TO_DN_SOME(0.00)[]
+X-Spam-Flag: NO
+X-Spam-Score: -3.80
 
-On Wed, Sep 17, 2025 at 09:42:00PM +0100, Al Viro wrote:
+On Wed 17-09-25 21:42:00, Al Viro wrote:
 > On Wed, Sep 17, 2025 at 01:07:45PM +0200, Amir Goldstein wrote:
 > 
 > > diff --git a/fs/dcache.c b/fs/dcache.c
@@ -86,5 +150,21 @@ On Wed, Sep 17, 2025 at 09:42:00PM +0100, Al Viro wrote:
 > 
 > What the fuck is fsnotify playing at?
 
-PS: there is a whole lot of the logics in e.g. shrink_dcache_for_umount()
-that relies on nobody else messing with dentry tree by that point.
+The problem is fsnotify marks aren't shutdown until generic_shutdown_super()
+calls fsnotify_sb_delete(). So until that moment fsnotify can be generating
+events for the filesystem. Sure, userspace has no longer access to the fs
+but stuff like delayed inode deletion or other in-kernel users can still
+result in events being generated and these events may end up creating file
+handles to report to userspace.
+
+We have already uncovered with Amir quite a few moments how this is broken
+so I agree that the best solution is to shutdown fsnotify before we call
+shrink_dcache_for_umount(). The slight problem is this means iterating all
+inodes in the sb which is costly when you have millions of them (this is
+the reason why fsnotify_sb_delete() is currently called after
+evict_inodes()). So it needs more work on fsnotify side...
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
