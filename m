@@ -1,136 +1,244 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6773F305942
-	for <linux-unionfs@vger.kernel.org>; Mon, 22 Sep 2025 11:41:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22380258EFF
+	for <linux-unionfs@vger.kernel.org>; Tue, 23 Sep 2025 10:47:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758541315; cv=none; b=LdSxoKWs9Y+6r/hmo6RQuDuFwwJe8RG9dwOTym8SoI78QAJDVx/dmJaRF/Ywr3HBzkbe9NQLWfYbw3SGaSjqc1D9RZpz9JNpnBuw3DGk4AN/9SXBJ67YyHqUF095IEwK8JLKjv27IK1uDC61PwMce0XfMFP8mb6Z1TaJ0mAsUiw=
+	t=1758624446; cv=none; b=Ago9EKwGkHtlAuBS3ak0Oz57K9sbyLV3QcSzJAL2PFVa49a+loRt5Q4uaUXTWwM+O96vPCrHxcX8mTAQqT8lq+2v0fO9XM8jI+sGoKZdehNtYamOUkImXPqS8UiB/6cHNH/lvtlCLHG/RUz7/RqqFu0DJKscQh6ukxijLsBfo/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758541315; c=relaxed/simple;
-	bh=C01t2mpoYeYjnOIRq0tSlGySjgXDSbHsQ5Ik9kqEi38=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Wel1yPdCvb8b9xyERR5AhMVjoW+Veh/ZBh9K7gCnChCusuGgXr6q2Ux2ne8mRDpUs7e0T+0c8S2hAnkY/Qs6f+0FVd+RHUxUByxW+URWhkranf0mRJ+8E5rEEhIaU3G9+6gURgXgQ16y04yNVFUXKO1DkmWbnt18yl6RlTdOOpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WuVX1AU9; arc=none smtp.client-ip=209.85.208.49
+	s=arc-20240116; t=1758624446; c=relaxed/simple;
+	bh=y/G4XbLsOtwbe7wZLOUdsUIV02Do/ytAsS2jVq680LY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=P3WBBXpt9T4kp2SOj26g32G5sCbJ/yq+xeJjYPVQSkkuA/Y9tWajboY5BuOHr7olf/wgRK1doq8ZqPp/cXBIS9qLLV6uS/Oif7RBY+Ro1sbd2R0P/0Dzx2dkbm6gyIV+beAZULCScy2XTkKsKKR2jtDb5CxPDx2v4XIwQjTVMwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TBo+ivWt; arc=none smtp.client-ip=209.85.128.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WuVX1AU9"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-6228de280a4so6362175a12.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 22 Sep 2025 04:41:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TBo+ivWt"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-46cbdf513d7so22923645e9.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 Sep 2025 03:47:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1758541312; x=1759146112; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4oxOygCk0VGPCeiSDXfT7In4HSAzQPM3WJ9lPT+HFHo=;
-        b=WuVX1AU9K8db6Rp3W95D7qD/Qj887l0Vfl7kugqoXU5qrx62hqt6sQVJNNaGHcD7tl
-         G4tNt++tceTN5OR3bVD6fOkXDI/Xg9xZ8XI/5g+zUhal3nQeyd7TMJmpY9Q8vqVM5aC9
-         j6QeijKVD4uCs2RdfZuPpFHC6AZoZYesQaU7Asln/rtO5VLKN+jXxPOHgikTwL0DBWbg
-         oiMhTfxl9saiBGZdouYsyAfqsOsg811tYhsNHVsWLpqUVmkFOEYYlSt+1tCrSqmxjxSv
-         Df51QlDaTgY+xmDNHptsjzNcqLOVCa/or/n2HFBCCmqeYGO9svxem1R40yP1S3T5e3rE
-         tMGw==
+        d=gmail.com; s=20230601; t=1758624442; x=1759229242; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=NQ/yJT0cXoTi93BkEkS2U1cj1fcL5N5BV/EnPhmld9E=;
+        b=TBo+ivWtKLw2hvE4/ADdLULoCxdkqBngZ17HuFzdjLfw12wejEHkhAMxEp3Ee+g4r/
+         QkY+gyF49Zdjshfp2GkfrTXeAkGqlPQPAwE5XnEKSBlx7KePFyhqCq5xtq2poZu3WhTU
+         tosNaDOevVyDAjGj57CGR/WNm4sSmAc1pvRLpDxuXhPArh3IRdKSfwacAoyRWbOsMVEL
+         +35zAFhSYquvoPUN4+OUJngaR3cg/BGoGVAU9OQF/nMXU6B0pjoZeTUj1l7jRA9Li5nm
+         cslIYloBZQl8e+x/dmZ4oq3JQBz6BExLlD7Qx/73qgdd+i3Wit9F0JWCDrQ/QGaSftPX
+         bGAw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1758541312; x=1759146112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=4oxOygCk0VGPCeiSDXfT7In4HSAzQPM3WJ9lPT+HFHo=;
-        b=UMhORm/Vu6z7auLOdCtFt305dbAP3I5XCyQqB7B+BmILjzCEavdoAHxXtW5DMYaCxJ
-         QCqhs1bfDCQ2YeLaqJ5OZu2SNA5WNGtwCY3kMcm7GCOntxpzamcbvnKNdclVioVSZ9b6
-         WYrOASpOZfupK/QI31le9GlqqRYIAXeedswyYwAVhgJxpA2y9RyWIc0AiP2QXmzJzVb0
-         TECigNfL/kg6O4WQv18JK6F9oIPR+fYV6RcA6F22VcK7tOqutwGR/tVp3H/aFwInQpbP
-         /sEM2SiaZsIllEMfbPVPE+XHEk8kqBmjXV++6KIOTqfpi1FAl0BickUGKCpxHrBuDAKF
-         Sh+A==
-X-Forwarded-Encrypted: i=1; AJvYcCUNw78ZQpHwZnxoVlRrTZg8spIptvPMP+mQD87JO96Ma43cWbnPmuHfg0FR3jve3SJwOUq+/TJwPSt2I+7L@vger.kernel.org
-X-Gm-Message-State: AOJu0YxibXXXhldRgv2umQn6U3ijIJjf8PH1+PFF6I8wPqR4yv8GgHh8
-	lJxGnXfIQ94mhICT18CTrRnsqtmKICIPOH91+4jdvz8OGKQWsYEM1z1pOVUpGvBbmIyj3Jyaifr
-	vFFLMYmrcLA0ZA5wp6NuC1+WdFZqN1WmmKCMQ
-X-Gm-Gg: ASbGnctgKMgOWW/4o+nzk8htYEjuE/8YgBQG4TCV4psNkks4XBXkKbuN+Y9YOK0BAqo
-	josQil3oCDImzDCpFap/XAN0C6JDdn9v/Q3vcILBRiBb4K1npTGJkbKQPUrYHARQaQQlO2zGgP/
-	ZjWm4eoBmzquQZtFvG/84j7cczyw9AOdGyi3kDlWuXnYerhwHX//hitXdcQ+KmcVk8MzqaZAG5A
-	j+tiWYDSmfBtH0kZe0OFl8v07bL4kL4SI0AsQ==
-X-Google-Smtp-Source: AGHT+IFkrvZLkom9QBciHs6IeDWT1d22c0w/ez/+uji1phZB9oJtSgu7MJFyeNNpyTK/5sCVjxhsAiXVpi0xe+B+ZLc=
-X-Received: by 2002:a05:6402:5355:20b0:62f:6860:2d86 with SMTP id
- 4fb4d7f45d1cf-62fc08f2e01mr9371365a12.12.1758541311797; Mon, 22 Sep 2025
- 04:41:51 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1758624442; x=1759229242;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=NQ/yJT0cXoTi93BkEkS2U1cj1fcL5N5BV/EnPhmld9E=;
+        b=uMkrdwATF04p9zzghmMjWyy8P9jVHuqk9Tzo9J8cw0RVmsR2+NF1aKGKWAzFYATLlV
+         v6w1vATiIGQW0JPVvXM3D2cu6Fi7mj8ZzqryTMyoo9AlJplAHRX/9J0qbK8Bw5+XaKDA
+         PtsaPCgF+FzaOISgQKo6CXTDdv9j36l2eaib45EWsnaneREsFytNaZ8yBMW4Kj2ymB5H
+         eQsHwWB31G6jC8gJZLCufXxilGIP3jg0mIKK8pgSaPnGwJsaN1/IFqDmPxZ+FiemFah2
+         gTAI3XvVK3wRIqqBMi9AsCYHV6efXFsiIrKTCn/BJDaDzAShSELeWpSVaD1zYFmbShNs
+         9vOA==
+X-Forwarded-Encrypted: i=1; AJvYcCX5jqtbbyZGCH+gx8pjiUB5I75Ut0zOkGdw2+IJSdl8mSTSxOijxA+U/xUQuqGSedPEhwV1ysXQhPiEUodx@vger.kernel.org
+X-Gm-Message-State: AOJu0YyGdS1bFTjBU0/Ph7chDSg6Hcr2sg6xDq6e83PLSMAiOhL9ytog
+	gFqsbdiAsGK/qVieYfk4YHuTlHNLPDFBL3lXe1gc+UZYj2jBpyK39iuo
+X-Gm-Gg: ASbGnctb1naiMG0z0e7qRWMrAdV0DSFlAE8mDyLyE5pQxokIxNkHhi1heCtFTXB4hC9
+	GwxUwjk+8tdVQC10sdaAqiYsZ5AGLwKdtmeV5PLdGaMramstQFOocu9uROVd2tN5k9sOEKdMNtB
+	kxVxJYoPRjvlqkyeb7+D6wxW2odxefdn5VBNjMw29KHVVdip40lOcVAvnOh85MSmseRvVQCTr71
+	+uRbLSuKC21a8j4TFgka25IvtHR9QxOEE/Hzoi663FySvbYc/1BqzcCMg0liZPPWOHAPhqPVkev
+	YZi5KTO21GcBegBgU9Sfw2qhUMOrlIexPLVLEyCiYFGqtnuwEtoQQ9Awkf3hWJ6NOpZhIvpRurX
+	riTX7jhN0weoNqeXq0VJOKj3QVxsrPglZmHXxSdaH7bdMUKqXzB0z4WuQuu8W0INWOr7p0g==
+X-Google-Smtp-Source: AGHT+IGft/P7UVkw9hjNEMIp8gNGN2bfm7hLyZ+3GJgcSiUgUNJfZvWbxjLWOrPgRhiQYwqyWsexaA==
+X-Received: by 2002:a05:600c:3baa:b0:46e:1f92:49aa with SMTP id 5b1f17b1804b1-46e1f924cd6mr18699845e9.15.1758624442124;
+        Tue, 23 Sep 2025 03:47:22 -0700 (PDT)
+Received: from f.. (cst-prg-21-74.cust.vodafone.cz. [46.135.21.74])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-46e23adce1bsm9710525e9.24.2025.09.23.03.47.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 23 Sep 2025 03:47:21 -0700 (PDT)
+From: Mateusz Guzik <mjguzik@gmail.com>
+To: brauner@kernel.org
+Cc: viro@zeniv.linux.org.uk,
+	jack@suse.cz,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	josef@toxicpanda.com,
+	kernel-team@fb.com,
+	amir73il@gmail.com,
+	linux-btrfs@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-xfs@vger.kernel.org,
+	ceph-devel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	Mateusz Guzik <mjguzik@gmail.com>
+Subject: [PATCH v6 0/4] hide ->i_state behind accessors
+Date: Tue, 23 Sep 2025 12:47:06 +0200
+Message-ID: <20250923104710.2973493-1-mjguzik@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250919154905.2592318-1-mjguzik@gmail.com> <20250919154905.2592318-4-mjguzik@gmail.com>
- <ayjwe2moaswosrvcv6mhd2wztwvexfjgy6dfnxxegnhppca7ac@75h6kmoj32e6>
-In-Reply-To: <ayjwe2moaswosrvcv6mhd2wztwvexfjgy6dfnxxegnhppca7ac@75h6kmoj32e6>
-From: Mateusz Guzik <mjguzik@gmail.com>
-Date: Mon, 22 Sep 2025 13:41:37 +0200
-X-Gm-Features: AS18NWDd4DNKu221LBJSwOQahHDo9s8BoIUAMr0lDu2p-ZCeBCjMIxMDm9gSAD0
-Message-ID: <CAGudoHF6Q4xh=fiRwJ6+qiQSxovj3BeSdZYANAOQ_NnZg3bOXA@mail.gmail.com>
-Subject: Re: [PATCH v5 3/4] Manual conversion of ->i_state uses
-To: Jan Kara <jack@suse.cz>
-Cc: brauner@kernel.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, josef@toxicpanda.com, kernel-team@fb.com, 
-	amir73il@gmail.com, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Sep 22, 2025 at 1:31=E2=80=AFPM Jan Kara <jack@suse.cz> wrote:
->
-> On Fri 19-09-25 17:49:03, Mateusz Guzik wrote:
-> > Takes care of spots not converted by coccinelle.
-> >
-> > Nothing to look at with one exception: smp_store_release and
-> > smp_load_acquire pair replaced with a manual store/load +
-> > smb_wmb()/smp_rmb(), see I_WB_SWITCH.
-> >
-> > Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
->
-> ...
->
-> > diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
-> > index 0e9e96f10dd4..745df148baaa 100644
-> > --- a/fs/fs-writeback.c
-> > +++ b/fs/fs-writeback.c
-> > @@ -478,8 +478,8 @@ static bool inode_do_switch_wbs(struct inode *inode=
-,
-> >        * Paired with load_acquire in unlocked_inode_to_wb_begin() and
-> >        * ensures that the new wb is visible if they see !I_WB_SWITCH.
-> >        */
-> > -     smp_store_release(&inode->i_state,
-> > -                       inode_state_read(inode) & ~I_WB_SWITCH);
-> > +     smp_wmb();
-> > +     inode_state_del(inode, I_WB_SWITCH);
-> >
-> >       xa_unlock_irq(&mapping->i_pages);
-> >       spin_unlock(&inode->i_lock);
->
-> Comments need updating here and in backing-dev.h...
->
+First commit message quoted verbatim with rationable + API:
 
-turns out func name in the comment is also outdated
+[quote]
+Open-coded accesses prevent asserting they are done correctly. One
+obvious aspect is locking, but significantly more can checked. For
+example it can be detected when the code is clearing flags which are
+already missing, or is setting flags when it is illegal (e.g., I_FREEING
+when ->i_count > 0).
 
-> > diff --git a/include/linux/backing-dev.h b/include/linux/backing-dev.h
-> > index e721148c95d0..720e5f8ad782 100644
-> > --- a/include/linux/backing-dev.h
-> > +++ b/include/linux/backing-dev.h
-> > @@ -292,7 +292,8 @@ unlocked_inode_to_wb_begin(struct inode *inode, str=
-uct wb_lock_cookie *cookie)
-> >        * Paired with store_release in inode_switch_wbs_work_fn() and
-> >        * ensures that we see the new wb if we see cleared I_WB_SWITCH.
-> >        */
-> > -     cookie->locked =3D smp_load_acquire(&inode->i_state) & I_WB_SWITC=
-H;
-> > +     cookie->locked =3D inode_state_read(inode) & I_WB_SWITCH;
-> > +     smp_rmb();
-> >
-> >       if (unlikely(cookie->locked))
-> >               xa_lock_irqsave(&inode->i_mapping->i_pages, cookie->flags=
-);
->
->                                                                 Honza
-> --
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
+Given the late stage of the release cycle this patchset only aims to
+hide access, it does not provide any of the checks.
+
+Consumers can be trivially converted. Suppose flags I_A and I_B are to
+be handled, then:
+
+state = inode->i_state          => state = inode_state_read(inode)
+inode->i_state |= (I_A | I_B)   => inode_state_set(inode, I_A | I_B)
+inode->i_state &= ~(I_A | I_B)  => inode_state_clear(inode, I_A | I_B)
+inode->i_state = I_A | I_B      => inode_state_assign(inode, I_A | I_B)
+[/quote]
+
+Right now this is one big NOP, except for READ_ONCE/WRITE_ONCE for every access.
+
+Given this, I decided to not submit any per-fs patches. Instead, the
+conversion is done in 2 parts: coccinelle and whatever which was missed.
+
+Generated against:
+https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git/commit/?h=vfs-6.18.inode.refcount.preliminaries
+
+v6:
+- rename routines:
+set -> assign; add -> set; del -> clear
+- update commentary in patch 3 replacing smp_store/load with smp_wmb/rmb
+
+v5:
+- drop lockdep for the time being
+
+v4:
+https://lore.kernel.org/linux-fsdevel/CAGudoHFViBUZ4TPNuLWC7qyK0v8LRwxbpZd9Mx3rHdh5GW9CrQ@mail.gmail.com/T/#m866b3b5740691de9b4008184a9a3f922dfa8e439
+
+
+Mateusz Guzik (4):
+  fs: provide accessors for ->i_state
+  Convert the kernel to use ->i_state accessors
+  Manual conversion of ->i_state uses
+  fs: make plain ->i_state access fail to compile
+
+ Documentation/filesystems/porting.rst |   2 +-
+ block/bdev.c                          |   4 +-
+ drivers/dax/super.c                   |   2 +-
+ fs/9p/vfs_inode.c                     |   2 +-
+ fs/9p/vfs_inode_dotl.c                |   2 +-
+ fs/affs/inode.c                       |   2 +-
+ fs/afs/dynroot.c                      |   6 +-
+ fs/afs/inode.c                        |   6 +-
+ fs/bcachefs/fs.c                      |   8 +-
+ fs/befs/linuxvfs.c                    |   2 +-
+ fs/bfs/inode.c                        |   2 +-
+ fs/btrfs/inode.c                      |  10 +--
+ fs/buffer.c                           |   4 +-
+ fs/ceph/cache.c                       |   2 +-
+ fs/ceph/crypto.c                      |   4 +-
+ fs/ceph/file.c                        |   4 +-
+ fs/ceph/inode.c                       |  28 +++---
+ fs/coda/cnode.c                       |   4 +-
+ fs/cramfs/inode.c                     |   2 +-
+ fs/crypto/keyring.c                   |   2 +-
+ fs/crypto/keysetup.c                  |   2 +-
+ fs/dcache.c                           |   8 +-
+ fs/drop_caches.c                      |   2 +-
+ fs/ecryptfs/inode.c                   |   6 +-
+ fs/efs/inode.c                        |   2 +-
+ fs/erofs/inode.c                      |   2 +-
+ fs/ext2/inode.c                       |   2 +-
+ fs/ext4/inode.c                       |  10 +--
+ fs/ext4/orphan.c                      |   4 +-
+ fs/f2fs/data.c                        |   2 +-
+ fs/f2fs/inode.c                       |   2 +-
+ fs/f2fs/namei.c                       |   4 +-
+ fs/f2fs/super.c                       |   2 +-
+ fs/freevxfs/vxfs_inode.c              |   2 +-
+ fs/fs-writeback.c                     | 123 +++++++++++++-------------
+ fs/fuse/inode.c                       |   4 +-
+ fs/gfs2/file.c                        |   2 +-
+ fs/gfs2/glops.c                       |   2 +-
+ fs/gfs2/inode.c                       |   4 +-
+ fs/gfs2/ops_fstype.c                  |   2 +-
+ fs/hfs/btree.c                        |   2 +-
+ fs/hfs/inode.c                        |   2 +-
+ fs/hfsplus/super.c                    |   2 +-
+ fs/hostfs/hostfs_kern.c               |   2 +-
+ fs/hpfs/dir.c                         |   2 +-
+ fs/hpfs/inode.c                       |   2 +-
+ fs/inode.c                            | 100 ++++++++++-----------
+ fs/isofs/inode.c                      |   2 +-
+ fs/jffs2/fs.c                         |   4 +-
+ fs/jfs/file.c                         |   4 +-
+ fs/jfs/inode.c                        |   2 +-
+ fs/jfs/jfs_txnmgr.c                   |   2 +-
+ fs/kernfs/inode.c                     |   2 +-
+ fs/libfs.c                            |   6 +-
+ fs/minix/inode.c                      |   2 +-
+ fs/namei.c                            |   8 +-
+ fs/netfs/misc.c                       |   8 +-
+ fs/netfs/read_single.c                |   6 +-
+ fs/nfs/inode.c                        |   2 +-
+ fs/nfs/pnfs.c                         |   2 +-
+ fs/nfsd/vfs.c                         |   2 +-
+ fs/nilfs2/cpfile.c                    |   2 +-
+ fs/nilfs2/dat.c                       |   2 +-
+ fs/nilfs2/ifile.c                     |   2 +-
+ fs/nilfs2/inode.c                     |  10 +--
+ fs/nilfs2/sufile.c                    |   2 +-
+ fs/notify/fsnotify.c                  |   2 +-
+ fs/ntfs3/inode.c                      |   2 +-
+ fs/ocfs2/dlmglue.c                    |   2 +-
+ fs/ocfs2/inode.c                      |  10 +--
+ fs/omfs/inode.c                       |   2 +-
+ fs/openpromfs/inode.c                 |   2 +-
+ fs/orangefs/inode.c                   |   2 +-
+ fs/orangefs/orangefs-utils.c          |   6 +-
+ fs/overlayfs/dir.c                    |   2 +-
+ fs/overlayfs/inode.c                  |   6 +-
+ fs/overlayfs/util.c                   |  10 +--
+ fs/pipe.c                             |   2 +-
+ fs/qnx4/inode.c                       |   2 +-
+ fs/qnx6/inode.c                       |   2 +-
+ fs/quota/dquot.c                      |   2 +-
+ fs/romfs/super.c                      |   2 +-
+ fs/smb/client/cifsfs.c                |   2 +-
+ fs/smb/client/inode.c                 |  14 +--
+ fs/squashfs/inode.c                   |   2 +-
+ fs/sync.c                             |   2 +-
+ fs/ubifs/file.c                       |   2 +-
+ fs/ubifs/super.c                      |   2 +-
+ fs/udf/inode.c                        |   2 +-
+ fs/ufs/inode.c                        |   2 +-
+ fs/xfs/scrub/common.c                 |   2 +-
+ fs/xfs/scrub/inode_repair.c           |   2 +-
+ fs/xfs/scrub/parent.c                 |   2 +-
+ fs/xfs/xfs_bmap_util.c                |   2 +-
+ fs/xfs/xfs_health.c                   |   4 +-
+ fs/xfs/xfs_icache.c                   |   6 +-
+ fs/xfs/xfs_inode.c                    |   6 +-
+ fs/xfs/xfs_inode_item.c               |   4 +-
+ fs/xfs/xfs_iops.c                     |   2 +-
+ fs/xfs/xfs_reflink.h                  |   2 +-
+ fs/zonefs/super.c                     |   4 +-
+ include/linux/backing-dev.h           |   7 +-
+ include/linux/fs.h                    |  42 ++++++++-
+ include/linux/writeback.h             |   4 +-
+ include/trace/events/writeback.h      |   8 +-
+ mm/backing-dev.c                      |   2 +-
+ security/landlock/fs.c                |   2 +-
+ 107 files changed, 345 insertions(+), 307 deletions(-)
+
+-- 
+2.43.0
+
