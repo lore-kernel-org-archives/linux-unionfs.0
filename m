@@ -1,208 +1,147 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f208.google.com (mail-il1-f208.google.com [209.85.166.208])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E09CB125A0;
-	Thu, 25 Sep 2025 17:15:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805F51E0DEA
+	for <linux-unionfs@vger.kernel.org>; Thu, 25 Sep 2025 17:50:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758820559; cv=none; b=KV+MGs+KECVEfIrjSR8Btf1IV9bAbxG5r3kjRfCOEOlef2ISAkM9wbqz3pGRNRG9DW7scZXrC9qcnPdffGxKBzXLK4L5QO4UyXMTRSadsT9d47ZZxhAY8fx3Zscg7V26pgwpPO9dH7ZtqO3lhDskNtKoKSUlMGQ3TWjokFUsk1w=
+	t=1758822632; cv=none; b=umTV86cWeIQd5nkijWGlYsmFT/d3mNAqwCkCSXfJ6MLJ5tYWKidvcecSZcBd3bP9JmmeGQs5Dr9gDyzKGlHSmLqry9568ceNHm3heh1YXUNsdKFyVDWtq3gO7aCbHokLIbrSRDF3rbTFtWiLNdx3wmP9l1QAVuoCDbGMRPeY/Sc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758820559; c=relaxed/simple;
-	bh=9E/YarR1AvErY3Hcy0HXVAIjT+5GipGA6Rrdw49owKc=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=SWgBvQVjwXj1o8m6Xo8JvPaCubi9fBzQguMx/E25fSKrGyOZpnbUd681E/Wzm4IlTW4sUHdTl6qUtE9CUUK8Wnbg1VXhBnkcAxO+/zkwiYSn7UU1WjckMbPY0Pvt59OqoOWW2jIhb7AXkLPEotpjU12mav75hXCyv2miMXoUBUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kdU0ZkTf; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kdU0ZkTf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 615F9C4CEF4;
-	Thu, 25 Sep 2025 17:15:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758820558;
-	bh=9E/YarR1AvErY3Hcy0HXVAIjT+5GipGA6Rrdw49owKc=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-	b=kdU0ZkTfzaBQHMEcB5lcNWndfks/mhZyClmDQxA0ck71wvhUJH23AukGvLIGCbcsX
-	 hcTqui5pg5CqWDBaQqaKz7AgrAnmBdyYpLYBgiv/HuJalzQdYxU7ECtQEOCOLldaUG
-	 0LLyWKCYMG6cYdu8Yje3H8W7RbbFLe+19Fa6vBayDMxXLEvPbKrQ5LE+KXwwx1hVjl
-	 mW3Wck0PNt5MjP77YOC9exxU/96M6ziYLwfFcaIgY18LTnYWrVDDMnNSqexdVycl+Z
-	 e5+HLgXixc1vQs+ACWvh2VJ32muj4xmPcDL9TQ8gsM6jwOrf41G8PS0CWxDxx9Ztqt
-	 OkI8QEK0Mlk5w==
-Message-ID: <8e5d91125e171f8ee3cd6a10dfb47a6d25fb83c9.camel@kernel.org>
-Subject: Re: [PATCH v3 27/38] nfsd: add notification handlers for dir events
-From: Jeff Layton <jlayton@kernel.org>
-To: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner	
- <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Chuck Lever	
- <chuck.lever@oracle.com>, Alexander Aring <alex.aring@gmail.com>, Trond
- Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, Steve
- French <sfrench@samba.org>,  Ronnie Sahlberg <ronniesahlberg@gmail.com>,
- Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, 
- Bharath SM <bharathsm@microsoft.com>, NeilBrown <neil@brown.name>, Olga
- Kornievskaia <okorniev@redhat.com>,  Dai Ngo <Dai.Ngo@oracle.com>, Jonathan
- Corbet <corbet@lwn.net>, Amir Goldstein <amir73il@gmail.com>,  Miklos
- Szeredi <miklos@szeredi.hu>, Paulo Alcantara <pc@manguebit.org>, Greg
- Kroah-Hartman	 <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>,  Danilo Krummrich	 <dakr@kernel.org>, David Howells
- <dhowells@redhat.com>, Tyler Hicks	 <code@tyhicks.com>, Namjae Jeon
- <linkinjeon@kernel.org>, Steve French	 <smfrench@gmail.com>, Sergey
- Senozhatsky <senozhatsky@chromium.org>, Carlos Maiolino <cem@kernel.org>,
- Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu	
- <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Rick Macklem <rick.macklem@gmail.com>, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, 
-	linux-doc@vger.kernel.org, netfs@lists.linux.dev, ecryptfs@vger.kernel.org,
- 	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org
-Date: Thu, 25 Sep 2025 13:15:54 -0400
-In-Reply-To: <20250924-dir-deleg-v3-27-9f3af8bc5c40@kernel.org>
-References: <20250924-dir-deleg-v3-0-9f3af8bc5c40@kernel.org>
-	 <20250924-dir-deleg-v3-27-9f3af8bc5c40@kernel.org>
-Autocrypt: addr=jlayton@kernel.org; prefer-encrypt=mutual;
- keydata=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
- QZIQXVeAA+smfTT0tDrisj1U5x6ZB9b3nBg65kc=
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 (3.56.2-2.fc42) 
+	s=arc-20240116; t=1758822632; c=relaxed/simple;
+	bh=hOX9VPtfC91Mg3d1GTnIUDFrJ8wLg3sJL12KTynCPNc=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=W83WNIbT1/JLzdlA6DdiUmtetTdzsr+nxDU/EvSz4HD35eEHwJaCmn6hWOMVJQpGbiWqLT/ntwe3R5qG7oc5zyFi6OwUNvk1cUtF2qo8KWEeUANeMexGjIHoLjoazmZVphzpgwKtUeU3jlMtXHnQb4reTY934A+bTCSDzYUvf3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f208.google.com with SMTP id e9e14a558f8ab-4241c41110eso31389805ab.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 Sep 2025 10:50:30 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758822629; x=1759427429;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=9+Hg3CA0qqYhxfghG2it4mVMoZpeVHhlGfIerLYLkrY=;
+        b=phGWIW2e4Bog6iJxfAx7RMUBH2Sxk3zVWI/6Khbs3hsD1XHfSOBHc/rAsDcC7RtEqE
+         8dNZoMtbQDJ9mQ9B1Km3EUi35Tj2uwZEKxPb0tJ2W7nf9MInOIPyZB8Esz8vKz9S7UXg
+         GOjv9wS5wyzWuIIyYLiO6aHTJ2y3oVKCWE72z2qhyOK73cwhKF6GqGquBnw+AKLEs0kp
+         eBHtk+Jqhgf9WZeXXNMHkMEtqVmvaglSFNWqVeRwUEOQownb2T/ZRZDYv8zFxpqsSA20
+         zBB64Nnn4eZIqIny8flyCnX6hutdJXLHadRzFrYTmSV3JlD9FHLUUaVX1aJd8iKASUTG
+         JBOw==
+X-Forwarded-Encrypted: i=1; AJvYcCWBvoBpgqk7j8FsjnHVlzsAFOfLlITwnp4+Smq/eAE8ZTQiqVeNv5Wj7JiPn7SNicT9Ui1piSbVX8ULfQd9@vger.kernel.org
+X-Gm-Message-State: AOJu0YwR9t7Ywa+j0b6KzY/0POyrqBefY3tAzFWSclouYl1AWYk7pntA
+	WFo+s293TTrQELudAKN02LWVzXQUYmoVKAI7dwaeozOfR03rcIL8XFzyeD9IUu6yW5tyPdntdJR
+	9wIh6cOuHPw2JOWxrGNFLsiINTqOcdCurvOH+Y0Zp/M0ORTl02Yo+CscmPgA=
+X-Google-Smtp-Source: AGHT+IHXpLfshWYCdLUpi+vWygHE0MWp2ID0gLUf+wNbex6bK1BhmZijbcVJMe2Tecd+fIL4yrsD1+edyWXtE4Jp0mW3uGPz0xu/
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-Received: by 2002:a05:6e02:1a6c:b0:424:8151:dcd6 with SMTP id
+ e9e14a558f8ab-425955d4654mr63027115ab.9.1758822629562; Thu, 25 Sep 2025
+ 10:50:29 -0700 (PDT)
+Date: Thu, 25 Sep 2025 10:50:29 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <68d580e5.a00a0220.303701.0019.GAE@google.com>
+Subject: [syzbot] [overlayfs?] WARNING in ovl_copy_up_file (2)
+From: syzbot <syzbot+f754e01116421e9754b9@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 2025-09-24 at 14:06 -0400, Jeff Layton wrote:
-> Add the necessary parts to accept a fsnotify callback for directory
-> change event and create a CB_NOTIFY request for it. When a dir nfsd_file
-> is created set a handle_event callback to handle the notification.
->=20
-> Use that to allocate a nfsd_notify_event object and then hand off a
-> reference to each delegation's CB_NOTIFY. If anything fails along the
-> way, recall any affected delegations.
->=20
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> ---
->  fs/nfsd/filecache.c    |  51 ++++++++++----
->  fs/nfsd/nfs4callback.c |  19 +++--
->  fs/nfsd/nfs4state.c    | 185 +++++++++++++++++++++++++++++++++++++++++++=
-++++++
->  fs/nfsd/nfs4xdr.c      |  95 +++++++++++++++++++++++++
->  fs/nfsd/state.h        |   2 +
->  fs/nfsd/xdr4.h         |   2 +
->  6 files changed, 337 insertions(+), 17 deletions(-)
->=20
+Hello,
 
-[...]
+syzbot found the following issue on:
 
-> +
-> +int
-> +nfsd_handle_dir_event(u32 mask, const struct inode *dir, const void *dat=
-a,
-> +		      int data_type, const struct qstr *name)
-> +{
-> +	struct dentry *dentry =3D fsnotify_data_dentry(data, data_type);
-> +	struct file_lock_context *ctx;
-> +	struct file_lock_core *flc;
-> +	struct nfsd_notify_event *evt;
-> +
-> +	ctx =3D locks_inode_context(dir);
-> +	if (!ctx || list_empty(&ctx->flc_lease))
-> +		return 0;
-> +
-> +	evt =3D alloc_nfsd_notify_event(mask, name, dentry);
-> +	if (!evt) {
-> +		nfsd_recall_all_dir_delegs(dir);
-> +		return 0;
-> +	}
-> +
-> +	spin_lock(&ctx->flc_lock);
-> +	list_for_each_entry(flc, &ctx->flc_lease, flc_list) {
-> +		struct file_lease *fl =3D container_of(flc, struct file_lease, c);
-> +		struct nfs4_delegation *dp =3D flc->flc_owner;
-> +		struct nfsd4_cb_notify *ncn =3D &dp->dl_cb_notify;
-> +
-> +		if (!should_notify_deleg(mask, fl))
-> +			continue;
-> +
-> +		spin_lock(&ncn->ncn_lock);
-> +		if (ncn->ncn_evt_cnt >=3D NOTIFY4_EVENT_QUEUE_SIZE) {
-> +			/* We're generating notifications too fast. Recall. */
-> +			spin_unlock(&ncn->ncn_lock);
-> +			nfsd_break_deleg_cb(fl);
-> +			continue;
-> +		}
-> +		ncn->ncn_evt[ncn->ncn_evt_cnt++] =3D nfsd_notify_event_get(evt);
+HEAD commit:    bf40f4b87761 Merge tag 'probes-fixes-v6.17-rc7' of git://g..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=1636e142580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=bf99f2510ef92ba5
+dashboard link: https://syzkaller.appspot.com/bug?extid=f754e01116421e9754b9
+compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13eb34e2580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10ca2f12580000
 
-The above nfsd_notify_event_get() causes a refcount leak. Fixed in
-tree.
---=20
-Jeff Layton <jlayton@kernel.org>
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-bf40f4b8.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/2fe4635de41e/vmlinux-bf40f4b8.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/acfb085eaa3e/bzImage-bf40f4b8.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/1280fcf9f9a9/mount_0.gz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+f754e01116421e9754b9@syzkaller.appspotmail.com
+
+loop0: detected capacity change from 0 to 8
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 5501 at fs/overlayfs/copy_up.c:276 ovl_copy_up_file+0x640/0x6a0 fs/overlayfs/copy_up.c:276
+Modules linked in:
+CPU: 0 UID: 0 PID: 5501 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:ovl_copy_up_file+0x640/0x6a0 fs/overlayfs/copy_up.c:276
+Code: e9 2d ff ff ff e8 60 ac 8b fe 49 bc 00 00 00 00 00 fc ff df e9 14 ff ff ff e8 4c ac 8b fe 90 0f 0b 90 eb 09 e8 41 ac 8b fe 90 <0f> 0b 90 41 bd fb ff ff ff 48 8b 5c 24 10 e9 8d fb ff ff e8 d8 35
+RSP: 0018:ffffc90002b0f040 EFLAGS: 00010293
+RAX: ffffffff833410ff RBX: ffffc90002b0f0c0 RCX: ffff88801f022440
+RDX: 0000000000000000 RSI: fc0000000000000a RDI: 0000000000000000
+RBP: ffffc90002b0f170 R08: ffffc90002b0f0cf R09: 0000000000000000
+R10: ffffc90002b0f0c0 R11: fffff52000561e1a R12: dffffc0000000000
+R13: fc0000000000000a R14: ffff888033b7d380 R15: ffff888042c0f028
+FS:  0000555584fee500(0000) GS:ffff88808d007000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f2eacb909c0 CR3: 0000000059e0d000 CR4: 0000000000352ef0
+Call Trace:
+ <TASK>
+ ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:885 [inline]
+ ovl_do_copy_up fs/overlayfs/copy_up.c:999 [inline]
+ ovl_copy_up_one fs/overlayfs/copy_up.c:1202 [inline]
+ ovl_copy_up_flags+0x1502/0x2fe0 fs/overlayfs/copy_up.c:1257
+ ovl_open+0x138/0x2f0 fs/overlayfs/file.c:211
+ do_dentry_open+0x953/0x13f0 fs/open.c:965
+ vfs_open+0x3b/0x340 fs/open.c:1095
+ do_open fs/namei.c:3887 [inline]
+ path_openat+0x2ee5/0x3830 fs/namei.c:4046
+ do_filp_open+0x1fa/0x410 fs/namei.c:4073
+ do_sys_openat2+0x121/0x1c0 fs/open.c:1435
+ do_sys_open fs/open.c:1450 [inline]
+ __do_sys_openat fs/open.c:1466 [inline]
+ __se_sys_openat fs/open.c:1461 [inline]
+ __x64_sys_openat+0x138/0x170 fs/open.c:1461
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f1be718eec9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff614ed578 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 00007f1be73e5fa0 RCX: 00007f1be718eec9
+RDX: 0000000000000042 RSI: 0000200000000040 RDI: ffffffffffffff9c
+RBP: 00007f1be7211f91 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f1be73e5fa0 R14: 00007f1be73e5fa0 R15: 0000000000000004
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
