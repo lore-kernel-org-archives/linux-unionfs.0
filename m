@@ -1,265 +1,442 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C28A3314DA;
-	Wed, 24 Sep 2025 18:08:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8482427FD7D
+	for <linux-unionfs@vger.kernel.org>; Thu, 25 Sep 2025 10:07:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758737307; cv=none; b=PDMVkJAjCSq1asix0U7JOgO2mies6XE4Vg1pCvhI6nZTe/k4yY6BqX/GsR05MAOtVvfwqR/dgqFWcMxksjkjDwPJoXapz4lKkw/B8jzlxXbmcZlh5hu0L7d76URxS4yMjHUyzhy5cjLM5RUZVmDDsUNvEos+edt2oOIt04Lrz0U=
+	t=1758794851; cv=none; b=J336gK63cCV9eirG6b4v1uTdzFWuvxpzihGNOk4mLzmURJFJLGO42x7ptn6EbKnQzRcTiflUBpXlnU0BmExxPsOTKDrqOzhwz6to2S5G1rsDnUCgyqVjCM0psL5GjNZVn3E0b83MdcPOSgb26F3p44YeKsKp92CX9w2K2VwBcTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758737307; c=relaxed/simple;
-	bh=DtZNjRY8tWag4AeCcEA1EOe4uspRGmv4nqK/ItwGPj8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=nOD2YBm5L7gKX4NCiJrD0KNv6u/QWbppE05caGh9xonmOYilBQJm9TT9nOztllaGXF4Xc2LsdNH71FObH0lV9SNhzvnN+Nyx/JhUdGeeVS5xHjdbWvRzDOEl47RfhvE6rID0W1rpYIyTsCmO66FP3+CjTWO5UhE0Gq/d3aLmK3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WFDc1nVk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758794851; c=relaxed/simple;
+	bh=rFy/sAVpE33mTE9Ro6oXr14+P+7ZyrAS5jnU7fHzki4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WWGZWNIjqGJQrIHtgRoS9wXtwKH7qjjJycJfXv36GtDKOF2MEtzxtXQvRIphmrS77uov33urVspmow7dZp2huU0k9e6TUeicTcF5YgtV14vuUZjAzVnAfsDWmjBNk/vrvR/SPMdxO8uZlDJxmmnVKLTgtcQgVA4yP7Kp5xeXLkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=co/lHs+q; arc=none smtp.client-ip=209.85.218.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WFDc1nVk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF77BC4CEF4;
-	Wed, 24 Sep 2025 18:08:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758737307;
-	bh=DtZNjRY8tWag4AeCcEA1EOe4uspRGmv4nqK/ItwGPj8=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=WFDc1nVkBmwqQbbKuBTHa9ICj7hM4t5ur2SkXG6ru75jX0jQVcMxj/AgPuVMMKGEy
-	 2e2HjPErIEW6nxS/iAo3MpbytrdYJ6WxEVU979kYsqA3aTTt9BO8F2XwkzN6jZyDbr
-	 bgL0O9BvKoXENqUCBxfq+wV/RwdJRlmkzqEV/76LmsXUg5O+e2ZA9pX0C/B7/XUjKa
-	 zw9eNtUJxz77wPV1w35thXB78U0EPjBXSO5hHO3xH+hd2g4ZWxoDF2v7b2CLX9C/jZ
-	 DKpJ88YBI9T3i337zmP1uNdEngB9l6d/UeWURAkVozCUeUffjbjPKrcM+DZwxi8d7p
-	 ZW6w0xTLZTYew==
-From: Jeff Layton <jlayton@kernel.org>
-Date: Wed, 24 Sep 2025 14:06:24 -0400
-Subject: [PATCH v3 38/38] nfsd: add support to CB_NOTIFY for dir attribute
- changes
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="co/lHs+q"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-b3331adeadbso248554766b.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 Sep 2025 03:07:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1758794847; x=1759399647; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PUW/6o2CHQs8nlFUZsHr+ogKyFCjqfHWD4lpshBRaKQ=;
+        b=co/lHs+q9tCk6n63T7oEqDY5tUvNB/rzjvdylC087NLiKPwT1Zxgh6gEciLY1Shz43
+         AJDJ8e1D/iZGh4DUX0+YpqWrXJvBxs1iEGAksjdLwPwIDm9Q+Tzz63GMHG03c52OnQSF
+         gYmNOGv8OaJdnMg4U9ADZLxGBV+usv/qIPeCSMfyJcKbMZk0A+fo4zPToTmPQLaGv4ii
+         SSMvWUKHf9DZo/F0rRsByFoLyZR9FEhRbAG5+w8CAR1qmyo+1R2xtWrTMi1Haq8T+oWR
+         M8t5ORjCixyofiAj3UrdtIWdz9pU3bxqpzojxcnru9wYR7TxE4DvyINcLo6ZEbljJ/Tb
+         1ArA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758794847; x=1759399647;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=PUW/6o2CHQs8nlFUZsHr+ogKyFCjqfHWD4lpshBRaKQ=;
+        b=obEYhqGeeBfiir5JPiqp3UdyLsyi+nWl81taDAMYY7OLLXD1yMiP62ystpoJYXk7zQ
+         wkrGXm7ynE8mXJadCo5ZLZe94pTiUA4AqLg3o6M6IiSmXWYYpXf0FJV+r389ENqUgWT1
+         W0OLqY6PqEOFhSR3ffHWuXhpFgbTmmf1lzoSSTfghjOx1O6Ve4LNV+f+FiWwzt8+Xocj
+         Ns1CWsoxLEN37M6cnubO6Bpwqfhz/BZ2CFfSPy4sUHWrLzzd087LZtlTJaXI/pwG9BPP
+         0BzVzlRWVcsJAnSjGqiK2ojCd0jfakOp63JMmCaHcYTICcmxf3AhVGbiwEICOt6z0vRF
+         ttIg==
+X-Forwarded-Encrypted: i=1; AJvYcCU9iV0i917uKW5zenjEJ2tT5QFL3UGr+Gc4xB6VPcN8NvMBYTBF9EnpR3PJg9rVfA7M9Pvj2EaiNCHr17Uf@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz3JKEEXefZ3b1S8r+BN5hRIjyXjjI84vK2A/t1iHX7Ni0UXJsJ
+	HfsrJWOqbtLtH3mQvqmyUZTXiZa1i1agthPfeq/xjJwtDuMsALr8J4rJjufiz9LSpRcCz/Bt8gO
+	mhWYMy6rwsD4sCcchcDozPOFU+bTdD+Y=
+X-Gm-Gg: ASbGncs9ZO5JDZcpA/mbKR3Z7dDTxoGegYQNSNi4n6I7cxLAerwMB+FRQMMOddtrRiS
+	dFrww03CcRxed+y4Qdtugbz9v3biJsJa9gau5zWCYrIHH2S58rXYBsRVycj9arJn1jfhcgnxJWB
+	z78R5mO9rnGP+YTsF8ucCNVXGlkfKoxQ927RLgatTSx9shwg7CYqYDAsxwcc7U1frUIMHm5Ub3F
+	sf0bv09ufNz6tGIdhkc64jX4ABHu0u+2PQfmw==
+X-Google-Smtp-Source: AGHT+IHnjX1pG8TAryPQlkrDhzXnesEsM78CxhQPCj7SV7L5RRG+rd032XQ0sOmqzmFns8RoyZIP2E4vF4R8O9SgsVc=
+X-Received: by 2002:a17:907:720b:b0:b2d:38eb:d12f with SMTP id
+ a640c23a62f3a-b354cc2c49fmr191751466b.19.1758794846407; Thu, 25 Sep 2025
+ 03:07:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250924-dir-deleg-v3-38-9f3af8bc5c40@kernel.org>
-References: <20250924-dir-deleg-v3-0-9f3af8bc5c40@kernel.org>
-In-Reply-To: <20250924-dir-deleg-v3-0-9f3af8bc5c40@kernel.org>
-To: Alexander Viro <viro@zeniv.linux.org.uk>, 
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
- Chuck Lever <chuck.lever@oracle.com>, 
- Alexander Aring <alex.aring@gmail.com>, 
- Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, 
- Steve French <sfrench@samba.org>, 
- Ronnie Sahlberg <ronniesahlberg@gmail.com>, 
- Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, 
- Bharath SM <bharathsm@microsoft.com>, NeilBrown <neil@brown.name>, 
- Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
- Jonathan Corbet <corbet@lwn.net>, Amir Goldstein <amir73il@gmail.com>, 
- Miklos Szeredi <miklos@szeredi.hu>, Paulo Alcantara <pc@manguebit.org>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
- David Howells <dhowells@redhat.com>, Tyler Hicks <code@tyhicks.com>, 
- Namjae Jeon <linkinjeon@kernel.org>, Steve French <smfrench@gmail.com>, 
- Sergey Senozhatsky <senozhatsky@chromium.org>, 
- Carlos Maiolino <cem@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
- Masami Hiramatsu <mhiramat@kernel.org>, 
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
- Paulo Alcantara <pc@manguebit.org>
-Cc: Rick Macklem <rick.macklem@gmail.com>, linux-fsdevel@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
- linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, 
- linux-doc@vger.kernel.org, netfs@lists.linux.dev, ecryptfs@vger.kernel.org, 
- linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
- linux-trace-kernel@vger.kernel.org, Jeff Layton <jlayton@kernel.org>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6207; i=jlayton@kernel.org;
- h=from:subject:message-id; bh=DtZNjRY8tWag4AeCcEA1EOe4uspRGmv4nqK/ItwGPj8=;
- b=owEBbQKS/ZANAwAKAQAOaEEZVoIVAcsmYgBo1DMSfXd0BviLX6qJkRP41buyrnysbMK9w9K9y
- DwJzGm/vqiJAjMEAAEKAB0WIQRLwNeyRHGyoYTq9dMADmhBGVaCFQUCaNQzEgAKCRAADmhBGVaC
- FaohEACxZHqZnw2iDMwJ8kGClGhlhVaf+EtTzN7McVX+Xuk9SaC06uawNefNeqUzWTt5YiIst7F
- /YV+tYmhXx3W1QKWJPxKNQitRjdBY1OeMIeg9Hy5VL7BfBw/vUgHwhQUJTz4+C+yTSyzyRpXktS
- uLTR/u6zq7LpqqEiZtFukvMZwxRROdE0uFY8Zzh1Kl1Jly7qQCqn8iWvgzrX9najUu1vKF5kW/A
- D3/cEOdZP4QXkq8Ni9o1Un+UgfNFq1emlEtRoJymOqLTyOt3byQkzjcHD0T2iud0lPYv4UvZ+kF
- lZ/GU86lOQjm4RbDo3RetS9sbGZon2mWVTpWXCm9nY677MhoWZzT4jScPKU1irMQInLiVjZvyEw
- HP2YdNcBp+8kMSxyTnpkJVSjedJzGn6gKvviF1EAK2DsYp8PVq/XzqD4iMF/YPbAdg8QkGDuRNR
- hcMMDuNJEcDRud3ucnlFiORJfop9We1jUKs5ZPkUtgWJMPLhieyPpKoWQUAFyIi0VfB8wjmj66w
- vmyPM9ahJEXU6gsE2DRJEVZ17AKq7UIdn0rF0MeAfkotZ0bRvqaDy99BaEgMIuksM6ScAw4DPUR
- GBBJh3zoTgvvbB5WnSKzz4ukX8+uA//4jaO52qa5xnMlPY8iwVDzul2Bh1elK2xsdpuCuZcZ/sJ
- z644ReF32RAM3lg==
-X-Developer-Key: i=jlayton@kernel.org; a=openpgp;
- fpr=4BC0D7B24471B2A184EAF5D3000E684119568215
+References: <20250923104710.2973493-1-mjguzik@gmail.com> <20250923104710.2973493-4-mjguzik@gmail.com>
+In-Reply-To: <20250923104710.2973493-4-mjguzik@gmail.com>
+From: Mateusz Guzik <mjguzik@gmail.com>
+Date: Thu, 25 Sep 2025 12:07:13 +0200
+X-Gm-Features: AS18NWBbppLQvOh16nxVRueCI4eRmKFPlkIfNmlj21eycccVTLBfnR3npYDOJvk
+Message-ID: <CAGudoHGuFSfSCZcoky+5wX1QfVpg-tj42c2SJijfT7ke_6tR7Q@mail.gmail.com>
+Subject: Re: [PATCH v6 3/4] Manual conversion of ->i_state uses
+To: brauner@kernel.org
+Cc: viro@zeniv.linux.org.uk, jack@suse.cz, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, josef@toxicpanda.com, kernel-team@fb.com, 
+	amir73il@gmail.com, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-If the client requested dir attribute change notifications, send those
-alongside any set of add/remove/rename events. Note that the server will
-still recall the delegation on a SETATTR, so these are only sent for
-changes to child entries.
+allmodconfig build was done on this patchset but somehow one failure was mi=
+ssed:
 
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
----
- fs/nfsd/nfs4state.c | 25 ++++++++++++++++++++--
- fs/nfsd/nfs4xdr.c   | 60 +++++++++++++++++++++++++++++++++++++++++++++--------
- fs/nfsd/xdr4.h      |  1 +
- 3 files changed, 75 insertions(+), 11 deletions(-)
+diff --git a/fs/afs/inode.c b/fs/afs/inode.c
+index e9538e91f848..71ec043f7569 100644
+--- a/fs/afs/inode.c
++++ b/fs/afs/inode.c
+@@ -427,7 +427,7 @@ static void afs_fetch_status_success(struct
+afs_operation *op)
+        struct afs_vnode *vnode =3D vp->vnode;
+        int ret;
 
-diff --git a/fs/nfsd/nfs4state.c b/fs/nfsd/nfs4state.c
-index 2381dbb2e48290debf28bbd35d0b9a4bb677ac07..a411ffb5f208a2e4d9b55dd77226b4e1a24eaee2 100644
---- a/fs/nfsd/nfs4state.c
-+++ b/fs/nfsd/nfs4state.c
-@@ -3342,9 +3342,14 @@ nfsd4_cb_notify_prepare(struct nfsd4_callback *cb)
- 	struct nfsd_notify_event *events[NOTIFY4_EVENT_QUEUE_SIZE];
- 	struct xdr_buf xdr = { .buflen = PAGE_SIZE * NOTIFY4_PAGE_ARRAY_SIZE,
- 			       .pages  = ncn->ncn_pages };
-+	int limit = NOTIFY4_EVENT_QUEUE_SIZE;
- 	struct xdr_stream stream;
--	int count, i;
- 	bool error = false;
-+	int count, i;
-+
-+	/* Save a slot for dir attr update if requested */
-+	if (dp->dl_notify_mask & BIT(NOTIFY4_CHANGE_DIR_ATTRS))
-+		--limit;
- 
- 	xdr_init_encode_pages(&stream, &xdr);
- 
-@@ -3358,7 +3363,7 @@ nfsd4_cb_notify_prepare(struct nfsd4_callback *cb)
- 	}
- 
- 	/* we can't keep up! */
--	if (count > NOTIFY4_EVENT_QUEUE_SIZE) {
-+	if (count > limit) {
- 		spin_unlock(&ncn->ncn_lock);
- 		goto out_recall;
- 	}
-@@ -3396,6 +3401,22 @@ nfsd4_cb_notify_prepare(struct nfsd4_callback *cb)
- 		nfsd_notify_event_put(nne);
- 	}
- 	if (!error) {
-+		if (dp->dl_notify_mask & BIT(NOTIFY4_CHANGE_DIR_ATTRS)) {
-+			u32 *maskp = (u32 *)xdr_reserve_space(&stream, sizeof(*maskp));
-+
-+			if (maskp) {
-+				u8 *p = nfsd4_encode_dir_attr_change(&stream, dp);
-+
-+				if (p) {
-+					*maskp = BIT(NOTIFY4_CHANGE_DIR_ATTRS);
-+					ncn->ncn_nf[count].notify_mask.count = 1;
-+					ncn->ncn_nf[count].notify_mask.element = maskp;
-+					ncn->ncn_nf[count].notify_vals.data = p;
-+					ncn->ncn_nf[count].notify_vals.len = (u8 *)stream.p - p;
-+					++count;
-+				}
-+			}
-+		}
- 		ncn->ncn_nf_cnt = count;
- 		return true;
- 	}
-diff --git a/fs/nfsd/nfs4xdr.c b/fs/nfsd/nfs4xdr.c
-index 0c411c758279177837c078d393048aaebf31d46f..eca2b483e28397166d24756fcc97b5a1e0fdb9aa 100644
---- a/fs/nfsd/nfs4xdr.c
-+++ b/fs/nfsd/nfs4xdr.c
-@@ -3806,11 +3806,11 @@ nfsd4_setup_notify_entry4(struct notify_entry4 *ne, struct xdr_stream *xdr,
- 			  char *name, u32 namelen)
- {
- 	struct nfs4_file *fi = dp->dl_stid.sc_file;
--	struct path path =  { .mnt = fi->fi_deleg_file->nf_file->f_path.mnt,
--			      .dentry = dentry };
-+	struct path path = fi->fi_deleg_file->nf_file->f_path;
- 	struct nfsd4_fattr_args args = { };
- 	uint32_t *attrmask;
- 	__be32 status;
-+	bool parent;
- 	int ret;
- 
- 	/* Reserve space for attrmask */
-@@ -3822,6 +3822,9 @@ nfsd4_setup_notify_entry4(struct notify_entry4 *ne, struct xdr_stream *xdr,
- 	ne->ne_file.len = namelen;
- 	ne->ne_attrs.attrmask.element = attrmask;
- 
-+	parent = (dentry == path.dentry);
-+	path.dentry = dentry;
-+
- 	/* FIXME: d_find_alias for inode ? */
- 	if (!path.dentry || !d_inode(path.dentry))
- 		goto noattrs;
-@@ -3837,15 +3840,20 @@ nfsd4_setup_notify_entry4(struct notify_entry4 *ne, struct xdr_stream *xdr,
- 
- 	args.change_attr = nfsd4_change_attribute(&args.stat);
- 
--	attrmask[0] = dp->dl_child_attrs[0];
--	attrmask[1] = dp->dl_child_attrs[1];
--	attrmask[2] = 0;
-+	if (parent) {
-+		attrmask[0] = dp->dl_dir_attrs[0];
-+		attrmask[1] = dp->dl_dir_attrs[1];
-+	} else {
-+		attrmask[0] = dp->dl_child_attrs[0];
-+		attrmask[1] = dp->dl_child_attrs[1];
- 
--	if (!setup_notify_fhandle(dentry, fi, &args))
--		attrmask[0] &= ~FATTR4_WORD0_FILEHANDLE;
-+		if (!setup_notify_fhandle(dentry, fi, &args))
-+			attrmask[0] &= ~FATTR4_WORD0_FILEHANDLE;
- 
--	if (!(args.stat.result_mask & STATX_BTIME))
--		attrmask[1] &= ~FATTR4_WORD1_TIME_CREATE;
-+		if (!(args.stat.result_mask & STATX_BTIME))
-+			attrmask[1] &= ~FATTR4_WORD1_TIME_CREATE;
-+	}
-+	attrmask[2] = 0;
- 
- 	ne->ne_attrs.attrmask.count = 2;
- 	ne->ne_attrs.attr_vals.data = (u8 *)xdr->p;
-@@ -3936,6 +3944,40 @@ u8 *nfsd4_encode_notify_event(struct xdr_stream *xdr, struct nfsd_notify_event *
- 	return NULL;
- }
- 
-+/**
-+ * nfsd4_encode_dir_attr_change
-+ * @xdr: stream to which to encode the fattr4
-+ * @dp: delegation where the event occurred
-+ *
-+ * Encode a dir attr change event.
-+ */
-+u8 *nfsd4_encode_dir_attr_change(struct xdr_stream *xdr, struct nfs4_delegation *dp)
-+{
-+	struct nfs4_file *fi = dp->dl_stid.sc_file;
-+	struct dentry *dentry = fi->fi_deleg_file->nf_file->f_path.dentry;
-+	struct notify_attr4 na = { };
-+	struct name_snapshot n;
-+	bool ret;
-+	u8 *p = NULL;
-+
-+	if (!(dp->dl_notify_mask & BIT(NOTIFY4_CHANGE_DIR_ATTRS)))
-+		return NULL;
-+
-+	take_dentry_name_snapshot(&n, dentry);
-+	ret = nfsd4_setup_notify_entry4(&na.na_changed_entry, xdr,
-+					dentry, dp, (char *)n.name.name,
-+					n.name.len);
-+
-+	/* Don't bother with the event if we're not encoding attrs */
-+	if (ret && na.na_changed_entry.ne_attrs.attr_vals.len) {
-+		p = (u8 *)xdr->p;
-+		if (!xdrgen_encode_notify_attr4(xdr, &na))
-+			p = NULL;
-+	}
-+	release_dentry_name_snapshot(&n);
-+	return p;
-+}
-+
- static void svcxdr_init_encode_from_buffer(struct xdr_stream *xdr,
- 				struct xdr_buf *buf, __be32 *p, int bytes)
- {
-diff --git a/fs/nfsd/xdr4.h b/fs/nfsd/xdr4.h
-index 19f468b5bc54343dca928f0b8286c868f2133241..93a38b104fb425413f3d7a59fa029c760618559c 100644
---- a/fs/nfsd/xdr4.h
-+++ b/fs/nfsd/xdr4.h
-@@ -969,6 +969,7 @@ __be32 nfsd4_encode_fattr_to_buf(__be32 **p, int words,
- 		u32 *bmval, struct svc_rqst *, int ignore_crossmnt);
- u8 *nfsd4_encode_notify_event(struct xdr_stream *xdr, struct nfsd_notify_event *nne,
- 			      struct nfs4_delegation *dd, u32 *notify_mask);
-+u8 *nfsd4_encode_dir_attr_change(struct xdr_stream *xdr, struct nfs4_delegation *dp);
- extern __be32 nfsd4_setclientid(struct svc_rqst *rqstp,
- 		struct nfsd4_compound_state *, union nfsd4_op_u *u);
- extern __be32 nfsd4_setclientid_confirm(struct svc_rqst *rqstp,
+-       if (vnode->netfs.inode.i_state & I_NEW) {
++       if (inode_state_read(&vnode->netfs.inode) & I_NEW) {
+                ret =3D afs_inode_init_from_status(op, vp, vnode);
+                afs_op_set_error(op, ret);
+                if (ret =3D=3D 0)
 
--- 
-2.51.0
 
+I reran the thing with this bit and now it's all clean. I think this
+can be folded into the manual fixup patch (the one i'm responding to)
+instead of resending the patchset
+
+On Tue, Sep 23, 2025 at 12:47=E2=80=AFPM Mateusz Guzik <mjguzik@gmail.com> =
+wrote:
+>
+> Takes care of spots not converted by coccinelle.
+>
+> Nothing to look at with one exception: smp_store_release and
+> smp_load_acquire pair replaced with a manual store/load +
+> smb_wmb()/smp_rmb(), see I_WB_SWITCH.
+>
+> Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+> ---
+>  Documentation/filesystems/porting.rst | 2 +-
+>  fs/bcachefs/fs.c                      | 8 ++++----
+>  fs/btrfs/inode.c                      | 8 ++++----
+>  fs/dcache.c                           | 2 +-
+>  fs/fs-writeback.c                     | 6 +++---
+>  fs/inode.c                            | 8 ++++----
+>  fs/ocfs2/inode.c                      | 2 +-
+>  fs/xfs/xfs_reflink.h                  | 2 +-
+>  include/linux/backing-dev.h           | 7 ++++---
+>  include/linux/fs.h                    | 2 +-
+>  include/linux/writeback.h             | 4 ++--
+>  include/trace/events/writeback.h      | 8 ++++----
+>  12 files changed, 30 insertions(+), 29 deletions(-)
+>
+> diff --git a/Documentation/filesystems/porting.rst b/Documentation/filesy=
+stems/porting.rst
+> index 85f590254f07..0629611600f1 100644
+> --- a/Documentation/filesystems/porting.rst
+> +++ b/Documentation/filesystems/porting.rst
+> @@ -211,7 +211,7 @@ test and set for you.
+>  e.g.::
+>
+>         inode =3D iget_locked(sb, ino);
+> -       if (inode->i_state & I_NEW) {
+> +       if (inode_state_read(inode) & I_NEW) {
+>                 err =3D read_inode_from_disk(inode);
+>                 if (err < 0) {
+>                         iget_failed(inode);
+> diff --git a/fs/bcachefs/fs.c b/fs/bcachefs/fs.c
+> index 687af0eea0c2..8c7efc194ad0 100644
+> --- a/fs/bcachefs/fs.c
+> +++ b/fs/bcachefs/fs.c
+> @@ -347,7 +347,7 @@ static struct bch_inode_info *bch2_inode_hash_find(st=
+ruct bch_fs *c, struct btre
+>                         spin_unlock(&inode->v.i_lock);
+>                         return NULL;
+>                 }
+> -               if ((inode->v.i_state & (I_FREEING|I_WILL_FREE))) {
+> +               if ((inode_state_read(&inode->v) & (I_FREEING|I_WILL_FREE=
+))) {
+>                         if (!trans) {
+>                                 __wait_on_freeing_inode(c, inode, inum);
+>                         } else {
+> @@ -411,7 +411,7 @@ static struct bch_inode_info *bch2_inode_hash_insert(=
+struct bch_fs *c,
+>                  * only insert fully created inodes in the inode hash tab=
+le. But
+>                  * discard_new_inode() expects it to be set...
+>                  */
+> -               inode->v.i_state |=3D I_NEW;
+> +               inode_state_set(&inode->v, I_NEW);
+>                 /*
+>                  * We don't want bch2_evict_inode() to delete the inode o=
+n disk,
+>                  * we just raced and had another inode in cache. Normally=
+ new
+> @@ -2224,8 +2224,8 @@ void bch2_evict_subvolume_inodes(struct bch_fs *c, =
+snapshot_id_list *s)
+>                 if (!snapshot_list_has_id(s, inode->ei_inum.subvol))
+>                         continue;
+>
+> -               if (!(inode->v.i_state & I_DONTCACHE) &&
+> -                   !(inode->v.i_state & I_FREEING) &&
+> +               if (!(inode_state_read(&inode->v) & I_DONTCACHE) &&
+> +                   !(inode_state_read(&inode->v) & I_FREEING) &&
+>                     igrab(&inode->v)) {
+>                         this_pass_clean =3D false;
+>
+> diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+> index 8e2ab3fb9070..d2f7e7c57a36 100644
+> --- a/fs/btrfs/inode.c
+> +++ b/fs/btrfs/inode.c
+> @@ -3856,7 +3856,7 @@ static int btrfs_add_inode_to_root(struct btrfs_ino=
+de *inode, bool prealloc)
+>                 ASSERT(ret !=3D -ENOMEM);
+>                 return ret;
+>         } else if (existing) {
+> -               WARN_ON(!(existing->vfs_inode.i_state & (I_WILL_FREE | I_=
+FREEING)));
+> +               WARN_ON(!(inode_state_read(&existing->vfs_inode) & (I_WIL=
+L_FREE | I_FREEING)));
+>         }
+>
+>         return 0;
+> @@ -5745,7 +5745,7 @@ struct btrfs_inode *btrfs_iget_path(u64 ino, struct=
+ btrfs_root *root,
+>         if (!inode)
+>                 return ERR_PTR(-ENOMEM);
+>
+> -       if (!(inode->vfs_inode.i_state & I_NEW))
+> +       if (!(inode_state_read(&inode->vfs_inode) & I_NEW))
+>                 return inode;
+>
+>         ret =3D btrfs_read_locked_inode(inode, path);
+> @@ -5769,7 +5769,7 @@ struct btrfs_inode *btrfs_iget(u64 ino, struct btrf=
+s_root *root)
+>         if (!inode)
+>                 return ERR_PTR(-ENOMEM);
+>
+> -       if (!(inode->vfs_inode.i_state & I_NEW))
+> +       if (!(inode_state_read(&inode->vfs_inode) & I_NEW))
+>                 return inode;
+>
+>         path =3D btrfs_alloc_path();
+> @@ -7435,7 +7435,7 @@ static void btrfs_invalidate_folio(struct folio *fo=
+lio, size_t offset,
+>         u64 page_start =3D folio_pos(folio);
+>         u64 page_end =3D page_start + folio_size(folio) - 1;
+>         u64 cur;
+> -       int inode_evicting =3D inode->vfs_inode.i_state & I_FREEING;
+> +       int inode_evicting =3D inode_state_read(&inode->vfs_inode) & I_FR=
+EEING;
+>
+>         /*
+>          * We have folio locked so no new ordered extent can be created o=
+n this
+> diff --git a/fs/dcache.c b/fs/dcache.c
+> index 2cb340c52191..bc275f7364db 100644
+> --- a/fs/dcache.c
+> +++ b/fs/dcache.c
+> @@ -1981,7 +1981,7 @@ void d_instantiate_new(struct dentry *entry, struct=
+ inode *inode)
+>         spin_lock(&inode->i_lock);
+>         __d_instantiate(entry, inode);
+>         WARN_ON(!(inode_state_read(inode) & I_NEW));
+> -       inode->i_state &=3D ~I_NEW & ~I_CREATING;
+> +       inode_state_clear(inode, I_NEW | I_CREATING);
+>         /*
+>          * Pairs with the barrier in prepare_to_wait_event() to make sure
+>          * ___wait_var_event() either sees the bit cleared or
+> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
+> index f521ef30d9a4..72424d3314aa 100644
+> --- a/fs/fs-writeback.c
+> +++ b/fs/fs-writeback.c
+> @@ -475,11 +475,11 @@ static bool inode_do_switch_wbs(struct inode *inode=
+,
+>         switched =3D true;
+>  skip_switch:
+>         /*
+> -        * Paired with load_acquire in unlocked_inode_to_wb_begin() and
+> +        * Paired with smp_rmb in unlocked_inode_to_wb_begin() and
+>          * ensures that the new wb is visible if they see !I_WB_SWITCH.
+>          */
+> -       smp_store_release(&inode->i_state,
+> -                         inode_state_read(inode) & ~I_WB_SWITCH);
+> +       smp_wmb();
+> +       inode_state_clear(inode, I_WB_SWITCH);
+>
+>         xa_unlock_irq(&mapping->i_pages);
+>         spin_unlock(&inode->i_lock);
+> diff --git a/fs/inode.c b/fs/inode.c
+> index 4b54aba2e939..f9f3476c773b 100644
+> --- a/fs/inode.c
+> +++ b/fs/inode.c
+> @@ -829,7 +829,7 @@ static void evict(struct inode *inode)
+>          * This also means we don't need any fences for the call below.
+>          */
+>         inode_wake_up_bit(inode, __I_NEW);
+> -       BUG_ON(inode->i_state !=3D (I_FREEING | I_CLEAR));
+> +       BUG_ON(inode_state_read(inode) !=3D (I_FREEING | I_CLEAR));
+>
+>         destroy_inode(inode);
+>  }
+> @@ -1895,7 +1895,7 @@ static void iput_final(struct inode *inode)
+>
+>         state =3D inode_state_read(inode);
+>         if (!drop) {
+> -               WRITE_ONCE(inode->i_state, state | I_WILL_FREE);
+> +               inode_state_set(inode, I_WILL_FREE);
+>                 spin_unlock(&inode->i_lock);
+>
+>                 write_inode_now(inode, 1);
+> @@ -1906,7 +1906,7 @@ static void iput_final(struct inode *inode)
+>                 state &=3D ~I_WILL_FREE;
+>         }
+>
+> -       WRITE_ONCE(inode->i_state, state | I_FREEING);
+> +       inode_state_assign(inode, state | I_FREEING);
+>         if (!list_empty(&inode->i_lru))
+>                 inode_lru_list_del(inode);
+>         spin_unlock(&inode->i_lock);
+> @@ -2964,7 +2964,7 @@ void dump_inode(struct inode *inode, const char *re=
+ason)
+>         pr_warn("%s encountered for inode %px\n"
+>                 "fs %s mode %ho opflags 0x%hx flags 0x%x state 0x%x count=
+ %d\n",
+>                 reason, inode, sb->s_type->name, inode->i_mode, inode->i_=
+opflags,
+> -               inode->i_flags, inode->i_state, atomic_read(&inode->i_cou=
+nt));
+> +               inode->i_flags, inode_state_read(inode), atomic_read(&ino=
+de->i_count));
+>  }
+>
+>  EXPORT_SYMBOL(dump_inode);
+> diff --git a/fs/ocfs2/inode.c b/fs/ocfs2/inode.c
+> index 549f9c145dcc..50218209d04d 100644
+> --- a/fs/ocfs2/inode.c
+> +++ b/fs/ocfs2/inode.c
+> @@ -152,7 +152,7 @@ struct inode *ocfs2_iget(struct ocfs2_super *osb, u64=
+ blkno, unsigned flags,
+>                 mlog_errno(PTR_ERR(inode));
+>                 goto bail;
+>         }
+> -       trace_ocfs2_iget5_locked(inode->i_state);
+> +       trace_ocfs2_iget5_locked(inode_state_read(inode));
+>         if (inode_state_read(inode) & I_NEW) {
+>                 rc =3D ocfs2_read_locked_inode(inode, &args);
+>                 unlock_new_inode(inode);
+> diff --git a/fs/xfs/xfs_reflink.h b/fs/xfs/xfs_reflink.h
+> index 36cda724da89..86e87e5936b5 100644
+> --- a/fs/xfs/xfs_reflink.h
+> +++ b/fs/xfs/xfs_reflink.h
+> @@ -17,7 +17,7 @@ xfs_can_free_cowblocks(struct xfs_inode *ip)
+>  {
+>         struct inode *inode =3D VFS_I(ip);
+>
+> -       if ((inode->i_state & I_DIRTY_PAGES) ||
+> +       if ((inode_state_read(inode) & I_DIRTY_PAGES) ||
+>             mapping_tagged(inode->i_mapping, PAGECACHE_TAG_DIRTY) ||
+>             mapping_tagged(inode->i_mapping, PAGECACHE_TAG_WRITEBACK) ||
+>             atomic_read(&inode->i_dio_count))
+> diff --git a/include/linux/backing-dev.h b/include/linux/backing-dev.h
+> index e721148c95d0..07a60bbbf668 100644
+> --- a/include/linux/backing-dev.h
+> +++ b/include/linux/backing-dev.h
+> @@ -289,10 +289,11 @@ unlocked_inode_to_wb_begin(struct inode *inode, str=
+uct wb_lock_cookie *cookie)
+>         rcu_read_lock();
+>
+>         /*
+> -        * Paired with store_release in inode_switch_wbs_work_fn() and
+> -        * ensures that we see the new wb if we see cleared I_WB_SWITCH.
+> +        * Paired with smp_wmb in inode_do_switch_wbs() and ensures that =
+we see
+> +        * the new wb if we see cleared I_WB_SWITCH.
+>          */
+> -       cookie->locked =3D smp_load_acquire(&inode->i_state) & I_WB_SWITC=
+H;
+> +       cookie->locked =3D inode_state_read(inode) & I_WB_SWITCH;
+> +       smp_rmb();
+>
+>         if (unlikely(cookie->locked))
+>                 xa_lock_irqsave(&inode->i_mapping->i_pages, cookie->flags=
+);
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 06bece8d1f18..73f3ce5add6b 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2656,7 +2656,7 @@ static inline int icount_read(const struct inode *i=
+node)
+>   */
+>  static inline bool inode_is_dirtytime_only(struct inode *inode)
+>  {
+> -       return (inode->i_state & (I_DIRTY_TIME | I_NEW |
+> +       return (inode_state_read(inode) & (I_DIRTY_TIME | I_NEW |
+>                                   I_FREEING | I_WILL_FREE)) =3D=3D I_DIRT=
+Y_TIME;
+>  }
+>
+> diff --git a/include/linux/writeback.h b/include/linux/writeback.h
+> index a2848d731a46..5fcb5ab4fa47 100644
+> --- a/include/linux/writeback.h
+> +++ b/include/linux/writeback.h
+> @@ -193,7 +193,7 @@ void inode_io_list_del(struct inode *inode);
+>  static inline void wait_on_inode(struct inode *inode)
+>  {
+>         wait_var_event(inode_state_wait_address(inode, __I_NEW),
+> -                      !(READ_ONCE(inode->i_state) & I_NEW));
+> +                      !(inode_state_read(inode) & I_NEW));
+>  }
+>
+>  #ifdef CONFIG_CGROUP_WRITEBACK
+> @@ -234,7 +234,7 @@ static inline void inode_attach_wb(struct inode *inod=
+e, struct folio *folio)
+>  static inline void inode_detach_wb(struct inode *inode)
+>  {
+>         if (inode->i_wb) {
+> -               WARN_ON_ONCE(!(inode->i_state & I_CLEAR));
+> +               WARN_ON_ONCE(!(inode_state_read(inode) & I_CLEAR));
+>                 wb_put(inode->i_wb);
+>                 inode->i_wb =3D NULL;
+>         }
+> diff --git a/include/trace/events/writeback.h b/include/trace/events/writ=
+eback.h
+> index 1e23919c0da9..70c496954473 100644
+> --- a/include/trace/events/writeback.h
+> +++ b/include/trace/events/writeback.h
+> @@ -120,7 +120,7 @@ DECLARE_EVENT_CLASS(writeback_dirty_inode_template,
+>                 /* may be called for files on pseudo FSes w/ unregistered=
+ bdi */
+>                 strscpy_pad(__entry->name, bdi_dev_name(bdi), 32);
+>                 __entry->ino            =3D inode->i_ino;
+> -               __entry->state          =3D inode->i_state;
+> +               __entry->state          =3D inode_state_read(inode);
+>                 __entry->flags          =3D flags;
+>         ),
+>
+> @@ -719,7 +719,7 @@ TRACE_EVENT(writeback_sb_inodes_requeue,
+>                 strscpy_pad(__entry->name,
+>                             bdi_dev_name(inode_to_bdi(inode)), 32);
+>                 __entry->ino            =3D inode->i_ino;
+> -               __entry->state          =3D inode->i_state;
+> +               __entry->state          =3D inode_state_read(inode);
+>                 __entry->dirtied_when   =3D inode->dirtied_when;
+>                 __entry->cgroup_ino     =3D __trace_wb_assign_cgroup(inod=
+e_to_wb(inode));
+>         ),
+> @@ -758,7 +758,7 @@ DECLARE_EVENT_CLASS(writeback_single_inode_template,
+>                 strscpy_pad(__entry->name,
+>                             bdi_dev_name(inode_to_bdi(inode)), 32);
+>                 __entry->ino            =3D inode->i_ino;
+> -               __entry->state          =3D inode->i_state;
+> +               __entry->state          =3D inode_state_read(inode);
+>                 __entry->dirtied_when   =3D inode->dirtied_when;
+>                 __entry->writeback_index =3D inode->i_mapping->writeback_=
+index;
+>                 __entry->nr_to_write    =3D nr_to_write;
+> @@ -810,7 +810,7 @@ DECLARE_EVENT_CLASS(writeback_inode_template,
+>         TP_fast_assign(
+>                 __entry->dev    =3D inode->i_sb->s_dev;
+>                 __entry->ino    =3D inode->i_ino;
+> -               __entry->state  =3D inode->i_state;
+> +               __entry->state  =3D inode_state_read(inode);
+>                 __entry->mode   =3D inode->i_mode;
+>                 __entry->dirtied_when =3D inode->dirtied_when;
+>         ),
+> --
+> 2.43.0
+>
