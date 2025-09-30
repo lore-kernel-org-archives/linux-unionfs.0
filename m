@@ -1,133 +1,157 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B60E30507F
-	for <linux-unionfs@vger.kernel.org>; Mon, 29 Sep 2025 12:56:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BF251A239A
+	for <linux-unionfs@vger.kernel.org>; Tue, 30 Sep 2025 07:58:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759150600; cv=none; b=XLc5F75Dkph5gDm0YaCHu0xGOhEMRk/tliMKx1F/GSHurPgadwFioWEFpFyeZ1kZNM0RAGKH4vp2mB1xrWrgS9tHwWG6c6wLr1xtN5LLd/as3jW/5ZYiEAcmiMC3F/krlb24KWC3fGyi1NYrj6qBGWtlLZ1aKWUdXvbUtZyZu20=
+	t=1759219130; cv=none; b=rVoAba3NsBLDF7q5upsMc0gmQq4MLXfU4Fycu/sGFakTrZvYrrRZvBqomW431lWWXWxC8Xc7eQeD904gmFr1JWp0OwWrvLnFaog8iU98OjPAMRlVG6AHYSkcdZXvtgiqUQR2WulUqqeB2GE0tDLcc2PgF4z3ZeGqdRTjojQDJcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759150600; c=relaxed/simple;
-	bh=czoR4K1G+s7y76NbjlWpJJ4z4V3QKtSDAu6HI/RHErw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PK2+XS0JIUlignIaq9B1j6cX12njqT+8Xm1WGmpz+jH2cFZP2bYN4hIduZigXJyEvMrEr7wPqKDvqlGtQ5t79U2KLmOFUAh5gtqpbydAms7OrihQezDLBNOh3qmhhNOudj8C7MFh1KKWB5zSSbRDDmgoz6aKH1Bs3Zvg2H0RUls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FCgn4P2K; arc=none smtp.client-ip=209.85.218.46
+	s=arc-20240116; t=1759219130; c=relaxed/simple;
+	bh=GW0+t7xjQhqLAlZvuCH2wFM1HzLxDXq+6ZhGCWe3SNs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Y251rgh4srlaJ0KwOjs2wgiKYFTv6lXEWINp9u+VZLjl/uUXAjjO/RWRLAV1hYBhSdwsK5+9UN1vSdsuaOEUUV4ud6SkEvvb7IHF2MOvkmLDuCDPmPO3ZfN7T/cK04DtmdxSbtgdtJrUKtAEZHp0IxEvaLujSmO9KXw4/1IAnSc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dklnDDVg; arc=none smtp.client-ip=209.85.218.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FCgn4P2K"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-b3b3a6f4dd4so331660866b.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 Sep 2025 05:56:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dklnDDVg"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-afcb7a16441so915755966b.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 30 Sep 2025 00:58:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1759150595; x=1759755395; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=vT64PoBlF5OmMwmdMDL2m5IBI9zs1VxmhdKVWW/7dn8=;
-        b=FCgn4P2K1bIgFAJoDuau++Y6+Tu6orG3eYikQptlTbn2qk5fvnEX7rNz9xsa4ZIAk9
-         TNz6RZf1mVEJ+Su1njyT9bIYaseGuw0JWXQMPRpP00jx3gM9a4BJqrnV9kYHqPXbJaOq
-         dhlEb8pqe7t8ANKhDaOdu1T1Y/mpR47EeDuatvBM511yYbhWL6Uu/rIc2s4AYq5Ndc0a
-         fop7n/Pv7EAT0po0BdS0IYOt4RiIvQ6Mn+1uZG2p8wrWzsrtqds8fVEJ48NrNm2Iofnq
-         nfDx40KqhrUAlKvyAFMaZdew5N8LuEja0ysIg0wwj2ntDhoqum1eyE8GcCYO/dnVabBV
-         mIUg==
+        d=gmail.com; s=20230601; t=1759219127; x=1759823927; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=tdLjLEy0U0fuaZSofLkGJRFfTbY7z9ZRmrdaFEYCljA=;
+        b=dklnDDVgYKA85Rr7+3/jwHGln3VPS0ttkTDCk27L66JX5qndCzYAXP6de+DxZz+9l5
+         QJShijegUtztNrDYHVfbCMjUAy1aT92iyC1/V6BW7s08QXu4xfspPl74LYsMGkk11MFH
+         +vxJxixnaXVpOfxl5dvrMSCoaKE5qO4ek6htQ5lT5zvxLuAlMMCQPajAP7fcqzPEgqHy
+         2ghC1WEuu8/tUp5TjsAN30IosSxh7JiskKjNWK6ERuG5fYrX2bDbI4ANWZ7jZO76HN1h
+         xYdLEFNCG07EEjsCwDrEU6YekH5AwAjmTADNfJSZhCd/LEOwnG/MMhqmCUefftGHOmBv
+         pArQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1759150595; x=1759755395;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=vT64PoBlF5OmMwmdMDL2m5IBI9zs1VxmhdKVWW/7dn8=;
-        b=pcm7F4jctgZC7kwpPeHxxx7hZZPRxTBLy6WsSHgrv6R67bZC5ducnBKeyHfjuIiZ8v
-         ieehJVOAP9XdXeHj2x89Kf/ouSGpScKR4qnQGlvbEozYqbgez9n4HiFfxc2XIiN7YjoG
-         u3vU36PScNihGDGUL+YJvBav2DtYB7kEhq9FLmr2EfwWQ6tIfJFSRDW2UDbJG1vE5D6w
-         jWmj+hXLwgxFVjbmdxWW7o+QFa7SE4FbTMFtoU51o6Rh0BAWPOyTSDKL805FVavP+mQ1
-         ZH20euXV8LzRcpzJCcXzNH3Eam4LzT41IaBoTK6LKw5S3p1I36N8/uwa977c3/+9BSMn
-         hK4w==
-X-Forwarded-Encrypted: i=1; AJvYcCWNUt+GY5Q5pS3wOrRsZHB+osmvBMmCY2sCUMKtPW/DTeAcBydm1wcBZbRIfmT+znyAM3wCBECDVQ3Ne10c@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz2BLs7fN3JzxEoSizlBdt7m17/wBgHVooWxBmkbOYJZxDdK1xk
-	IW6ocRFwswMX9+3x5ahLS/2VLFRtpoirz3ScTQ64UA/Js2Z3kPP9wbUbS0NealHuoodH8aP0lKS
-	+i02AgCuljYPe9Gu7WnRDwAVK6u+iFbE=
-X-Gm-Gg: ASbGncuTFh+YY3T6LZQtIV9FGk6sRj0SkWFfJIzFPRUNzUOrZq95WNPuRvqetDv0ALK
-	yWhmkGnSVbjNWfj4nuD+OZ6iOU4RqM80kG6m2Z/9o8drCi/wpZF6C67BM8nn0Dti1N1RO4A/Ul7
-	UuOv4JI3ZxPQz8x+CrnezbPh8EjlwcusQjQpiMgy1+V22HZzxvLqfGYhJLWhMROEAMirgyMkZuk
-	MOQoMGjyyLb68TXS2GEfA309OfNYrNW32JP4Z8tGuN7jNOPeF/iGJzUPXQgyg4=
-X-Google-Smtp-Source: AGHT+IHwgU6a7k1Tl/htBp66waMHN4IzraB7wwO8zA//bOHkHjYwuv41WV4gECwjjXP36V6Dgiwj6qkk1Bdqwjmi4TU=
-X-Received: by 2002:a17:907:7291:b0:b3f:9eaa:2bba with SMTP id
- a640c23a62f3a-b3f9eaa2f1dmr276916766b.63.1759150595150; Mon, 29 Sep 2025
- 05:56:35 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1759219127; x=1759823927;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=tdLjLEy0U0fuaZSofLkGJRFfTbY7z9ZRmrdaFEYCljA=;
+        b=A36j0C62aNujpFRXd58eIWrLmb/l3WjPYYXKU9xxme4xUvBfvZVIgIpjkPozJUQvbL
+         ef0SgAHxWuveMCTrKm3ouIDjGkZ9AYq/Y4E+7LzMw5db9VZTBQyPLnXKPofNgv1ruW5C
+         rjX/RBPftqwUhbPXWdFQk8R8hWcn1/7PvmL1lFou3EtFC47ubDHeXilwRJzMGqVc60kz
+         5TdWN6d/77/ny0CnPnZnh3bvtft5CqKPv1OUM4xXS2w9czq7H6gnxjLqvNk3uO6kMUBj
+         HeKFdWvLkh/nOuwKV9TTkItwDsjUBz4t4sKFdDOzXiY0a9eEqFdaJuZ7TVh4HnFrJpRd
+         8hNQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWqzQyiUG1mlW8C7ixB8YCFvlyoZbE1E7wZnaKOFxwMYiI9+TT57+Fbn5Pj3miut9yqwch5k0lC9vXBGtmn@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyq+JE12tZTjzLsuPCRxtqfXYaE56vDOOsWcr/YRJ87y0NHg0TX
+	OSJbyE409ca42Rf/YS3X3d4flTyXpQdHpYWaEhJgTbPg9F/Lcy5FgZoI
+X-Gm-Gg: ASbGncuhEhvCbPaxuNRG5diNFVkFe59o3HiXjqaDw0ufleLt2OkwQ7XBHVT3vtDPJEh
+	Ym4lf++Rc2SFsXROockeoxse5TArnKwWUWqMqpwx8bxE3a1cWDStKNylsonSXLAvS2wu1EacXys
+	p+6flUe5wpHJAZg/q/HEXCLLJitEY6PxPqZc4bfoYd/BIYeLIDxJ5gIdj7Q2mBuHoYHXYjStU8q
+	Ii2LYrxzKzQ5fA0Nx/+66Cr3x0xCH/gaQj3OjayX9YYXAfVbOWKVfneMBWYG1t5rwWXn6muOPt3
+	vb3gfTRrIWixA+HiI7ITm1/jubQm+/oKrMkKHemRfrITV5v9ErI7EqUkfayEamzbCblDTqS0NAI
+	ZZ6C8DWq5Utw8mixLeWndYuKdVC1m0NT1vx6BbdP3q73PUqVq1HK1SdIzRdwv+c9S0GNvW1l4nz
+	b8AGHmb8PN1VxfMsioBu8Os3op2M5dRBVUzl0aYqRVhyXiLEc3oSiKXxoRi//MWIEoc/m3Rjn0E
+	LHV
+X-Google-Smtp-Source: AGHT+IG74fN0DIkyOhjohxH9Y+ip3FELgnzPQxo8Ns4r1Man0mPD+YCE6s+wO1i6xseHx0QHtnzQkA==
+X-Received: by 2002:a17:906:f5a3:b0:b3e:e16a:8ce4 with SMTP id a640c23a62f3a-b3ee18913d0mr757795866b.3.1759219126556;
+        Tue, 30 Sep 2025 00:58:46 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (2001-1c00-570d-ee00-b818-b60f-e9a4-67a5.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:b818:b60f:e9a4:67a5])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b37b3b46ba0sm905613366b.2.2025.09.30.00.58.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 Sep 2025 00:58:46 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
+	Gabriel Krisman Bertazi <gabriel@krisman.be>,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs updates for 6.18
+Date: Tue, 30 Sep 2025 09:57:38 +0200
+Message-ID: <20250930075738.731439-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250923104710.2973493-1-mjguzik@gmail.com> <20250929-samstag-unkenntlich-623abeff6085@brauner>
-In-Reply-To: <20250929-samstag-unkenntlich-623abeff6085@brauner>
-From: Mateusz Guzik <mjguzik@gmail.com>
-Date: Mon, 29 Sep 2025 14:56:23 +0200
-X-Gm-Features: AS18NWAQppLQGH4Q4QepXGfVar_40_jU-wol-wjJISWMpqe1GoM3Cv27IqmClpo
-Message-ID: <CAGudoHFm9_-AuRh52-KRCADQ8suqUMmYUUsg126kmA+N8Ah+6g@mail.gmail.com>
-Subject: Re: [PATCH v6 0/4] hide ->i_state behind accessors
-To: Christian Brauner <brauner@kernel.org>
-Cc: viro@zeniv.linux.org.uk, jack@suse.cz, linux-kernel@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, josef@toxicpanda.com, kernel-team@fb.com, 
-	amir73il@gmail.com, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 
-This was a stripped down version (no lockdep) in hopes of getting into
-6.18. It also happens to come with some renames.
+Hi Linus,
 
-Given that the inclusion did not happen, I'm going to send a rebased
-and updated with new names variant but with lockdep.
+Please pull overlayfs updates for 6.18.
 
-So the routines will be:
-inode_state_read_once
-inode_state_read
+This branch has been sitting in linux-next for a few weeks,
+but I added some RVB last week.
 
-inode_state_set{,_raw}
-inode_state_clear{,_raw}
-inode_state_assign{,_raw}
+It has gone through the usual overlayfs test routines.
 
-Probably way later today or tomorrow.
+The branch merges cleanly with master branch of the moment.
 
-On Mon, Sep 29, 2025 at 11:30=E2=80=AFAM Christian Brauner <brauner@kernel.=
-org> wrote:
->
-> On Tue, 23 Sep 2025 12:47:06 +0200, Mateusz Guzik wrote:
-> > First commit message quoted verbatim with rationable + API:
-> >
-> > [quote]
-> > Open-coded accesses prevent asserting they are done correctly. One
-> > obvious aspect is locking, but significantly more can checked. For
-> > example it can be detected when the code is clearing flags which are
-> > already missing, or is setting flags when it is illegal (e.g., I_FREEIN=
-G
-> > when ->i_count > 0).
-> >
-> > [...]
->
-> Applied to the vfs-6.19.inode branch of the vfs/vfs.git tree.
-> Patches in the vfs-6.19.inode branch should appear in linux-next soon.
->
-> Please report any outstanding bugs that were missed during review in a
-> new review to the original patch series allowing us to drop it.
->
-> It's encouraged to provide Acked-bys and Reviewed-bys even though the
-> patch has now been applied. If possible patch trailers will be updated.
->
-> Note that commit hashes shown below are subject to change due to rebase,
-> trailer updates or similar. If in doubt, please check the listed branch.
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-> branch: vfs-6.19.inode
->
-> [1/4] fs: provide accessors for ->i_state
->       https://git.kernel.org/vfs/vfs/c/e9d1a9abd054
-> [2/4] Convert the kernel to use ->i_state accessors
->       https://git.kernel.org/vfs/vfs/c/67d2f3e3d033
-> [3/4] Manual conversion of ->i_state uses
->       https://git.kernel.org/vfs/vfs/c/b8173a2f1a0a
-> [4/4] fs: make plain ->i_state access fail to compile
->       https://git.kernel.org/vfs/vfs/c/3c2b8d921da8
+Note that there is a small change to fs.h in this PR for the
+sb encoding helpers.
+
+This change is reviewed by Gabriel and Christian has agreed that I will
+merge it through the ovl tree.
+
+Thanks,
+Amir.
+
+----------------------------------------------------------------
+The following changes since commit 1b237f190eb3d36f52dffe07a40b5eb210280e00:
+
+  Linux 6.17-rc3 (2025-08-24 12:04:12 -0400)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-update-6.18
+
+for you to fetch changes up to ad1423922781e6552f18d055a5742b1cff018cdc:
+
+  ovl: make sure that ovl_create_real() returns a hashed dentry (2025-09-23 12:29:36 +0200)
+
+----------------------------------------------------------------
+overlayfs updates for 6.18
+
+- Work by André Almeida to support case-insensitive overlayfs
+
+  Underlying case-insensitive filesystems casefolding is per directory,
+  but for overlayfs it is all-or-nothing.  It supports layers where
+  all directories are casefolded (with same encoding) or layers where
+  no directories are casefolded.
+
+- A fix for a "bug" in Neil's ovl directory lock changes,
+  which only manifested itself with casefold enabled layers
+  which may return an unhashed negative dentry from lookup.
+
+----------------------------------------------------------------
+Amir Goldstein (1):
+      ovl: make sure that ovl_create_real() returns a hashed dentry
+
+André Almeida (9):
+      fs: Create sb_encoding() helper
+      fs: Create sb_same_encoding() helper
+      ovl: Prepare for mounting case-insensitive enabled layers
+      ovl: Create ovl_casefold() to support casefolded strncmp()
+      ovl: Ensure that all layers have the same encoding
+      ovl: Set case-insensitive dentry operations for ovl sb
+      ovl: Add S_CASEFOLD as part of the inode flag to be copied
+      ovl: Check for casefold consistency when creating new dentries
+      ovl: Support mounting case-insensitive enabled layers
+
+ fs/overlayfs/copy_up.c   |   2 +-
+ fs/overlayfs/dir.c       |  29 ++++++++++-
+ fs/overlayfs/inode.c     |   1 +
+ fs/overlayfs/namei.c     |  17 ++++---
+ fs/overlayfs/overlayfs.h |   8 +--
+ fs/overlayfs/ovl_entry.h |   1 +
+ fs/overlayfs/params.c    |  15 ++++--
+ fs/overlayfs/params.h    |   1 +
+ fs/overlayfs/readdir.c   | 126 +++++++++++++++++++++++++++++++++++++++--------
+ fs/overlayfs/super.c     |  64 +++++++++++++++++++++++-
+ fs/overlayfs/util.c      |   6 +--
+ include/linux/fs.h       |  27 +++++++++-
+ 12 files changed, 254 insertions(+), 43 deletions(-)
