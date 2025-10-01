@@ -1,157 +1,188 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from pdx-out-011.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-011.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.35.192.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BF251A239A
-	for <linux-unionfs@vger.kernel.org>; Tue, 30 Sep 2025 07:58:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FB21BF58;
+	Wed,  1 Oct 2025 10:10:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.35.192.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759219130; cv=none; b=rVoAba3NsBLDF7q5upsMc0gmQq4MLXfU4Fycu/sGFakTrZvYrrRZvBqomW431lWWXWxC8Xc7eQeD904gmFr1JWp0OwWrvLnFaog8iU98OjPAMRlVG6AHYSkcdZXvtgiqUQR2WulUqqeB2GE0tDLcc2PgF4z3ZeGqdRTjojQDJcw=
+	t=1759313414; cv=none; b=pPypk9g79/OGY4qwWhbg46OswvOT3bcL/i1NzR/hs0GdRi28b8DzixDATRzoVTaku/5HDiRhKc36Rq27NwXdUt0WXTFFrS/cCMblnNS/BOzt3A46xhTPtVZFoeKuHtuy7+0srQRHM6QPL88ntUxWuD7KUJCjK7u0LRG+MO2YWXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759219130; c=relaxed/simple;
-	bh=GW0+t7xjQhqLAlZvuCH2wFM1HzLxDXq+6ZhGCWe3SNs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Y251rgh4srlaJ0KwOjs2wgiKYFTv6lXEWINp9u+VZLjl/uUXAjjO/RWRLAV1hYBhSdwsK5+9UN1vSdsuaOEUUV4ud6SkEvvb7IHF2MOvkmLDuCDPmPO3ZfN7T/cK04DtmdxSbtgdtJrUKtAEZHp0IxEvaLujSmO9KXw4/1IAnSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dklnDDVg; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1759313414; c=relaxed/simple;
+	bh=9Kdcxe0YU1RDTvXq8oIZkEx4aSa2Moo0guzu6R+eV7I=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GGywWPbsZPuk/azPytH6sTXvigqNgSIbDRSgEgm8eW29K2jZ4D4BBw8/2rcwf/pY1LjxuI/S5dpiVDdhTfvLrCNOaQeXZ8xr9IoFLeH0ae0PuKTcbQawHL5bq8yLDZFIuE9xlkdTMfSVn51ev6OGt4yWOZY/4favjJMhIORtmnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de; spf=pass smtp.mailfrom=amazon.de; dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b=XZfMFc6A; arc=none smtp.client-ip=52.35.192.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dklnDDVg"
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-afcb7a16441so915755966b.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 Sep 2025 00:58:48 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b="XZfMFc6A"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1759219127; x=1759823927; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=tdLjLEy0U0fuaZSofLkGJRFfTbY7z9ZRmrdaFEYCljA=;
-        b=dklnDDVgYKA85Rr7+3/jwHGln3VPS0ttkTDCk27L66JX5qndCzYAXP6de+DxZz+9l5
-         QJShijegUtztNrDYHVfbCMjUAy1aT92iyC1/V6BW7s08QXu4xfspPl74LYsMGkk11MFH
-         +vxJxixnaXVpOfxl5dvrMSCoaKE5qO4ek6htQ5lT5zvxLuAlMMCQPajAP7fcqzPEgqHy
-         2ghC1WEuu8/tUp5TjsAN30IosSxh7JiskKjNWK6ERuG5fYrX2bDbI4ANWZ7jZO76HN1h
-         xYdLEFNCG07EEjsCwDrEU6YekH5AwAjmTADNfJSZhCd/LEOwnG/MMhqmCUefftGHOmBv
-         pArQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1759219127; x=1759823927;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=tdLjLEy0U0fuaZSofLkGJRFfTbY7z9ZRmrdaFEYCljA=;
-        b=A36j0C62aNujpFRXd58eIWrLmb/l3WjPYYXKU9xxme4xUvBfvZVIgIpjkPozJUQvbL
-         ef0SgAHxWuveMCTrKm3ouIDjGkZ9AYq/Y4E+7LzMw5db9VZTBQyPLnXKPofNgv1ruW5C
-         rjX/RBPftqwUhbPXWdFQk8R8hWcn1/7PvmL1lFou3EtFC47ubDHeXilwRJzMGqVc60kz
-         5TdWN6d/77/ny0CnPnZnh3bvtft5CqKPv1OUM4xXS2w9czq7H6gnxjLqvNk3uO6kMUBj
-         HeKFdWvLkh/nOuwKV9TTkItwDsjUBz4t4sKFdDOzXiY0a9eEqFdaJuZ7TVh4HnFrJpRd
-         8hNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWqzQyiUG1mlW8C7ixB8YCFvlyoZbE1E7wZnaKOFxwMYiI9+TT57+Fbn5Pj3miut9yqwch5k0lC9vXBGtmn@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyq+JE12tZTjzLsuPCRxtqfXYaE56vDOOsWcr/YRJ87y0NHg0TX
-	OSJbyE409ca42Rf/YS3X3d4flTyXpQdHpYWaEhJgTbPg9F/Lcy5FgZoI
-X-Gm-Gg: ASbGncuhEhvCbPaxuNRG5diNFVkFe59o3HiXjqaDw0ufleLt2OkwQ7XBHVT3vtDPJEh
-	Ym4lf++Rc2SFsXROockeoxse5TArnKwWUWqMqpwx8bxE3a1cWDStKNylsonSXLAvS2wu1EacXys
-	p+6flUe5wpHJAZg/q/HEXCLLJitEY6PxPqZc4bfoYd/BIYeLIDxJ5gIdj7Q2mBuHoYHXYjStU8q
-	Ii2LYrxzKzQ5fA0Nx/+66Cr3x0xCH/gaQj3OjayX9YYXAfVbOWKVfneMBWYG1t5rwWXn6muOPt3
-	vb3gfTRrIWixA+HiI7ITm1/jubQm+/oKrMkKHemRfrITV5v9ErI7EqUkfayEamzbCblDTqS0NAI
-	ZZ6C8DWq5Utw8mixLeWndYuKdVC1m0NT1vx6BbdP3q73PUqVq1HK1SdIzRdwv+c9S0GNvW1l4nz
-	b8AGHmb8PN1VxfMsioBu8Os3op2M5dRBVUzl0aYqRVhyXiLEc3oSiKXxoRi//MWIEoc/m3Rjn0E
-	LHV
-X-Google-Smtp-Source: AGHT+IG74fN0DIkyOhjohxH9Y+ip3FELgnzPQxo8Ns4r1Man0mPD+YCE6s+wO1i6xseHx0QHtnzQkA==
-X-Received: by 2002:a17:906:f5a3:b0:b3e:e16a:8ce4 with SMTP id a640c23a62f3a-b3ee18913d0mr757795866b.3.1759219126556;
-        Tue, 30 Sep 2025 00:58:46 -0700 (PDT)
-Received: from amir-ThinkPad-T480.ctera.local (2001-1c00-570d-ee00-b818-b60f-e9a4-67a5.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:b818:b60f:e9a4:67a5])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b37b3b46ba0sm905613366b.2.2025.09.30.00.58.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Sep 2025 00:58:46 -0700 (PDT)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
-	Gabriel Krisman Bertazi <gabriel@krisman.be>,
-	linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs updates for 6.18
-Date: Tue, 30 Sep 2025 09:57:38 +0200
-Message-ID: <20250930075738.731439-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.50.1
+  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazoncorp2;
+  t=1759313412; x=1790849412;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=FpE6TyTqiWm2/3R74zOPPEXG4XAaowdakO3HuHcNBGU=;
+  b=XZfMFc6Axk9oLd1mKBsSNKPN7QshEeGFSA4lAEqkJ17TaYdKetzAIRUj
+   P7ZevGCIKLthCvCYRopfgmVwLzJmUZZk1ccQuv72aPB8Me0QMXAsIMBZY
+   kUE/FbsSYFKOJ33UWvJ7tnDwMha7reCfgczk9HcHcjWS2rdDkU+uFWf/9
+   9js4CNTdrl1uhlqUXvSelePayWjewEcR0stHuK48QsZiiAMKk0baYVv5m
+   Ob7psy2cOpmbX2U/NJTjwtckSmcpwx5JZD45Na++5X/B4/0PhBM6K/8AO
+   koD/ggIdm0VrKdam17hccct+LSvcE5RJgebvS/4egbrK+p9VbOStJqX/f
+   A==;
+X-CSE-ConnectionGUID: qpOiKXzMTDGK1E2aKN0MIg==
+X-CSE-MsgGUID: YLfa/iWkQ5C5l6XDURW5UA==
+X-IronPort-AV: E=Sophos;i="6.18,306,1751241600"; 
+   d="scan'208";a="3862601"
+Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
+  by internal-pdx-out-011.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2025 10:10:10 +0000
+Received: from EX19MTAUWC001.ant.amazon.com [10.0.21.151:30544]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.36.10:2525] with esmtp (Farcaster)
+ id 58df080d-a7e3-408e-bec0-aaf43a4bcc6e; Wed, 1 Oct 2025 10:10:10 +0000 (UTC)
+X-Farcaster-Flow-ID: 58df080d-a7e3-408e-bec0-aaf43a4bcc6e
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20;
+ Wed, 1 Oct 2025 10:10:10 +0000
+Received: from dev-dsk-acsjakub-1b-6f9934e2.eu-west-1.amazon.com
+ (172.19.75.107) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20; Wed, 1 Oct 2025
+ 10:10:08 +0000
+From: Jakub Acs <acsjakub@amazon.de>
+To: <linux-fsdevel@vger.kernel.org>
+CC: <acsjakub@amazon.de>, Jan Kara <jack@suse.cz>, Amir Goldstein
+	<amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner
+	<brauner@kernel.org>, <linux-unionfs@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <stable@vger.kernel.org>
+Subject: [PATCH] fs/notify: call exportfs_encode_fid with s_umount
+Date: Wed, 1 Oct 2025 10:09:55 +0000
+Message-ID: <20251001100955.59634-1-acsjakub@amazon.de>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=true
-Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: EX19D033UWC002.ant.amazon.com (10.13.139.196) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Hi Linus,
+Calling intotify_show_fdinfo() on fd watching an overlayfs inode, while
+the overlayfs is being unmounted, can lead to dereferencing NULL ptr.
 
-Please pull overlayfs updates for 6.18.
+This issue was found by syzkaller.
 
-This branch has been sitting in linux-next for a few weeks,
-but I added some RVB last week.
+Race Condition Diagram:
 
-It has gone through the usual overlayfs test routines.
+Thread 1                           Thread 2
+--------                           --------
 
-The branch merges cleanly with master branch of the moment.
+generic_shutdown_super()
+ shrink_dcache_for_umount
+  sb->s_root = NULL
 
-Note that there is a small change to fs.h in this PR for the
-sb encoding helpers.
+                    |
+                    |             vfs_read()
+                    |              inotify_fdinfo()
+                    |               * inode get from mark *
+                    |               show_mark_fhandle(m, inode)
+                    |                exportfs_encode_fid(inode, ..)
+                    |                 ovl_encode_fh(inode, ..)
+                    |                  ovl_check_encode_origin(inode)
+                    |                   * deref i_sb->s_root *
+                    |
+                    |
+                    v
+ fsnotify_sb_delete(sb)
 
-This change is reviewed by Gabriel and Christian has agreed that I will
-merge it through the ovl tree.
+Which then leads to:
 
-Thanks,
-Amir.
+[   32.133461] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000006: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
+[   32.134438] KASAN: null-ptr-deref in range [0x0000000000000030-0x0000000000000037]
+[   32.135032] CPU: 1 UID: 0 PID: 4468 Comm: systemd-coredum Not tainted 6.17.0-rc6 #22 PREEMPT(none)
 
-----------------------------------------------------------------
-The following changes since commit 1b237f190eb3d36f52dffe07a40b5eb210280e00:
+<snip registers, unreliable trace>
 
-  Linux 6.17-rc3 (2025-08-24 12:04:12 -0400)
+[   32.143353] Call Trace:
+[   32.143732]  ovl_encode_fh+0xd5/0x170
+[   32.144031]  exportfs_encode_inode_fh+0x12f/0x300
+[   32.144425]  show_mark_fhandle+0xbe/0x1f0
+[   32.145805]  inotify_fdinfo+0x226/0x2d0
+[   32.146442]  inotify_show_fdinfo+0x1c5/0x350
+[   32.147168]  seq_show+0x530/0x6f0
+[   32.147449]  seq_read_iter+0x503/0x12a0
+[   32.148419]  seq_read+0x31f/0x410
+[   32.150714]  vfs_read+0x1f0/0x9e0
+[   32.152297]  ksys_read+0x125/0x240
 
-are available in the Git repository at:
+IOW ovl_check_encode_origin derefs inode->i_sb->s_root, after it was set
+to NULL in the unmount path.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-update-6.18
+Fix it by protecting calling exportfs_encode_fid() from
+show_mark_fhandle() with s_umount lock.
 
-for you to fetch changes up to ad1423922781e6552f18d055a5742b1cff018cdc:
+This form of fix was suggested by Amir in [1].
 
-  ovl: make sure that ovl_create_real() returns a hashed dentry (2025-09-23 12:29:36 +0200)
+[1]: https://lore.kernel.org/all/CAOQ4uxhbDwhb+2Brs1UdkoF0a3NSdBAOQPNfEHjahrgoKJpLEw@mail.gmail.com/
 
-----------------------------------------------------------------
-overlayfs updates for 6.18
+Fixes: c45beebfde34 ("ovl: support encoding fid from inode with no alias")
+Signed-off-by: Jakub Acs <acsjakub@amazon.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+---
 
-- Work by André Almeida to support case-insensitive overlayfs
+This issue was already discussed in [1] with no consensus reached on the
+fix.
 
-  Underlying case-insensitive filesystems casefolding is per directory,
-  but for overlayfs it is all-or-nothing.  It supports layers where
-  all directories are casefolded (with same encoding) or layers where
-  no directories are casefolded.
+This form was suggested as a band-aid fix, without explicity yes/no
+reaction. Hence reviving the discussion around the band-aid.
 
-- A fix for a "bug" in Neil's ovl directory lock changes,
-  which only manifested itself with casefold enabled layers
-  which may return an unhashed negative dentry from lookup.
+ fs/notify/fdinfo.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-----------------------------------------------------------------
-Amir Goldstein (1):
-      ovl: make sure that ovl_create_real() returns a hashed dentry
+diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
+index 1161eabf11ee..9cc7eb863643 100644
+--- a/fs/notify/fdinfo.c
++++ b/fs/notify/fdinfo.c
+@@ -17,6 +17,7 @@
+ #include "fanotify/fanotify.h"
+ #include "fdinfo.h"
+ #include "fsnotify.h"
++#include "../internal.h"
+ 
+ #if defined(CONFIG_PROC_FS)
+ 
+@@ -46,7 +47,12 @@ static void show_mark_fhandle(struct seq_file *m, struct inode *inode)
+ 
+ 	size = f->handle_bytes >> 2;
+ 
++	if (!super_trylock_shared(inode->i_sb))
++		return;
++
+ 	ret = exportfs_encode_fid(inode, (struct fid *)f->f_handle, &size);
++	up_read(&inode->i_sb->s_umount);
++
+ 	if ((ret == FILEID_INVALID) || (ret < 0))
+ 		return;
+ 
+-- 
+2.47.3
 
-André Almeida (9):
-      fs: Create sb_encoding() helper
-      fs: Create sb_same_encoding() helper
-      ovl: Prepare for mounting case-insensitive enabled layers
-      ovl: Create ovl_casefold() to support casefolded strncmp()
-      ovl: Ensure that all layers have the same encoding
-      ovl: Set case-insensitive dentry operations for ovl sb
-      ovl: Add S_CASEFOLD as part of the inode flag to be copied
-      ovl: Check for casefold consistency when creating new dentries
-      ovl: Support mounting case-insensitive enabled layers
 
- fs/overlayfs/copy_up.c   |   2 +-
- fs/overlayfs/dir.c       |  29 ++++++++++-
- fs/overlayfs/inode.c     |   1 +
- fs/overlayfs/namei.c     |  17 ++++---
- fs/overlayfs/overlayfs.h |   8 +--
- fs/overlayfs/ovl_entry.h |   1 +
- fs/overlayfs/params.c    |  15 ++++--
- fs/overlayfs/params.h    |   1 +
- fs/overlayfs/readdir.c   | 126 +++++++++++++++++++++++++++++++++++++++--------
- fs/overlayfs/super.c     |  64 +++++++++++++++++++++++-
- fs/overlayfs/util.c      |   6 +--
- include/linux/fs.h       |  27 +++++++++-
- 12 files changed, 254 insertions(+), 43 deletions(-)
+
+
+Amazon Web Services Development Center Germany GmbH
+Tamara-Danz-Str. 13
+10243 Berlin
+Geschaeftsfuehrung: Christian Schlaeger
+Eingetragen am Amtsgericht Charlottenburg unter HRB 257764 B
+Sitz: Berlin
+Ust-ID: DE 365 538 597
+
