@@ -1,52 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422A81FA178;
-	Fri, 10 Oct 2025 11:29:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23A55220698
+	for <linux-unionfs@vger.kernel.org>; Fri, 10 Oct 2025 12:03:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760095772; cv=none; b=tC1/3FIX3vE4UwTHg3nmxb0f0BdmX10yCurWcZXGULTODDIY7PkYhd31LraniDMsnlrDqi72cJ10XrwFmPKvaA48lkOVRGWtNVGNGP0ZEg0j/+2NE7xBMHjIfTTbPYM2cWUK40N+evNHxwqQqaEQACawTmvFp+MrWpc++aDlCGU=
+	t=1760097787; cv=none; b=cm/awNWj7A8awmfR231StW3h+QWWzQim2+3AH1PrPlbPwt4dUTPhHmHEWTNjcrHVEXMeWgikyO258HxyzomJdMm/xrohmW9cwFrUO2U/hVm2rXl9KxlGYrH4uwCsv1/7VxpnHBI1G+f2GkOeMt+IjhxFsXpFkZ8ITQMGUaDtOg4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760095772; c=relaxed/simple;
-	bh=9iUazEeH838HwxGqjDtvMsozzJM3gRqcf39FT96xPtw=;
+	s=arc-20240116; t=1760097787; c=relaxed/simple;
+	bh=VN44n0DEQO1jMH5inPaNy7pLR7Sw+iP+0qUMR0+5KqI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kyAn+tW/sWqYgD/ODCtJAcFlZV7H8Yf9OHzJDO33PxmTn1EFkrUooNUnepVfjcKPkR7ttBDMty6pQZjon0WwgjrY1EZwxfikyfJLjAVF3p7nLLVYqzxApOj2EExUAg8IrsDFGs2wfVG5UVpvQz7neK1U7mWVn6kIpTGVq61530M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B9WPTwy6; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=Sbara4pS9YPxTw7wP1D1tHFC9UhWg7reLadKUzsl54SHhpse0eHF+vvmkx/i3V9D3ZYTPGffS3FqqctDtR/QrvnUIY5W3tSKqqIGEnamZCwRs9KKcnLd0mFU54Zd4MjuEi5rlPthTRRB2R/wj5zmw9NEPUNeSz9wXjJIVMAsGnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ehikXdP6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B9WPTwy6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5952C4CEF1;
-	Fri, 10 Oct 2025 11:29:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ehikXdP6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56DE6C4CEF1;
+	Fri, 10 Oct 2025 12:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760095771;
-	bh=9iUazEeH838HwxGqjDtvMsozzJM3gRqcf39FT96xPtw=;
+	s=k20201202; t=1760097786;
+	bh=VN44n0DEQO1jMH5inPaNy7pLR7Sw+iP+0qUMR0+5KqI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=B9WPTwy67jViEmKdEuSwSQCzfx+l8BsEyCm7MScArrgwoeeocq2SMofxYVHaijgoq
-	 2dVV9+FwJPTKXIJBMWchgq2D082vw010EwqMIT8pbWOHm1G62iHfNNrXr12Kn5yJsB
-	 oNHqYIi4sN3cGH8/qp+UBTKD37Jww6Vcj5Q94c8HmCNk93H+UanI6sPcmcfLJ0/5P9
-	 Yoq3yO2LUglqvbLVeAyhekz55hW1t3pKTf5obc2cCp7BHIPrCdQoiZ2RZpw60VtKcJ
-	 Pq8fqO6GYchCSUliwcOMKjfeV+8WRpzBTYobYK1VENq4oHk+MF8LqGhVxQXtbxl8JS
-	 vHxpQA98y9ByA==
+	b=ehikXdP6gKue00rmLoK3NK0Ty2PIfq0u5KoDC8xKiGGskItybh8J4phybUZgoZM90
+	 FU8jbimOR5oaQvw8VQ4pZkRTbfdKMHkVmEzmpcq2tWsjsI2KcSfvtPfk6nYYFSrOlp
+	 H8sl/Od/SI9+ygJVmUFaNxiWSRCPGFwkTXCp1tDfKaUe6tt7vYg4e3PkrriIAyCeud
+	 gEbbC7B/YW5gS0UOotNttuBg/J/phkcMqwUnRUkGjjSrqWE5j+qKTMCBhhaQmlWOzy
+	 EOc4r2D9vaxpYItNM0b94xEZ//u7BWZUc5ufpFLbJAiUvZsDI3VRW/azcXA87ZroF/
+	 6IiJMTkBUj0Jw==
 From: Christian Brauner <brauner@kernel.org>
-To: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>,
-	viro@zeniv.linux.org.uk,
-	jack@suse.cz,
-	linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	josef@toxicpanda.com,
-	kernel-team@fb.com,
+To: miklos@szeredi.hu,
 	amir73il@gmail.com,
-	linux-btrfs@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-xfs@vger.kernel.org,
-	ceph-devel@vger.kernel.org,
+	Seong-Gwang Heo <heo@mykernel.net>
+Cc: Christian Brauner <brauner@kernel.org>,
 	linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v7 00/14] hide ->i_state behind accessors
-Date: Fri, 10 Oct 2025 13:29:24 +0200
-Message-ID: <20251010-kneifen-klarheit-0c92d1d8ab01@brauner>
+Subject: Re: [PATCH] ovl: remove redundant IOCB_DIO_CALLER_COMP clearing
+Date: Fri, 10 Oct 2025 14:03:01 +0200
+Message-ID: <20251010-unappetitlich-zollfrei-0a1ccf576051@brauner>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20251009075929.1203950-1-mjguzik@gmail.com>
-References: <20251009075929.1203950-1-mjguzik@gmail.com>
+In-Reply-To: <20251009054148.21842-1-heo@mykernel.net>
+References: <20251009054148.21842-1-heo@mykernel.net>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -54,24 +45,22 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2704; i=brauner@kernel.org; h=from:subject:message-id; bh=9iUazEeH838HwxGqjDtvMsozzJM3gRqcf39FT96xPtw=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS8eCcadDug1EQ+6nI1x5PVTeI7ViasmFXF3cPVs+vf9 pdTJ6yv7yhlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIwiyG/4FPor5zMhjKqtbZ ZUi9+3c/jmlt3NK9/Hvz30S/FzRW7mFkeHH6xhPG3+8v7ZPbdOD6kd+3v/2K0W6Nk/5h3flMMHY PCycA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1124; i=brauner@kernel.org; h=from:subject:message-id; bh=VN44n0DEQO1jMH5inPaNy7pLR7Sw+iP+0qUMR0+5KqI=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS8+Prt9N2iFxuuFKhwB7NKBPaUbdrUZnNbsY+hi9VPw DlD4PXRjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIloGDP8T72qcexa1f3tC3jZ 5pnsZVgmI8Yx59CGrt49hqoLfFS+r2ZkmOthfZ6xZ9b9cIbgP89krd++Pp52zkhBfeJWwfWXP3h UsgAA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-On Thu, 09 Oct 2025 09:59:14 +0200, Mateusz Guzik wrote:
-> Commit message from the patch adding helpers quoted verbatim with rationable + API:
+On Thu, 09 Oct 2025 13:41:48 +0800, Seong-Gwang Heo wrote:
+> The backing_file_write_iter() function, which is called
+> immediately after this code, already contains identical
+> logic to clear the IOCB_DIO_CALLER_COMP flag along with
+> the same explanatory comment. There is no need to duplicate
+> this operation in the overlayfs code.
 > 
-> [quote]
-> Open-coded accesses prevent asserting they are done correctly. One
-> obvious aspect is locking, but significantly more can checked. For
-> example it can be detected when the code is clearing flags which are
-> already missing, or is setting flags when it is illegal (e.g., I_FREEING
-> when ->i_count > 0).
 > 
 > [...]
 
-Applied to the vfs-6.19.inode branch of the vfs/vfs.git tree.
-Patches in the vfs-6.19.inode branch should appear in linux-next soon.
+Applied to the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
 Please report any outstanding bugs that were missed during review in a
 new review to the original patch series allowing us to drop it.
@@ -83,33 +72,7 @@ Note that commit hashes shown below are subject to change due to rebase,
 trailer updates or similar. If in doubt, please check the listed branch.
 
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-6.19.inode
+branch: vfs.fixes
 
-[01/14] fs: move wait_on_inode() from writeback.h to fs.h
-        https://git.kernel.org/vfs/vfs/c/6605bf7d9536
-[02/14] fs: spell out fenced ->i_state accesses with explicit smp_wmb/smp_rmb
-        https://git.kernel.org/vfs/vfs/c/1fdd36da49d5
-[03/14] fs: provide accessors for ->i_state
-        https://git.kernel.org/vfs/vfs/c/1f4e908f28da
-[04/14] Coccinelle-based conversion to use ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/91d75e00d68f
-[05/14] Manual conversion to use ->i_state accessors of all places not covered by coccinelle
-        https://git.kernel.org/vfs/vfs/c/5b953be62d20
-[06/14] btrfs: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/b77405952757
-[07/14] ceph: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/9e121446182b
-[08/14] smb: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/6f44aedc8692
-[09/14] f2fs: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/60d14a5b26e3
-[10/14] gfs2: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/8b5a2dbef579
-[11/14] overlayfs: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/46ee05af3842
-[12/14] nilfs2: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/ff6d2b3d3473
-[13/14] xfs: use the new ->i_state accessors
-        https://git.kernel.org/vfs/vfs/c/fdbb1cb57675
-[14/14] fs: make plain ->i_state access fail to compile
-        https://git.kernel.org/vfs/vfs/c/708bcf48adda
+[1/1] ovl: remove redundant IOCB_DIO_CALLER_COMP clearing
+      https://git.kernel.org/vfs/vfs/c/7933a585d70e
