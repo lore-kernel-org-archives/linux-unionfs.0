@@ -1,67 +1,68 @@
-Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
+Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1394526FDA9
-	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 05:14:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A89285C99
+	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 05:26:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760418845; cv=none; b=QAMIaqC7eICT25wdys/zguP0DhDFgkabKJq+9idGujM+AS/tnR7WnB76rLFtVEvJItefdG1Amk7ooAjU3Olp3WI5OFqKBI1nuGVAdDgUf47A3uP7v5H+kRYpqRc82kV2lF+16abSJhd+2PnuwVm2p+3q+ajfZH1eiZ2cZO+S77w=
+	t=1760419571; cv=none; b=ZtU1usPoXF25+nJpnNouXuH3E6NJzzAgyXWqCKOjcF3D/bABmmEa7/z7gcEgDgmsjIxojSM3ZfFN6WXDkdNPTy1+/xPUZLxzlowusU9Uad6kf94PLpsrvbUG7T0g4N3+1IUHWjVllah9Lb9fMtLAJ6VMTToAfRzECtXzqTlS1zg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760418845; c=relaxed/simple;
-	bh=iqtaVI5XEyh5592SG25WZntlMN944UQCQ1GcQfweCU8=;
+	s=arc-20240116; t=1760419571; c=relaxed/simple;
+	bh=RzZ2rpgYX4TU7MT3Xglqz4bP41cT5Oh6ggAKNbiU4Qg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oKDG1F36soEMc08bfk8g/ENgDMhfrpI0stHHQAZX9HvTmvoS1yEY9GHHKJqqrAY4++ADFLMrALw0pXefO4UwiFol1taPnrf1iJu3+4JXlPBQa3iZrOqVuZ8mJI8st8MGHa8f7LasmUVeLj0+eGIVfpd1oj8v+8ljFHbap0jRGVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=EKqco9wA; arc=none smtp.client-ip=209.85.221.45
+	 In-Reply-To:Content-Type; b=WdNV9RJmwWV7V2+7NacCZGOtiT8Z3JCV/4YJiq5qNav3egg+jMagtZGECy0G2xORzkkGOL4xTkNL5hBoRs9AR2agcipqml9+qh8cfxIwEV449LlL4jbGTLhe6OflNWDS6lrkiStrtyCSYNLItFwGyZ27BjZhqs114o3353YDcd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=TMa9tT67; arc=none smtp.client-ip=209.85.221.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="EKqco9wA"
-Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-3f2ae6fadb4so5562811f8f.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 13 Oct 2025 22:14:02 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="TMa9tT67"
+Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-4060b4b1200so3648521f8f.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 13 Oct 2025 22:26:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1760418841; x=1761023641; darn=vger.kernel.org;
+        d=suse.com; s=google; t=1760419568; x=1761024368; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=rln7mORLnWvgfvd24w2tXe1xINLMmx+fNiAqEE0B1Js=;
-        b=EKqco9wABGqo0RlxeJVrsFY/7iLMCRYPxlTAnspbHmlwh0gELIoIimyoYKfEKM7M4k
-         rLpf57Xs76R63Vr48ay8M0gGmbr5eafbwccC0rMJXQytJkXmAf9NHQqw2439RfuaNHT/
-         +QNNX1W9D3LPKDuEJqM8zDMabxZnH2ufB3vUTjQhwwMg+0gGUXvLfId9yDd3ieF4uvJm
-         1bUSuePb9vlywKvDS2kjbJ84neArvDnBrVtetcjbFJKhSOMsFMzYeuM/CsOgjbnXtczf
-         j+BBZTb4smU40s5ZCJZpdBioTyj1OgK2tmL54JOGfoEc/EZvKFbmJL/uIXNyoAnEmSwv
-         NWww==
+        bh=PJeA08PmXO0Rt+J6zqTRksSe9Q2LhvStVnJgFH8knlE=;
+        b=TMa9tT67BZUz1dqoyEp7c7boJbzouJq/CFRT9LOK/U9xCWA5vMvOBkUMWgn1smAdp2
+         Brts+rKceBUpEtfxGyevkKllE57ptajVK/Eu+A8iHkucCdATPSb7WIDXOtz6HOW+wi8c
+         b1G1G1SGA/0IJoBMYoH4XBtKaYKWhWcsl9aYGRNKlerxCDvmJYHTMEreFgZEsBR8Pczy
+         DqEx2WUacQh4R5Seu9dNoTTBFl7ELoBSytZUQrIisqCRVSA365p2yHsi0zsaQBMQuVbb
+         E3kJOKe+LmCfVnqJnKd7m34sLRZxcDWH0bJ10MP4uqwq0ZluEixXFBM1cuY/BJQNMCc+
+         o85g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760418841; x=1761023641;
+        d=1e100.net; s=20230601; t=1760419568; x=1761024368;
         h=content-transfer-encoding:in-reply-to:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rln7mORLnWvgfvd24w2tXe1xINLMmx+fNiAqEE0B1Js=;
-        b=Fz42FyCNUsHQThrFbVE+9e9AdHflzaBHfjJymVZpUMw9k5wl4LVFi4lkXLZwRHu+Qy
-         Ozgd0rwgHeXULKhs0Ifi5YxzoteNlHAGZJtEaLOBtFFa0xc5gXWEZBOK3afTQVkzAoA8
-         2vPpUscrptqanecBaQJe1/9KH68ue90AOxypQamc+HikrB4S0ODhWEX2BdX0og5QFpK8
-         97Oij2w1bdONyPcJy7ifoLnGcrR5r2KDOV8AoHktrLvrpozqdOyK8yBr0bjHmqIP4gQE
-         jA08n2uX4sONP4N2NiifN2+GBnnxU/HVvboiTmfGbqlfkd3fOnWtLhFMhkScu85C+RKV
-         SYUQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXloFOtuRzrbaAaLa8pMqngrFr+WFG+AAhnMdJkR2kdsDXqGGHcu3XndgiLxgnrEd61jUIGxCz4hjlvxLye@vger.kernel.org
-X-Gm-Message-State: AOJu0YygX3a8/OP3S1ztL4Yot5l2SX44vl2lPQGJcQ1P19dqBdRmk3r7
-	uhoAH8q1+n65uxv9p7wPMgtHqIzRFV8fk0S0bHTnI3gofYnUTkB6IjusKfB7q13LBK4pQdxt6z2
-	A8sy2ZVY=
-X-Gm-Gg: ASbGncvK/em3/SO5RUhOHCsYp66Sc6yjrHYQACOp2ckaR9IT8mM7hbSmlyidXeyr7NY
-	snbC9Nu8TVJ0RMBPA5Q3es/wbJEh88/J8KLZ6WFNhrzl2TSsQPpt/tR97l/UbFKSqeGsrdtRwGH
-	aVpHvg3N2/c3ckDlCob+j8Oy5RsdOEuc71CQ+lFYdcYqjwo4CK6ffq7CsCl8slx4T0dqaH2X/DL
-	6htc1QUo/oR2iqJD0Xe7QsCYOSokszl+/pu4V2AwngLPlsBQ9OHf6ctL8OiT6eww4Dx9gyMut7H
-	82cbIAI0zaFR9lYK1Zw3B8/PLQ2Pi5WdybS6EKdGSZFbKkJ/eUIrUOzuGXvtzdFI1VPa1Cy5xIb
-	GB/o0UfVyQIojgKHhsdHs+VZ62Q9cwa0IawtBKj8dZEBzgORKujE9ZGtjeUtkWH3EeyRiDA==
-X-Google-Smtp-Source: AGHT+IHHWcRnVM188ZrFg3N9NneaIaGiyPkpGn6/Jt1Ad+BWLO/MpTuXxwiZERz6PVjYfRm4N18LZg==
-X-Received: by 2002:a05:6000:22c5:b0:3fb:bb69:d91b with SMTP id ffacd0b85a97d-42666ac4a07mr14269691f8f.2.1760418841327;
-        Mon, 13 Oct 2025 22:14:01 -0700 (PDT)
+        bh=PJeA08PmXO0Rt+J6zqTRksSe9Q2LhvStVnJgFH8knlE=;
+        b=IJzCr5CEjGnY2oSRtMkb9RFCxxUbYcBGIjotmnF3278zsItd55BU/CzwMnj+VC99h7
+         nXcJvAYddFkNP8lY4bAAY2RMlifQ3od3n9IfoRQ4ly320ekc4fwq3yNQdMyt/c432I1Z
+         dyHues++4pjbzpGxoDHGppGDN9SvszhHeGmlbmBRvUD3H+NghsqYCyumwvIjN1HwsrGo
+         eG8XHLvPwQNBdyFA4pnKjKoRXE3s7Amkf62M2H/ZKaKz3R46Qmw6nz71OHbphNQ7wSpD
+         sL7p6gHORMHjbfE2PJ5SNaxAOWoTFxSMJjZOKIE+slXhxCLAucAxf5q9pZKCrcbZx3HY
+         KKfQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXUIJuX/c9gQvzNGkAgO24mC2BFRlxZB+7ao007V2lg1vOAEAwKygZCCGUz7SLgGljLMUV/S6m/iZQSgrnK@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy5zY6RLmbnwYetHW/YZa44lhkqb3cu5f489AK3qk8d8yV8TaH1
+	SaHEzCyZ80K4hliYcZNjPOhoVBFUS2sgd3wDVyUB8oY8H/j+5aTdeyIVih8BagCe0BI9Lxf7cuM
+	baDDZ4zE=
+X-Gm-Gg: ASbGncviL/okzxWNPpeiOAHv27bU+Lx3jdv5zctSYHCC5hTDGX6NlljC9G71PfmqQY8
+	ggI2nwt2pH9VHYxTa0HK29dy5cA7NFG4aMB5/Pe5M0JmWG6BzftX9RUldh2vpTwV1dQ3aX8RwTQ
+	sFE00R+v5Qny8pVx2jUoUkyBv0VWwcnr/7UR5z6HDdKefjfeiSgGgPkQzNtozwjyC/r1x0XYeP2
+	rj1QnSWdomI9gx61u1ELpMbkAirg9KWPhmQX/Cq7WNDZTCKqCkuV1sRbR8upg8YkKFbBZyAT09e
+	JacM/NrJ4u12BVCRLrWSKmEEmQU4LbkikNgoD1NlJy8fNtRDTWmToi4pYIWWFYFom8cPT5h7AY8
+	miQ4oAoihHag6LlDvIxygC6PecVQ7AsLjOeJbIOqaAZB2j82BqcXXddhYu9iErR3+YJOqet2U8i
+	iVBO2k
+X-Google-Smtp-Source: AGHT+IGrGpGhcI95c5DMP672QlHISusRMmNdSZjfnjcUd//Uku5n9Mpyuwa8gnooQRqjnAoP2rIKaA==
+X-Received: by 2002:a05:6000:2505:b0:3ee:1279:6e68 with SMTP id ffacd0b85a97d-42672425b82mr14532469f8f.47.1760419567943;
+        Mon, 13 Oct 2025 22:26:07 -0700 (PDT)
 Received: from ?IPV6:2403:580d:fda1::299? (2403-580d-fda1--299.ip6.aussiebb.net. [2403:580d:fda1::299])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7992d9932edsm13435303b3a.73.2025.10.13.22.13.56
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29034de6c14sm151516595ad.6.2025.10.13.22.26.03
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 13 Oct 2025 22:14:00 -0700 (PDT)
-Message-ID: <fe7201ac-e066-4ac5-8fa1-8c470195248b@suse.com>
-Date: Tue, 14 Oct 2025 15:43:54 +1030
+        Mon, 13 Oct 2025 22:26:07 -0700 (PDT)
+Message-ID: <f6d30bb5-8e0e-4351-a11f-4a78f7a541e7@suse.com>
+Date: Tue, 14 Oct 2025 15:56:00 +1030
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -69,19 +70,16 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 1/1] ovl: Use fsid as unique identifier for trusted
- origin
-To: Christoph Hellwig <hch@infradead.org>,
- =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
+Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
+ index=on
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>,
+ linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
  Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
  David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>,
  "Guilherme G . Piccoli" <gpiccoli@igalia.com>
 References: <20251014015707.129013-1-andrealmeid@igalia.com>
- <20251014015707.129013-2-andrealmeid@igalia.com>
- <aO3T8BGM6djYFyrz@infradead.org>
 Content-Language: en-US
 From: Qu Wenruo <wqu@suse.com>
 Autocrypt: addr=wqu@suse.com; keydata=
@@ -108,38 +106,101 @@ Autocrypt: addr=wqu@suse.com; keydata=
  /3tBWMyvIeWZKURnZbBzWRREB7iWxEbZ014B3gICqZPDRwwitHpH8Om3eZr7ygZck6bBa4MU
  o1XgbZcspyCGqu1xF/bMAY2iCDcq6ULKQceuKkbeQ8qxvt9hVxJC2W3lHq8dlK1pkHPDg9wO
  JoAXek8MF37R8gpLoGWl41FIUb3hFiu3zhDDvslYM4BmzI18QgQTQnotJH8=
-In-Reply-To: <aO3T8BGM6djYFyrz@infradead.org>
+In-Reply-To: <20251014015707.129013-1-andrealmeid@igalia.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
 
 
-在 2025/10/14 15:09, Christoph Hellwig 写道:
-> On Mon, Oct 13, 2025 at 10:57:07PM -0300, André Almeida wrote:
->> Some filesystem have non-persistent UUIDs, that can change between
->> mounting, even if the filesystem is not modified. To prevent
->> false-positives when mounting overlayfs with index enabled, use the fsid
->> reported from statfs that is persistent across mounts.
+在 2025/10/14 12:27, André Almeida 写道:
+> Hi everyone,
 > 
-> Please fix btrfs to not change uuids, as that completely defeats the
-> point of uuids.
+> When using overlayfs with the mount option index=on, the first time a directory is
+> used as upper dir, overlayfs stores in a xattr "overlay.origin" the UUID of the
+> filesystem being used in the layers. If the upper dir is reused, overlayfs
+> refuses to mount for a different filesystem, by comparing the UUID with what's
+> stored at overlay.origin, and it fails with "failed to verify upper root origin"
+> on dmesg. Remounting with the very same fs is supported and works fine.
 > 
+> However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
+> disk image with btrfs, a random UUID is assigned for the following disks each
+> time they are mounted, stored at temp_fsid and used across the kernel as the
+> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however shows
+> the original (and duplicated) UUID for all disks.
 
-That is the temp-fsid feature from Anand, introduced by commit 
-a5b8a5f9f835 ("btrfs: support cloned-device mount capability").
+Yep, that's the btrfs' hack to allowing mounting cloned devices (as long 
+as they are all single-device only btrfs)
 
-I'm not 100% sure if it's really that important to support mounting 
-cloned devices in the first place, as LVM will reject activating any LVs 
-if there is even conflicting VGs names, not to mention conflicting UUIDs.
+Although I'm not a huge fan for that, without that you can not even 
+mount any cloned btrfs in the first place.
 
-If temp-fsid is causing problems with overlayfs, I'm happy to remove it, 
-as this really looks like a niche that no one is asking.
+> 
+> This feature doesn't work well with overlayfs with index=on, as when the image
+> is mounted a second time, will get a different UUID and ovl will refuse to
+> mount, breaking the user expectation that using the same image should work. A
+> small script can be find in the end of this cover letter that illustrates this.
+> 
+>  From this, I can think of some options:
+> 
+> - Use statfs() internally to always get the fsid, that is persistent. The patch
+> here illustrates that approach, but doesn't fully implement it.
+> - Create a new sb op, called get_uuid() so the filesystem returns what's
+> appropriated.
+> - Have a workaround in ovl for btrfs.
+> - Document this as unsupported, and userland needs to erase overlay.origin each
+> time it wants to remount.
+> - If ovl detects that temp_fsid and index are being used at the same time,
+> refuses to mount.
 
-Yes, mounting cloned devices can be useful for certain cases, but with 
-metadata_uuid changing the uuid should not even take a second, or one 
-can just unregister the previously scanned device.
+Or, let btrfs to reject the cloned device in the first place.
 
-I'd say we paid too much cost for a niche that is not worthy.
+> 
+> I'm not sure which one would be better here, so I would like to hear some ideas
+> on this.
+> 
+> Thanks!
+> 	André
+> 
+> ---
+> 
+> To reproduce:
+> 
+> mkdir -p dir1 dir2
+> 
+> fallocate -l 300m ./disk1.img
+> mkfs.btrfs -q -f ./disk1.img
+> 
+> # cloning the disks
+> cp disk1.img disk2.img
+
+If you really want to use the same copied fs, at least you can use
+`btrfstune -m disk2.img` to change it to a new metadata uuid (without 
+re-writing all metadata).
+
+Then everything should work.
 
 Thanks,
 Qu
+> sudo mount -o loop ./disk1.img dir1
+> sudo mount -o loop ./disk2.img dir2
+> 
+> mkdir -p dir2/lower aux/upper aux/work
+> 
+> # this works
+> sudo mount -t overlay -o lowerdir=dir2/lower,upperdir=aux/upper,workdir=aux/work,userxattr none dir2/lower
+> 
+> sudo umount dir2/lower
+> sudo umount dir2
+> 
+> sudo mount -o loop ./disk2.img dir2
+> 
+> # this doesn't works
+> sudo mount -t overlay -o lowerdir=dir2/lower,upperdir=aux/upper,workdir=aux/work,userxattr none dir2/lower
+> 
+> André Almeida (1):
+>    ovl: Use fsid as unique identifier for trusted origin
+> 
+>   fs/overlayfs/copy_up.c | 8 +++++++-
+>   1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+
