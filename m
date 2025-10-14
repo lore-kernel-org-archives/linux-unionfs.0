@@ -1,167 +1,119 @@
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A707B2BD5BC
-	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 21:08:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6EEB2E5427
+	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 21:57:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760476123; cv=none; b=RZXnp95p/V3HuG5WPveEOxA3M0ojzVkPjPa/lvY82gLEbJDdrodkuHGryOsyQtrhFSOwepjwq8abf+cd2s4vKD+HFyk5ariRvqZIC62Xn225EHegOHT6sztrnoCWn5UoIsD/39p53JisJXTofcqaThraQVTB9fs3RJb60R44jT8=
+	t=1760479048; cv=none; b=VMPZIPQHaGn/3CCsU6qrSY+BRQWcshYTZYat5TBgcAZWshrFFuVjgrY3AZJtIGVuOX/b9Ju1huRC98CpmV0wjJ+2gn6AclyDoCyxTQ6UYCbq55bWWjE6R7RkWoGoNgDP+2ikZB8zuEgQMFOn3154BIAYXYEOPD7/Z3RHol+5P3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760476123; c=relaxed/simple;
-	bh=cnJtV5UStc6Ve+q6PTyQ+wuRR2r/C1//Qxh9geDvSXE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QpQeTvVZdf/t3C3+IuulSneFtZ6MOhWoe+/vDpp2lsrARExBqIKCdCukedp1cZlSJ5muJuAtaAijezWhJrXqPntjJw/lSWAPgy5NcyYu/Bu/9d+dVSypuvIgDhvN/cUEbgVHpYqv1cAJC3oLd86dVS9TKQ4JShqz62tebiMXLLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Lfw1zTrq; arc=none smtp.client-ip=209.85.221.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1760479048; c=relaxed/simple;
+	bh=lbp/svBrqIT8k+MRq3/jmjxuU8akOPgMPTESYka1epE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tkHil6ySS/arTpewtAsSvU+OfSqI0ScG0Nu5eqmYNvNKu2ys4gWCO61urw+1jsdTJQPSa4mk8t/u7p9GxGYd7YCirhFNhUDNFhq+o7G09qTIww5aTzjArho0vXowxQNOvEjMQpxpiI1Ge4RxLO2s3PkAR2HCcvOPLbbLVS6Bb9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=T9FjswIc; arc=none smtp.client-ip=209.85.210.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Lfw1zTrq"
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-426ed6f4db5so177640f8f.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 14:08:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="T9FjswIc"
+Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-794e300e20dso245088b3a.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 14:57:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1760476120; x=1761080920; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=siBEdSXb+TOq19NSx1UjT5CHbXYzR/FE6uFr7iLMMvY=;
-        b=Lfw1zTrqg30dCP1eGdjNWY1Sg+fLzbbnCj2N5NGwOLbjEQH3ttPTbko59Y/Dm7AqC3
-         8Az4V4TIVgwIf9OjHF7tACJhT6HNTkOdq/8UwZXkKv4vNmABEYfHbVQRLVVkhIr/SZEF
-         9Bkl/jurIDeDJ9TZUkZb07rFBjelYmG04ffr+lSduAlrXyn+oUDyydpibupUaaEPLb2z
-         /9ZKbWURBaP3hsVK7AZVL9KFBBq5Rl82rV7czuwyF2GLS3cFSUXSfO93VF2aqAIW9QdL
-         H1eftBtweRms6ZTY/VTz9tHN8JSpkPvepNFbg7bmyOE62pEBpGvz403YvkiQIzi9zOvj
-         defw==
+        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1760479046; x=1761083846; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=AL/bnV/py/dxrrqchUFB69kdjG2EwxKxcNMsAmNeKP0=;
+        b=T9FjswIcdHH/j2782D1jjnXNP42OV1TStmHEnhaKyPrqOsbVq9lQfvfZv3GCqPnHD8
+         FexeoNXr3/gm3oCR/0fP2A3kMQ4O8hZjZlZs5bHR6KK7D52M04Q8LLKmoNukfj521A3p
+         sx4DxPtKTjzkrOpxhir6wMCuPKzdV7iifb99ogfvN80U8/qJNKEJttNWXwOGOxyovtPt
+         1KybvFhAZBPZ7QT3cLgvrcVjxoWkmfgcEIbeRc0d7Kf044/O1eXmAKkl6zfRrqnsnBAZ
+         ZrXMMCoeBhowPB7sMJ/esusntK1LQWjp/Pc4IlmJ2IJBA4N+e8cCd1lN8kPIsP3nlgzP
+         zp9g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760476120; x=1761080920;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20230601; t=1760479046; x=1761083846;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=siBEdSXb+TOq19NSx1UjT5CHbXYzR/FE6uFr7iLMMvY=;
-        b=AJ3mWJqrq90kP9VZ80aNd9fHINt2mCaUqoemzjKGXCkcCLuK+n1pag+pejq0PCML6d
-         g13bgdUpb3XbQ3HRPtPBRmj5wm3m+U+uUIkHvMWI/cmnR7E8xwyaJ1XTbZPy9vjRDNh6
-         spx6OuDVVs5bUNoBowLiqI13PqhLWNRfu2lVhsjsoHHSdd/ET+A190Ux3n7hiW/9dLIZ
-         Q2DY6U6coIMZUwZeBnhmRyCxP9tzhuy76gTKQMGUaIPq2vwP0nbUhY/WeIYfQq1dRq7y
-         fJ5FI6FtNl4UkVy+4zBmOElSMC8pN5eI/YbH0fVRSoGnXG7D+qKt/ziC4m+Yxyhcr6bu
-         3L0w==
-X-Forwarded-Encrypted: i=1; AJvYcCUz8yMZ6IIU/hzw5aipHyD94QnkheW2X19Fl16dx3oVMrcmY3x3ECItN46AIFyt6Ym0eKD/sFxy5iv/kYJ5@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy3GlCVd7AeKePYnLk9W0bO1MRP6ttTfLHESbPtNapvxJSfUo8S
-	ejkGCicya3HUrvtlR21xWSj3gnazrg6LyZ9dpJEblFl+6VyFIaEczmR615R/pfNSJco=
-X-Gm-Gg: ASbGncsknA4z7vbGShRpa+RiSB+OnisAu1nrQAplSMTVuj/U2SrZZt3wCxEc0OmAIWV
-	Op+FjNA9Mf9nJrtNnpVFE2/muXNyjla6pNOtV8fUC07nSHJuu2Usgs4BIGSuUYO0lGVfw+fuJEi
-	M5CMRuu7Brz3OIqtz+LLFF0BgbDBXL5L5MaCOKnYu7MQQHywBCtqMPphWonbaPN5sKlHYzrjhWs
-	pps5CkLd/gDxDa7zIehFUECfQlJpMzJ5F9BFac7S9sYqdZcJE5rXBMJuLmu3TunTb0EYn0uTyvN
-	Kd6/l67Fmhd7kA8tkeVXr2VqJkU+1lShvhGRMDTj7HiFeVyiuA7N+SgpWkWvdXVs8j66RVG+EFj
-	nP8Mk0lFwoBxRQCg4/bcgNfFNlZDfaSe/PM1PY1qosD0y8ysYhNOisFI+JYapWT/h0d6SgM+VlR
-	s5r8ms
-X-Google-Smtp-Source: AGHT+IFIANIwScg+5GHJALy/pEalv764AKxh+pONr/MZ4Z/a40QUVzKfGvCzQ2ZGEWok1LqkLwNKLw==
-X-Received: by 2002:a05:6000:4284:b0:426:d30a:88b0 with SMTP id ffacd0b85a97d-426d30a8fc8mr10165982f8f.22.1760476119851;
-        Tue, 14 Oct 2025 14:08:39 -0700 (PDT)
-Received: from ?IPV6:2403:580d:fda1::299? (2403-580d-fda1--299.ip6.aussiebb.net. [2403:580d:fda1::299])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29034f36738sm174176085ad.87.2025.10.14.14.08.35
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 14 Oct 2025 14:08:39 -0700 (PDT)
-Message-ID: <6982bc0a-bb12-458a-bb8c-890c363ba807@suse.com>
-Date: Wed, 15 Oct 2025 07:38:33 +1030
+        bh=AL/bnV/py/dxrrqchUFB69kdjG2EwxKxcNMsAmNeKP0=;
+        b=H85ighMEbGzJQU8cGmMU5uI0IzjPexHSVeTKl+4gxMOdnSpG4TgppPFQbK3OgSlGov
+         mnk8CgiuGrYrFyZBVlLjx5GY6QCMYTuxxi7kiKEdyqt9ZVPC1BPFhUHULrndKK2ElPJf
+         NShbWnZG1gQ6xWRJqnmqo3mat3h6f1DYJ1UTEadPjfLEWyVTUoewoXY24rdGZ3FiHHpl
+         xG5hkwujConNIfHiQ/UkiFyfa6vkPssBQG2wVZVvsaaUOxcOfzGT9nCUH9Xe/KZf1Cie
+         FBAWn+EFqeoR/mfSMunWjVE6uOfTJQi1v2cA0KOmPumvh2+C8+DPbb5HoucZAjhz3nJV
+         MS8g==
+X-Forwarded-Encrypted: i=1; AJvYcCUySdLSZCYldcuy3qJbDIJ+l3GVEBceZKG2C11Ie5Y/BOGTL4GShqTWUhczlgOl9gbZQuUXZK5uOFNCKsvc@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZTKS11lPfE7BwiFUWOgA6pm+kEyDKFg4Odv9bKGUZigeheAX2
+	MjsWXVaaHn5w0xDvikQQ+G0yO+l7cy/66xmeDiM8cEdA+pbuT+YjrhwdvYPgwO1Fcwo=
+X-Gm-Gg: ASbGncva7cr9VAkmtAqTXb+Jo147YW/APCiqFIitfKZV2N9U3OWkbE/yUyOz7fsnuBC
+	fIeD5MWdg3ihu9u5xYoLlOrCnEM6taeyv/TklOcAnUGJUI+Fm4Wod9hHlV4ZHg1aVACrZMsIOZv
+	cPd85GOT4U2ZXn038oTDMVSLaJk7bbv7cOe4HQ8opiHl4fvSPDJLqbOFi8CDCoLbEgq/SK5oI8l
+	pTEowR17QWFphdCOzrMwArgO3rlZyp34z8YvvZbgxfRSBjbO7xOGCxRcsDUYwCUxzf2R+DXEt9c
+	jYjHBH8C/+raG4rwpwNwTvirIWlxJ/QTXbiImtkNYlXFbvlmHbKMcCzNMtHQWDOvgPTvcvIePoZ
+	DpIQP7EwK7ZE4HgXNOHj63bmD0/u0OYUVW5nviY0WKTkxUtO6/R/En6BM4b6cLAf5j1BMfDLVoL
+	GOmObhe/0gpDrSQFarukT1S44yYd9Ls6T/TWLXVQ==
+X-Google-Smtp-Source: AGHT+IFEm7YEffZsxkb8K+nehDd+qD29oTSduQqQSjJ7xgEV6CAlDHsQGWe8Y3vIo1bRLa8jllHUlA==
+X-Received: by 2002:a05:6a21:3383:b0:2ac:7445:4947 with SMTP id adf61e73a8af0-32da8f7b6b6mr32112486637.19.1760479045581;
+        Tue, 14 Oct 2025 14:57:25 -0700 (PDT)
+Received: from dread.disaster.area (pa49-180-91-142.pa.nsw.optusnet.com.au. [49.180.91.142])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b678dcbf919sm12945398a12.9.2025.10.14.14.57.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 14 Oct 2025 14:57:24 -0700 (PDT)
+Received: from dave by dread.disaster.area with local (Exim 4.98.2)
+	(envelope-from <david@fromorbit.com>)
+	id 1v8n1G-0000000EtZi-0ICM;
+	Wed, 15 Oct 2025 08:57:22 +1100
+Date: Wed, 15 Oct 2025 08:57:22 +1100
+From: Dave Chinner <david@fromorbit.com>
+To: Jan Kara <jack@suse.cz>
+Cc: Mateusz Guzik <mjguzik@gmail.com>, brauner@kernel.org,
+	viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, josef@toxicpanda.com,
+	kernel-team@fb.com, amir73il@gmail.com, linux-btrfs@vger.kernel.org,
+	linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
+	ceph-devel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v7 03/14] fs: provide accessors for ->i_state
+Message-ID: <aO7HQkF8UOfjXGcd@dread.disaster.area>
+References: <20251009075929.1203950-1-mjguzik@gmail.com>
+ <20251009075929.1203950-4-mjguzik@gmail.com>
+ <h2etb4acmmlmcvvfyh2zbwgy7bd4xeuqqyciqjw6k5zd3thmzq@vwhxpsoauli7>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
- index=on
-To: dsterba@suse.cz, =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
- Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
- David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>,
- "Guilherme G . Piccoli" <gpiccoli@igalia.com>
-References: <20251014015707.129013-1-andrealmeid@igalia.com>
- <20251014182414.GD13776@twin.jikos.cz>
-Content-Language: en-US
-From: Qu Wenruo <wqu@suse.com>
-Autocrypt: addr=wqu@suse.com; keydata=
- xsBNBFnVga8BCACyhFP3ExcTIuB73jDIBA/vSoYcTyysFQzPvez64TUSCv1SgXEByR7fju3o
- 8RfaWuHCnkkea5luuTZMqfgTXrun2dqNVYDNOV6RIVrc4YuG20yhC1epnV55fJCThqij0MRL
- 1NxPKXIlEdHvN0Kov3CtWA+R1iNN0RCeVun7rmOrrjBK573aWC5sgP7YsBOLK79H3tmUtz6b
- 9Imuj0ZyEsa76Xg9PX9Hn2myKj1hfWGS+5og9Va4hrwQC8ipjXik6NKR5GDV+hOZkktU81G5
- gkQtGB9jOAYRs86QG/b7PtIlbd3+pppT0gaS+wvwMs8cuNG+Pu6KO1oC4jgdseFLu7NpABEB
- AAHNGFF1IFdlbnJ1byA8d3F1QHN1c2UuY29tPsLAlAQTAQgAPgIbAwULCQgHAgYVCAkKCwIE
- FgIDAQIeAQIXgBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXVgBQkQ/lqxAAoJEMI9kfOh
- Jf6o+jIH/2KhFmyOw4XWAYbnnijuYqb/obGae8HhcJO2KIGcxbsinK+KQFTSZnkFxnbsQ+VY
- fvtWBHGt8WfHcNmfjdejmy9si2jyy8smQV2jiB60a8iqQXGmsrkuR+AM2V360oEbMF3gVvim
- 2VSX2IiW9KERuhifjseNV1HLk0SHw5NnXiWh1THTqtvFFY+CwnLN2GqiMaSLF6gATW05/sEd
- V17MdI1z4+WSk7D57FlLjp50F3ow2WJtXwG8yG8d6S40dytZpH9iFuk12Sbg7lrtQxPPOIEU
- rpmZLfCNJJoZj603613w/M8EiZw6MohzikTWcFc55RLYJPBWQ+9puZtx1DopW2jOwE0EWdWB
- rwEIAKpT62HgSzL9zwGe+WIUCMB+nOEjXAfvoUPUwk+YCEDcOdfkkM5FyBoJs8TCEuPXGXBO
- Cl5P5B8OYYnkHkGWutAVlUTV8KESOIm/KJIA7jJA+Ss9VhMjtePfgWexw+P8itFRSRrrwyUf
- E+0WcAevblUi45LjWWZgpg3A80tHP0iToOZ5MbdYk7YFBE29cDSleskfV80ZKxFv6koQocq0
- vXzTfHvXNDELAuH7Ms/WJcdUzmPyBf3Oq6mKBBH8J6XZc9LjjNZwNbyvsHSrV5bgmu/THX2n
- g/3be+iqf6OggCiy3I1NSMJ5KtR0q2H2Nx2Vqb1fYPOID8McMV9Ll6rh8S8AEQEAAcLAfAQY
- AQgAJgIbDBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXWBBQkQ/lrSAAoJEMI9kfOhJf6o
- cakH+QHwDszsoYvmrNq36MFGgvAHRjdlrHRBa4A1V1kzd4kOUokongcrOOgHY9yfglcvZqlJ
- qfa4l+1oxs1BvCi29psteQTtw+memmcGruKi+YHD7793zNCMtAtYidDmQ2pWaLfqSaryjlzR
- /3tBWMyvIeWZKURnZbBzWRREB7iWxEbZ014B3gICqZPDRwwitHpH8Om3eZr7ygZck6bBa4MU
- o1XgbZcspyCGqu1xF/bMAY2iCDcq6ULKQceuKkbeQ8qxvt9hVxJC2W3lHq8dlK1pkHPDg9wO
- JoAXek8MF37R8gpLoGWl41FIUb3hFiu3zhDDvslYM4BmzI18QgQTQnotJH8=
-In-Reply-To: <20251014182414.GD13776@twin.jikos.cz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <h2etb4acmmlmcvvfyh2zbwgy7bd4xeuqqyciqjw6k5zd3thmzq@vwhxpsoauli7>
 
-
-
-在 2025/10/15 04:54, David Sterba 写道:
-> On Mon, Oct 13, 2025 at 10:57:06PM -0300, André Almeida wrote:
->> Hi everyone,
->>
->> When using overlayfs with the mount option index=on, the first time a directory is
->> used as upper dir, overlayfs stores in a xattr "overlay.origin" the UUID of the
->> filesystem being used in the layers. If the upper dir is reused, overlayfs
->> refuses to mount for a different filesystem, by comparing the UUID with what's
->> stored at overlay.origin, and it fails with "failed to verify upper root origin"
->> on dmesg. Remounting with the very same fs is supported and works fine.
->>
->> However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
->> disk image with btrfs, a random UUID is assigned for the following disks each
->> time they are mounted, stored at temp_fsid and used across the kernel as the
->> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however shows
->> the original (and duplicated) UUID for all disks.
->>
->> This feature doesn't work well with overlayfs with index=on, as when the image
->> is mounted a second time, will get a different UUID and ovl will refuse to
->> mount, breaking the user expectation that using the same image should work. A
->> small script can be find in the end of this cover letter that illustrates this.
->>
->> >From this, I can think of some options:
->>
->> - Use statfs() internally to always get the fsid, that is persistent. The patch
->> here illustrates that approach, but doesn't fully implement it.
->> - Create a new sb op, called get_uuid() so the filesystem returns what's
->> appropriated.
->> - Have a workaround in ovl for btrfs.
->> - Document this as unsupported, and userland needs to erase overlay.origin each
->> time it wants to remount.
->> - If ovl detects that temp_fsid and index are being used at the same time,
->> refuses to mount.
->>
->> I'm not sure which one would be better here, so I would like to hear some ideas
->> on this.
+On Fri, Oct 10, 2025 at 04:44:19PM +0200, Jan Kara wrote:
+> On Thu 09-10-25 09:59:17, Mateusz Guzik wrote:
+> > +static inline void inode_state_set_raw(struct inode *inode,
+> > +				       enum inode_state_flags_enum flags)
+> > +{
+> > +	WRITE_ONCE(inode->i_state, inode->i_state | flags);
+> > +}
 > 
-> I haven't looked deeper if there's a workable solution, but the feature
-> combination should be refused. I don't think this will affect many
-> users.
-> 
+> I think this shouldn't really exist as it is dangerous to use and if we
+> deal with XFS, nobody will actually need this function.
 
-I believe the root problem is that we're not fully implementing the 
-proper handling just like other single-device fses.
+XFS does it's own inode caching outside the VFS, so for the moment
+it needs to have access to the same VFS inode initialisation APIs as
+the core VFS inode cache instantiation functions to maintain the
+same externally visible behaviours.
 
-We do not use on-disk flags which means at least one fsid is registered 
-into btrfs, thus we have to use different temp-fsid.
+Yes, if we change how the VFS inode caches initialise inodes, we
+have to update the XFS code, but that's always been the case. This
+isn't very hard to do....
 
-If fully single-device feature flag is properly implemented, we should 
-be able to return the same uuid without extra hacks thus solve the problem.
+Keep in mind that XFS has been caching inodes outside the VFS and
+doing external state initialisation since it was first ported to
+Linux (i.e. ~25 years ago). It's kinda strange to suddenly hear
+people claim that this sort of VFS inode state manipulation thing is
+"too dangerous" to allow anyone to use given how long we've actually
+been doing this....
 
-Thanks,
-Qu
+-Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
