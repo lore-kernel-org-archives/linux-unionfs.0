@@ -1,217 +1,270 @@
-Received: from flow-b8-smtp.messagingengine.com (flow-b8-smtp.messagingengine.com [202.12.124.143])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89EC1D6DB5;
-	Tue, 14 Oct 2025 05:48:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.143
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E2102FF171;
+	Tue, 14 Oct 2025 11:07:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760420899; cv=none; b=TDUtUEEVfngwsm/qXesMhGZ7SxPXZh5FuGRVGOtAR5w6CUI6uZW/MVpqZSQMwpfJzTyBlSX21Wu6j2HUSWGWoide+dmGqB0/RsoMMeW6W6rQ3r7WcxrrWVYrtEHQB8u6HBGkvAlyUpjiw0PfzbumuyJWn2n4zM0KLD/j4a4THp8=
+	t=1760440039; cv=none; b=P8Fo28q4oaAT+aaYgX2WXzB+UHfid06yJ+9n8yPkVZsogDP/lDq3sdGPeyEcnulwvyiWT/7IuOC4lSNSoMhO9RBPJ8cFstRNL0hG2BSzJfsR67FuhUeOPv+Wa2cHfksccNxioB+cJibtByvU9TDA4vqEG3pvGKdyXkkRwEeyZVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760420899; c=relaxed/simple;
-	bh=uegBLj59RJQhWXj6mlxI9NQJtvv1PvtnctEltpmrOTY=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=rOUNicLja2B+vmbPd3bZ3T8jREEsVo1e3bT8sulwDhFsJSslRsL6R58qBR5WDNzBlZJe/2xT8vuUDLPuhTpjnTX66QkBXfp0c6OqmRySk7hgzEU/fjql7Lr8TOTQdbBu07QcC/YGfVKwn96jsK/LOMO7Mz+nlNImFsxRMKgMm/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=Aw5R92ec; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=o/btPEZQ; arc=none smtp.client-ip=202.12.124.143
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+	s=arc-20240116; t=1760440039; c=relaxed/simple;
+	bh=vm1dKhrADJ6xB8i1PHqbfOm9fjnjW3EW0kBfuZbOrbA=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Uf5U8KjeoG8LbMG5Hcy5ZdScqijRGxFOh+SyAjGD6WB+w30ZkD8CCu5SUGaSw1xICLCS7ODPbE3D00O/w5xswpO3owaP4A3TnqcbU4MlhKLc9QzY0DqpgmixTyiXUY0LnOMRnnWI7pFWSVaPdOCg5oeyLFjS/VLmbMkFiScWnWY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nhLYJIPM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="Aw5R92ec";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="o/btPEZQ"
-Received: from phl-compute-07.internal (phl-compute-07.internal [10.202.2.47])
-	by mailflow.stl.internal (Postfix) with ESMTP id E88CE130001D;
-	Tue, 14 Oct 2025 01:48:15 -0400 (EDT)
-Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-07.internal (MEProxy); Tue, 14 Oct 2025 01:48:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
-	1760420895; x=1760428095; bh=rOMKmFAm0WYZgl5MX5scSy1m5wik2x9mcuD
-	tQFlTYLs=; b=Aw5R92eccAEyJrtqxi1RTOFXajVvHzlm4Eo2W1B7CJTwUduK5MT
-	zgZX9m1yexKNJy/QCC7qOr+xjb+eb9FQO9KtM4bzhm3rBxuCAC7RD+/qbErnWVNx
-	WzIzJlIMHGcGQ7ID6ost8tmDw5YfcvjBa46wnmB0rhzWAFSB1DDcsL4fG22q9zre
-	YgToglnSlnQAPV/qTZw3r57RhVcGGhiL0jO+pL6uX0H9GrTN8T8fOAh8THII0CcR
-	q+b1AsgEd4hii7jCLaTYMTrvn31SQc8qPNglPErSk6kpzrKlV8zN9n9W1jXwa3zZ
-	3RMarB9cNFW9xKHoWt+ErfDmKhByi+R6paA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1760420895; x=
-	1760428095; bh=rOMKmFAm0WYZgl5MX5scSy1m5wik2x9mcuDtQFlTYLs=; b=o
-	/btPEZQM6HQFqW+n0XO+WzOYpQd+7umSu6b3JOXOG4Xy9j/BqgL3bANljKs5BYdI
-	Cctp+GRKBjaV6gDXfN9qlFFjbfYYWg4uoWAoFtmvbRBZmo5mmZrqiEqZy2mHuBz6
-	wbRU94VcgXG1bOd55u9GITmnOP6/nKT7DMp5qyPgUoXHud+kyuFOlb4iPptRSoNI
-	navi1IrfkgvOcgf2N24dGy1Uc9r+ELVCb4FdODKrx13LjROZElXIyxfYCYYYG7Cb
-	Z4uZ9EU3uR/4o2heTutxqQn8gbkZliFqxRIWTYkHrHwxg9mRtksFLd6SxnTAjAme
-	xwtJJ0oWJDCq6XX7skX0Q==
-X-ME-Sender: <xms:H-TtaFJiME1Wr32XX27p5xp-hYn9E87GLO3-mJ8Odh7m_vhaFUeIeg>
-    <xme:H-TtaALqEJaS09U585MN_ydfOCav44M7MQmpUbB-BXYzWVXwpeHJrIzQP6M1bSXcI
-    522au_IT4RRn6s_V3cUu4f_C3VoEEm1jRRA2y_3eLQ3fj59Yg>
-X-ME-Received: <xmr:H-TtaF8G8LwTXDM9Z2qIQKXw46dp1dc6HTY2mBQaCAobzJU7fxzW8soTOmY3cFGQgk2pKLaBzFhH1YuTQQi9vtuxRLlBwlD8VovL56ZBftzQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggdduudeljeefucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
-    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
-    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
-    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
-    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepgeefpdhmohguvgepshhmthhp
-    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
-    hrtghpthhtohepnhgvthguvghvsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
-    oheplhhinhhugidqgihfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhope
-    hlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
-    oheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhope
-    hlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthho
-    pehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
-    htoheplhhinhhugidqtghifhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
-    ohepvggtrhihphhtfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:H-TtaCwm8n5GoDWIJqcDj30FEpvpKSlL7xhdRYKYjkDOJZSwiQ_ygw>
-    <xmx:H-TtaF_fluZhrXLP0cldynUm31pJI37d-3hORrSMQFrPrTHyJsboOw>
-    <xmx:H-TtaGiFLmuX43K9Wpqo7vld6I146MTKS8MY6givHf_ph47qxRL3SA>
-    <xmx:H-TtaHPCM2MJ2cmkPiKr7wNINbGqxeu-bNlZBzwsmuQ8-dO_GlZWUg>
-    <xmx:H-TtaFnaFSlRAZiHAv6p5eBEN_hXXg4XBN7Pwkp6eBOp1VVSVtvZ5qZ5>
-Feedback-ID: iab3e480c:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 14 Oct 2025 01:48:04 -0400 (EDT)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nhLYJIPM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A28AC4CEE7;
+	Tue, 14 Oct 2025 11:07:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1760440038;
+	bh=vm1dKhrADJ6xB8i1PHqbfOm9fjnjW3EW0kBfuZbOrbA=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+	b=nhLYJIPMQHHZdKW2t/DP0opIk1BHSYOIjik0sN4Kaj3ZHZTMlRySZPIaPNgKZakdM
+	 /N3PYhSIRChruW+qdkpJU/hmUpDeQbynic4rk6i0DFZPRS5uvfVOxnaWvzQqaiOn/e
+	 kNVvurl9lz1pns+QLuPeKqlcoLi9IMf+E8nHrtA4b4wVFbKevGnNc/gOM+TP6dpO7p
+	 zKLEeNeARNJ9G/kr0+emF2Ua/nHxnFnmdqhSEXK+T5brieuZVRqazqfZCqFVrEVlSK
+	 n0tNu8DzW3Mi2XyGrghiRzI2M9VfDZf8/oWwGvJ//wNOnFIhPy9LrPoaZ9BA0whWV/
+	 WVVI6j27h4mng==
+Message-ID: <9a8d3d9e1ac6c5cb12d880410003fd0601e0abc2.camel@kernel.org>
+Subject: Re: [PATCH 01/13] filelock: push the S_ISREG check down to
+ ->setlease handlers
+From: Jeff Layton <jlayton@kernel.org>
+To: NeilBrown <neil@brown.name>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro
+ <viro@zeniv.linux.org.uk>,  Christian Brauner	 <brauner@kernel.org>, Jan
+ Kara <jack@suse.cz>, Chuck Lever	 <chuck.lever@oracle.com>, Alexander Aring
+ <alex.aring@gmail.com>, Trond Myklebust <trondmy@kernel.org>, Anna
+ Schumaker <anna@kernel.org>, Steve French <sfrench@samba.org>,  Paulo
+ Alcantara	 <pc@manguebit.org>, Ronnie Sahlberg <ronniesahlberg@gmail.com>,
+ Shyam Prasad N	 <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>,
+ Bharath SM	 <bharathsm@microsoft.com>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>,  "Rafael J. Wysocki"	 <rafael@kernel.org>,
+ Danilo Krummrich <dakr@kernel.org>, David Howells	 <dhowells@redhat.com>,
+ Tyler Hicks <code@tyhicks.com>, Olga Kornievskaia	 <okorniev@redhat.com>,
+ Dai Ngo <Dai.Ngo@oracle.com>, Amir Goldstein	 <amir73il@gmail.com>, Namjae
+ Jeon <linkinjeon@kernel.org>, Steve French	 <smfrench@gmail.com>, Sergey
+ Senozhatsky <senozhatsky@chromium.org>, Carlos Maiolino <cem@kernel.org>,
+ Kuniyuki Iwashima <kuniyu@google.com>, "David S. Miller"	
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski	
+ <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman	
+ <horms@kernel.org>, linux-fsdevel@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	linux-nfs@vger.kernel.org,
+ linux-cifs@vger.kernel.org, 	samba-technical@lists.samba.org,
+ netfs@lists.linux.dev, ecryptfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org,
+ netdev@vger.kernel.org
+Date: Tue, 14 Oct 2025 07:07:14 -0400
+In-Reply-To: <176042024558.1793333.16859845484527356211@noble.neil.brown.name>
+References: <20251013-dir-deleg-ro-v1-0-406780a70e5e@kernel.org>
+	, <20251013-dir-deleg-ro-v1-1-406780a70e5e@kernel.org>
+	 <176042024558.1793333.16859845484527356211@noble.neil.brown.name>
+Autocrypt: addr=jlayton@kernel.org; prefer-encrypt=mutual;
+ keydata=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
+ QZIQXVeAA+smfTT0tDrisj1U5x6ZB9b3nBg65kc=
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 (3.56.2-2.fc42) 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: NeilBrown <neilb@ownmail.net>
-To: "Jeff Layton" <jlayton@kernel.org>
-Cc: "Miklos Szeredi" <miklos@szeredi.hu>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- "Chuck Lever" <chuck.lever@oracle.com>,
- "Alexander Aring" <alex.aring@gmail.com>,
- "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Steve French" <sfrench@samba.org>,
- "Paulo Alcantara" <pc@manguebit.org>,
- "Ronnie Sahlberg" <ronniesahlberg@gmail.com>,
- "Shyam Prasad N" <sprasad@microsoft.com>, "Tom Talpey" <tom@talpey.com>,
- "Bharath SM" <bharathsm@microsoft.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>,
- "Danilo Krummrich" <dakr@kernel.org>,
- "David Howells" <dhowells@redhat.com>, "Tyler Hicks" <code@tyhicks.com>,
- "Olga Kornievskaia" <okorniev@redhat.com>,
- "Dai Ngo" <Dai.Ngo@oracle.com>, "Amir Goldstein" <amir73il@gmail.com>,
- "Namjae Jeon" <linkinjeon@kernel.org>,
- "Steve French" <smfrench@gmail.com>,
- "Sergey Senozhatsky" <senozhatsky@chromium.org>,
- "Carlos Maiolino" <cem@kernel.org>,
- "Kuniyuki Iwashima" <kuniyu@google.com>,
- "David S. Miller" <davem@davemloft.net>,
- "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>,
- linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org,
- samba-technical@lists.samba.org, netfs@lists.linux.dev,
- ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
- linux-xfs@vger.kernel.org, netdev@vger.kernel.org,
- "Jeff Layton" <jlayton@kernel.org>
-Subject:
- Re: [PATCH 12/13] nfsd: check for delegation conflicts vs. the same client
-In-reply-to: <20251013-dir-deleg-ro-v1-12-406780a70e5e@kernel.org>
-References: <20251013-dir-deleg-ro-v1-0-406780a70e5e@kernel.org>,
- <20251013-dir-deleg-ro-v1-12-406780a70e5e@kernel.org>
-Date: Tue, 14 Oct 2025 16:48:02 +1100
-Message-id: <176042088276.1793333.12640300967459688183@noble.neil.brown.name>
-Reply-To: NeilBrown <neil@brown.name>
 
-On Tue, 14 Oct 2025, Jeff Layton wrote:
-> RFC 8881 requires that the server reply with GDD_UNAVAIL when the client
-
-GDD4_UNAVAIL.  Then "git grep" finds it for me.
-
-NeilBrown
-
-
-> requests a directory delegation that it already holds.
+On Tue, 2025-10-14 at 16:37 +1100, NeilBrown wrote:
+> On Tue, 14 Oct 2025, Jeff Layton wrote:
+> > When nfsd starts requesting directory delegations, setlease handlers ma=
+y
+> > see requests for leases on directories. Push the !S_ISREG check down
+> > into the non-trivial setlease handlers, so we can selectively enable
+> > them where they're supported.
+> >=20
+> > FUSE is special: It's the only filesystem that supports atomic_open and
+> > allows kernel-internal leases. Ensure that we don't allow directory
+> > leases by default going forward by explicitly disabling them there.
 >=20
-> When setting a directory delegation, check that the client associated
-> with the stateid doesn't match an existing delegation. If it does,
-> reject the setlease attempt.
->=20
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> ---
->  fs/nfsd/nfs4state.c | 29 ++++++++++++++++++++++++++++-
->  1 file changed, 28 insertions(+), 1 deletion(-)
->=20
-> diff --git a/fs/nfsd/nfs4state.c b/fs/nfsd/nfs4state.c
-> index b06591f154aa372db710e071c69260f4639956d7..011e336dfd996daa82b706c3536=
-628971369fb10 100644
-> --- a/fs/nfsd/nfs4state.c
-> +++ b/fs/nfsd/nfs4state.c
-> @@ -88,6 +88,7 @@ void nfsd4_end_grace(struct nfsd_net *nn);
->  static void _free_cpntf_state_locked(struct nfsd_net *nn, struct nfs4_cpnt=
-f_state *cps);
->  static void nfsd4_file_hash_remove(struct nfs4_file *fi);
->  static void deleg_reaper(struct nfsd_net *nn);
-> +static bool nfsd_dir_may_setlease(struct file_lease *new, struct file_leas=
-e *old);
-> =20
->  /* Locking: */
-> =20
-> @@ -5550,6 +5551,31 @@ static const struct lease_manager_operations nfsd_le=
-ase_mng_ops =3D {
->  	.lm_change =3D nfsd_change_deleg_cb,
->  };
-> =20
-> +static const struct lease_manager_operations nfsd_dir_lease_mng_ops =3D {
-> +	.lm_breaker_owns_lease =3D nfsd_breaker_owns_lease,
-> +	.lm_break =3D nfsd_break_deleg_cb,
-> +	.lm_change =3D nfsd_change_deleg_cb,
-> +	.lm_may_setlease =3D nfsd_dir_may_setlease,
-> +};
-> +
-> +static bool
-> +nfsd_dir_may_setlease(struct file_lease *new, struct file_lease *old)
-> +{
-> +	struct nfs4_delegation *od, *nd;
-> +
-> +	/* Only conflicts with other nfsd dir delegs */
-> +	if (old->fl_lmops !=3D &nfsd_dir_lease_mng_ops)
-> +		return true;
-> +
-> +	od =3D old->c.flc_owner;
-> +	nd =3D new->c.flc_owner;
-> +
-> +	/* Are these for the same client? No bueno if so */
-> +	if (od->dl_stid.sc_client =3D=3D nd->dl_stid.sc_client)
-> +		return false;
-> +	return true;
-> +}
-> +
->  static __be32 nfsd4_check_seqid(struct nfsd4_compound_state *cstate, struc=
-t nfs4_stateowner *so, u32 seqid)
->  {
->  	if (nfsd4_has_session(cstate))
-> @@ -5888,12 +5914,13 @@ static struct file_lease *nfs4_alloc_init_lease(str=
-uct nfs4_delegation *dp)
->  	fl =3D locks_alloc_lease();
->  	if (!fl)
->  		return NULL;
-> -	fl->fl_lmops =3D &nfsd_lease_mng_ops;
->  	fl->c.flc_flags =3D FL_DELEG;
->  	fl->c.flc_type =3D deleg_is_read(dp->dl_type) ? F_RDLCK : F_WRLCK;
->  	fl->c.flc_owner =3D (fl_owner_t)dp;
->  	fl->c.flc_pid =3D current->tgid;
->  	fl->c.flc_file =3D dp->dl_stid.sc_file->fi_deleg_file->nf_file;
-> +	fl->fl_lmops =3D S_ISDIR(file_inode(fl->c.flc_file)->i_mode) ?
-> +				&nfsd_dir_lease_mng_ops : &nfsd_lease_mng_ops;
->  	return fl;
->  }
-> =20
->=20
-> --=20
-> 2.51.0
->=20
+> What is special about atomic_open w.r.t leases?
 >=20
 
+Good question:
+
+We want to break the parent's lease when creating new files, but
+opening an existing file should not. Using atomic_open implies that the
+VFS doesn't know the state of the dentry yet. If it doesn't exist and
+the file is created during the atomic_open, it'll be too late for the
+VFS to break the lease. So, if your filesystem supports atomic_open,
+but uses the standard kernel-internal lease implementation (like FUSE
+does), then it can't properly handle directory leases.
+
+This could probably be fixed by FUSE implementing its own ->setlease
+method that handles them properly, but that's beyond the scope of this
+work (and would probably require plumbing in libfuse and the underlying
+filesystems). Since directory leases are brand-new, the simplest way
+around this is to just blanket deny them on FUSE for now.
+
+I'll plan to write something along these lines for the changelog.
+
+>=20
+> >=20
+> > Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> > ---
+> >  fs/fuse/dir.c          | 1 +
+> >  fs/locks.c             | 5 +++--
+> >  fs/nfs/nfs4file.c      | 2 ++
+> >  fs/smb/client/cifsfs.c | 3 +++
+> >  4 files changed, 9 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+> > index ecaec0fea3a132e7cbb88121e7db7fb504d57d3c..667774cc72a1d49796f531f=
+cb342d2e4878beb85 100644
+> > --- a/fs/fuse/dir.c
+> > +++ b/fs/fuse/dir.c
+> > @@ -2230,6 +2230,7 @@ static const struct file_operations fuse_dir_oper=
+ations =3D {
+> >  	.fsync		=3D fuse_dir_fsync,
+> >  	.unlocked_ioctl	=3D fuse_dir_ioctl,
+> >  	.compat_ioctl	=3D fuse_dir_compat_ioctl,
+> > +	.setlease	=3D simple_nosetlease,
+> >  };
+> > =20
+> >  static const struct inode_operations fuse_common_inode_operations =3D =
+{
+> > diff --git a/fs/locks.c b/fs/locks.c
+> > index 04a3f0e2072461b6e2d3d1cd12f2b089d69a7db3..0b16921fb52e602ea2e0c3d=
+e39d9d772af98ba7d 100644
+> > --- a/fs/locks.c
+> > +++ b/fs/locks.c
+> > @@ -1929,6 +1929,9 @@ static int generic_delete_lease(struct file *filp=
+, void *owner)
+> >  int generic_setlease(struct file *filp, int arg, struct file_lease **f=
+lp,
+> >  			void **priv)
+> >  {
+> > +	if (!S_ISREG(file_inode(filp)->i_mode))
+> > +		return -EINVAL;
+> > +
+> >  	switch (arg) {
+> >  	case F_UNLCK:
+> >  		return generic_delete_lease(filp, *priv);
+> > @@ -2018,8 +2021,6 @@ vfs_setlease(struct file *filp, int arg, struct f=
+ile_lease **lease, void **priv)
+> > =20
+> >  	if ((!vfsuid_eq_kuid(vfsuid, current_fsuid())) && !capable(CAP_LEASE)=
+)
+> >  		return -EACCES;
+> > -	if (!S_ISREG(inode->i_mode))
+> > -		return -EINVAL;
+> >  	error =3D security_file_lock(filp, arg);
+> >  	if (error)
+> >  		return error;
+> > diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
+> > index 7f43e890d3564a000dab9365048a3e17dc96395c..7317f26892c5782a39660ca=
+e87ec1afea24e36c0 100644
+> > --- a/fs/nfs/nfs4file.c
+> > +++ b/fs/nfs/nfs4file.c
+> > @@ -431,6 +431,8 @@ void nfs42_ssc_unregister_ops(void)
+> >  static int nfs4_setlease(struct file *file, int arg, struct file_lease=
+ **lease,
+> >  			 void **priv)
+> >  {
+> > +	if (!S_ISREG(file_inode(file)->i_mode))
+> > +		return -EINVAL;
+> >  	return nfs4_proc_setlease(file, arg, lease, priv);
+> >  }
+> > =20
+> > diff --git a/fs/smb/client/cifsfs.c b/fs/smb/client/cifsfs.c
+> > index 05b1fa76e8ccf1e86f0c174593cd6e1acb84608d..03c44c1d9bb631b87a8b67a=
+a16e481d6bb3c7d14 100644
+> > --- a/fs/smb/client/cifsfs.c
+> > +++ b/fs/smb/client/cifsfs.c
+> > @@ -1149,6 +1149,9 @@ cifs_setlease(struct file *file, int arg, struct =
+file_lease **lease, void **priv
+> >  	struct inode *inode =3D file_inode(file);
+> >  	struct cifsFileInfo *cfile =3D file->private_data;
+> > =20
+> > +	if (!S_ISREG(inode->i_mode))
+> > +		return -EINVAL;
+> > +
+> >  	/* Check if file is oplocked if this is request for new lease */
+> >  	if (arg =3D=3D F_UNLCK ||
+> >  	    ((arg =3D=3D F_RDLCK) && CIFS_CACHE_READ(CIFS_I(inode))) ||
+> >=20
+> > --=20
+> > 2.51.0
+> >=20
+> >=20
+
+--=20
+Jeff Layton <jlayton@kernel.org>
