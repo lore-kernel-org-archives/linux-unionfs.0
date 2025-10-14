@@ -1,178 +1,167 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79CC1213E9C
-	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 18:24:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A707B2BD5BC
+	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 21:08:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760466260; cv=none; b=Pnb1DH4TbxPRdw6igM3mKv6FTCV5SPsVq9JC9iIG8OXCSu6J02Iouv78nVKtd7BEOghFein1miNT2QFQDKS9dwt8m+IQAVn1eUj/CxkE2kekFqXd+Jmi0Dc6dNkH+SySNxx3gDFKulBFiCYFgUxwNCm1jNL/wAZcUpxX/yqaoLQ=
+	t=1760476123; cv=none; b=RZXnp95p/V3HuG5WPveEOxA3M0ojzVkPjPa/lvY82gLEbJDdrodkuHGryOsyQtrhFSOwepjwq8abf+cd2s4vKD+HFyk5ariRvqZIC62Xn225EHegOHT6sztrnoCWn5UoIsD/39p53JisJXTofcqaThraQVTB9fs3RJb60R44jT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760466260; c=relaxed/simple;
-	bh=+HW37cDy1uS12Jf9Dqt5dSXxczNSBzYFKY40FKp91aA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SiVGYkwvBbP559ZQCiDHx+zuNpmggAqTXhQRhDnXjgB5nygKkaS99ESFvLlSTMpIh43duZXDiOrCRAaUJWwEMjG1ap4ws+G63iyXweTT+pWcEXQPjaYm5iOf05yXgXI4PunPUmFM98C0Ni6MoInDB6I8+J/bQTVmdwhJY3xGzdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=mpKZlYsT; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=h/8M/cNg; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=y9zR5ruD; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=iggg7o+6; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1760476123; c=relaxed/simple;
+	bh=cnJtV5UStc6Ve+q6PTyQ+wuRR2r/C1//Qxh9geDvSXE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=QpQeTvVZdf/t3C3+IuulSneFtZ6MOhWoe+/vDpp2lsrARExBqIKCdCukedp1cZlSJ5muJuAtaAijezWhJrXqPntjJw/lSWAPgy5NcyYu/Bu/9d+dVSypuvIgDhvN/cUEbgVHpYqv1cAJC3oLd86dVS9TKQ4JShqz62tebiMXLLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Lfw1zTrq; arc=none smtp.client-ip=209.85.221.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="mpKZlYsT";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="h/8M/cNg";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="y9zR5ruD";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="iggg7o+6"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id A37B621D22;
-	Tue, 14 Oct 2025 18:24:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1760466256;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=8rTIWdxiVehH5qZFo4dYlznO+npxi+WrtrmvjKWzNGA=;
-	b=mpKZlYsTBlSOu4dS8dpaOSQtKuhu9K8Ls81l8eV4/zBMDKoxRmvttGVkavlTRLRm5zC70V
-	1mlGejP+29uYUC8eqpUjMuRx4CTHHqX+3tmxwEcyrkCzoL+aq6ZuIV/q0qsqBd/lbh6V/V
-	tul3EM1Wdz2/KT3fDxvOzpnA/cuF8wA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1760466256;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=8rTIWdxiVehH5qZFo4dYlznO+npxi+WrtrmvjKWzNGA=;
-	b=h/8M/cNgaAw44oGl5Mlb/vpiGZI8gNPOn0VwlQtD6idtXvl5WAP18Oesl4I9MpMYhGVbfH
-	78M7OR1xbwAIRcDQ==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=y9zR5ruD;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=iggg7o+6
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1760466255;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=8rTIWdxiVehH5qZFo4dYlznO+npxi+WrtrmvjKWzNGA=;
-	b=y9zR5ruDdOlfLtDQBAwUL/e0TVl0ZWZI/FLMov1n1ttTQw/l7Nij76LtTZxEsL7JcBXA4P
-	Smz+En+DuY681BgK+EQqHl5S3r3/+0u5wcEpL8uVG+fIj4pS1ZEc2ibaREax06IVMl6c95
-	q2vMejijBQwOU/RgU1cwUBjHE/S+BbA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1760466255;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=8rTIWdxiVehH5qZFo4dYlznO+npxi+WrtrmvjKWzNGA=;
-	b=iggg7o+6bFh58dTcGGF4CoE3psosmk1nVINh8poheFjzRj0w2hcINGr3+uOjopmzg4BsU6
-	z+5SE9lLSrjByTDQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8081413A44;
-	Tue, 14 Oct 2025 18:24:15 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id ERy+Hk+V7mgjXwAAD6G6ig
-	(envelope-from <dsterba@suse.cz>); Tue, 14 Oct 2025 18:24:15 +0000
-Date: Tue, 14 Oct 2025 20:24:14 +0200
-From: David Sterba <dsterba@suse.cz>
-To: =?iso-8859-1?Q?Andr=E9?= Almeida <andrealmeid@igalia.com>
-Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
-	David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>,
-	"Guilherme G . Piccoli" <gpiccoli@igalia.com>
-Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
- index=on
-Message-ID: <20251014182414.GD13776@twin.jikos.cz>
-Reply-To: dsterba@suse.cz
-References: <20251014015707.129013-1-andrealmeid@igalia.com>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Lfw1zTrq"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-426ed6f4db5so177640f8f.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 14:08:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1760476120; x=1761080920; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
+        bh=siBEdSXb+TOq19NSx1UjT5CHbXYzR/FE6uFr7iLMMvY=;
+        b=Lfw1zTrqg30dCP1eGdjNWY1Sg+fLzbbnCj2N5NGwOLbjEQH3ttPTbko59Y/Dm7AqC3
+         8Az4V4TIVgwIf9OjHF7tACJhT6HNTkOdq/8UwZXkKv4vNmABEYfHbVQRLVVkhIr/SZEF
+         9Bkl/jurIDeDJ9TZUkZb07rFBjelYmG04ffr+lSduAlrXyn+oUDyydpibupUaaEPLb2z
+         /9ZKbWURBaP3hsVK7AZVL9KFBBq5Rl82rV7czuwyF2GLS3cFSUXSfO93VF2aqAIW9QdL
+         H1eftBtweRms6ZTY/VTz9tHN8JSpkPvepNFbg7bmyOE62pEBpGvz403YvkiQIzi9zOvj
+         defw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760476120; x=1761080920;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=siBEdSXb+TOq19NSx1UjT5CHbXYzR/FE6uFr7iLMMvY=;
+        b=AJ3mWJqrq90kP9VZ80aNd9fHINt2mCaUqoemzjKGXCkcCLuK+n1pag+pejq0PCML6d
+         g13bgdUpb3XbQ3HRPtPBRmj5wm3m+U+uUIkHvMWI/cmnR7E8xwyaJ1XTbZPy9vjRDNh6
+         spx6OuDVVs5bUNoBowLiqI13PqhLWNRfu2lVhsjsoHHSdd/ET+A190Ux3n7hiW/9dLIZ
+         Q2DY6U6coIMZUwZeBnhmRyCxP9tzhuy76gTKQMGUaIPq2vwP0nbUhY/WeIYfQq1dRq7y
+         fJ5FI6FtNl4UkVy+4zBmOElSMC8pN5eI/YbH0fVRSoGnXG7D+qKt/ziC4m+Yxyhcr6bu
+         3L0w==
+X-Forwarded-Encrypted: i=1; AJvYcCUz8yMZ6IIU/hzw5aipHyD94QnkheW2X19Fl16dx3oVMrcmY3x3ECItN46AIFyt6Ym0eKD/sFxy5iv/kYJ5@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy3GlCVd7AeKePYnLk9W0bO1MRP6ttTfLHESbPtNapvxJSfUo8S
+	ejkGCicya3HUrvtlR21xWSj3gnazrg6LyZ9dpJEblFl+6VyFIaEczmR615R/pfNSJco=
+X-Gm-Gg: ASbGncsknA4z7vbGShRpa+RiSB+OnisAu1nrQAplSMTVuj/U2SrZZt3wCxEc0OmAIWV
+	Op+FjNA9Mf9nJrtNnpVFE2/muXNyjla6pNOtV8fUC07nSHJuu2Usgs4BIGSuUYO0lGVfw+fuJEi
+	M5CMRuu7Brz3OIqtz+LLFF0BgbDBXL5L5MaCOKnYu7MQQHywBCtqMPphWonbaPN5sKlHYzrjhWs
+	pps5CkLd/gDxDa7zIehFUECfQlJpMzJ5F9BFac7S9sYqdZcJE5rXBMJuLmu3TunTb0EYn0uTyvN
+	Kd6/l67Fmhd7kA8tkeVXr2VqJkU+1lShvhGRMDTj7HiFeVyiuA7N+SgpWkWvdXVs8j66RVG+EFj
+	nP8Mk0lFwoBxRQCg4/bcgNfFNlZDfaSe/PM1PY1qosD0y8ysYhNOisFI+JYapWT/h0d6SgM+VlR
+	s5r8ms
+X-Google-Smtp-Source: AGHT+IFIANIwScg+5GHJALy/pEalv764AKxh+pONr/MZ4Z/a40QUVzKfGvCzQ2ZGEWok1LqkLwNKLw==
+X-Received: by 2002:a05:6000:4284:b0:426:d30a:88b0 with SMTP id ffacd0b85a97d-426d30a8fc8mr10165982f8f.22.1760476119851;
+        Tue, 14 Oct 2025 14:08:39 -0700 (PDT)
+Received: from ?IPV6:2403:580d:fda1::299? (2403-580d-fda1--299.ip6.aussiebb.net. [2403:580d:fda1::299])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29034f36738sm174176085ad.87.2025.10.14.14.08.35
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 14 Oct 2025 14:08:39 -0700 (PDT)
+Message-ID: <6982bc0a-bb12-458a-bb8c-890c363ba807@suse.com>
+Date: Wed, 15 Oct 2025 07:38:33 +1030
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
+ index=on
+To: dsterba@suse.cz, =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
+ Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
+ David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>,
+ "Guilherme G . Piccoli" <gpiccoli@igalia.com>
+References: <20251014015707.129013-1-andrealmeid@igalia.com>
+ <20251014182414.GD13776@twin.jikos.cz>
+Content-Language: en-US
+From: Qu Wenruo <wqu@suse.com>
+Autocrypt: addr=wqu@suse.com; keydata=
+ xsBNBFnVga8BCACyhFP3ExcTIuB73jDIBA/vSoYcTyysFQzPvez64TUSCv1SgXEByR7fju3o
+ 8RfaWuHCnkkea5luuTZMqfgTXrun2dqNVYDNOV6RIVrc4YuG20yhC1epnV55fJCThqij0MRL
+ 1NxPKXIlEdHvN0Kov3CtWA+R1iNN0RCeVun7rmOrrjBK573aWC5sgP7YsBOLK79H3tmUtz6b
+ 9Imuj0ZyEsa76Xg9PX9Hn2myKj1hfWGS+5og9Va4hrwQC8ipjXik6NKR5GDV+hOZkktU81G5
+ gkQtGB9jOAYRs86QG/b7PtIlbd3+pppT0gaS+wvwMs8cuNG+Pu6KO1oC4jgdseFLu7NpABEB
+ AAHNGFF1IFdlbnJ1byA8d3F1QHN1c2UuY29tPsLAlAQTAQgAPgIbAwULCQgHAgYVCAkKCwIE
+ FgIDAQIeAQIXgBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXVgBQkQ/lqxAAoJEMI9kfOh
+ Jf6o+jIH/2KhFmyOw4XWAYbnnijuYqb/obGae8HhcJO2KIGcxbsinK+KQFTSZnkFxnbsQ+VY
+ fvtWBHGt8WfHcNmfjdejmy9si2jyy8smQV2jiB60a8iqQXGmsrkuR+AM2V360oEbMF3gVvim
+ 2VSX2IiW9KERuhifjseNV1HLk0SHw5NnXiWh1THTqtvFFY+CwnLN2GqiMaSLF6gATW05/sEd
+ V17MdI1z4+WSk7D57FlLjp50F3ow2WJtXwG8yG8d6S40dytZpH9iFuk12Sbg7lrtQxPPOIEU
+ rpmZLfCNJJoZj603613w/M8EiZw6MohzikTWcFc55RLYJPBWQ+9puZtx1DopW2jOwE0EWdWB
+ rwEIAKpT62HgSzL9zwGe+WIUCMB+nOEjXAfvoUPUwk+YCEDcOdfkkM5FyBoJs8TCEuPXGXBO
+ Cl5P5B8OYYnkHkGWutAVlUTV8KESOIm/KJIA7jJA+Ss9VhMjtePfgWexw+P8itFRSRrrwyUf
+ E+0WcAevblUi45LjWWZgpg3A80tHP0iToOZ5MbdYk7YFBE29cDSleskfV80ZKxFv6koQocq0
+ vXzTfHvXNDELAuH7Ms/WJcdUzmPyBf3Oq6mKBBH8J6XZc9LjjNZwNbyvsHSrV5bgmu/THX2n
+ g/3be+iqf6OggCiy3I1NSMJ5KtR0q2H2Nx2Vqb1fYPOID8McMV9Ll6rh8S8AEQEAAcLAfAQY
+ AQgAJgIbDBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXWBBQkQ/lrSAAoJEMI9kfOhJf6o
+ cakH+QHwDszsoYvmrNq36MFGgvAHRjdlrHRBa4A1V1kzd4kOUokongcrOOgHY9yfglcvZqlJ
+ qfa4l+1oxs1BvCi29psteQTtw+memmcGruKi+YHD7793zNCMtAtYidDmQ2pWaLfqSaryjlzR
+ /3tBWMyvIeWZKURnZbBzWRREB7iWxEbZ014B3gICqZPDRwwitHpH8Om3eZr7ygZck6bBa4MU
+ o1XgbZcspyCGqu1xF/bMAY2iCDcq6ULKQceuKkbeQ8qxvt9hVxJC2W3lHq8dlK1pkHPDg9wO
+ JoAXek8MF37R8gpLoGWl41FIUb3hFiu3zhDDvslYM4BmzI18QgQTQnotJH8=
+In-Reply-To: <20251014182414.GD13776@twin.jikos.cz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20251014015707.129013-1-andrealmeid@igalia.com>
-User-Agent: Mutt/1.5.23.1-rc1 (2014-03-12)
-X-Rspamd-Queue-Id: A37B621D22
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.21 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	HAS_REPLYTO(0.30)[dsterba@suse.cz];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RCPT_COUNT_TWELVE(0.00)[12];
-	ARC_NA(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	MIME_TRACE(0.00)[0:+];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	FREEMAIL_CC(0.00)[vger.kernel.org,igalia.com,szeredi.hu,gmail.com,fb.com,suse.com,oracle.com];
-	DKIM_TRACE(0.00)[suse.cz:+];
-	REPLYTO_ADDR_EQ_FROM(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	REPLYTO_DOM_NEQ_TO_DOM(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.cz:replyto,suse.cz:dkim,twin.jikos.cz:mid]
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -4.21
-X-Spam-Level: 
 
-On Mon, Oct 13, 2025 at 10:57:06PM -0300, Andr� Almeida wrote:
-> Hi everyone,
-> 
-> When using overlayfs with the mount option index=on, the first time a directory is
-> used as upper dir, overlayfs stores in a xattr "overlay.origin" the UUID of the
-> filesystem being used in the layers. If the upper dir is reused, overlayfs
-> refuses to mount for a different filesystem, by comparing the UUID with what's
-> stored at overlay.origin, and it fails with "failed to verify upper root origin"
-> on dmesg. Remounting with the very same fs is supported and works fine.
-> 
-> However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
-> disk image with btrfs, a random UUID is assigned for the following disks each
-> time they are mounted, stored at temp_fsid and used across the kernel as the
-> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however shows
-> the original (and duplicated) UUID for all disks.
-> 
-> This feature doesn't work well with overlayfs with index=on, as when the image
-> is mounted a second time, will get a different UUID and ovl will refuse to
-> mount, breaking the user expectation that using the same image should work. A
-> small script can be find in the end of this cover letter that illustrates this.
-> 
-> >From this, I can think of some options:
-> 
-> - Use statfs() internally to always get the fsid, that is persistent. The patch
-> here illustrates that approach, but doesn't fully implement it.
-> - Create a new sb op, called get_uuid() so the filesystem returns what's
-> appropriated.
-> - Have a workaround in ovl for btrfs.
-> - Document this as unsupported, and userland needs to erase overlay.origin each
-> time it wants to remount.
-> - If ovl detects that temp_fsid and index are being used at the same time,
-> refuses to mount.
-> 
-> I'm not sure which one would be better here, so I would like to hear some ideas
-> on this.
 
-I haven't looked deeper if there's a workable solution, but the feature
-combination should be refused. I don't think this will affect many
-users.
+
+在 2025/10/15 04:54, David Sterba 写道:
+> On Mon, Oct 13, 2025 at 10:57:06PM -0300, André Almeida wrote:
+>> Hi everyone,
+>>
+>> When using overlayfs with the mount option index=on, the first time a directory is
+>> used as upper dir, overlayfs stores in a xattr "overlay.origin" the UUID of the
+>> filesystem being used in the layers. If the upper dir is reused, overlayfs
+>> refuses to mount for a different filesystem, by comparing the UUID with what's
+>> stored at overlay.origin, and it fails with "failed to verify upper root origin"
+>> on dmesg. Remounting with the very same fs is supported and works fine.
+>>
+>> However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
+>> disk image with btrfs, a random UUID is assigned for the following disks each
+>> time they are mounted, stored at temp_fsid and used across the kernel as the
+>> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however shows
+>> the original (and duplicated) UUID for all disks.
+>>
+>> This feature doesn't work well with overlayfs with index=on, as when the image
+>> is mounted a second time, will get a different UUID and ovl will refuse to
+>> mount, breaking the user expectation that using the same image should work. A
+>> small script can be find in the end of this cover letter that illustrates this.
+>>
+>> >From this, I can think of some options:
+>>
+>> - Use statfs() internally to always get the fsid, that is persistent. The patch
+>> here illustrates that approach, but doesn't fully implement it.
+>> - Create a new sb op, called get_uuid() so the filesystem returns what's
+>> appropriated.
+>> - Have a workaround in ovl for btrfs.
+>> - Document this as unsupported, and userland needs to erase overlay.origin each
+>> time it wants to remount.
+>> - If ovl detects that temp_fsid and index are being used at the same time,
+>> refuses to mount.
+>>
+>> I'm not sure which one would be better here, so I would like to hear some ideas
+>> on this.
+> 
+> I haven't looked deeper if there's a workable solution, but the feature
+> combination should be refused. I don't think this will affect many
+> users.
+> 
+
+I believe the root problem is that we're not fully implementing the 
+proper handling just like other single-device fses.
+
+We do not use on-disk flags which means at least one fsid is registered 
+into btrfs, thus we have to use different temp-fsid.
+
+If fully single-device feature flag is properly implemented, we should 
+be able to return the same uuid without extra hacks thus solve the problem.
+
+Thanks,
+Qu
