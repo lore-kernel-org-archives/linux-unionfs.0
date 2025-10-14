@@ -1,169 +1,180 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-b1-smtp.messagingengine.com (flow-b1-smtp.messagingengine.com [202.12.124.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3D030DD0A
-	for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 22:04:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D464630595D;
+	Tue, 14 Oct 2025 22:10:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.136
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760479468; cv=none; b=RcUpT19FH9krCOppSB+ev7O6m7EGJqfCm6i7Zr6NoRqZ1MUVkc9zqCIlFEySdzkwjK4n1/ZJB4KNddB6sI8xTgZcdBM+6Xd/OIS0RfXGNXPjYf3LCkm2gAqliWEM7eke8uLpLtonNjdRLKejqsU8xtSPhWs4x3292wx9B8A1UQE=
+	t=1760479844; cv=none; b=GzzZZ++kBudOjLolSr/BTmQLyg26En9kvRDFGGGAJamRSqWsyuSExuP754P7McPMC40PFPjlKkeF+MCleA470wUrGZlg+hQkpRmjQmvBwu6Otng4B+j+TTi9CmsNvdYofZ5wh4adla2Xkk+VmtjyNFmLQYlAujl1iejv6K2G5aw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760479468; c=relaxed/simple;
-	bh=pG515i7syHG3vED4MTNqB/DberSEKkguAtEkJvVagCY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Id/DVwqv/5rXHu/BWfqCtqq01Dp/RgQMP4+6uEHHSmNaUGPN0oRdXM3qyWKMl5+lWwM+8eoNiju3zp52I/EvB1cQ3mThRojAb4nkQG5A+fjCFVbi7XhD3GHGDyAYBteSSNJe+5UQ25q+n7PZAByYdMP+OwunJU5/cZ4Vwhcbe8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BuXT4COZ; arc=none smtp.client-ip=209.85.210.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1760479844; c=relaxed/simple;
+	bh=Y0ZWB8IW7WA3Tu8mFcSM9NS2fCmDXQy88DlyKa+fx6s=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=WgyGl1o6CBuUCf3LP9gTrZYpvnovU9iZuPOlNMpLKLdH81CG+qH5QBRhwleerk2hzqVQlysFj0d+yhn4K/5GhubOdkKVQSjTBaKsR4pLyiwy19t2HC6ywDS5nYULBHg4qO2lv2N/t1n1aSI4bcpsxaGTl/BKnjde1/c1TKPEBaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=vRjj1Iz2; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=iwWFCDct; arc=none smtp.client-ip=202.12.124.136
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BuXT4COZ"
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-789fb76b466so5400500b3a.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 15:04:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1760479465; x=1761084265; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=l6XDsENWGoamE2lQfBoeAOTQv2/NbQK1cLV8RQTx+rU=;
-        b=BuXT4COZt833j/MT8p8ax319LGdRXi0b/KO67c7Av6vdB9shb0wEtOhRxuuZN0iHrr
-         J1bcKGTvyVVFMRuKd5Vy28WN1lebSZeI3E8/nKnN1WKAq/m1E4mF2qIY+2ZWRqcB5gsO
-         9WLm0ODXxFQHclwoGz2JKNAeJ/b1hnONmz6nNHFH/t6Dc0gUX6C7blz9QA1NuyZWqYFw
-         spZ/RqlVAD4fyQ5eIajKbWdkEC/EUpesN95yRprQoI5ZOgfVBBeHWA6FuITANN+pV1Mk
-         2mJLz90hX+MJ2He1mWtIqxbGDsD1HRD4CC/c8RvD9aIAPKGScUyY7qMVoJ+OT40Rkhwz
-         Dyag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760479465; x=1761084265;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=l6XDsENWGoamE2lQfBoeAOTQv2/NbQK1cLV8RQTx+rU=;
-        b=g8Il42Xcxrlt/wgTrU1k823z3Kg4VkQvc2Cj+MP1kCgetBIeKgkUyUVKb+RqmZMDzD
-         EQ6hcnZ0f2sCXaDw3TIbKvi2/vfssbKADo8rN3UvaAdHIIBnVuGznzlFiddZ3EQtHwK4
-         Vw8VBtRcfDMvMBYtQ38ZjG4/0acCvCKmqcnYXyD1b5Lwa4hOWBU9WsMYx5FSFONsYj1I
-         Aq0rrf9LJy6NhlmatP5Ls/wmnbR/Q0tRK67hsOJhiL/bh3PWcpZOUBUdKvBE5GKVx960
-         homxpCJPJze+KiZjTldQuO29FGq/PX0wJIP6oGQL6TgR4LTLu1Z+oUOOskdDTTxVIg6t
-         pYuw==
-X-Forwarded-Encrypted: i=1; AJvYcCVDcPXAohJ9r+oCN4uEWly8Lk+PW2ctPhB8XFtP8j6OHUqxE2n8jlY9QUV6SFg1mGi7qCIFVdx9UIL1fFsX@vger.kernel.org
-X-Gm-Message-State: AOJu0YzGw+YHQE8ZwNUohDx4Iu0kx/63+KlBZiC4ltNV+g+kNntsIPm4
-	jWqXuKIGNQAJtwfwvE3cnIctdQKykdbDLaWukqmubhmgL436713Bslkl
-X-Gm-Gg: ASbGncsHbMy8p//I/WnDnl7VM5TRgYwsq3o6ihMYBjyfWzJAUbhW5PJw3QJN1rPZRBx
-	CaFdrgOsLQoQfk2uz/sFfy+pAxEjeyeop1lbggA3hx3oBH98PyfFdys7In6RaoNXWhv1OSNZhf/
-	UjcVRtDJaylH2IWU5EPRD/3r9Kcgus7GsIM7FcJtTDQBqrfjmOMDDzyPW9hTSzslTxyI80htixS
-	FVIQExHYOkREAMM4rtMrb7v9+NhcWjUpr7ihOytWydi82fkTIe5F+S0lS/gwWuE4KLnhpyBcgvI
-	vvmDc36AKYLxE/Yw1zliuL79+Sa37PD7BiOvGJDEiZUXrfFx5uu2AcchQKHTGe4b+pMWdmssSQZ
-	QvTgzzPIJV7+hFxmq7bAtkznXHiTvSDVLQ7Y8FpKlvJwllO5M16EOQsoMlbzYdsO2sYdZ5wjh59
-	hO4mstYd64ZVdBmhaoeIiKYj8l
-X-Google-Smtp-Source: AGHT+IHUB3rz/slBsn1LJeEC9+FO5BtqHcvv9o2+l1YGXAcHXI2KItjdeh1X4Zw/JN1lCdNJMeKK5A==
-X-Received: by 2002:a17:90b:1b41:b0:32e:8c14:5cd2 with SMTP id 98e67ed59e1d1-33b513d0b37mr31894521a91.28.1760479464543;
-        Tue, 14 Oct 2025 15:04:24 -0700 (PDT)
-Received: from [192.168.50.102] ([49.245.38.171])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b678df7e1d1sm13042068a12.40.2025.10.14.15.04.21
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 14 Oct 2025 15:04:24 -0700 (PDT)
-Message-ID: <e890fbd0-7b05-47d2-a444-f61409e4bbf5@gmail.com>
-Date: Wed, 15 Oct 2025 06:04:18 +0800
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="vRjj1Iz2";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="iwWFCDct"
+Received: from phl-compute-03.internal (phl-compute-03.internal [10.202.2.43])
+	by mailflow.stl.internal (Postfix) with ESMTP id 0EF761300683;
+	Tue, 14 Oct 2025 18:10:39 -0400 (EDT)
+Received: from phl-mailfrontend-01 ([10.202.2.162])
+  by phl-compute-03.internal (MEProxy); Tue, 14 Oct 2025 18:10:40 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
+	1760479838; x=1760487038; bh=nCzRbfcA8hHPMwFKOygEjL9TtP08HW4n43B
+	k2GKqoug=; b=vRjj1Iz2MJkRiS5oTgMN69YY9T5CviUbsSueOnyqMALlKoLh7yC
+	F0GyMWGoMaieW6VVoqxN/76Kf8BXa+mAuY2fx5ic4vurbiqZfp8UGUfqUglsez+F
+	e//U4w9egmHZnXSGLnKkvonWJDj850lqc3m4Y2KARjsEzY7sN1ZxlMXPAfe+TN1c
+	faN3HaM9wzmxKHLwXnc9zzlM1yqDxqqyKxl9t862tUXE+97RP6M/0e/IKnUVmGc0
+	75Ysc46PH/bff5A6VrDh5isNkbg9+PLWoK6xUBZ1Ukf0oPOXzIS3qXHVaO1enjNV
+	PhDqsBZ4y0aUxHxZFZ501FLY2BA+n5X2Elw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1760479838; x=
+	1760487038; bh=nCzRbfcA8hHPMwFKOygEjL9TtP08HW4n43Bk2GKqoug=; b=i
+	wWFCDctDN6fTbgIeyP3+WP5OzVNSAHCGloQOLBJLDpkzsPUmwGboWIrqXVVflhuy
+	pL8Nj9AovR0zDR42pMxC9Xx3vzC9mJIito/nvOz7kDFn3lIRtPTh9qetJUlaqdJA
+	1yFqjPJ1tmw0wrvZdafT2MnEaR28OLjNkfBsC1d2loB3gWxtZLUdKqj9ATQf5dYZ
+	/phLJpA3tyIrGgzY81dE5JhtEAkvHgeTNNyIQJ4K3gLKWaYjjB88kGyN7YFA2qt+
+	qJMfxLBW/xxSST92Z3pa7QBLaCKoTSoMI/u7UwU1ryX2phtVa9XyXe7EBwJgJ/rT
+	Pm8PKokPejEsxh0+Sy3MA==
+X-ME-Sender: <xms:XMruaFuRT8IUuTMjKG1Dw0WHyOjGHDNfXyRE-_nVp-MOI_fakUzx5g>
+    <xme:XMruaNcG5qIHN3loksbZIoOceexzPVYZB3m0MFlN7v7iPHUT-OBQMT3-R4AgSGJpy
+    F4LDimAEuIL4DZn8RlZZTV4nEOoqE44hAHGM8uz2N-BVxnY5w>
+X-ME-Received: <xmr:XMruaBCr8PUP68p5xyBv2IrG4FxXTP8o3dAsBdcWY2_anfqWcF9PLzpLs2oJYv8sM08gZU8SNz8rNKAbWIDwRZfZNYVmIGisVM5S051kkx5o>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggdduvddujedtucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepgeefpdhmohguvgepshhmthhp
+    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
+    hrtghpthhtohepnhgvthguvghvsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
+    oheplhhinhhugidqgihfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhope
+    hlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
+    oheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhope
+    hlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthho
+    pehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
+    htoheplhhinhhugidqtghifhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
+    ohepvggtrhihphhtfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:XMruaIlLW6kt8bsuAvkOEJYObTHM-44_i5n9WPzH3fXV5aO1bcA2kw>
+    <xmx:XMruaPhVqYQSbftP3_kDMT2NjLrpo1kVjx2g8f9L1MaXawYwkuOn5A>
+    <xmx:XMruaI16pFKOg_mv60A4rOIORMn7r6yl4PwtfngiItDQHs2j_EmxVg>
+    <xmx:XMruaDRhyP5ci8StbP1zoSb-2OZ4m2R3hTYOSSlLhMk0uGw48OMmeg>
+    <xmx:XsruaL1914rXeSmv2yP-lSzIlJexfiGmlhQv0Y75LbhTSC1UULawID9r>
+Feedback-ID: iab3e480c:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 14 Oct 2025 18:10:25 -0400 (EDT)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
- index=on
-Content-Language: en-GB
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>,
- linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Cc: kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
- Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
- David Sterba <dsterba@suse.com>, "Guilherme G . Piccoli"
- <gpiccoli@igalia.com>
-References: <20251014015707.129013-1-andrealmeid@igalia.com>
-From: Anand Jain <anajain.sg@gmail.com>
-In-Reply-To: <20251014015707.129013-1-andrealmeid@igalia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From: NeilBrown <neilb@ownmail.net>
+To: "Jeff Layton" <jlayton@kernel.org>
+Cc: "Miklos Szeredi" <miklos@szeredi.hu>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ "Chuck Lever" <chuck.lever@oracle.com>,
+ "Alexander Aring" <alex.aring@gmail.com>,
+ "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, "Steve French" <sfrench@samba.org>,
+ "Paulo Alcantara" <pc@manguebit.org>,
+ "Ronnie Sahlberg" <ronniesahlberg@gmail.com>,
+ "Shyam Prasad N" <sprasad@microsoft.com>, "Tom Talpey" <tom@talpey.com>,
+ "Bharath SM" <bharathsm@microsoft.com>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ "Danilo Krummrich" <dakr@kernel.org>,
+ "David Howells" <dhowells@redhat.com>, "Tyler Hicks" <code@tyhicks.com>,
+ "Olga Kornievskaia" <okorniev@redhat.com>,
+ "Dai Ngo" <Dai.Ngo@oracle.com>, "Amir Goldstein" <amir73il@gmail.com>,
+ "Namjae Jeon" <linkinjeon@kernel.org>,
+ "Steve French" <smfrench@gmail.com>,
+ "Sergey Senozhatsky" <senozhatsky@chromium.org>,
+ "Carlos Maiolino" <cem@kernel.org>,
+ "Kuniyuki Iwashima" <kuniyu@google.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
+ "Paolo Abeni" <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>,
+ linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+ samba-technical@lists.samba.org, netfs@lists.linux.dev,
+ ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+ linux-xfs@vger.kernel.org, netdev@vger.kernel.org
+Subject:
+ Re: [PATCH 02/13] filelock: add a lm_may_setlease lease_manager callback
+In-reply-to: <87a320441f2b568c71649a7e6e99381b1dba6a8e.camel@kernel.org>
+References: <>, <87a320441f2b568c71649a7e6e99381b1dba6a8e.camel@kernel.org>
+Date: Wed, 15 Oct 2025 09:10:23 +1100
+Message-id: <176047982343.1793333.618816248171085890@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-On 14-Oct-25 9:57 AM, AndrÃ© Almeida wrote:
-> Hi everyone,
-> 
-> When using overlayfs with the mount option index=on, the first time a directory is
-> used as upper dir, overlayfs stores in a xattr "overlay.origin" the UUID of the
-> filesystem being used in the layers. If the upper dir is reused, overlayfs
-> refuses to mount for a different filesystem, by comparing the UUID with what's
-> stored at overlay.origin, and it fails with "failed to verify upper root origin"
-> on dmesg. Remounting with the very same fs is supported and works fine.
-> 
-> However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
-> disk image with btrfs, a random UUID is assigned for the following disks each
-> time they are mounted, stored at temp_fsid and used across the kernel as the
-> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however shows
-> the original (and duplicated) UUID for all disks.
-> 
-> This feature doesn't work well with overlayfs with index=on, as when the image
-> is mounted a second time, will get a different UUID and ovl will refuse to
-> mount, breaking the user expectation that using the same image should work. A
-> small script can be find in the end of this cover letter that illustrates this.
-> 
->  From this, I can think of some options:
-> 
-> - Use statfs() internally to always get the fsid, that is persistent. The patch
-> here illustrates that approach, but doesn't fully implement it.
-> - Create a new sb op, called get_uuid() so the filesystem returns what's
-> appropriated.
-> - Have a workaround in ovl for btrfs.
-> - Document this as unsupported, and userland needs to erase overlay.origin each
-> time it wants to remount.
-> - If ovl detects that temp_fsid and index are being used at the same time,
-> refuses to mount.
-> 
-> I'm not sure which one would be better here, so I would like to hear some ideas
-> on this.
-> 
-> Thanks!
-> 	André
-> 
-> ---
-> 
-> To reproduce:
-> 
-> mkdir -p dir1 dir2
-> 
-> fallocate -l 300m ./disk1.img
-> mkfs.btrfs -q -f ./disk1.img
-> 
-> # cloning the disks
-> cp disk1.img disk2.img
-> sudo mount -o loop ./disk1.img dir1
-> sudo mount -o loop ./disk2.img dir2
-> 
-> mkdir -p dir2/lower aux/upper aux/work
-> 
-> # this works
-> sudo mount -t overlay -o lowerdir=dir2/lower,upperdir=aux/upper,workdir=aux/work,userxattr none dir2/lower
-> 
-> sudo umount dir2/lower
-> sudo umount dir2
-> 
-> sudo mount -o loop ./disk2.img dir2
+On Tue, 14 Oct 2025, Jeff Layton wrote:
+> On Tue, 2025-10-14 at 16:34 +1100, NeilBrown wrote:
+> > On Tue, 14 Oct 2025, Jeff Layton wrote:
+> > > The NFSv4.1 protocol adds support for directory delegations, but it
+> > > specifies that if you already have a delegation and try to request a new
+> > > one on the same filehandle, the server must reply that the delegation is
+> > > unavailable.
+> > >=20
+> > > Add a new lease manager callback to allow the lease manager (nfsd in
+> > > this case) to impose this extra check when performing a setlease.
+> > >=20
+> > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> > > ---
+> > >  fs/locks.c               |  5 +++++
+> > >  include/linux/filelock.h | 14 ++++++++++++++
+> > >  2 files changed, 19 insertions(+)
+> > >=20
+> > > diff --git a/fs/locks.c b/fs/locks.c
+> > > index 0b16921fb52e602ea2e0c3de39d9d772af98ba7d..9e366b13674538dbf482ffd=
+eee92fc717733ee20 100644
+> > > --- a/fs/locks.c
+> > > +++ b/fs/locks.c
+> > > @@ -1826,6 +1826,11 @@ generic_add_lease(struct file *filp, int arg, st=
+ruct file_lease **flp, void **pr
+> > >  			continue;
+> > >  		}
+> > > =20
+> > > +		/* Allow the lease manager to veto the setlease */
+> > > +		if (lease->fl_lmops->lm_may_setlease &&
+> > > +		    !lease->fl_lmops->lm_may_setlease(lease, fl))
+> > > +			goto out;
+> > > +
+> >=20
+> > I don't see any locking around this.  What if the condition which
+> > triggers a veto happens after this check, and before the lm_change
+> > below?
+> > Should lm_change implement the veto?  Return -EAGAIN?
+> >=20
+> >=20
+>=20
+> The flc_lock is held over this check and any subsequent lease addition.
+> Is that not sufficient?
 
-At this point, Btrfs assigns a new temporary FSID, but without it,
-the test case fails.
+Ah - I didn't see that - sorry.
 
-Temp FSID support only came in with kernel v6.7, so wondering,
-how is this test supposed to work on older kernels?
+But I still wonder why ->lm_change cannot do the veto.
 
-Thanks, Anand
+I also wonder if the current code can work.  If that loop finds an
+existing lease with the same file and the same owner the it invokes
+"continue" before the code that you added.
+So unless I'm misunderstanding (again) in the case that you are
+interested in, the new code doesn't run.
 
-
-> 
-> # this doesn't works
-> sudo mount -t overlay -o lowerdir=dir2/lower,upperdir=aux/upper,workdir=aux/work,userxattr none dir2/lower
-> 
-> André Almeida (1):
->    ovl: Use fsid as unique identifier for trusted origin
-> 
->   fs/overlayfs/copy_up.c | 8 +++++++-
->   1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-
+Thanks,
+NeilBrown
