@@ -1,186 +1,128 @@
-Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 642012FE078
-	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 05:46:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF25319615
+	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 10:52:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760507215; cv=none; b=gAP2Q40AT/C1xWewx5eqleDjHKiuvROVSbSur0cWeeFNjPDNNDW2DYQR9Sou7nwd5IcrLQeGyW59YLf32FMh8hqGXxa9nmg7/1RfiGXg+/53I7Bb/5+pi1DhzJA9uDCmpTy+4zg62JM5QrPy79oWQf9vDKkrnXEPvgz2RwqisRU=
+	t=1760525540; cv=none; b=MhgWVlosTkgv5iqkVIWvdrDiHbaytErFdQgzAl3kxjxq3kuS8zH8pTm5NpW0c2SCAoGBvg6GqjtFxb624LuEwYLRt1RBkZxoWMxII0jhk4TanuODgt0+PJ2bp7aEwueFAxt5p3xhguxZCESyyZ03AQZVm2Vn8VHav5Cwud3XOjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760507215; c=relaxed/simple;
-	bh=L9yQzwfiK6AnAj53w+M42/OMTEMETYOV7eUVo5HxABI=;
+	s=arc-20240116; t=1760525540; c=relaxed/simple;
+	bh=aExdlBsMUAecfDG+mSFT5MA0cBf07Nq0znf+EtSvsu8=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=elzqGkmkQ3ih9EhJLzV8vKJ/5a46eiSGbFFvm7sf/HBkvSkScnZtlpM9nNNsBDWMAyhNW5f5izVV+26tj8Y7CCnBDCv7uNYXXTFY7guiviHQC64SptDDlgeuNcYkhOHVtNwEC6Qgq8omlSNMFu9Uz3Vg6jFtGMrKcz+9PvSkYYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Adq31IJP; arc=none smtp.client-ip=209.85.218.54
+	 To:Cc:Content-Type; b=WD0ED6OWHod/bmYjB0KGojO/x9aDtCMHwsErH7cbQOlXm4yNSzX28d9KJh0Gg6TBPWaXP7SXCqklRCOP1ZeV9C3xHohN+Z03a35RMfDVRaR4Q5spMA/xoOe3jghnPomLjpVzNjgGrumSUbR9bWdbFvpM/wpojKeywIBVZ9SWAV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KKPEWvqL; arc=none smtp.client-ip=209.85.218.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Adq31IJP"
-Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-b3c2db014easo316731766b.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 22:46:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KKPEWvqL"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-b3c2db014easo366201366b.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 03:52:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1760507212; x=1761112012; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1760525537; x=1761130337; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=YB/8HRPSkZavRfQHyIpXrXhIqH5dcxDgrAKATWLCf7Y=;
-        b=Adq31IJPv30T6zUoF2y3H73X7Rg3/pWXDTmdnh8kEFGnxj427QLrLxman9/5UI5W2U
-         /BfcMAJFP39b/qTttenN83pLLoKQgHruzLRnAyI7r33JHzbAxexU4Hz4JiFgvuSvRjJE
-         S++28Isa33yMokJkwd5NGNEH7zm9pAspIgg8tWWicxPMILY3fP7EpgtkzrPlnN9oCzqo
-         SQu04Tg9CVpi8kJtTRzyZWVdYdhZeaWchM2nnDVNUJKPESyQa0SuKLSXQM6tLXz/b52R
-         uQ3D4kBfWD7qTw59FT/+Jkb7USrhxoKZYNVLTLXfM7hILg+wbYpzLX/4KHTjP7OIQI4C
-         +66Q==
+        bh=DcqlsCbRzqr036D+O+VNh2OgEfDSaoaWSXEdxRHLQzM=;
+        b=KKPEWvqLiGJVOg0rnhuD7bCZ6SM7uihlzlHshc1/fKdHTQrpknJ05uJwWcmpWDT/WI
+         nzQt+8bOeXhWRinXCQH8f2uRzT+zhYeJCBW16JbNXEcMV6mbAXN+IfelnoUz/y7sOTiX
+         4Ylv644uzIk35umRIhq7HX0aiA351iUKfgZTqO078dp18JjrcGjGX6jpQE31FGjPAZuB
+         sR12vgGNR9gaWEdja8/FtUhy5nkhif8HXgA5PaZ9Thi6QcFcr6Hs7M7+ahPJCPi8qxhL
+         fIWptZnzDQ7pFaYi7Mis0QOt6pQdUdrisUOvOkg1i0fMk0EQk2Q+mUEZv12gNYOA2EEd
+         w/Ug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760507212; x=1761112012;
+        d=1e100.net; s=20230601; t=1760525537; x=1761130337;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=YB/8HRPSkZavRfQHyIpXrXhIqH5dcxDgrAKATWLCf7Y=;
-        b=RlkqlL41Q4fVWCDpwDB/6atUiPZbKggaVHjVfnC4WvApgZRyQSPLvfLD1LeVZq6fv9
-         5K9T1VH62UfK6qhrR3djZG//YfB90O3fMaJrN52AlPpM7hE2QUaHzq1XJKkGsXt9QdjP
-         URCCJuRb2wiHvs/6uFWTsRaq8IEF6ka3SsN8BE1D9AK+O/Xb4/1rkyWYzEpAmBfadQvd
-         hAonqAiMj1GISQ5pLeuwIwHM36HZZeotZGznjsugrqr4yBu/rR13iZ32w7dI44s+tDlz
-         8Z9qfjTEqHAnHRMpb+nSuUH2feQiUXDJTxpAsbA1JfeK8agV/3lCLAC9zCKHjnxSJI/p
-         Zjnw==
-X-Forwarded-Encrypted: i=1; AJvYcCVjdMQ2oeY1H2qb+FEj2LaoUUIYKzaSlbM8E3OPYZ+PMiHTJAWGcscHGSjQGc9u3pQLRjdugbII9qfRllSL@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxf8Yk7re33cwBZjOM5IdS/OcDsC7mEjqvFxOtWYNEDamKkQmFk
-	cbgSEUMUaZqjEr8XM90w/34iwSziCMoDZg5xkOzieK86KydvJK+JCoSPHEl7JyjEvhiGmrNhKaP
-	pdMfZr0FmdDRB6h0ZbWjSF9olKHitzXw=
-X-Gm-Gg: ASbGnctTUqUSaW6YgWzCqjcPJ3xEsSiCOxPWslbXb9txvwo3jGp3+FNkmNqRJDfq9io
-	tYlmzUYOUF9vTic919SOJlmTFZeK4gDZuHpAf3LHImF0N3wH3Y/OPZrceS4YNrcwSxckexzDnau
-	v/zRtuctHA6CVXj+p3V8U/lwV8+Y9QEAKcG1DQ2npWTg1KP3D7M7FwxnnpbTXUr0QgMj+pbY2ai
-	VBIfKvY4b9itnOXx0b+Mi1rpLSUbhqWPOHlk0u9Cwv6XuIHeK+aSNEebxZDbzEJxW+X
-X-Google-Smtp-Source: AGHT+IHBOaBguuSDBJ8tBqccd4wBxjcgREccPEa2q0OFeN3z0LhFrlL5e17WKU2nQANyrLyL2KnfgEnaFifFE19VDgQ=
-X-Received: by 2002:a17:907:72c6:b0:b46:8bad:6970 with SMTP id
- a640c23a62f3a-b50abaa43b4mr3121817866b.36.1760507211571; Tue, 14 Oct 2025
- 22:46:51 -0700 (PDT)
+        bh=DcqlsCbRzqr036D+O+VNh2OgEfDSaoaWSXEdxRHLQzM=;
+        b=EJ0zdX8UAEaYn0ZDxoxpfnesqfHq551bv+ICTJxpxtDS06aAmA3oVE3uYGAvRr2XH8
+         X+HqgAbyhHD6nohYN+rv30e4FfbxUQECXaIf8KgMyU7zGK3PUfSak4sRydOpuzmkD/46
+         93gGxHj5wyKVBAFI8/urBQzNSwmrSxuxWBdt1x/Gj2Md46dOBxLmIfcXa4SFl8GVGCAf
+         gV3wDqS18pffuL1m48IUMzjtEZnZ/gY3tOe2AgjB0Q0BOWY2wVX6QjTr/IhOLLaUfkgC
+         cJegmADonr3SHIhD+wLfgUyyt+OCodw7kB0JvvZL/JUldw/Oz2BSG4uATomkBWkxalah
+         NUDg==
+X-Forwarded-Encrypted: i=1; AJvYcCViZVlPM/ciUR7SfbG1dsdT+vn3AK2aFXphI93510oaQ5Zuv+AYpVTOnpKgRII67v2tOhIj155kMVVx9ThW@vger.kernel.org
+X-Gm-Message-State: AOJu0YyGd/PJjBRbKPhHYFAUgRcIgNVcus4hezYR0Mdr9gOdM8iRHsWT
+	Cq9i3N2spYs5573SxLcJFl8SqU2HwtS4J8zkasajVN5wsf6PASPutMb2YMIT5dpL8F95jvxuD3Y
+	D4i+AMiMjHlXBOH4kGi2ZG/mhhRPnLvI=
+X-Gm-Gg: ASbGnctSoVYDhLHge3tRykxbnSFOu4/bYK9nb0lteW/nEAfKSg1oktLAsLkrk7PhYtm
+	Hf/mCe3/MOAJOLobTU4Qc/5H2qsyEVjxEbdF/J1P+D8PnGMbeV/MTSqGUYgu+m1pJZtAiXptwnw
+	zsUSIkEPSnPoe80sAyCpyUw+J/pBcSWU1bIQrpSNj7wtqr/BF4kNhjkijk/oW0TE7ifuoRXzn0b
+	eXOe9eg3a6D1iMG+BNArg4iflLFhCP5+1KRWX3o/MXBd3xg40zcWDiEDWM3XHuXtNvMqQ==
+X-Google-Smtp-Source: AGHT+IGCRMPx4BwdY3lVuIUo/huZx/6YRTxB8GWkV4+i4ksr83vOWJmomDrJfxuexKKgqp9P0KqhYP0+oFuJJd3dueA=
+X-Received: by 2002:a17:907:2daa:b0:b46:6718:3f37 with SMTP id
+ a640c23a62f3a-b50aa387357mr2750519566b.16.1760525536817; Wed, 15 Oct 2025
+ 03:52:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251009075929.1203950-1-mjguzik@gmail.com> <20251009075929.1203950-4-mjguzik@gmail.com>
- <h2etb4acmmlmcvvfyh2zbwgy7bd4xeuqqyciqjw6k5zd3thmzq@vwhxpsoauli7>
- <CAGudoHFJxFOj=cbxcjmMtkzXCagg4vgfmexTG1e_Fo1M=QXt-g@mail.gmail.com> <aO7NqqB41VYCw4Bh@dread.disaster.area>
-In-Reply-To: <aO7NqqB41VYCw4Bh@dread.disaster.area>
-From: Mateusz Guzik <mjguzik@gmail.com>
-Date: Wed, 15 Oct 2025 07:46:39 +0200
-X-Gm-Features: AS18NWCB_4h8LHu2yt-FYyIBzUwuIR3RlLlbdhbf0H9i_Il0fvD54KG0vSEA_Mc
-Message-ID: <CAGudoHFpoo0Qm=b4Z85tbJJmhh+vmSHuNnm3pVaLaQsmX9mURg@mail.gmail.com>
-Subject: Re: [PATCH v7 03/14] fs: provide accessors for ->i_state
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, brauner@kernel.org, viro@zeniv.linux.org.uk, 
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	josef@toxicpanda.com, kernel-team@fb.com, amir73il@gmail.com, 
-	linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
+References: <20251014015707.129013-1-andrealmeid@igalia.com> <20251014015707.129013-2-andrealmeid@igalia.com>
+In-Reply-To: <20251014015707.129013-2-andrealmeid@igalia.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 15 Oct 2025 12:52:05 +0200
+X-Gm-Features: AS18NWBOAnZXy6mzbOzuHQmyA6-7OJdOUSxYiYFk1-sWBbBBxuqeeJAHlfujs90
+Message-ID: <CAOQ4uxit1W2SRzMs+yUeUodVxPa-YVKimmzBE=nMxeL5G8j2eA@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/1] ovl: Use fsid as unique identifier for trusted origin
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>, Chris Mason <clm@fb.com>, 
+	David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>, 
+	"Guilherme G . Piccoli" <gpiccoli@igalia.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 15, 2025 at 12:24=E2=80=AFAM Dave Chinner <david@fromorbit.com>=
- wrote:
+On Tue, Oct 14, 2025 at 3:57=E2=80=AFAM Andr=C3=A9 Almeida <andrealmeid@iga=
+lia.com> wrote:
 >
-> On Fri, Oct 10, 2025 at 05:51:06PM +0200, Mateusz Guzik wrote:
-> > On Fri, Oct 10, 2025 at 4:44=E2=80=AFPM Jan Kara <jack@suse.cz> wrote:
-> > >
-> > > On Thu 09-10-25 09:59:17, Mateusz Guzik wrote:
-> > > > +static inline void inode_state_set_raw(struct inode *inode,
-> > > > +                                    enum inode_state_flags_enum fl=
-ags)
-> > > > +{
-> > > > +     WRITE_ONCE(inode->i_state, inode->i_state | flags);
-> > > > +}
-> > >
-> > > I think this shouldn't really exist as it is dangerous to use and if =
-we
-> > > deal with XFS, nobody will actually need this function.
-> > >
-> >
-> > That's not strictly true, unless you mean code outside of fs/inode.c
-> >
-> > First, something is still needed to clear out the state in
-> > inode_init_always_gfp().
-> >
-> > Afterwards there are few spots which further modify it without the
-> > spinlock held (for example see insert_inode_locked4()).
-> >
-> > My take on the situation is that the current I_NEW et al handling is
-> > crap and the inode hash api is also crap.
+> Some filesystem have non-persistent UUIDs, that can change between
+> mounting, even if the filesystem is not modified. To prevent
+> false-positives when mounting overlayfs with index enabled, use the fsid
+> reported from statfs that is persistent across mounts.
 >
-> The inode hash implementation is crap, too. The historically poor
-> scalability characteristics of the VFS inode cache is the primary
-> reason we've never considered ever trying to port XFS to use it,
-> even if we ignore all the inode lifecycle issues that would have to
-> be solved first...
+> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
+> ---
+> This patch is just for illustrative purposes and doesn't work.
+> ---
+>  fs/overlayfs/copy_up.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 >
-
-I don't know of anyone defending the inode hash tho. The performance
-of the thing was already bashed a few times, I did not see anyone
-dunking on the API ;)
-
-> > For starters freshly allocated inodes should not be starting with 0,
-> > but with I_NEW.
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index aac7e34f56c1..633d9470a089 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -8,6 +8,7 @@
+>  #include <linux/fs.h>
+>  #include <linux/slab.h>
+>  #include <linux/file.h>
+> +#include <linux/statfs.h>
+>  #include <linux/fileattr.h>
+>  #include <linux/splice.h>
+>  #include <linux/xattr.h>
+> @@ -421,9 +422,14 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs=
+, struct inode *realinode,
+>         struct ovl_fh *fh;
+>         int fh_type, dwords;
+>         int buflen =3D MAX_HANDLE_SZ;
+> -       uuid_t *uuid =3D &realinode->i_sb->s_uuid;
+> +       uuid_t uuid;
+> +       struct kstatfs ks;
+>         int err;
 >
-> Not all inodes are cached filesystem inodes. e.g. anonymous inodes
-> are initialised to inode->i_state =3D I_DIRTY.  pipe inodes also start
-> at I_DIRTY. socket inodes don't touch i_state at init, so they
-> essentially init i_state =3D 0....
->
-> IOWs, the initial inode state depends on what the inode is being
-> used for, and I_NEW is only relevant to inodes that are cached and
-> can be found before the filesystem has fully initialised the VFS
-> inode.
->
+> +       // RFC: dentry can't be NULL, uuid needs a type cast
+> +       realinode->i_sb->s_op->statfs(NULL, &ks);
+> +       uuid.b =3D ks.f_fsid;
+> +
 
-Well it is true that currently the I_NEW flag is there to help out
-entities like the hash inode hash.
+Just wanted to add that from overlayfs POV, this is completely wrong,
+because there are many fs whose fsid is not persistent including the
+default fs that are used in many distros and the whole idea of the
+origin xattr value is that it needs to be a persistent descriptor of the
+lower layer directory.
 
-I'm looking to change it into a generic indicator of an uninitialized
-inode. This is completely harmless for the consumers which currently
-operate on inodes which never had the flag.
-
-Here is one use: I'd like to introduce a mandatory routine to call
-when the filesystem at hand claims the inode is ready to use.
-
-Said routine would have 2 main purposes:
-- validate the state of the inode (for example that a valid mode is
-set; this would have caught some of the syzkaller bugs from the get
-go)
-- pre-compute a bunch of stuff, for example see this crapper:
-
-   static inline int do_inode_permission(struct mnt_idmap *idmap,
-                                        struct inode *inode, int mask)
-  {
-          if (unlikely(!(inode->i_opflags & IOP_FASTPERM))) {
-                  if (likely(inode->i_op->permission))
-                          return inode->i_op->permission(idmap, inode,
-mask);
-
-                  /* This gets set once for the inode lifetime */
-                  spin_lock(&inode->i_lock);
-                  inode->i_opflags |=3D IOP_FASTPERM;
-                  spin_unlock(&inode->i_lock);
-          }
-          return generic_permission(idmap, inode, mask);
-  }
-
-The IOP_FASTPERM could be computed by the new routine, so this would
-simplify to:
-  static inline int do_inode_permission(struct mnt_idmap *idmap,
-                                        struct inode *inode, int mask)
-  {
-          if (unlikely(!(inode->i_opflags & IOP_FASTPERM)))
-                  return inode->i_op->permission(idmap, inode, mask);
-          return generic_permission(idmap, inode, mask);
-  }
-
-The routine would assert the inode is I_NEW and would clear the flag,
-replacing it with something else indicating the inode is indeed ready
-to use.
-
-While technically the I_NEW change is not necessarily to get there, I
-do think it makes things cleaner.
-
-Note unlock_new_inode() and similar are not mandatory to call.
+Thanks,
+Amir.
