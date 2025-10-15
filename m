@@ -1,75 +1,186 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4E9141C71;
-	Wed, 15 Oct 2025 01:22:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970D33081CA
+	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 02:10:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760491371; cv=none; b=GUi9Qy38Unry4uS2IX6A6oNla0byvO4acbynjIdFKDWj0BA8HDlIa2APZ7VnK9j0a9+1y3B1d6x+hq6JM9g0gkAVwNfmpcPgtqDBjgRpC4kkBHtCfBRWa7MMj8BTMfoT9vSgabeFzR1ZaNrrC+hS8RFzm7WqP9/X+tR1+0w2Pl4=
+	t=1760494226; cv=none; b=fqFwy8Uf0jOaKA0QTEz20c3HvNDbVEPNwSs0t3AOr99OuTNuRll8t/9cP7TmUSaGsvmMJ3bfY2Nhh9028m2km7kYEyVyMysgXFTAi3VhpoujOh9lnT+mMeidGvbTPM5RRDIFyJHxweH2UEKDu4JlDJ/6PYKzK67mXzD0UbO3qSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760491371; c=relaxed/simple;
-	bh=Yc5XGXuuN+qN0hyc0ljp9Q9Ff4KoJTRT8Q/X5IibrHI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BMLa6/BvKnWrLNYwU+nLb0riJf6EU9syqBE1lbrv0+iVL9BpAMRtFfMBw8OSh1oNlrcD8B+pmxvPKnTX2Z0ReY5gHGBZ+09nmiXDlDhbP1phYlkR7ZE+UE/r9QpOIWbrQEpPSpkgHUVWDsXZGnXX8KSvXyf/zFvVvcIfl7ZfZh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=0TcGRxhC; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1760494226; c=relaxed/simple;
+	bh=D54eOCSdeufYDLdWrbR8Ycvs+NXgYkk492AJPpiaEtk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=CFglby256Jh+zj3xB8AxFm25Z+OD1P1eQoFiS1Vw6aASszLUYGml9SA7UxjCrsggUdBL0payWGmcqyRJtH4waTEymPRD6gPMXj30Hq/gh8EWo3tKPxXevLycyhsxr3Gsny12HPYuLGS5zOBkv+20kvZ/3X598r+RonarlFGRWnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mowiwkkc; arc=none smtp.client-ip=209.85.218.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="0TcGRxhC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=THZdcb8DllowJHnhCUQvYqJQSPdZJPLsVnMT6SOtwf4=; b=0TcGRxhCKoq89Ni7iOr5qY1ewO
-	grLd3vPzNtuEDYvS+35V9FbmaHJHb6TWqqNIcofOHjvn2F6Ph3JwHXbzEAWRMh8NlqANhOkwqOKnk
-	Ttazm8vEYz7pkvcpBe7aPkr833cz09ATTZkNHXg655xNpjnaCRZd7b8x1hGHx1Q0S+fOUtphQJmbT
-	UoG9EQeFBgk3mBJN9Lnwab1zy3SjBIvRsjpDPvrW5p1zDVMxnUoqs/e6ztSPBrTYcCBcl8P1xI49z
-	yPzx+evc8byqhj5Sn6kXUZhl4/pG0/Qbj79COwo1tBVuaVTLzjvID8ze9iJhuKkZz+Z7gzg8HdSQl
-	aazYgT0Q==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v8qDy-000000009Qi-01Ha;
-	Wed, 15 Oct 2025 01:22:42 +0000
-Date: Tue, 14 Oct 2025 18:22:41 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Anand Jain <anajain.sg@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	=?iso-8859-1?Q?Andr=E9?= Almeida <andrealmeid@igalia.com>,
-	linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
-	David Sterba <dsterba@suse.com>,
-	"Guilherme G . Piccoli" <gpiccoli@igalia.com>
-Subject: Re: [RFC PATCH 1/1] ovl: Use fsid as unique identifier for trusted
- origin
-Message-ID: <aO73YTmDIhHkg3XB@infradead.org>
-References: <20251014015707.129013-1-andrealmeid@igalia.com>
- <20251014015707.129013-2-andrealmeid@igalia.com>
- <aO3T8BGM6djYFyrz@infradead.org>
- <5137ce36-c3b4-4a0a-83af-e00892feaf43@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mowiwkkc"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-b54f55a290cso849225466b.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 19:10:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1760494223; x=1761099023; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tf2fQ0gJbCyc+H10TcghIqVsJ4/+Biafcb9EsAvZcl0=;
+        b=MowiwkkcodcqOn3cLNQ53GZ+9sNXYdLITsBEgjBYyf58FCn4C2SWwlrpwlscUEMZxa
+         Ynrd8Q2jr8OtSHhjhGCMPeZA4guwEyuIjNzoPD0bE6snbgD1RTt+ePHugQ6cLGrH5Hjp
+         v6sVG5OeSm/+Wxs2O5ZU1KuEfgIqDCWUacoF6VHfAGuHQm5kapU03WTYZhr6OCb+SfXW
+         DCmk7awp025eXX8jqBH7e39fk4dhFuAev+jWfnge+3ESHl8zMMWTXAZeimi+5keg+Dre
+         cvw4LcLebikcTGi27kqRxfnLnebb8HYhEdD618c8zjYIW0PZBVehr7N7hLT3v42tTOnb
+         WReA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760494223; x=1761099023;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=tf2fQ0gJbCyc+H10TcghIqVsJ4/+Biafcb9EsAvZcl0=;
+        b=ILEVpZ/VCRDqEI/aeyjKt9t5L+wtUwnBuOEYkuk8J4Fz/Rc5Vg/BXZtXywxmoBX9Ue
+         1I8EPTNn7q90g+s92MhHEtdU22VRReekx5xboLavJtrMq2mtwZYyEUHox7t3dJsMEDCy
+         S+hRGaStLieNtuoAIPXT62IgKmTRQFGz7g1PanwJcGWbM+crLnRGrQX5cC/jHUoPe+6v
+         3mTQlD2ksByKE2YiN035LRxyfzb0NOHLGMcRG/mlIHY9mb4I+W1YSL8dY0MVAAcuZgPV
+         l7VoOlXz01Ecwy73v/mTk807mkmsBYS7YW0xrETiovFusw48GPzPxlurA4Z9SCPr+8Xh
+         mM3A==
+X-Forwarded-Encrypted: i=1; AJvYcCXnTKVnGFrTDHPfwvO4oGQF/fpq1ZxTFyZd1dyCICwL1+sQmq1vImKVd+mdsgH/E1/GmMpI1AF4h2aS8aCC@vger.kernel.org
+X-Gm-Message-State: AOJu0YwUWMBpFdZ1TYBK1stOn8qTnGDmTwCmwyow6LJ+JsqLDJFMI4Lu
+	bhCpLo5MZrwxZQezVaTb3sutTvkaPeErNbtiPsDgfOxO/o6j+2OPbEXbEF9oJfTv7uw4unXOVKs
+	GPcGpPyLxFjgUHm+SLAjLLvMoaekEGE0=
+X-Gm-Gg: ASbGnct3dqkmUGUtwciHZuqYikel8Voh4n8K6FLLV/H0RYDO9WdGZ2jPY+05zp5Bqz/
+	/3qCdRewSTTElF7fxGteRN0R1kiKOqXjOcasUWwMnCHCnS5fYLxy297TTS3ObVTeOlO9/xQZ+Wt
+	KkIZ/lpMFPd5ViMqh9MOy+Zby4s8Ber2LFCq3lxtGkKW+o8ij+BSGAF7fKVDvaVC7acZSEH5+50
+	mlbUY4sLAdfa37Wf++sqKiyLBl45jgBQ4hgWSY07wrURHIKaqfqp3efFw==
+X-Google-Smtp-Source: AGHT+IHdVVEm39YWzMl1LNpGiBlqkvaUyflBG1tNW6GMG9o/ZGDg1s+GsqNDZBzZGU20lHi3/5OtOSjsi5i+koqZYh4=
+X-Received: by 2002:a17:906:ef05:b0:b4e:d6e3:1670 with SMTP id
+ a640c23a62f3a-b50aa48ca83mr2928920266b.11.1760494222641; Tue, 14 Oct 2025
+ 19:10:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5137ce36-c3b4-4a0a-83af-e00892feaf43@gmail.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20251009075929.1203950-1-mjguzik@gmail.com> <20251009075929.1203950-14-mjguzik@gmail.com>
+ <ua3koqbakm6e4dpbzfmhei2evc566c5p2t65nsvmlab5yyibxu@u6zp4pwex5s7>
+ <CAGudoHGckJHiWN9yCngP1JMGNa1PPNvnpSuriCxSM1mwWhpBUQ@mail.gmail.com> <aO7khoBHdfPlEBAE@dread.disaster.area>
+In-Reply-To: <aO7khoBHdfPlEBAE@dread.disaster.area>
+From: Mateusz Guzik <mjguzik@gmail.com>
+Date: Wed, 15 Oct 2025 04:10:10 +0200
+X-Gm-Features: AS18NWA6lCnHDvapi5wh7WY086sFtNru8nAF8St7zzP5vFF3dZCD2VdTn7VIJY4
+Message-ID: <CAGudoHHY2ZpSjYda94FZos8jRsaqZ_XcR7ZDDuY0AgvbnvehyQ@mail.gmail.com>
+Subject: Re: [PATCH v7 13/14] xfs: use the new ->i_state accessors
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>, brauner@kernel.org, viro@zeniv.linux.org.uk, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	josef@toxicpanda.com, kernel-team@fb.com, amir73il@gmail.com, 
+	linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 15, 2025 at 07:46:34AM +0800, Anand Jain wrote:
-> We needed cloned device mount support for an A/B testing
-> use case, but changing the on-disk UUID defeats the purpose.
-> 
-> Right now, ext4 and Btrfs can mount identical devices,
-> but XFS can't. How about extending this to the common
-> VFS layer and adding a parameter to tell apart a cloned
-> device from the same device accessed through multiple
-> paths? I haven't looked into the details yet, but I can
-> dig it further.
+On Wed, Oct 15, 2025 at 2:02=E2=80=AFAM Dave Chinner <david@fromorbit.com> =
+wrote:
+>
+> On Fri, Oct 10, 2025 at 05:40:49PM +0200, Mateusz Guzik wrote:
+> > On Fri, Oct 10, 2025 at 4:41=E2=80=AFPM Jan Kara <jack@suse.cz> wrote:
+> > >
+> > > On Thu 09-10-25 09:59:27, Mateusz Guzik wrote:
+> > > > Change generated with coccinelle and fixed up by hand as appropriat=
+e.
+> > > >
+> > > > Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+> > >
+> > > ...
+> > >
+> > > > @@ -2111,7 +2111,7 @@ xfs_rename_alloc_whiteout(
+> > > >        */
+> > > >       xfs_setup_iops(tmpfile);
+> > > >       xfs_finish_inode_setup(tmpfile);
+> > > > -     VFS_I(tmpfile)->i_state |=3D I_LINKABLE;
+> > > > +     inode_state_set_raw(VFS_I(tmpfile), I_LINKABLE);
+> > > >
+> > > >       *wip =3D tmpfile;
+> > > >       return 0;
+> > > > @@ -2330,7 +2330,7 @@ xfs_rename(
+> > > >                * flag from the inode so it doesn't accidentally get=
+ misused in
+> > > >                * future.
+> > > >                */
+> > > > -             VFS_I(du_wip.ip)->i_state &=3D ~I_LINKABLE;
+> > > > +             inode_state_clear_raw(VFS_I(du_wip.ip), I_LINKABLE);
+> > > >       }
+> > > >
+> > > >  out_commit:
+> > >
+> > > These two accesses look fishy (not your fault but when we are doing t=
+his
+> > > i_state exercise better make sure all the places are correct before
+> > > papering over bugs with _raw function variant). How come they cannot =
+race
+> > > with other i_state modifications and thus corrupt i_state?
+> > >
+> >
+> > I asked about this here:
+> > https://lore.kernel.org/linux-xfs/CAGudoHEi05JGkTQ9PbM20D98S9fv0hTqpWRd=
+5fWjEwkExSiVSw@mail.gmail.com/
+>
+> Yes, as I said, we can add locking here if necessary, but locking
+> isn't necessary at this point in time because nothing else can
+> change the state of the newly allocated whiteout inode until we
+> unlock it.
+>
 
-If you clone a device you need to change the user visible uuid/fsid,
-and you need to do that explicitly to a known either saved or user
-controlled value.  Assigning a random ID is highly dangerous as seen
-here.
+I don't have much of an opinion about this bit. Not as per my response
+I added routines to facilitate not taking the lock (for the time being
+anyway).
+
+> Keep in mind the reason why we need I_LINKABLE here - it's not
+> needed for correctness - it's needed to avoid a warning embedded
+> in inc_nlink() because filesystems aren't trusted to implement
+> link counts correctly anymore.
+
+Ok, I did not know that. Maybe I'll take a stab at sorting this out.
+
+xfs aside, for unrelated reasons I was looking at the placement of the
+indicator to begin with. Seems like for basic correctness this in fact
+wants the inode lock (not the spin lock) and the spin lock is only
+taken to synchronize against other spots which modify i_state. Perhaps
+it should move, which would also obsolete the above woes.
+
+> Now we're being told that "it is too dangerous to let filesystems
+> manage inode state themselves" and so we have to add extra overhead
+> to code that we were forced to add to avoid VFS warnings added
+> because the VFS doesn't trust filesystems to maintain some other
+> important inode state....
+>
+
+Given that this is how XFS behaved for a long time now and that
+perhaps the I_LINKABLE handling can be redone in the first place,
+perhaps Jan will be willing to un-NAK this bit.
+
+> So, if you want to get rid of XFS using I_LINKABLE here, please fix
+> the nlink VFS api to allow us to call inc_nlink_<something>() on a
+> zero link inode without I_LINKABLE needing to be set. We do actually
+> know what we are doing here, and as such needing I_LINKABLE here is
+> nothing but a hacky workaround for inflexible, trustless VFS APIs...
+>
+> > > > diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+> > > > index caff0125faea..ad94fbf55014 100644
+> > > > --- a/fs/xfs/xfs_iops.c
+> > > > +++ b/fs/xfs/xfs_iops.c
+> > > > @@ -1420,7 +1420,7 @@ xfs_setup_inode(
+> > > >       bool                    is_meta =3D xfs_is_internal_inode(ip)=
+;
+> > > >
+> > > >       inode->i_ino =3D ip->i_ino;
+> > > > -     inode->i_state |=3D I_NEW;
+> > > > +     inode_state_set_raw(inode, I_NEW);
+>
+> "set" is wrong and will introduce a regression. This must be an
+> "add" operation as inode->i_state may have already been modified
+> by the time we get here.
+
+There were complaints about original naming and _add/_del/_set got
+whacked. So now this settled on _set/_clear/_assign, per the cheat
+sheet in the patch. So this does what it was supposed to.
