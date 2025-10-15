@@ -1,186 +1,213 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970D33081CA
-	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 02:10:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E20A82DF144
+	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 04:18:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760494226; cv=none; b=fqFwy8Uf0jOaKA0QTEz20c3HvNDbVEPNwSs0t3AOr99OuTNuRll8t/9cP7TmUSaGsvmMJ3bfY2Nhh9028m2km7kYEyVyMysgXFTAi3VhpoujOh9lnT+mMeidGvbTPM5RRDIFyJHxweH2UEKDu4JlDJ/6PYKzK67mXzD0UbO3qSc=
+	t=1760501915; cv=none; b=shwFY6a2cLrjQiibN05fbEM7uEKIkorWRHZCFyuBOZMccdEtQd2FyBThA31ygNV4VpEG21kHpB1oU9ri42MnmlJNnvP+IkgOZFqSpjmCs7SI1t/jDoGqGVta02i+kTTv902zrAgFRPZyNRu/xqH+Jp3Jr8Dm8ypJ8sAxiyEPK18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760494226; c=relaxed/simple;
-	bh=D54eOCSdeufYDLdWrbR8Ycvs+NXgYkk492AJPpiaEtk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CFglby256Jh+zj3xB8AxFm25Z+OD1P1eQoFiS1Vw6aASszLUYGml9SA7UxjCrsggUdBL0payWGmcqyRJtH4waTEymPRD6gPMXj30Hq/gh8EWo3tKPxXevLycyhsxr3Gsny12HPYuLGS5zOBkv+20kvZ/3X598r+RonarlFGRWnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mowiwkkc; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1760501915; c=relaxed/simple;
+	bh=nS2Ut62x4b4Mqe67yKdtcu+ie4wvdW5JLXg3jbEHFRs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=mighybXbvFM6lSynVVIEjjxVKkQm5BCbsvDuC3A15CSTAOfwgyXVz8t4HV7Ps+B2yAJOG3P3iAOi8QBak23wEtBlluAbUxCaouIlEUJQorHMxZReVsTUs9Bwa9CJARCqeGC/q0jG4G1tatQ0x2Nuiw7bkfhm0xX7Zv/Sd9gKwTw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=VEaU2K83; arc=none smtp.client-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mowiwkkc"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-b54f55a290cso849225466b.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 19:10:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="VEaU2K83"
+Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-3ee15505cdeso433653f8f.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 21:18:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1760494223; x=1761099023; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=tf2fQ0gJbCyc+H10TcghIqVsJ4/+Biafcb9EsAvZcl0=;
-        b=MowiwkkcodcqOn3cLNQ53GZ+9sNXYdLITsBEgjBYyf58FCn4C2SWwlrpwlscUEMZxa
-         Ynrd8Q2jr8OtSHhjhGCMPeZA4guwEyuIjNzoPD0bE6snbgD1RTt+ePHugQ6cLGrH5Hjp
-         v6sVG5OeSm/+Wxs2O5ZU1KuEfgIqDCWUacoF6VHfAGuHQm5kapU03WTYZhr6OCb+SfXW
-         DCmk7awp025eXX8jqBH7e39fk4dhFuAev+jWfnge+3ESHl8zMMWTXAZeimi+5keg+Dre
-         cvw4LcLebikcTGi27kqRxfnLnebb8HYhEdD618c8zjYIW0PZBVehr7N7hLT3v42tTOnb
-         WReA==
+        d=suse.com; s=google; t=1760501911; x=1761106711; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
+        bh=cm3TzlS0OZaACmDeRCIm+f6uq6+u46txD6gTkH0cYOE=;
+        b=VEaU2K83wuEIXmGt/3dfN1aCkI6J+KRzZIwTRQSId0KjJbZ9yEhCbQAlGiX2cnnLy6
+         j+XU3Ct+JkNBK1ETSGuaHvRKzFrU2pEFLOz9neKbRSHa96AJy9LQeVQWQTrRhLffNUV7
+         YtYWv0JbQd+YMJe4fVV9Befw/KM9vVoYBIzKIjOwq1FOTZ31f4xdtWa+OrlABs1vurBO
+         MfZ6LUXMuF391rEXwO8zHwlZiL6feTRmJc8DD31cF28VdddJSnt14e7DGO1BciwkGrsC
+         Lbv0rOyER8BOAwRAjIyhqzXkE17ighe6hBtYtykbMolJE1jbOnZ99L/Wg768kLPgqC+z
+         5Dyg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760494223; x=1761099023;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=tf2fQ0gJbCyc+H10TcghIqVsJ4/+Biafcb9EsAvZcl0=;
-        b=ILEVpZ/VCRDqEI/aeyjKt9t5L+wtUwnBuOEYkuk8J4Fz/Rc5Vg/BXZtXywxmoBX9Ue
-         1I8EPTNn7q90g+s92MhHEtdU22VRReekx5xboLavJtrMq2mtwZYyEUHox7t3dJsMEDCy
-         S+hRGaStLieNtuoAIPXT62IgKmTRQFGz7g1PanwJcGWbM+crLnRGrQX5cC/jHUoPe+6v
-         3mTQlD2ksByKE2YiN035LRxyfzb0NOHLGMcRG/mlIHY9mb4I+W1YSL8dY0MVAAcuZgPV
-         l7VoOlXz01Ecwy73v/mTk807mkmsBYS7YW0xrETiovFusw48GPzPxlurA4Z9SCPr+8Xh
-         mM3A==
-X-Forwarded-Encrypted: i=1; AJvYcCXnTKVnGFrTDHPfwvO4oGQF/fpq1ZxTFyZd1dyCICwL1+sQmq1vImKVd+mdsgH/E1/GmMpI1AF4h2aS8aCC@vger.kernel.org
-X-Gm-Message-State: AOJu0YwUWMBpFdZ1TYBK1stOn8qTnGDmTwCmwyow6LJ+JsqLDJFMI4Lu
-	bhCpLo5MZrwxZQezVaTb3sutTvkaPeErNbtiPsDgfOxO/o6j+2OPbEXbEF9oJfTv7uw4unXOVKs
-	GPcGpPyLxFjgUHm+SLAjLLvMoaekEGE0=
-X-Gm-Gg: ASbGnct3dqkmUGUtwciHZuqYikel8Voh4n8K6FLLV/H0RYDO9WdGZ2jPY+05zp5Bqz/
-	/3qCdRewSTTElF7fxGteRN0R1kiKOqXjOcasUWwMnCHCnS5fYLxy297TTS3ObVTeOlO9/xQZ+Wt
-	KkIZ/lpMFPd5ViMqh9MOy+Zby4s8Ber2LFCq3lxtGkKW+o8ij+BSGAF7fKVDvaVC7acZSEH5+50
-	mlbUY4sLAdfa37Wf++sqKiyLBl45jgBQ4hgWSY07wrURHIKaqfqp3efFw==
-X-Google-Smtp-Source: AGHT+IHdVVEm39YWzMl1LNpGiBlqkvaUyflBG1tNW6GMG9o/ZGDg1s+GsqNDZBzZGU20lHi3/5OtOSjsi5i+koqZYh4=
-X-Received: by 2002:a17:906:ef05:b0:b4e:d6e3:1670 with SMTP id
- a640c23a62f3a-b50aa48ca83mr2928920266b.11.1760494222641; Tue, 14 Oct 2025
- 19:10:22 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1760501911; x=1761106711;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cm3TzlS0OZaACmDeRCIm+f6uq6+u46txD6gTkH0cYOE=;
+        b=DrWPWbwlVxqEb/bf5/3fVO5opbCVK1RAaHWmq/Oo+vsJr7OcpqH/19yA3HNRoJOau4
+         Nk04CUCXiOKxedvJdRUxkFZXibGxOfh3Le1i8bkkewqLY3ea2K+gKCzlPdhlcgsRR4DZ
+         e4V+DKRZxLV81Me09IZMo7YpenXxEBmHLUnwjvlPX+jau1GsjhC0pbFi4nEZdJa1ETFX
+         QC9Cgm80rHgH0lbCdmGqwzrwNMny+oC/+E7qkU4nmdx2qpY0tV51VloKQ42U53gFMSZg
+         B49cEyGbVJjYHm1G1gS7D35FyvQEXSLzwffAToGGvFS80qIsirAvezqfmO+1dZ7JKKxp
+         1zMw==
+X-Forwarded-Encrypted: i=1; AJvYcCWqiEI0AiK0S7KjaTFs8Rks8GQbR+zaVOEYNtlbLvAmdg3n+4UsuUeZKgvaChfiqzP7gsLHjh1SdmCNZf6i@vger.kernel.org
+X-Gm-Message-State: AOJu0YxpEngKtkekpdYCMSFE1KgM5g48v7rDSm/OlprvJU1DOqF/r4QO
+	/5E4GZYYFRO0IBU50JtKZxYYvLfdLFtMUa4Q8OXklU+cMMojqbYgtjyjOdQYntazqWI=
+X-Gm-Gg: ASbGncvPZfg+pp+Tw4otmsYMOTY8EhQbtOyVUcFm7kbRbVmOsocLZOYLlvHWVBXU86f
+	ixYFsXGf1bU+qYpuJpIUDQlArKd7oOT2ZQNUmBVjGVog8esflRi1wfie1jlF3Hkb4KvUs3JbPyJ
+	hII3HdedwMNI6Bx2i8URUi0iHbOxf5wqncjGM7qqp3C34Awpy5e4ClO45/i3HpfbJW+DVi9UnQv
+	9RXRL3avJpDae0/SN40D/vqnT6Yl/+szaTRF7+8+Xs48JmGG48q2KAj+QV8q5u0+1qx3Gw2DyEL
+	wCWGdSotun/NO5YnMrZ08/0vLmTSvV9NSKHr8G9ZyNAe+rzAOeS50bW2BVWvulwQEHswpq0UFjH
+	BzV8RAwoj1HL62LrQhxhh2e7SkNGnxgIOESd/bpvfo7RPYLYwFonpeSaTMseFcLsNZCfPHH8JAm
+	ttLI3G
+X-Google-Smtp-Source: AGHT+IEiuX7kenvFJN3yTgBkBSq3R1S5piuReZRy93wNagabNuWUYEEsmKyQiTUMz1qALWjnA0s6gg==
+X-Received: by 2002:a05:6000:4009:b0:425:86d1:bcc7 with SMTP id ffacd0b85a97d-42586d1c0cdmr17259284f8f.23.1760501911127;
+        Tue, 14 Oct 2025 21:18:31 -0700 (PDT)
+Received: from ?IPV6:2403:580d:fda1::299? (2403-580d-fda1--299.ip6.aussiebb.net. [2403:580d:fda1::299])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7992d0c349csm16959651b3a.50.2025.10.14.21.18.26
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 14 Oct 2025 21:18:30 -0700 (PDT)
+Message-ID: <1de12f07-c7ab-4a8f-8fb4-00cb29145178@suse.com>
+Date: Wed, 15 Oct 2025 14:48:23 +1030
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251009075929.1203950-1-mjguzik@gmail.com> <20251009075929.1203950-14-mjguzik@gmail.com>
- <ua3koqbakm6e4dpbzfmhei2evc566c5p2t65nsvmlab5yyibxu@u6zp4pwex5s7>
- <CAGudoHGckJHiWN9yCngP1JMGNa1PPNvnpSuriCxSM1mwWhpBUQ@mail.gmail.com> <aO7khoBHdfPlEBAE@dread.disaster.area>
-In-Reply-To: <aO7khoBHdfPlEBAE@dread.disaster.area>
-From: Mateusz Guzik <mjguzik@gmail.com>
-Date: Wed, 15 Oct 2025 04:10:10 +0200
-X-Gm-Features: AS18NWA6lCnHDvapi5wh7WY086sFtNru8nAF8St7zzP5vFF3dZCD2VdTn7VIJY4
-Message-ID: <CAGudoHHY2ZpSjYda94FZos8jRsaqZ_XcR7ZDDuY0AgvbnvehyQ@mail.gmail.com>
-Subject: Re: [PATCH v7 13/14] xfs: use the new ->i_state accessors
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, brauner@kernel.org, viro@zeniv.linux.org.uk, 
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	josef@toxicpanda.com, kernel-team@fb.com, amir73il@gmail.com, 
-	linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
+ index=on
+To: Anand Jain <anajain.sg@gmail.com>, dsterba@suse.cz,
+ =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
+ Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
+ David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>,
+ "Guilherme G . Piccoli" <gpiccoli@igalia.com>
+References: <20251014015707.129013-1-andrealmeid@igalia.com>
+ <20251014182414.GD13776@twin.jikos.cz>
+ <6982bc0a-bb12-458a-bb8c-890c363ba807@suse.com>
+ <0791edfb-6985-45d7-bb3e-08ab7a341dab@gmail.com>
+Content-Language: en-US
+From: Qu Wenruo <wqu@suse.com>
+Autocrypt: addr=wqu@suse.com; keydata=
+ xsBNBFnVga8BCACyhFP3ExcTIuB73jDIBA/vSoYcTyysFQzPvez64TUSCv1SgXEByR7fju3o
+ 8RfaWuHCnkkea5luuTZMqfgTXrun2dqNVYDNOV6RIVrc4YuG20yhC1epnV55fJCThqij0MRL
+ 1NxPKXIlEdHvN0Kov3CtWA+R1iNN0RCeVun7rmOrrjBK573aWC5sgP7YsBOLK79H3tmUtz6b
+ 9Imuj0ZyEsa76Xg9PX9Hn2myKj1hfWGS+5og9Va4hrwQC8ipjXik6NKR5GDV+hOZkktU81G5
+ gkQtGB9jOAYRs86QG/b7PtIlbd3+pppT0gaS+wvwMs8cuNG+Pu6KO1oC4jgdseFLu7NpABEB
+ AAHNGFF1IFdlbnJ1byA8d3F1QHN1c2UuY29tPsLAlAQTAQgAPgIbAwULCQgHAgYVCAkKCwIE
+ FgIDAQIeAQIXgBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXVgBQkQ/lqxAAoJEMI9kfOh
+ Jf6o+jIH/2KhFmyOw4XWAYbnnijuYqb/obGae8HhcJO2KIGcxbsinK+KQFTSZnkFxnbsQ+VY
+ fvtWBHGt8WfHcNmfjdejmy9si2jyy8smQV2jiB60a8iqQXGmsrkuR+AM2V360oEbMF3gVvim
+ 2VSX2IiW9KERuhifjseNV1HLk0SHw5NnXiWh1THTqtvFFY+CwnLN2GqiMaSLF6gATW05/sEd
+ V17MdI1z4+WSk7D57FlLjp50F3ow2WJtXwG8yG8d6S40dytZpH9iFuk12Sbg7lrtQxPPOIEU
+ rpmZLfCNJJoZj603613w/M8EiZw6MohzikTWcFc55RLYJPBWQ+9puZtx1DopW2jOwE0EWdWB
+ rwEIAKpT62HgSzL9zwGe+WIUCMB+nOEjXAfvoUPUwk+YCEDcOdfkkM5FyBoJs8TCEuPXGXBO
+ Cl5P5B8OYYnkHkGWutAVlUTV8KESOIm/KJIA7jJA+Ss9VhMjtePfgWexw+P8itFRSRrrwyUf
+ E+0WcAevblUi45LjWWZgpg3A80tHP0iToOZ5MbdYk7YFBE29cDSleskfV80ZKxFv6koQocq0
+ vXzTfHvXNDELAuH7Ms/WJcdUzmPyBf3Oq6mKBBH8J6XZc9LjjNZwNbyvsHSrV5bgmu/THX2n
+ g/3be+iqf6OggCiy3I1NSMJ5KtR0q2H2Nx2Vqb1fYPOID8McMV9Ll6rh8S8AEQEAAcLAfAQY
+ AQgAJgIbDBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXWBBQkQ/lrSAAoJEMI9kfOhJf6o
+ cakH+QHwDszsoYvmrNq36MFGgvAHRjdlrHRBa4A1V1kzd4kOUokongcrOOgHY9yfglcvZqlJ
+ qfa4l+1oxs1BvCi29psteQTtw+memmcGruKi+YHD7793zNCMtAtYidDmQ2pWaLfqSaryjlzR
+ /3tBWMyvIeWZKURnZbBzWRREB7iWxEbZ014B3gICqZPDRwwitHpH8Om3eZr7ygZck6bBa4MU
+ o1XgbZcspyCGqu1xF/bMAY2iCDcq6ULKQceuKkbeQ8qxvt9hVxJC2W3lHq8dlK1pkHPDg9wO
+ JoAXek8MF37R8gpLoGWl41FIUb3hFiu3zhDDvslYM4BmzI18QgQTQnotJH8=
+In-Reply-To: <0791edfb-6985-45d7-bb3e-08ab7a341dab@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Wed, Oct 15, 2025 at 2:02=E2=80=AFAM Dave Chinner <david@fromorbit.com> =
-wrote:
->
-> On Fri, Oct 10, 2025 at 05:40:49PM +0200, Mateusz Guzik wrote:
-> > On Fri, Oct 10, 2025 at 4:41=E2=80=AFPM Jan Kara <jack@suse.cz> wrote:
-> > >
-> > > On Thu 09-10-25 09:59:27, Mateusz Guzik wrote:
-> > > > Change generated with coccinelle and fixed up by hand as appropriat=
-e.
-> > > >
-> > > > Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
-> > >
-> > > ...
-> > >
-> > > > @@ -2111,7 +2111,7 @@ xfs_rename_alloc_whiteout(
-> > > >        */
-> > > >       xfs_setup_iops(tmpfile);
-> > > >       xfs_finish_inode_setup(tmpfile);
-> > > > -     VFS_I(tmpfile)->i_state |=3D I_LINKABLE;
-> > > > +     inode_state_set_raw(VFS_I(tmpfile), I_LINKABLE);
-> > > >
-> > > >       *wip =3D tmpfile;
-> > > >       return 0;
-> > > > @@ -2330,7 +2330,7 @@ xfs_rename(
-> > > >                * flag from the inode so it doesn't accidentally get=
- misused in
-> > > >                * future.
-> > > >                */
-> > > > -             VFS_I(du_wip.ip)->i_state &=3D ~I_LINKABLE;
-> > > > +             inode_state_clear_raw(VFS_I(du_wip.ip), I_LINKABLE);
-> > > >       }
-> > > >
-> > > >  out_commit:
-> > >
-> > > These two accesses look fishy (not your fault but when we are doing t=
-his
-> > > i_state exercise better make sure all the places are correct before
-> > > papering over bugs with _raw function variant). How come they cannot =
-race
-> > > with other i_state modifications and thus corrupt i_state?
-> > >
-> >
-> > I asked about this here:
-> > https://lore.kernel.org/linux-xfs/CAGudoHEi05JGkTQ9PbM20D98S9fv0hTqpWRd=
-5fWjEwkExSiVSw@mail.gmail.com/
->
-> Yes, as I said, we can add locking here if necessary, but locking
-> isn't necessary at this point in time because nothing else can
-> change the state of the newly allocated whiteout inode until we
-> unlock it.
->
 
-I don't have much of an opinion about this bit. Not as per my response
-I added routines to facilitate not taking the lock (for the time being
-anyway).
 
-> Keep in mind the reason why we need I_LINKABLE here - it's not
-> needed for correctness - it's needed to avoid a warning embedded
-> in inc_nlink() because filesystems aren't trusted to implement
-> link counts correctly anymore.
+在 2025/10/15 10:35, Anand Jain 写道:
+> On 15-Oct-25 5:08 AM, Qu Wenruo wrote:
+>>
+>>
+>> 在 2025/10/15 04:54, David Sterba 写道:
+>>> On Mon, Oct 13, 2025 at 10:57:06PM -0300, André Almeida wrote:
+>>>> Hi everyone,
+>>>>
+>>>> When using overlayfs with the mount option index=on, the first time 
+>>>> a directory is
+>>>> used as upper dir, overlayfs stores in a xattr "overlay.origin" the 
+>>>> UUID of the
+>>>> filesystem being used in the layers. If the upper dir is reused, 
+>>>> overlayfs
+>>>> refuses to mount for a different filesystem, by comparing the UUID 
+>>>> with what's
+>>>> stored at overlay.origin, and it fails with "failed to verify upper 
+>>>> root origin"
+>>>> on dmesg. Remounting with the very same fs is supported and works fine.
+>>>>
+>>>> However, btrfs mounts may have volatiles UUIDs. When mounting the 
+>>>> exact same
+>>>> disk image with btrfs, a random UUID is assigned for the following 
+>>>> disks each
+>>>> time they are mounted, stored at temp_fsid and used across the 
+>>>> kernel as the
+>>>> disk UUID. `btrfs filesystem show` presents that. Calling statfs() 
+>>>> however shows
+>>>> the original (and duplicated) UUID for all disks.
+>>>>
+>>>> This feature doesn't work well with overlayfs with index=on, as when 
+>>>> the image
+>>>> is mounted a second time, will get a different UUID and ovl will 
+>>>> refuse to
+>>>> mount, breaking the user expectation that using the same image 
+>>>> should work. A
+>>>> small script can be find in the end of this cover letter that 
+>>>> illustrates this.
+>>>>
+>>>> >From this, I can think of some options:
+>>>>
+>>>> - Use statfs() internally to always get the fsid, that is 
+>>>> persistent. The patch
+>>>> here illustrates that approach, but doesn't fully implement it.
+>>>> - Create a new sb op, called get_uuid() so the filesystem returns 
+>>>> what's
+>>>> appropriated.
+>>>> - Have a workaround in ovl for btrfs.
+>>>> - Document this as unsupported, and userland needs to erase 
+>>>> overlay.origin each
+>>>> time it wants to remount.
+>>>> - If ovl detects that temp_fsid and index are being used at the same 
+>>>> time,
+>>>> refuses to mount.
+>>>>
+>>>> I'm not sure which one would be better here, so I would like to hear 
+>>>> some ideas
+>>>> on this.
+>>>
+>>> I haven't looked deeper if there's a workable solution, but the feature
+>>> combination should be refused. I don't think this will affect many
+>>> users.
+>>>
+>>
+>> I believe the root problem is that we're not fully implementing the 
+>> proper handling just like other single-device fses.
+>>
+>> We do not use on-disk flags which means at least one fsid is 
+>> registered into btrfs, thus we have to use different temp-fsid.
+>>
+>> If fully single-device feature flag is properly implemented, we should 
+>> be able to return the same uuid without extra hacks thus solve the 
+>> problem.
+> 
+> I had looked into this some time ago. Some libs, like libblkid,
+> don't handle multi-device filesystems or cloned devices with
+> temp FSIDs very well. I'm aware of it.
+> 
+> I've been making some progress on fixing those cases, but it's
+> a bit extensive since we first need enough test coverage,
+> and recent reappear-device inline with that.
+> 
+> Let's see how we can support use cases with identical devices
+> (where changing the UUID isn't an option) and keep things
+> compatible with systemd and library tools.
+> 
 
-Ok, I did not know that. Maybe I'll take a stab at sorting this out.
+My current idea is to introduce a new ro compat flag, so that mounting 
+that device will not go through the fsid lookup procedure completely.
 
-xfs aside, for unrelated reasons I was looking at the placement of the
-indicator to begin with. Seems like for basic correctness this in fact
-wants the inode lock (not the spin lock) and the spin lock is only
-taken to synchronize against other spots which modify i_state. Perhaps
-it should move, which would also obsolete the above woes.
+But go through the common get_tree_bdev() routine, which will check if 
+the fs is already mounted using bdev holder.
+(And of course, no fsid recorded inside btrfs module)
 
-> Now we're being told that "it is too dangerous to let filesystems
-> manage inode state themselves" and so we have to add extra overhead
-> to code that we were forced to add to avoid VFS warnings added
-> because the VFS doesn't trust filesystems to maintain some other
-> important inode state....
->
-
-Given that this is how XFS behaved for a long time now and that
-perhaps the I_LINKABLE handling can be redone in the first place,
-perhaps Jan will be willing to un-NAK this bit.
-
-> So, if you want to get rid of XFS using I_LINKABLE here, please fix
-> the nlink VFS api to allow us to call inc_nlink_<something>() on a
-> zero link inode without I_LINKABLE needing to be set. We do actually
-> know what we are doing here, and as such needing I_LINKABLE here is
-> nothing but a hacky workaround for inflexible, trustless VFS APIs...
->
-> > > > diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-> > > > index caff0125faea..ad94fbf55014 100644
-> > > > --- a/fs/xfs/xfs_iops.c
-> > > > +++ b/fs/xfs/xfs_iops.c
-> > > > @@ -1420,7 +1420,7 @@ xfs_setup_inode(
-> > > >       bool                    is_meta =3D xfs_is_internal_inode(ip)=
-;
-> > > >
-> > > >       inode->i_ino =3D ip->i_ino;
-> > > > -     inode->i_state |=3D I_NEW;
-> > > > +     inode_state_set_raw(inode, I_NEW);
->
-> "set" is wrong and will introduce a regression. This must be an
-> "add" operation as inode->i_state may have already been modified
-> by the time we get here.
-
-There were complaints about original naming and _add/_del/_set got
-whacked. So now this settled on _set/_clear/_assign, per the cheat
-sheet in the patch. So this does what it was supposed to.
+This will make single device btrfs with that special flag to behave 
+exactly like all the other filesystems.
