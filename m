@@ -1,213 +1,186 @@
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E20A82DF144
-	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 04:18:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 642012FE078
+	for <linux-unionfs@vger.kernel.org>; Wed, 15 Oct 2025 05:46:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760501915; cv=none; b=shwFY6a2cLrjQiibN05fbEM7uEKIkorWRHZCFyuBOZMccdEtQd2FyBThA31ygNV4VpEG21kHpB1oU9ri42MnmlJNnvP+IkgOZFqSpjmCs7SI1t/jDoGqGVta02i+kTTv902zrAgFRPZyNRu/xqH+Jp3Jr8Dm8ypJ8sAxiyEPK18=
+	t=1760507215; cv=none; b=gAP2Q40AT/C1xWewx5eqleDjHKiuvROVSbSur0cWeeFNjPDNNDW2DYQR9Sou7nwd5IcrLQeGyW59YLf32FMh8hqGXxa9nmg7/1RfiGXg+/53I7Bb/5+pi1DhzJA9uDCmpTy+4zg62JM5QrPy79oWQf9vDKkrnXEPvgz2RwqisRU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760501915; c=relaxed/simple;
-	bh=nS2Ut62x4b4Mqe67yKdtcu+ie4wvdW5JLXg3jbEHFRs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mighybXbvFM6lSynVVIEjjxVKkQm5BCbsvDuC3A15CSTAOfwgyXVz8t4HV7Ps+B2yAJOG3P3iAOi8QBak23wEtBlluAbUxCaouIlEUJQorHMxZReVsTUs9Bwa9CJARCqeGC/q0jG4G1tatQ0x2Nuiw7bkfhm0xX7Zv/Sd9gKwTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=VEaU2K83; arc=none smtp.client-ip=209.85.221.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1760507215; c=relaxed/simple;
+	bh=L9yQzwfiK6AnAj53w+M42/OMTEMETYOV7eUVo5HxABI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=elzqGkmkQ3ih9EhJLzV8vKJ/5a46eiSGbFFvm7sf/HBkvSkScnZtlpM9nNNsBDWMAyhNW5f5izVV+26tj8Y7CCnBDCv7uNYXXTFY7guiviHQC64SptDDlgeuNcYkhOHVtNwEC6Qgq8omlSNMFu9Uz3Vg6jFtGMrKcz+9PvSkYYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Adq31IJP; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="VEaU2K83"
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-3ee15505cdeso433653f8f.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 21:18:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Adq31IJP"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-b3c2db014easo316731766b.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Oct 2025 22:46:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1760501911; x=1761106711; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=cm3TzlS0OZaACmDeRCIm+f6uq6+u46txD6gTkH0cYOE=;
-        b=VEaU2K83wuEIXmGt/3dfN1aCkI6J+KRzZIwTRQSId0KjJbZ9yEhCbQAlGiX2cnnLy6
-         j+XU3Ct+JkNBK1ETSGuaHvRKzFrU2pEFLOz9neKbRSHa96AJy9LQeVQWQTrRhLffNUV7
-         YtYWv0JbQd+YMJe4fVV9Befw/KM9vVoYBIzKIjOwq1FOTZ31f4xdtWa+OrlABs1vurBO
-         MfZ6LUXMuF391rEXwO8zHwlZiL6feTRmJc8DD31cF28VdddJSnt14e7DGO1BciwkGrsC
-         Lbv0rOyER8BOAwRAjIyhqzXkE17ighe6hBtYtykbMolJE1jbOnZ99L/Wg768kLPgqC+z
-         5Dyg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760501911; x=1761106711;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1760507212; x=1761112012; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=cm3TzlS0OZaACmDeRCIm+f6uq6+u46txD6gTkH0cYOE=;
-        b=DrWPWbwlVxqEb/bf5/3fVO5opbCVK1RAaHWmq/Oo+vsJr7OcpqH/19yA3HNRoJOau4
-         Nk04CUCXiOKxedvJdRUxkFZXibGxOfh3Le1i8bkkewqLY3ea2K+gKCzlPdhlcgsRR4DZ
-         e4V+DKRZxLV81Me09IZMo7YpenXxEBmHLUnwjvlPX+jau1GsjhC0pbFi4nEZdJa1ETFX
-         QC9Cgm80rHgH0lbCdmGqwzrwNMny+oC/+E7qkU4nmdx2qpY0tV51VloKQ42U53gFMSZg
-         B49cEyGbVJjYHm1G1gS7D35FyvQEXSLzwffAToGGvFS80qIsirAvezqfmO+1dZ7JKKxp
-         1zMw==
-X-Forwarded-Encrypted: i=1; AJvYcCWqiEI0AiK0S7KjaTFs8Rks8GQbR+zaVOEYNtlbLvAmdg3n+4UsuUeZKgvaChfiqzP7gsLHjh1SdmCNZf6i@vger.kernel.org
-X-Gm-Message-State: AOJu0YxpEngKtkekpdYCMSFE1KgM5g48v7rDSm/OlprvJU1DOqF/r4QO
-	/5E4GZYYFRO0IBU50JtKZxYYvLfdLFtMUa4Q8OXklU+cMMojqbYgtjyjOdQYntazqWI=
-X-Gm-Gg: ASbGncvPZfg+pp+Tw4otmsYMOTY8EhQbtOyVUcFm7kbRbVmOsocLZOYLlvHWVBXU86f
-	ixYFsXGf1bU+qYpuJpIUDQlArKd7oOT2ZQNUmBVjGVog8esflRi1wfie1jlF3Hkb4KvUs3JbPyJ
-	hII3HdedwMNI6Bx2i8URUi0iHbOxf5wqncjGM7qqp3C34Awpy5e4ClO45/i3HpfbJW+DVi9UnQv
-	9RXRL3avJpDae0/SN40D/vqnT6Yl/+szaTRF7+8+Xs48JmGG48q2KAj+QV8q5u0+1qx3Gw2DyEL
-	wCWGdSotun/NO5YnMrZ08/0vLmTSvV9NSKHr8G9ZyNAe+rzAOeS50bW2BVWvulwQEHswpq0UFjH
-	BzV8RAwoj1HL62LrQhxhh2e7SkNGnxgIOESd/bpvfo7RPYLYwFonpeSaTMseFcLsNZCfPHH8JAm
-	ttLI3G
-X-Google-Smtp-Source: AGHT+IEiuX7kenvFJN3yTgBkBSq3R1S5piuReZRy93wNagabNuWUYEEsmKyQiTUMz1qALWjnA0s6gg==
-X-Received: by 2002:a05:6000:4009:b0:425:86d1:bcc7 with SMTP id ffacd0b85a97d-42586d1c0cdmr17259284f8f.23.1760501911127;
-        Tue, 14 Oct 2025 21:18:31 -0700 (PDT)
-Received: from ?IPV6:2403:580d:fda1::299? (2403-580d-fda1--299.ip6.aussiebb.net. [2403:580d:fda1::299])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7992d0c349csm16959651b3a.50.2025.10.14.21.18.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 14 Oct 2025 21:18:30 -0700 (PDT)
-Message-ID: <1de12f07-c7ab-4a8f-8fb4-00cb29145178@suse.com>
-Date: Wed, 15 Oct 2025 14:48:23 +1030
+        bh=YB/8HRPSkZavRfQHyIpXrXhIqH5dcxDgrAKATWLCf7Y=;
+        b=Adq31IJPv30T6zUoF2y3H73X7Rg3/pWXDTmdnh8kEFGnxj427QLrLxman9/5UI5W2U
+         /BfcMAJFP39b/qTttenN83pLLoKQgHruzLRnAyI7r33JHzbAxexU4Hz4JiFgvuSvRjJE
+         S++28Isa33yMokJkwd5NGNEH7zm9pAspIgg8tWWicxPMILY3fP7EpgtkzrPlnN9oCzqo
+         SQu04Tg9CVpi8kJtTRzyZWVdYdhZeaWchM2nnDVNUJKPESyQa0SuKLSXQM6tLXz/b52R
+         uQ3D4kBfWD7qTw59FT/+Jkb7USrhxoKZYNVLTLXfM7hILg+wbYpzLX/4KHTjP7OIQI4C
+         +66Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760507212; x=1761112012;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=YB/8HRPSkZavRfQHyIpXrXhIqH5dcxDgrAKATWLCf7Y=;
+        b=RlkqlL41Q4fVWCDpwDB/6atUiPZbKggaVHjVfnC4WvApgZRyQSPLvfLD1LeVZq6fv9
+         5K9T1VH62UfK6qhrR3djZG//YfB90O3fMaJrN52AlPpM7hE2QUaHzq1XJKkGsXt9QdjP
+         URCCJuRb2wiHvs/6uFWTsRaq8IEF6ka3SsN8BE1D9AK+O/Xb4/1rkyWYzEpAmBfadQvd
+         hAonqAiMj1GISQ5pLeuwIwHM36HZZeotZGznjsugrqr4yBu/rR13iZ32w7dI44s+tDlz
+         8Z9qfjTEqHAnHRMpb+nSuUH2feQiUXDJTxpAsbA1JfeK8agV/3lCLAC9zCKHjnxSJI/p
+         Zjnw==
+X-Forwarded-Encrypted: i=1; AJvYcCVjdMQ2oeY1H2qb+FEj2LaoUUIYKzaSlbM8E3OPYZ+PMiHTJAWGcscHGSjQGc9u3pQLRjdugbII9qfRllSL@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxf8Yk7re33cwBZjOM5IdS/OcDsC7mEjqvFxOtWYNEDamKkQmFk
+	cbgSEUMUaZqjEr8XM90w/34iwSziCMoDZg5xkOzieK86KydvJK+JCoSPHEl7JyjEvhiGmrNhKaP
+	pdMfZr0FmdDRB6h0ZbWjSF9olKHitzXw=
+X-Gm-Gg: ASbGnctTUqUSaW6YgWzCqjcPJ3xEsSiCOxPWslbXb9txvwo3jGp3+FNkmNqRJDfq9io
+	tYlmzUYOUF9vTic919SOJlmTFZeK4gDZuHpAf3LHImF0N3wH3Y/OPZrceS4YNrcwSxckexzDnau
+	v/zRtuctHA6CVXj+p3V8U/lwV8+Y9QEAKcG1DQ2npWTg1KP3D7M7FwxnnpbTXUr0QgMj+pbY2ai
+	VBIfKvY4b9itnOXx0b+Mi1rpLSUbhqWPOHlk0u9Cwv6XuIHeK+aSNEebxZDbzEJxW+X
+X-Google-Smtp-Source: AGHT+IHBOaBguuSDBJ8tBqccd4wBxjcgREccPEa2q0OFeN3z0LhFrlL5e17WKU2nQANyrLyL2KnfgEnaFifFE19VDgQ=
+X-Received: by 2002:a17:907:72c6:b0:b46:8bad:6970 with SMTP id
+ a640c23a62f3a-b50abaa43b4mr3121817866b.36.1760507211571; Tue, 14 Oct 2025
+ 22:46:51 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 0/1] ovl: brtfs' temp_fsid doesn't work with ovl
- index=on
-To: Anand Jain <anajain.sg@gmail.com>, dsterba@suse.cz,
- =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
- Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
- David Sterba <dsterba@suse.com>, Anand Jain <anand.jain@oracle.com>,
- "Guilherme G . Piccoli" <gpiccoli@igalia.com>
-References: <20251014015707.129013-1-andrealmeid@igalia.com>
- <20251014182414.GD13776@twin.jikos.cz>
- <6982bc0a-bb12-458a-bb8c-890c363ba807@suse.com>
- <0791edfb-6985-45d7-bb3e-08ab7a341dab@gmail.com>
-Content-Language: en-US
-From: Qu Wenruo <wqu@suse.com>
-Autocrypt: addr=wqu@suse.com; keydata=
- xsBNBFnVga8BCACyhFP3ExcTIuB73jDIBA/vSoYcTyysFQzPvez64TUSCv1SgXEByR7fju3o
- 8RfaWuHCnkkea5luuTZMqfgTXrun2dqNVYDNOV6RIVrc4YuG20yhC1epnV55fJCThqij0MRL
- 1NxPKXIlEdHvN0Kov3CtWA+R1iNN0RCeVun7rmOrrjBK573aWC5sgP7YsBOLK79H3tmUtz6b
- 9Imuj0ZyEsa76Xg9PX9Hn2myKj1hfWGS+5og9Va4hrwQC8ipjXik6NKR5GDV+hOZkktU81G5
- gkQtGB9jOAYRs86QG/b7PtIlbd3+pppT0gaS+wvwMs8cuNG+Pu6KO1oC4jgdseFLu7NpABEB
- AAHNGFF1IFdlbnJ1byA8d3F1QHN1c2UuY29tPsLAlAQTAQgAPgIbAwULCQgHAgYVCAkKCwIE
- FgIDAQIeAQIXgBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXVgBQkQ/lqxAAoJEMI9kfOh
- Jf6o+jIH/2KhFmyOw4XWAYbnnijuYqb/obGae8HhcJO2KIGcxbsinK+KQFTSZnkFxnbsQ+VY
- fvtWBHGt8WfHcNmfjdejmy9si2jyy8smQV2jiB60a8iqQXGmsrkuR+AM2V360oEbMF3gVvim
- 2VSX2IiW9KERuhifjseNV1HLk0SHw5NnXiWh1THTqtvFFY+CwnLN2GqiMaSLF6gATW05/sEd
- V17MdI1z4+WSk7D57FlLjp50F3ow2WJtXwG8yG8d6S40dytZpH9iFuk12Sbg7lrtQxPPOIEU
- rpmZLfCNJJoZj603613w/M8EiZw6MohzikTWcFc55RLYJPBWQ+9puZtx1DopW2jOwE0EWdWB
- rwEIAKpT62HgSzL9zwGe+WIUCMB+nOEjXAfvoUPUwk+YCEDcOdfkkM5FyBoJs8TCEuPXGXBO
- Cl5P5B8OYYnkHkGWutAVlUTV8KESOIm/KJIA7jJA+Ss9VhMjtePfgWexw+P8itFRSRrrwyUf
- E+0WcAevblUi45LjWWZgpg3A80tHP0iToOZ5MbdYk7YFBE29cDSleskfV80ZKxFv6koQocq0
- vXzTfHvXNDELAuH7Ms/WJcdUzmPyBf3Oq6mKBBH8J6XZc9LjjNZwNbyvsHSrV5bgmu/THX2n
- g/3be+iqf6OggCiy3I1NSMJ5KtR0q2H2Nx2Vqb1fYPOID8McMV9Ll6rh8S8AEQEAAcLAfAQY
- AQgAJgIbDBYhBC3fcuWlpVuonapC4cI9kfOhJf6oBQJnEXWBBQkQ/lrSAAoJEMI9kfOhJf6o
- cakH+QHwDszsoYvmrNq36MFGgvAHRjdlrHRBa4A1V1kzd4kOUokongcrOOgHY9yfglcvZqlJ
- qfa4l+1oxs1BvCi29psteQTtw+memmcGruKi+YHD7793zNCMtAtYidDmQ2pWaLfqSaryjlzR
- /3tBWMyvIeWZKURnZbBzWRREB7iWxEbZ014B3gICqZPDRwwitHpH8Om3eZr7ygZck6bBa4MU
- o1XgbZcspyCGqu1xF/bMAY2iCDcq6ULKQceuKkbeQ8qxvt9hVxJC2W3lHq8dlK1pkHPDg9wO
- JoAXek8MF37R8gpLoGWl41FIUb3hFiu3zhDDvslYM4BmzI18QgQTQnotJH8=
-In-Reply-To: <0791edfb-6985-45d7-bb3e-08ab7a341dab@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20251009075929.1203950-1-mjguzik@gmail.com> <20251009075929.1203950-4-mjguzik@gmail.com>
+ <h2etb4acmmlmcvvfyh2zbwgy7bd4xeuqqyciqjw6k5zd3thmzq@vwhxpsoauli7>
+ <CAGudoHFJxFOj=cbxcjmMtkzXCagg4vgfmexTG1e_Fo1M=QXt-g@mail.gmail.com> <aO7NqqB41VYCw4Bh@dread.disaster.area>
+In-Reply-To: <aO7NqqB41VYCw4Bh@dread.disaster.area>
+From: Mateusz Guzik <mjguzik@gmail.com>
+Date: Wed, 15 Oct 2025 07:46:39 +0200
+X-Gm-Features: AS18NWCB_4h8LHu2yt-FYyIBzUwuIR3RlLlbdhbf0H9i_Il0fvD54KG0vSEA_Mc
+Message-ID: <CAGudoHFpoo0Qm=b4Z85tbJJmhh+vmSHuNnm3pVaLaQsmX9mURg@mail.gmail.com>
+Subject: Re: [PATCH v7 03/14] fs: provide accessors for ->i_state
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>, brauner@kernel.org, viro@zeniv.linux.org.uk, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	josef@toxicpanda.com, kernel-team@fb.com, amir73il@gmail.com, 
+	linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-xfs@vger.kernel.org, ceph-devel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Oct 15, 2025 at 12:24=E2=80=AFAM Dave Chinner <david@fromorbit.com>=
+ wrote:
+>
+> On Fri, Oct 10, 2025 at 05:51:06PM +0200, Mateusz Guzik wrote:
+> > On Fri, Oct 10, 2025 at 4:44=E2=80=AFPM Jan Kara <jack@suse.cz> wrote:
+> > >
+> > > On Thu 09-10-25 09:59:17, Mateusz Guzik wrote:
+> > > > +static inline void inode_state_set_raw(struct inode *inode,
+> > > > +                                    enum inode_state_flags_enum fl=
+ags)
+> > > > +{
+> > > > +     WRITE_ONCE(inode->i_state, inode->i_state | flags);
+> > > > +}
+> > >
+> > > I think this shouldn't really exist as it is dangerous to use and if =
+we
+> > > deal with XFS, nobody will actually need this function.
+> > >
+> >
+> > That's not strictly true, unless you mean code outside of fs/inode.c
+> >
+> > First, something is still needed to clear out the state in
+> > inode_init_always_gfp().
+> >
+> > Afterwards there are few spots which further modify it without the
+> > spinlock held (for example see insert_inode_locked4()).
+> >
+> > My take on the situation is that the current I_NEW et al handling is
+> > crap and the inode hash api is also crap.
+>
+> The inode hash implementation is crap, too. The historically poor
+> scalability characteristics of the VFS inode cache is the primary
+> reason we've never considered ever trying to port XFS to use it,
+> even if we ignore all the inode lifecycle issues that would have to
+> be solved first...
+>
 
+I don't know of anyone defending the inode hash tho. The performance
+of the thing was already bashed a few times, I did not see anyone
+dunking on the API ;)
 
-在 2025/10/15 10:35, Anand Jain 写道:
-> On 15-Oct-25 5:08 AM, Qu Wenruo wrote:
->>
->>
->> 在 2025/10/15 04:54, David Sterba 写道:
->>> On Mon, Oct 13, 2025 at 10:57:06PM -0300, André Almeida wrote:
->>>> Hi everyone,
->>>>
->>>> When using overlayfs with the mount option index=on, the first time 
->>>> a directory is
->>>> used as upper dir, overlayfs stores in a xattr "overlay.origin" the 
->>>> UUID of the
->>>> filesystem being used in the layers. If the upper dir is reused, 
->>>> overlayfs
->>>> refuses to mount for a different filesystem, by comparing the UUID 
->>>> with what's
->>>> stored at overlay.origin, and it fails with "failed to verify upper 
->>>> root origin"
->>>> on dmesg. Remounting with the very same fs is supported and works fine.
->>>>
->>>> However, btrfs mounts may have volatiles UUIDs. When mounting the 
->>>> exact same
->>>> disk image with btrfs, a random UUID is assigned for the following 
->>>> disks each
->>>> time they are mounted, stored at temp_fsid and used across the 
->>>> kernel as the
->>>> disk UUID. `btrfs filesystem show` presents that. Calling statfs() 
->>>> however shows
->>>> the original (and duplicated) UUID for all disks.
->>>>
->>>> This feature doesn't work well with overlayfs with index=on, as when 
->>>> the image
->>>> is mounted a second time, will get a different UUID and ovl will 
->>>> refuse to
->>>> mount, breaking the user expectation that using the same image 
->>>> should work. A
->>>> small script can be find in the end of this cover letter that 
->>>> illustrates this.
->>>>
->>>> >From this, I can think of some options:
->>>>
->>>> - Use statfs() internally to always get the fsid, that is 
->>>> persistent. The patch
->>>> here illustrates that approach, but doesn't fully implement it.
->>>> - Create a new sb op, called get_uuid() so the filesystem returns 
->>>> what's
->>>> appropriated.
->>>> - Have a workaround in ovl for btrfs.
->>>> - Document this as unsupported, and userland needs to erase 
->>>> overlay.origin each
->>>> time it wants to remount.
->>>> - If ovl detects that temp_fsid and index are being used at the same 
->>>> time,
->>>> refuses to mount.
->>>>
->>>> I'm not sure which one would be better here, so I would like to hear 
->>>> some ideas
->>>> on this.
->>>
->>> I haven't looked deeper if there's a workable solution, but the feature
->>> combination should be refused. I don't think this will affect many
->>> users.
->>>
->>
->> I believe the root problem is that we're not fully implementing the 
->> proper handling just like other single-device fses.
->>
->> We do not use on-disk flags which means at least one fsid is 
->> registered into btrfs, thus we have to use different temp-fsid.
->>
->> If fully single-device feature flag is properly implemented, we should 
->> be able to return the same uuid without extra hacks thus solve the 
->> problem.
-> 
-> I had looked into this some time ago. Some libs, like libblkid,
-> don't handle multi-device filesystems or cloned devices with
-> temp FSIDs very well. I'm aware of it.
-> 
-> I've been making some progress on fixing those cases, but it's
-> a bit extensive since we first need enough test coverage,
-> and recent reappear-device inline with that.
-> 
-> Let's see how we can support use cases with identical devices
-> (where changing the UUID isn't an option) and keep things
-> compatible with systemd and library tools.
-> 
+> > For starters freshly allocated inodes should not be starting with 0,
+> > but with I_NEW.
+>
+> Not all inodes are cached filesystem inodes. e.g. anonymous inodes
+> are initialised to inode->i_state =3D I_DIRTY.  pipe inodes also start
+> at I_DIRTY. socket inodes don't touch i_state at init, so they
+> essentially init i_state =3D 0....
+>
+> IOWs, the initial inode state depends on what the inode is being
+> used for, and I_NEW is only relevant to inodes that are cached and
+> can be found before the filesystem has fully initialised the VFS
+> inode.
+>
 
-My current idea is to introduce a new ro compat flag, so that mounting 
-that device will not go through the fsid lookup procedure completely.
+Well it is true that currently the I_NEW flag is there to help out
+entities like the hash inode hash.
 
-But go through the common get_tree_bdev() routine, which will check if 
-the fs is already mounted using bdev holder.
-(And of course, no fsid recorded inside btrfs module)
+I'm looking to change it into a generic indicator of an uninitialized
+inode. This is completely harmless for the consumers which currently
+operate on inodes which never had the flag.
 
-This will make single device btrfs with that special flag to behave 
-exactly like all the other filesystems.
+Here is one use: I'd like to introduce a mandatory routine to call
+when the filesystem at hand claims the inode is ready to use.
+
+Said routine would have 2 main purposes:
+- validate the state of the inode (for example that a valid mode is
+set; this would have caught some of the syzkaller bugs from the get
+go)
+- pre-compute a bunch of stuff, for example see this crapper:
+
+   static inline int do_inode_permission(struct mnt_idmap *idmap,
+                                        struct inode *inode, int mask)
+  {
+          if (unlikely(!(inode->i_opflags & IOP_FASTPERM))) {
+                  if (likely(inode->i_op->permission))
+                          return inode->i_op->permission(idmap, inode,
+mask);
+
+                  /* This gets set once for the inode lifetime */
+                  spin_lock(&inode->i_lock);
+                  inode->i_opflags |=3D IOP_FASTPERM;
+                  spin_unlock(&inode->i_lock);
+          }
+          return generic_permission(idmap, inode, mask);
+  }
+
+The IOP_FASTPERM could be computed by the new routine, so this would
+simplify to:
+  static inline int do_inode_permission(struct mnt_idmap *idmap,
+                                        struct inode *inode, int mask)
+  {
+          if (unlikely(!(inode->i_opflags & IOP_FASTPERM)))
+                  return inode->i_op->permission(idmap, inode, mask);
+          return generic_permission(idmap, inode, mask);
+  }
+
+The routine would assert the inode is I_NEW and would clear the flag,
+replacing it with something else indicating the inode is indeed ready
+to use.
+
+While technically the I_NEW change is not necessarily to get there, I
+do think it makes things cleaner.
+
+Note unlock_new_inode() and similar are not mandatory to call.
