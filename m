@@ -1,267 +1,410 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0042B331A66;
-	Fri, 17 Oct 2025 11:32:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20C2F2FC890
+	for <linux-unionfs@vger.kernel.org>; Fri, 17 Oct 2025 17:06:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760700780; cv=none; b=ImPOsq8BHpWb2hgypCtycBGeVhjjLZJUzlBLLzEZOEUN97PYUAT2E8qTjjKCFmWmJ/C7b12TaMF0sQUYTeBZ9OoOTPyCJf0Rj3H8xlCRR8Dx0X8Aw4jcr4UbDU8mfS3YhuhMfc70nXe80CXK2kxG0pr5IUsnaQzejh/9h2/vZ48=
+	t=1760720818; cv=none; b=ShlSz03M746FC5q+CFfgtvTuEQ0+XMbCtfc03USmV+DDGChnzGA910w5yoqqXniWf4TcnPXCK70YOUwW+vTgIALL8fczqslWJ+oEBPuyM+8+B0ZYIXQ/rX1QkEp5v1AMI/VuUubNFOZ7wQ2dDK7p8+PMIfxhPYVy1/RIgCNbESE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760700780; c=relaxed/simple;
-	bh=8yVl2NH8wCRWT0BWB4xJxse7JadeLBTgspo6OepmR18=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=J3Xkq9jw7Av4ShijT7rJ02wlnYlGF5pR3SJxnCDIIPGi1/9kUBRzF20BdNZRHJcB/ozEjmEOMyK3wl98hlHlhjIy2XexL2RKfEKOQ0BuU2TxDjYaYSaJwh5rHP7bLmIrH6QKTs0HpS3Sd40P/bQoCRyBVjLNqPMkQ6nbSBCHkSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W16aB5Ac; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760720818; c=relaxed/simple;
+	bh=ZBIz6637B97cl+2Mu704ObwDp3tez+7Dya0yN/9mHdc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=O+SrSMh5SdPSORyxysqtaXwF0+bODlaSNH0pzh83liytCUOavhFo3PEBiuUozUBbKjnz5dUKbr1QaeY9rvn4JWhGfuK6FzFY1LTkxrv4kdNMnVEwwp4H4zmi7wF0Uxjxd509lUwISWo1EmfkeKwZP0t9zvo2ucY2r/j+Nx7yFqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QbKm9Zv8; arc=none smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W16aB5Ac"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA284C4CEFB;
-	Fri, 17 Oct 2025 11:32:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760700779;
-	bh=8yVl2NH8wCRWT0BWB4xJxse7JadeLBTgspo6OepmR18=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=W16aB5AchRRIDFkXWh+tG5tlaQdVC1I34WsnKRmiAAJAWSmro3WLSZmQJse1q4OCj
-	 +aZNpXcLflrNtR0mCD36w96dlD4PZUDDMqhNxDoALx9q1i5CTP6ESbJCpuzkXqWNmU
-	 L5/JFM5WTwtg4Q5N2sVlbZvu986nCzrY8XWnP1Y+lDtNYQYyHS0qb2zFQQDA1Ply5B
-	 sO4pLudramXjUFoh37oPEH0lA3uHBbSJyWTjfE0c8Cuoj91WUTkugWUXADQe96AfMA
-	 eHaFNitHGpSoHvJrQr9vwfo/qrGD6nwLD8uFIqM96xSIPEi6YzY1g5ynHCKqdJbW9D
-	 jI8BfyxirEgeA==
-From: Jeff Layton <jlayton@kernel.org>
-Date: Fri, 17 Oct 2025 07:32:03 -0400
-Subject: [PATCH v2 11/11] nfsd: wire up GET_DIR_DELEGATION handling
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QbKm9Zv8"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-63c11011e01so3245982a12.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Oct 2025 10:06:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1760720813; x=1761325613; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uuVtFMJghFoaORBDZMM/SwK57hrtfhUV9weZMZCmgfY=;
+        b=QbKm9Zv80n4ZYjKDfaDlt74sTYGSGSXATIGrMlXLZak1b+vomDG5MGNjBTRuV2Ds7Q
+         UnoHrJE3XPjE6jBLSjmXXR8/jzC7sq7Mbha/a36Z/GmD//q/OeBCUCFwGJlgEGsD4oxU
+         ZGt5y3RqDVKeA+q4CeNkyv1UZzdv7LlLQQgkCBOVb5MSMF6A6agmsqm/OmdEwUUnv4SK
+         14xK8egJko0UW+cOM56Tm1j7Oy8AEfuxIhyfPoeswsy8Kq7+7GZhRvJPpD4qCZOnqhPP
+         a58rmG3SY9KipgWox8KmZ/jLmxwJeFxlIOdPFxma1ya14KMMJUeQPjzZUnqDxCFwSifZ
+         i7BA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760720813; x=1761325613;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uuVtFMJghFoaORBDZMM/SwK57hrtfhUV9weZMZCmgfY=;
+        b=esNS3O8wFiGK4dFmDA4ygQXU482WLwGNM/hTW2PujvSKohizTJivcYiuzM4FIo+0r3
+         75phZxDKewosRUyYj8T3K+p+7p+GK/oA1hoTg6aIgHhPenHB6bfW7LAvNJnX7CUsXdI0
+         Z0aDJ8qzYM71fvqaZbS88va5E6sl8dFKb2aEpQw5xuQF0UyjMQ81E/aPgGVZaV9rGefn
+         eWPId5TPxPZiNSbAjcS1rQtpKrSryOImesN5VeoR7DB03BAeGiOKVclVlNvNTUz4nAhl
+         n/n4oFcn5AZ80C0iyvaptvKjeSrpYWLngmxMa1ZmyeY/cPP+nkXEOg10v6GMauxOGvdt
+         uDwQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVwNU4iyQ/76BCF88/clvAcE5G0BUTIplD2a3myKQry+r+SgVzzGlrxPHd8A2ikdaivQ9SwmV3lCPGFDTi9@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyrp2X8eS3kOvT7g/SzHS0fKvhXO3fP6MmdcRft2X7qJVVOVWH+
+	cT7dSxjWuWd6fDfaYKcW7xTX6UTk9/bZXo+Fo5QpILHM6hBY6BcKYYgX
+X-Gm-Gg: ASbGncs6CCYvSnZJ9DsamB+TFGN0m/pJ4IE24fnOta0gY96z5/f4ZZdBj+fgDxofgIO
+	zBCC93ngIw3hequK2KtmS3u9sC4/3KBdmvsgyKtNhGdWb/ewOx1QYfh2emDuKBY6DSfh6yArDZi
+	sYjntbaBK+M73GsPIjzYKb1H8Y924QblKwt0+Bxzu2+YtDnJQHV8WA9ZHRsvuOUVk/Ni4n1/onc
+	EoqYVB6j7n5rfe//8SFBSggjpAIXpfCMjuCK10cIvb38U4ezTX3yhASzf1SRFHbmUR7e5EEL1aa
+	Phd8FSQCotkO/1ZW1J1hWLsKvwKJN534/pZxUgr6TJ4CpTDQu62MqbWxCs/dTAeG+t8Gj6cFSBE
+	kHiRoThIrVc3cc+4EQ1BcEdBMRaf5jRQZcskWpmc8yNHE6KCPDY87G4npo6Uu6pJD52Q64crP3L
+	P8X7nhcY2ccwgqAEvt5KDOPgY/bS4ATAiXI+M2WJoDF/vY44CsVQhcj5GH5adwfOkqvuJEv0P4J
+	N/IG8VNFt70NP6VlPl3tR2UIgyQtiS/
+X-Google-Smtp-Source: AGHT+IEUUfXHUy7p3WT1iu83aVLoGQuzxpYrqjTdNKJ7THYVhKitPiuPirOSMrDRnMz+eQzu01aAGg==
+X-Received: by 2002:a05:6402:d0e:b0:634:ce70:7c5 with SMTP id 4fb4d7f45d1cf-63c1f6d6c07mr3539817a12.17.1760720813231;
+        Fri, 17 Oct 2025 10:06:53 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (2001-1c00-570d-ee00-20c4-b852-1954-0ec9.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:20c4:b852:1954:ec9])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-63c4943015bsm224181a12.21.2025.10.17.10.06.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Oct 2025 10:06:52 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Zorro Lang <zlang@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
+	linux-unionfs@vger.kernel.org,
+	fstests@vger.kernel.org
+Subject: [PATCH] overlay: add tests for casefolded layers
+Date: Fri, 17 Oct 2025 19:06:49 +0200
+Message-ID: <20251017170649.2092386-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251017-dir-deleg-ro-v2-11-8c8f6dd23c8b@kernel.org>
-References: <20251017-dir-deleg-ro-v2-0-8c8f6dd23c8b@kernel.org>
-In-Reply-To: <20251017-dir-deleg-ro-v2-0-8c8f6dd23c8b@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>, 
- Alexander Viro <viro@zeniv.linux.org.uk>, 
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
- Chuck Lever <chuck.lever@oracle.com>, 
- Alexander Aring <alex.aring@gmail.com>, 
- Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, 
- Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.org>, 
- Ronnie Sahlberg <ronniesahlberg@gmail.com>, 
- Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, 
- Bharath SM <bharathsm@microsoft.com>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
- David Howells <dhowells@redhat.com>, Tyler Hicks <code@tyhicks.com>, 
- NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, 
- Dai Ngo <Dai.Ngo@oracle.com>, Amir Goldstein <amir73il@gmail.com>, 
- Namjae Jeon <linkinjeon@kernel.org>, Steve French <smfrench@gmail.com>, 
- Sergey Senozhatsky <senozhatsky@chromium.org>, 
- Carlos Maiolino <cem@kernel.org>, Kuniyuki Iwashima <kuniyu@google.com>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
- samba-technical@lists.samba.org, netfs@lists.linux.dev, 
- ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
- linux-xfs@vger.kernel.org, netdev@vger.kernel.org, 
- Jeff Layton <jlayton@kernel.org>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5443; i=jlayton@kernel.org;
- h=from:subject:message-id; bh=8yVl2NH8wCRWT0BWB4xJxse7JadeLBTgspo6OepmR18=;
- b=owEBbQKS/ZANAwAKAQAOaEEZVoIVAcsmYgBo8ilCIHz7Y0CKC7YnK6gfkIqnxpWome0thgPpR
- +g2yqAYRpCJAjMEAAEKAB0WIQRLwNeyRHGyoYTq9dMADmhBGVaCFQUCaPIpQgAKCRAADmhBGVaC
- FTAaEAC+dHlJR18HGmzM64QSsr15Nzgmjhjn3B4u34VdeVcki8Z0M1Ia7NY+zBx2Mk+BlcfuhGh
- Du2a9DTnQHF+2TtGb71pGXempYuWufDsfnjvgtez9bbdvWgi2+owN3X1s9x55akZ83ymiItyl6y
- EthK4NbcNEaPSo0QQ3gEmkT3ZdS3ZTlg56NgRAkvLbVGAu6wNLHXMxMxPqht583P5mwLLcNoAHL
- 6WSQQjaxSg2K/tOOe/daEzD+Ip7I7QzrTTmqhYReiFc2r4qfv8/ZFlR7KHDYifTwKqOVJRJqbbL
- QZLjAvFOd01wTr/avX5rzPmDSlRrzlb107pBBh4VVVhdZgnFhg5fnM1P42OkpfcBYmrCDZgL/xo
- +70YWd7yaitvOg1ZTSQKqslBYMJ6hr/8xlOcNvuHXvhZ8ZR+LjFPP7X7Qhy7Z1z1jqrU7m3E09b
- GnT9b11qbWeu9a6Abuml6pf65yauM6Md2eQTfuaext5+hYSlc0qlwn5Wpp0dvxKjwjdyx5YsyFA
- RdZQzWOqkEgv0UwB5/P9ypSeSdMmi4FDDAMOT56+mJNBnkTHUFrcF+XYks+xlyUZVHwTh/Gi8F4
- vRdvqGFLDThioSiuu1KtPF111VJG5853+p2RXcd3rvh/q5WS/CX12iya21b+CcLZvToFG6lIuy2
- bsS1IsMN5vPKs0g==
-X-Developer-Key: i=jlayton@kernel.org; a=openpgp;
- fpr=4BC0D7B24471B2A184EAF5D3000E684119568215
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Add a new routine for acquiring a read delegation on a directory. These
-are recallable-only delegations with no support for CB_NOTIFY. That will
-be added in a later phase.
+Overalyfs did not allow mounting layers with casefold capable fs
+until kernel v6.17-rc1 and did not allow casefold enabled layers
+until kernel v6.18-rc1.
 
-Since the same CB_RECALL/DELEGRETURN infrastrure is used for regular and
-directory delegations, a normal nfs4_delegation is used to represent a
-directory delegation.
+Since kernel v6.18-rc1, overalyfs allows this kind of setups,
+as long as the layers have consistent encoding and all the directories
+in the subtree have consistent casefolding.
 
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
+Create test cases for the following scenarios:
+- Mounting overlayfs with casefold disabled
+- Mounting overlayfs with casefold enabled
+- Lookup subdir in overlayfs with mismatch casefold to parent dir
+- Change casefold of underlying subdir while overalyfs is mounted
+- Mounting overlayfs with strict enconding, but casefold disabled
+- Mounting overlayfs with strict enconding casefold enabled
+- Mounting overlayfs with layers with inconsistent UTF8 version
+
+Co-developed-by: André Almeida <andrealmeid@igalia.com>
+Signed-off-by: André Almeida <andrealmeid@igalia.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/nfsd/nfs4proc.c  |  21 ++++++++++-
- fs/nfsd/nfs4state.c | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/nfsd/state.h     |   5 +++
- 3 files changed, 125 insertions(+), 1 deletion(-)
 
-diff --git a/fs/nfsd/nfs4proc.c b/fs/nfsd/nfs4proc.c
-index 7f7e6bb23a90d9a1cafd154c0f09e236df75b083..527f8dc52159803770964700170473509ec328ed 100644
---- a/fs/nfsd/nfs4proc.c
-+++ b/fs/nfsd/nfs4proc.c
-@@ -2342,6 +2342,13 @@ nfsd4_get_dir_delegation(struct svc_rqst *rqstp,
- 			 union nfsd4_op_u *u)
- {
- 	struct nfsd4_get_dir_delegation *gdd = &u->get_dir_delegation;
-+	struct nfs4_delegation *dd;
-+	struct nfsd_file *nf;
-+	__be32 status;
+Zorro,
+
+This test covers the overlayfs casefold feature that was introduced in
+two steps - casefold disabled layers in 6.17-rc1 and casefold enabled
+layers in 6.18-rc1.
+
+I think there is less interest in testing the v6.17 changes on their own
+so this test requires support for casefold enabled layers from 6.18-rc1
+and will notrun on kernel < 6.18-rc1:
+
+generic/999 5s ...  [12:43:16] [12:43:18] [not run]
+	generic/999 -- overlayfs does not support casefold enabled layers
+
+If there is a demand, we could split a test for the v6.17 support.
+
+Note that this test is written as a generic and not an overlay test,
+because we do not have the infrastructure to format and mount a base fs
+with casefold support, so this test can run with e.g. ext4 FSTYP, but it
+will notrun with e.g. xfs FSTYPE:
+
+generic/999 6s ...  [12:30:03] [12:30:05] [not run]
+	generic/999 -- xfs does not support casefold feature
+
+I left the test number 999 for you to re-number.
+If you prefer that I post with another test number assignment in the
+future please let me know.
+
+Thanks,
+Amir.
+
+
+ tests/generic/999     | 243 ++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/999.out |  13 +++
+ 2 files changed, 256 insertions(+)
+ create mode 100755 tests/generic/999
+ create mode 100644 tests/generic/999.out
+
+diff --git a/tests/generic/999 b/tests/generic/999
+new file mode 100755
+index 00000000..e81ea036
+--- /dev/null
++++ b/tests/generic/999
+@@ -0,0 +1,243 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2025 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 999
++#
++# Test overlayfs error cases with casefold enabled layers
++#
++# Overalyfs did not allow mounting layers with casefold capable fs
++# until kernel v6.17 and with casefold enabled until kernel v6.18.
++# Since kernel v6.17, overalyfs allows the mount, as long as casefolding
++# is disabled on all directories.
++# Since kernel v6.18, overalyfs allows the mount, as long as casefolding
++# is consistent on all directories and encoding is consistent on all layers.
++#
++. ./common/preamble
++_begin_fstest auto quick mount casefold
 +
-+	status = nfsd_file_acquire_dir(rqstp, &cstate->current_fh, &nf);
-+	if (status != nfs_ok)
-+		return status;
- 
- 	/*
- 	 * RFC 8881, section 18.39.3 says:
-@@ -2355,7 +2362,19 @@ nfsd4_get_dir_delegation(struct svc_rqst *rqstp,
- 	 * return NFS4_OK with a non-fatal status of GDD4_UNAVAIL in this
- 	 * situation.
- 	 */
--	gdd->gddrnf_status = GDD4_UNAVAIL;
-+	dd = nfsd_get_dir_deleg(cstate, gdd, nf);
-+	if (IS_ERR(dd)) {
-+		int err = PTR_ERR(dd);
-+
-+		if (err != -EAGAIN)
-+			return nfserrno(err);
-+		gdd->gddrnf_status = GDD4_UNAVAIL;
-+		return nfs_ok;
-+	}
-+
-+	gdd->gddrnf_status = GDD4_OK;
-+	memcpy(&gdd->gddr_stateid, &dd->dl_stid.sc_stateid, sizeof(gdd->gddr_stateid));
-+	nfs4_put_stid(&dd->dl_stid);
- 	return nfs_ok;
- }
- 
-diff --git a/fs/nfsd/nfs4state.c b/fs/nfsd/nfs4state.c
-index b06591f154aa372db710e071c69260f4639956d7..a63e8c885291fc377163f3255f26f5f693704437 100644
---- a/fs/nfsd/nfs4state.c
-+++ b/fs/nfsd/nfs4state.c
-@@ -9359,3 +9359,103 @@ nfsd4_deleg_getattr_conflict(struct svc_rqst *rqstp, struct dentry *dentry,
- 	nfs4_put_stid(&dp->dl_stid);
- 	return status;
- }
-+
-+/**
-+ * nfsd_get_dir_deleg - attempt to get a directory delegation
-+ * @cstate: compound state
-+ * @gdd: GET_DIR_DELEGATION arg/resp structure
-+ * @nf: nfsd_file opened on the directory
-+ *
-+ * Given a GET_DIR_DELEGATION request @gdd, attempt to acquire a delegation
-+ * on the directory to which @nf refers. Note that this does not set up any
-+ * sort of async notifications for the delegation.
-+ */
-+struct nfs4_delegation *
-+nfsd_get_dir_deleg(struct nfsd4_compound_state *cstate,
-+		   struct nfsd4_get_dir_delegation *gdd,
-+		   struct nfsd_file *nf)
++# Override the default cleanup function.
++_cleanup()
 +{
-+	struct nfs4_client *clp = cstate->clp;
-+	struct nfs4_delegation *dp;
-+	struct file_lease *fl;
-+	struct nfs4_file *fp, *rfp;
-+	int status = 0;
-+
-+	fp = nfsd4_alloc_file();
-+	if (!fp)
-+		return ERR_PTR(-ENOMEM);
-+
-+	nfsd4_file_init(&cstate->current_fh, fp);
-+
-+	rfp = nfsd4_file_hash_insert(fp, &cstate->current_fh);
-+	if (unlikely(!rfp)) {
-+		put_nfs4_file(fp);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	if (rfp != fp) {
-+		put_nfs4_file(fp);
-+		fp = rfp;
-+	}
-+
-+	/* if this client already has one, return that it's unavailable */
-+	spin_lock(&state_lock);
-+	spin_lock(&fp->fi_lock);
-+	/* existing delegation? */
-+	if (nfs4_delegation_exists(clp, fp)) {
-+		status = -EAGAIN;
-+	} else if (!fp->fi_deleg_file) {
-+		fp->fi_deleg_file = nf;
-+		fp->fi_delegees = 1;
-+	} else {
-+		++fp->fi_delegees;
-+	}
-+	spin_unlock(&fp->fi_lock);
-+	spin_unlock(&state_lock);
-+
-+	if (status) {
-+		put_nfs4_file(fp);
-+		return ERR_PTR(status);
-+	}
-+
-+	/* Try to set up the lease */
-+	status = -ENOMEM;
-+	dp = alloc_init_deleg(clp, fp, NULL, NFS4_OPEN_DELEGATE_READ);
-+	if (!dp)
-+		goto out_delegees;
-+
-+	fl = nfs4_alloc_init_lease(dp);
-+	if (!fl)
-+		goto out_put_stid;
-+
-+	status = kernel_setlease(nf->nf_file,
-+				 fl->c.flc_type, &fl, NULL);
-+	if (fl)
-+		locks_free_lease(fl);
-+	if (status)
-+		goto out_put_stid;
-+
-+	/*
-+	 * Now, try to hash it. This can fail if we race another nfsd task
-+	 * trying to set a delegation on the same file. If that happens,
-+	 * then just say UNAVAIL.
-+	 */
-+	spin_lock(&state_lock);
-+	spin_lock(&clp->cl_lock);
-+	spin_lock(&fp->fi_lock);
-+	status = hash_delegation_locked(dp, fp);
-+	spin_unlock(&fp->fi_lock);
-+	spin_unlock(&clp->cl_lock);
-+	spin_unlock(&state_lock);
-+
-+	if (!status)
-+		return dp;
-+
-+	/* Something failed. Drop the lease and clean up the stid */
-+	kernel_setlease(fp->fi_deleg_file->nf_file, F_UNLCK, NULL, (void **)&dp);
-+out_put_stid:
-+	nfs4_put_stid(&dp->dl_stid);
-+out_delegees:
-+	put_deleg_file(fp);
-+	return ERR_PTR(status);
++	cd /
++	_unmount $merge 2>/dev/null
++	rm -r -f $tmp.*
 +}
-diff --git a/fs/nfsd/state.h b/fs/nfsd/state.h
-index 1e736f4024263ffa9c93bcc9ec48f44566a8cc77..b052c1effdc5356487c610db9728df8ecfe851d4 100644
---- a/fs/nfsd/state.h
-+++ b/fs/nfsd/state.h
-@@ -867,4 +867,9 @@ static inline bool try_to_expire_client(struct nfs4_client *clp)
- 
- extern __be32 nfsd4_deleg_getattr_conflict(struct svc_rqst *rqstp,
- 		struct dentry *dentry, struct nfs4_delegation **pdp);
 +
-+struct nfsd4_get_dir_delegation;
-+struct nfs4_delegation *nfsd_get_dir_deleg(struct nfsd4_compound_state *cstate,
-+						struct nfsd4_get_dir_delegation *gdd,
-+						struct nfsd_file *nf);
- #endif   /* NFSD4_STATE_H */
-
++
++# Import common functions.
++. ./common/filter
++. ./common/casefold
++
++_exclude_fs overlay
++_require_extra_fs overlay
++
++_require_scratch_casefold
++
++# Create casefold capable base fs
++_scratch_mkfs_casefold >>$seqres.full 2>&1
++_scratch_mount_casefold
++
++# Create lowerdir, upperdir and workdir without casefold enabled
++lowerdir="$SCRATCH_MNT/ovl-lower"
++upperdir="$SCRATCH_MNT/ovl-upper"
++workdir="$SCRATCH_MNT/ovl-work"
++merge="$SCRATCH_MNT/ovl-merge"
++
++mount_casefold_version()
++{
++	option="casefold=$1"
++	mount -t tmpfs -o $option tmpfs $2
++}
++
++mount_overlay()
++{
++	local lowerdirs=$1
++
++	_mount -t overlay overlay $merge \
++		-o lowerdir=$lowerdirs,upperdir=$upperdir,workdir=$workdir
++}
++
++unmount_overlay()
++{
++	_unmount $SCRATCH_MNT/ovl-merge 2>/dev/null
++}
++
++# Try to mount an overlay with casefold enabled layers.
++# On kernels older than v6.18 expect failure and skip the test
++mkdir -p $merge $upperdir $workdir $lowerdir
++_casefold_set_attr $upperdir >>$seqres.full
++_casefold_set_attr $workdir >>$seqres.full
++_casefold_set_attr $lowerdir >>$seqres.full
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	_notrun "overlayfs does not support casefold enabled layers"
++unmount_overlay
++
++# Re-create casefold disabled layers with lower subdir
++casefolddir=$lowerdir/casefold
++rm -rf $upperdir $workdir $lowerdir
++mkdir -p $upperdir $workdir $lowerdir $casefolddir
++
++# Try to mount an overlay with casefold capable but disabled layers.
++# Since we already verified that overalyfs supports casefold enabled layers
++# this is expected to succeed.
++echo Casefold disabled
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold disabled layers failed (1)"
++ls $merge/casefold/ >>$seqres.full
++unmount_overlay
++
++# Use new upper/work dirs for each test to avoid ESTALE errors
++# on mismatch lowerdir/upperdir (see test overlay/037)
++rm -rf $upperdir $workdir
++mkdir $upperdir $workdir
++
++# Try to mount an overlay with casefold disabled layers and
++# enable casefold on lowerdir root after mount - expect ESTALE error on lookup.
++echo Casefold enabled after mount
++mount_overlay $casefolddir >>$seqres.full || \
++	echo "Overlayfs mount with casefold disabled layers failed (2)"
++_casefold_set_attr $casefolddir >>$seqres.full
++mkdir $casefolddir/subdir
++ls $merge/subdir |& _filter_scratch
++unmount_overlay
++
++# Try to mount an overlay with casefold enabled lowerdir root - expect EINVAL.
++# With libmount version >= v1.39, we expect the following descriptive error:
++# mount: overlay: case-insensitive directory on .../ovl-lower/casefold not supported
++# but we want the test to run with older libmount, so we so not expect this output
++# we just expect a mount failure.
++echo Casefold enabled lower dir
++mount_overlay $casefolddir >>$seqres.full 2>&1 && \
++	echo "Overlayfs mount with casefold enabled lowerdir should have failed" && \
++	unmount_overlay
++
++# Changing lower layer root again
++rm -rf $upperdir $workdir
++mkdir $upperdir $workdir
++
++# Try to mount an overlay with casefold disabled layers, but with
++# casefold enabled subdir in lowerdir - expect EREMOTE error on lookup.
++echo Casefold enabled lower subdir
++mount_overlay $lowerdir >>$seqres.full
++ls $merge/casefold/subdir |& _filter_scratch
++unmount_overlay
++
++# workdir needs to be empty to set casefold attribute
++rm -rf $workdir/*
++
++_casefold_set_attr $upperdir >>$seqres.full
++_casefold_set_attr $workdir >>$seqres.full
++
++echo Casefold enabled upper dir
++mount_overlay $lowerdir >>$seqres.full 2>&1 && \
++	echo "Overlayfs mount with casefold enabled upperdir should have failed" && \
++	unmount_overlay
++
++# lowerdir needs to be empty to set casefold attribute
++rm -rf $lowerdir/*
++_casefold_set_attr $lowerdir >>$seqres.full
++mkdir $casefolddir
++
++# Try to mount an overlay with casefold enabled layers.
++# On kernels older than v6.18 expect failure and skip the rest of the test
++# On kernels v6.18 and newer, expect success and run the rest of the test cases.
++echo Casefold enabled
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold enabled layers failed (1)"
++ls $merge/casefold/ >>$seqres.full
++unmount_overlay
++
++# Try to mount an overlayfs with casefold enabled layers. After the mount,
++# disable casefold on the lower layer and try to lookup a file. Should return
++# -ESTALE
++echo Casefold disabled on lower after mount
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold enabled layers failed (2)"
++rm -rf $lowerdir/*
++_casefold_unset_attr $lowerdir >>$seqres.full
++mkdir $lowerdir/dir
++ls $merge/dir/ |& _filter_scratch
++unmount_overlay
++
++# cleanup
++rm -rf $lowerdir/*
++_casefold_set_attr $lowerdir >>$seqres.full
++
++# Try to mount an overlayfs with casefold enabled layers. After the mount,
++# disable casefold on a subdir in  the lower layer and try to lookup it.
++# Should return -EREMOTE
++echo Casefold disabled on subdir after mount
++mkdir $lowerdir/casefold/
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold enabled layers failed (3)"
++_casefold_unset_attr $lowerdir/casefold/
++mkdir $lowerdir/casefold/subdir
++ls $merge/casefold/subdir |& _filter_scratch
++unmount_overlay
++
++# cleanup
++rm -rf $lowerdir/*
++
++# Test strict enconding, but casefold not enabled. Should work
++_scratch_umount_idmapped
++
++_scratch_mkfs_casefold_strict >>$seqres.full 2>&1
++_scratch_mount_casefold
++
++mkdir -p $merge $upperdir $workdir $lowerdir
++
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with strict casefold disabled layers failed"
++unmount_overlay
++
++# Test strict enconding, with casefold enabled. Should fail
++# dmesg: overlayfs: strict encoding not supported
++rm -rf $upperdir $workdir
++mkdir $upperdir $workdir
++
++_casefold_set_attr $upperdir >>$seqres.full
++_casefold_set_attr $workdir >>$seqres.full
++_casefold_set_attr $lowerdir >>$seqres.full
++
++mount_overlay $lowerdir >>$seqres.full 2>&1 && \
++	echo "Overlayfs mount with strict casefold enabled should have failed" && \
++	unmount_overlay
++
++# Test inconsistent casefold version. Should fail
++# dmesg: overlayfs: all layers must have the same encoding
++
++# use tmpfs to make easier to create two different mount points with different
++# utf8 versions
++testdir="$SCRATCH_MNT/newdir/"
++mkdir $testdir
++
++MNT1="$testdir/mnt1"
++MNT2="$testdir/mnt2"
++
++mkdir $MNT1 $MNT2 "$testdir/merge"
++
++mount_casefold_version "utf8-12.1.0" $MNT1
++mount_casefold_version "utf8-11.0.0" $MNT2
++
++mkdir "$MNT1/dir" "$MNT2/dir"
++
++_casefold_set_attr "$MNT1/dir"
++_casefold_set_attr "$MNT2/dir"
++
++mkdir "$MNT1/dir/lower" "$MNT2/dir/upper" "$MNT2/dir/work"
++
++upperdir="$MNT2/dir/upper"
++workdir="$MNT2/dir/work"
++lowerdir="$MNT1/dir/lower"
++
++mount_overlay $lowerdir >>$seqres.full 2>&1  && \
++	echo "Overlayfs mount different unicode versions should have failed" && \
++	unmount_overlay
++
++umount $MNT1
++umount $MNT2
++
++# success, all done
++status=0
++exit
+diff --git a/tests/generic/999.out b/tests/generic/999.out
+new file mode 100644
+index 00000000..ce383d94
+--- /dev/null
++++ b/tests/generic/999.out
+@@ -0,0 +1,13 @@
++QA output created by 999
++Casefold disabled
++Casefold enabled after mount
++ls: cannot access 'SCRATCH_MNT/ovl-merge/subdir': Stale file handle
++Casefold enabled lower dir
++Casefold enabled lower subdir
++ls: cannot access 'SCRATCH_MNT/ovl-merge/casefold/subdir': Object is remote
++Casefold enabled upper dir
++Casefold enabled
++Casefold disabled on lower after mount
++ls: cannot access 'SCRATCH_MNT/ovl-merge/dir/': Stale file handle
++Casefold disabled on subdir after mount
++ls: cannot access 'SCRATCH_MNT/ovl-merge/casefold/subdir': Object is remote
 -- 
-2.51.0
+2.50.1
 
