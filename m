@@ -1,141 +1,152 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12A6E2ED168
-	for <linux-unionfs@vger.kernel.org>; Mon, 20 Oct 2025 21:43:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73C99238C0F
+	for <linux-unionfs@vger.kernel.org>; Tue, 21 Oct 2025 01:17:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760996593; cv=none; b=AYrCfS40TyK9nsFZaHadF2ZyrrTQI2oSgOmR9sl+s8yVL53BgVFiZSflDREx9jmoT1tvRTxppT7Gfz5Q1CV2tbAOxrXIsEC+zqMbIFePqOuMwb6eG+tOQk7zhFUWeioTgsnBhmTfVXLtT7ZEVsmHQjHAH0vrinWQ/TeS9DJHSac=
+	t=1761009428; cv=none; b=uLipZdez4mDlpaXpV+8CUNar9VHSL8+DIVmF8E2xd7jEVdixnWALcIqY/0E2YQvmz5/qVHLHIBc6nV+bw5ZtlHsuI3moyioMn6S0HUwB67eddYS5xDAN6sJJmsIe+dc2RqtmkdoTRjlJJWunEuUjLvjLy+AYNH4hXq+IWSVoJsc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760996593; c=relaxed/simple;
-	bh=y2m25W7zkJm4lmZAqrSB8Op5PkRsIhwCbtsRZflqNDw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sEYyQMc9I/IoXz8zUutCJxWoUzrPPb0xt6OLduf/ebJ/HvqxuBt1FoBvLm95NRPOCtx9cJQykjA2IlQ4xXmkgrJxppEW8qqNMx9cOmBk2pkbypxgUChFclQX4PZIxBxbLhL55754+5hmDArCR6MEgO8LAHldG+9MAbwoFaDL6mY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=bCqF63Fc; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
+	s=arc-20240116; t=1761009428; c=relaxed/simple;
+	bh=1zeq0Q49NwqRZRi1E4alBbjTRuUASN/N0O5LnU4lOx0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FRDOv8DsTXdUuwn3AvLZ2uExwlTwYDY0doKQiVSKNvfy1tHxAoBCW6qeAnB/7FbPhgbXHm2NGvbXHN1ot6JGwOgN9u3utIBheIZZcEOclhZaQFQoLAqfk6s1aa1r+m2rKFIeCwJEQklE+exTMLPAzVSjfF1xwD0midUYPn+5dxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ROZaTbP1; arc=none smtp.client-ip=209.85.215.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="bCqF63Fc"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-781251eec51so3815707b3a.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Oct 2025 14:43:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ROZaTbP1"
+Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-b62e7221351so4126494a12.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 20 Oct 2025 18:17:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1760996591; x=1761601391; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=LQOa5MIIi+7CgnSuXmOmCMZIcE9hFQ3mA2YcxpQezgc=;
-        b=bCqF63FcLxJQ/OV38f81uNkBz/+g2HrlN3yo0wwWS9kJuir8mmOD4kIagjZ9kC3449
-         lEgtmftxq15FfqD7HBdxO2dJzWigu4f5x7QSw+xuPgWiTLJVpyx20FwK4AUQt2x0ulXU
-         R79bA3G8B6ISlCjzBgu1bneuaC92KgNjHNU1bKFuvXuTTvQqmfOoM1JVW/2Qp6UdyBjH
-         r6avvWdgNIzFtBf6lADLi2oMXwNuPGkDzdK/ySlVTekXFyiPBqcvUj3AMsiZfhs7AWaR
-         QMQbVlSHOqRaaR1XuZ99ZkIuSPvoK//NTXi2C0t2MhPLBszHgkHSls2L1VH1PCZrvY7p
-         XlPA==
+        d=gmail.com; s=20230601; t=1761009424; x=1761614224; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=R+jF/m5GxGdkV4M8f/uDqVu8BkqXyzon9JTL3m8pZ6o=;
+        b=ROZaTbP1pn6Y2KnIsOPHrzTyoA7Y5eZI6Srq1vdmuQNHzPJXBLHIwCTHESCjTpZRNe
+         m/utNBS/cKhxxTn5R/ZcGCGXPiZoqCiMM6g6qt+LmA9/sjMjOGiGWIscgipTTZ/q1YEn
+         2L3TsK3jI3C7iTBAaIgyUGkXzOvfSIhz31epbC0TSNFDuJQX4zGgPTbBt5nX4JzLAxVM
+         Jp683rCVCzazya4SiDi2YoubHd4XL5hGTaM6wFBnW/8j/QmD5m08TEUfM2xtKbK/4Lzv
+         PXWYcAkdMy9cHHk+pBc8TpX9dujskQnrZ7ZKNeRpvGuJf0GAfW86quQjpO52tx5ctS+B
+         jgmA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760996591; x=1761601391;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
+        d=1e100.net; s=20230601; t=1761009424; x=1761614224;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=LQOa5MIIi+7CgnSuXmOmCMZIcE9hFQ3mA2YcxpQezgc=;
-        b=kX/xV5UXyQUPMtTMLmgecaRX64vN/nfOvCsvDomuVRh0FYa/Kx2YU41iwl8Bn08kbU
-         XaNaZH45YBesQDnd+76oCXGTeza78XWXxtn317SX8ElXx6bMifu+J8fluiLxmxNhatXw
-         A0haXTv1bvfZOREY4eewhsmEYs2gU29d3Uulnxw+elaAKM1FtiEZRIyWkI/DqVbQBLYP
-         /L1K87nJeIMOMVQQJ/rFLJEt/crU3LBnyQFOpqMi+waESujqZri2E8f1VHtCL+fzmWcq
-         4c4AtPGzmoU4nw1/QTnkz3awAAZYJ4l+2YHvP3qoBBDXK3QC+4rRRm7hQK5EAl1L4SUF
-         EiLQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUoMPLEaGmyyTw6+gVAK1Dp0m3daRQ0U1pwXBscQlznYa+7QCG4fgTj6DGRX8iPa1c5gomG9tereAtCXi3Y@vger.kernel.org
-X-Gm-Message-State: AOJu0YwK55qH1ymwC0gAiLkC35fLdCxK9iV3brfX39x/B5caYLll1T56
-	Nd6PVmGLuDc2KoarXJDOFlCv/R3F4d2ARAtYZs3SXVpPqgpRGGlEYfo/NN9VioBpxYQ=
-X-Gm-Gg: ASbGncsjkI1dwE6ilfMPUMylU7kUGwhVuvshBW8HQ72hk1fsoWWo4gqRSrGBQefhkZl
-	jkpLoBKnwJStjmrPszqloTcL45i7qkjBcCiACQwLJrtJpa2KG5ZkC3cm6T2DGWDuJ7MdhgbtpP2
-	ppzFuAs9OXvoxi90njWW8dcXNME+FzehwA2UDTZGxFEsPVNp4tVPZDfzUViD3+1/kOcM2YAfu3H
-	JGCUxc5aMwQMw/BKG/hOValEG1LwOp/eJUunSkHk1AF2hq0osFcC/0cVnI9z075TrGgqMP9fNLg
-	YR8OfMriTkER1tO8qDBSDf4x1XblMlH4YqFfT/LXz17gXznN8odORYu45FFd2Gx7ha/o+Ms/cs5
-	kfg7FihY2NK+RRODKx87bswBhFadIjI1QYwzgH0gqxCotoOoARdpKIf7raTfZp33GxwB+YIXAll
-	QcWAcETiiYMJ6vTiyx/MVp+vKlxmI/cx8SjlQPt/XEOOkDjbdTTIs=
-X-Google-Smtp-Source: AGHT+IE1HUX+wcNiDJeJ7OTlztv/NSJpMhRfSbA7KZpViYePBOTXDJQlldupatbqjRCb7qVsG4PmXw==
-X-Received: by 2002:a05:6a00:230a:b0:781:16de:cc1a with SMTP id d2e1a72fcca58-7a220d37785mr19816985b3a.32.1760996591191;
-        Mon, 20 Oct 2025 14:43:11 -0700 (PDT)
-Received: from dread.disaster.area (pa49-180-91-142.pa.nsw.optusnet.com.au. [49.180.91.142])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7a22ff184basm9336482b3a.15.2025.10.20.14.43.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Oct 2025 14:43:10 -0700 (PDT)
-Received: from dave by dread.disaster.area with local (Exim 4.98.2)
-	(envelope-from <david@fromorbit.com>)
-	id 1vAxel-0000000HUpj-3jCY;
-	Tue, 21 Oct 2025 08:43:07 +1100
-Date: Tue, 21 Oct 2025 08:43:07 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Anand Jain <anajain.sg@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	=?iso-8859-1?Q?Andr=E9?= Almeida <andrealmeid@igalia.com>,
-	linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
-	David Sterba <dsterba@suse.com>,
-	"Guilherme G . Piccoli" <gpiccoli@igalia.com>
-Subject: Re: [RFC PATCH 1/1] ovl: Use fsid as unique identifier for trusted
- origin
-Message-ID: <aPas60j7AoyLLQK0@dread.disaster.area>
-References: <20251014015707.129013-1-andrealmeid@igalia.com>
- <20251014015707.129013-2-andrealmeid@igalia.com>
- <aO3T8BGM6djYFyrz@infradead.org>
- <5137ce36-c3b4-4a0a-83af-e00892feaf43@gmail.com>
+        bh=R+jF/m5GxGdkV4M8f/uDqVu8BkqXyzon9JTL3m8pZ6o=;
+        b=tJzEoDnXjnG5vmLtBb0VRPX7VJRh69GKlcy4Cn7OZC4E6Zut299X4TfBqWXDdxnF1F
+         52fWuIKMA7DBk4ZsXqP/Ev4nMko0eK2UMDK/5eyd7XVK7a6aldG5FEe3mTTfjVHp288d
+         W1J41q0KdDY7oR7IzZBZtfcYL1mbcOPyEmIMN76IyFkhoba8PGBKgYjeB7/R6/sYWjLm
+         J6rN3ZC1xBz8mqykTgagPNDgCuWVBb+4YyVAgVLVEP4tk8mCCClQjX7soFFTpstSs1yA
+         fjWJO51gBtSPmpac8QD3Y6uh8YEL341/Kw2DGZQC4lyN1NDQt6aGDEM6QivE+sAO7N8S
+         2DCA==
+X-Forwarded-Encrypted: i=1; AJvYcCVIVUcsJIP8VfeSUNTICWMZt4sgoROP7+DF+x5n7GfZVIA5x5a0RKabgNtvxJvqstmDZHa42TNRwXfNEXZi@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw1YwSOVXlpy3lAp7uJJ+Ntf+n44XtcaYm54Ob62hg6N1xVFyVx
+	u6G4Kdz6Kk1iIqw5pRGl6q5KTYGU3hn9I1Dz6i/W/YGxIrK/40yHsSRw
+X-Gm-Gg: ASbGnct3CtZ6tnYsPrWAQbTUDg8KM/5JtrxIaLik7USVnO7rIrHCEMHbd4OAFh6NXCU
+	dmhouVfk7GgGqkqtR+Sxriwq3nGnyE6ovAa2HqzN9XsLQqjfGbr5Y4RU8I+bCtz/2Qwnoik4CTu
+	Z/dk/y5as5iI14qFdIa5wnqLhmiQ6eJMDDJzlzHMpcwEdwtNp6lZYTgQhRPPl60tUnTYcDFrzwS
+	qt4lHR4DlrBEVShp1/dumSKm7OCH9g1Bt4B+PNNN7o92vs0R02OYak6iYerDv9Kg9YjTNZZLgcK
+	PVaMEg+rq8POa1zZ7k0CiZ5L8ybffY4ff7EGb7CgJMep1ZI3Q69OGg5x7LdOu5JxlKHH4CnY+ng
+	4wB7zhT7McPT0McJSDoltgZCXZpBqVSMZFgOUAwp33Uqp7n0qgk2x3ply4KQ4YIIJk4NOxbp4YY
+	gVsoXzI/ERf0ykV3DESYsS8IsX1L5eflXeaz1ILYv9PyRgz+mA+x4PkMwxFeD1ygKlj+0V
+X-Google-Smtp-Source: AGHT+IFz7BMEyiUbDQVbe7h7z/q786244belk8+vOd3hqwr5CAeeHL/XEJmuhApsPJjkKQZ+v/uU9A==
+X-Received: by 2002:a05:6a21:7914:b0:334:bec2:5b63 with SMTP id adf61e73a8af0-334bec25e36mr9995666637.24.1761009423608;
+        Mon, 20 Oct 2025 18:17:03 -0700 (PDT)
+Received: from [192.168.50.88] ([49.245.38.171])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7a22ff34e72sm9658662b3a.24.2025.10.20.18.17.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 20 Oct 2025 18:17:03 -0700 (PDT)
+Message-ID: <195761a4-0251-4e9f-a896-018ff20e1643@gmail.com>
+Date: Tue, 21 Oct 2025 09:16:59 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 1/1] ovl: Use fsid as unique identifier for trusted
+ origin
+To: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@infradead.org>,
+ =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>,
+ linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ kernel-dev@igalia.com, Miklos Szeredi <miklos@szeredi.hu>,
+ Amir Goldstein <amir73il@gmail.com>, Chris Mason <clm@fb.com>,
+ David Sterba <dsterba@suse.com>, "Guilherme G . Piccoli"
+ <gpiccoli@igalia.com>
+References: <20251014015707.129013-1-andrealmeid@igalia.com>
+ <20251014015707.129013-2-andrealmeid@igalia.com>
+ <aO3T8BGM6djYFyrz@infradead.org>
+ <5137ce36-c3b4-4a0a-83af-e00892feaf43@gmail.com>
+ <aPas60j7AoyLLQK0@dread.disaster.area>
+Content-Language: en-US
+From: Anand Jain <anajain.sg@gmail.com>
+In-Reply-To: <aPas60j7AoyLLQK0@dread.disaster.area>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <5137ce36-c3b4-4a0a-83af-e00892feaf43@gmail.com>
 
-On Wed, Oct 15, 2025 at 07:46:34AM +0800, Anand Jain wrote:
-> On 14-Oct-25 12:39 PM, Christoph Hellwig wrote:
-> > On Mon, Oct 13, 2025 at 10:57:07PM -0300, André Almeida wrote:
-> > > Some filesystem have non-persistent UUIDs, that can change
-> > > between mounting, even if the filesystem is not modified. To
-> > > prevent false-positives when mounting overlayfs with index
-> > > enabled, use the fsid reported from statfs that is persistent
-> > > across mounts.
-> > 
-> > Please fix btrfs to not change uuids, as that completely defeats
-> > the point of uuids.
+
+
+On 21/10/25 05:43, Dave Chinner wrote:
+> On Wed, Oct 15, 2025 at 07:46:34AM +0800, Anand Jain wrote:
+>> On 14-Oct-25 12:39 PM, Christoph Hellwig wrote:
+>>> On Mon, Oct 13, 2025 at 10:57:07PM -0300, AndrÃ© Almeida wrote:
+>>>> Some filesystem have non-persistent UUIDs, that can change
+>>>> between mounting, even if the filesystem is not modified. To
+>>>> prevent false-positives when mounting overlayfs with index
+>>>> enabled, use the fsid reported from statfs that is persistent
+>>>> across mounts.
+>>>
+>>> Please fix btrfs to not change uuids, as that completely defeats
+>>> the point of uuids.
+>>
+>> We needed cloned device mount support for an A/B testing use case,
+>> but changing the on-disk UUID defeats the purpose.
+>>
+>> Right now, ext4 and Btrfs can mount identical devices, but XFS
+>> can't.
 > 
-> We needed cloned device mount support for an A/B testing use case,
-> but changing the on-disk UUID defeats the purpose.
+> Absolutely not true.
 > 
-> Right now, ext4 and Btrfs can mount identical devices, but XFS
-> can't.
+> XFS has been able to mount filesystems with duplicate UUIDs on Linux
+> for almost 25 years. The "-o nouuid" mount option (introduced in
+> 2001) to bypass the duplicate uuid checks done at mount time.
+> 
 
-Absolutely not true.
+Damn, I completely missed the nouuid XFS option. My bad!!
+> XFS tracks all mounted filesystem UUIDs largely to prevent multiple
+> mounts of the same filesystem due to multipath storage presenting it
+> via multiple different block devices.
+ > > The nouuid mount option was added back when enterprise storage
+> arrays started supporting hardware level thinp and LUN
+> clone/snapshot functionality. Adding "-o nouuid" allowed cloned LUNs
+> to be mounted for for backup/recovery purposes whilst the main
+> filesystem was still mounted and in active use.
+> 
 
-XFS has been able to mount filesystems with duplicate UUIDs on Linux
-for almost 25 years. The "-o nouuid" mount option (introduced in
-2001) to bypass the duplicate uuid checks done at mount time.
+Agree. Also, in some SAN error situations, the same device may
+disappear and reappear with a new maj:min.
 
-XFS tracks all mounted filesystem UUIDs largely to prevent multiple
-mounts of the same filesystem due to multipath storage presenting it
-via multiple different block devices.
+>> How about extending this to the common
+>> VFS layer and adding a parameter to tell apart a cloned
+>> device from the same device accessed through multiple
+>> paths?
+> 
+> Perhaps we should lift the XFS UUID tracking code to the VFS
+> and intercept "-o nouuid" at the VFS to allow duplicates only when
+> that mount option is set?
+> 
+> -Dave.
 
-The nouuid mount option was added back when enterprise storage
-arrays started supporting hardware level thinp and LUN
-clone/snapshot functionality. Adding "-o nouuid" allowed cloned LUNs
-to be mounted for for backup/recovery purposes whilst the main
-filesystem was still mounted and in active use.
+It looks like XFS (with -o nouuid) and ext4 allow duplicate
+FSIDs to pass into VFS. We may be able to extend this to Btrfs,
+though there could be conflicts with fanotify? I'm not sure yet.
+we still need -o nouuid, to alert admins to handle cases where a
+device reappears with a new devt. I'm digging more.
 
-> How about extending this to the common
-> VFS layer and adding a parameter to tell apart a cloned
-> device from the same device accessed through multiple
-> paths?
-
-Perhaps we should lift the XFS UUID tracking code to the VFS
-and intercept "-o nouuid" at the VFS to allow duplicates only when
-that mount option is set?
-
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Thanks, Anand
