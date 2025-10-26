@@ -1,160 +1,160 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BA93301701;
-	Sat, 25 Oct 2025 16:23:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCAD845C0B;
+	Sun, 26 Oct 2025 16:05:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761409420; cv=none; b=Qedt2p8A7DOM9g4gPKUFm0pXJa6WtCFchC+J1v4N9CiTXIK8KUPKJMXswrPCqyDj9EU7ORlxVViYUY7Zjw3QnKEkZVfGxKmAxCJs7Y1PSnEZ2UG0d+9/RxDU+kw3aSw6cTb+RUXcJp6gmXq10n24GWRSyJq4HV6eBQEaHahsyvU=
+	t=1761494701; cv=none; b=CSr62wCUTNzU7FYBZXTDeANpTmpY1xH5PERbSFVWgeTgqLTIVNEJzYS9m8VKdPC7lCMc455x7xDpFWwVVGOw85kd2AW083gsIHQmrb4K+BU3sbx2Xir3Fi6PjMRKDUEN0jnI5YYUdbHnx+SI5rg42+JNnXDRIfBbb1axXnla1Rw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761409420; c=relaxed/simple;
-	bh=6kxn7BdwEMMDC2EWcp2m7UI6yGQ+VpOpXsUKaM6G13g=;
+	s=arc-20240116; t=1761494701; c=relaxed/simple;
+	bh=l7JPkliu+UAJY5jgLqKO+0m/pMNLoNR87mNscuCPqhU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HM0Njnh1Z/luEtrxiL5gjkSsfCUcRVGFlmTHQ6V1DLAOJimC80SL7r8nQsJXYMVOIngU0mmib9sIxti2OMV9O3rbKIy+i7vty2dq9jatcRK+6AcepoHXwnWsjr55PX508A25jaIdcGiQ8pjIuxUAohq9QR6VHbq+JRmdvE76/44=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cfbryb7k; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=ZVwcl7R94FKOADTOEJA3xYIi0iTV1FVp53wNOj+nR8gi6xZosseAearHn922EbTmWdWiuEzLGH+3W07aNhFdpZOO8TzTYJ92RlPVeprzIfnA4yuhYl7I99lUj8JB9+0FC67ZUfLhiBM9cilI4f6P74edLoysu1CiUAVVoO3jy0U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cVtW0NKe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cfbryb7k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F668C4CEF5;
-	Sat, 25 Oct 2025 16:23:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cVtW0NKe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D019DC4CEE7;
+	Sun, 26 Oct 2025 16:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1761409420;
-	bh=6kxn7BdwEMMDC2EWcp2m7UI6yGQ+VpOpXsUKaM6G13g=;
+	s=k20201202; t=1761494700;
+	bh=l7JPkliu+UAJY5jgLqKO+0m/pMNLoNR87mNscuCPqhU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Cfbryb7kVKhMmn4lk+2Y1hr6D3HTvGD9G8JZLnto9p/sLnAw+qJ6PVNsynPOQUiOs
-	 gbzFS3NaGq37PTK+3mG9LNuzm4EyCp7wesWW3noIvDjLuS49+AxAkuAQW6BbjALuZ+
-	 RoKPoIUio5g47VS82rKtcRczOD6Tbnhm3r81umePRGyN4Xc3/A4JEvVvxaZppx+SNy
-	 w9+sRoDMTSGvCMkUmJyYwgkdTDZUguKG8x38Haf8txhAuCfy0LixEVvfk4Dj0Gx6dI
-	 3tNpS8MNevjxuAUqduZYvhRVIX8+cLzUWb1E+a9gQVLLNR9fSgBmDhdTW309VtQsY8
-	 wB8dV/wZHbWjg==
+	b=cVtW0NKeE9+CKIn2dxUtvyxQTcVBo2OzidnfN8htCwbPWpSB1XMuemJIcPEWAZM3b
+	 bRe0TG/rWB1cLfzjIjYD7wZyRZgR9Fj1c1uNFQWRKnPag6j7Qwwf82h7YJAdDWJ6Ab
+	 yxGHmGJ/pgobJEX/BFUsh2wqo8YGQp9I1nmjS6uNsNwj2U6RrUcwrnOgONCRvKIi2P
+	 Usva7N/bsQXopbVKo5FzJ1xPU5ROegU21mq6V4hmzKXq3VLFFYJMlSnQ8aIDZN43HX
+	 q9IlwrPhYYIw8UXDnyYDB/kXwzR87H2UCv5D2+wro75USR+JwwtiKs1JGhIuxfJnu1
+	 EovmCwQVFBcBA==
 From: Sasha Levin <sashal@kernel.org>
-To: patches@lists.linux.dev,
-	stable@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>,
-	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
-	Neil Brown <neil@brown.name>,
-	Sasha Levin <sashal@kernel.org>,
-	miklos@szeredi.hu,
-	linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.17] ovl: make sure that ovl_create_real() returns a hashed dentry
-Date: Sat, 25 Oct 2025 11:59:08 -0400
-Message-ID: <20251025160905.3857885-317-sashal@kernel.org>
+To: stable@vger.kernel.org
+Cc: Jakub Acs <acsjakub@amazon.de>,
+	Jan Kara <jack@suse.cz>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 6.6.y] fs/notify: call exportfs_encode_fid with s_umount
+Date: Sun, 26 Oct 2025 12:04:56 -0400
+Message-ID: <20251026160456.99836-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251025160905.3857885-1-sashal@kernel.org>
-References: <20251025160905.3857885-1-sashal@kernel.org>
+In-Reply-To: <2025102612-kissing-atrocious-4949@gregkh>
+References: <2025102612-kissing-atrocious-4949@gregkh>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.17.5
 Content-Transfer-Encoding: 8bit
 
-From: Amir Goldstein <amir73il@gmail.com>
+From: Jakub Acs <acsjakub@amazon.de>
 
-[ Upstream commit ad1423922781e6552f18d055a5742b1cff018cdc ]
+[ Upstream commit a7c4bb43bfdc2b9f06ee9d036028ed13a83df42a ]
 
-e8bd877fb76bb9f3 ("ovl: fix possible double unlink") added a sanity
-check of !d_unhashed(child) to try to verify that child dentry was not
-unlinked while parent dir was unlocked.
+Calling intotify_show_fdinfo() on fd watching an overlayfs inode, while
+the overlayfs is being unmounted, can lead to dereferencing NULL ptr.
 
-This "was not unlink" check has a false positive result in the case of
-casefolded parent dir, because in that case, ovl_create_temp() returns
-an unhashed dentry after ovl_create_real() gets an unhashed dentry from
-ovl_lookup_upper() and makes it positive.
+This issue was found by syzkaller.
 
-To avoid returning unhashed dentry from ovl_create_temp(), let
-ovl_create_real() lookup again after making the newdentry positive,
-so it always returns a hashed positive dentry (or an error).
+Race Condition Diagram:
 
-This fixes the error in ovl_parent_lock() in ovl_check_rename_whiteout()
-after ovl_create_temp() and allows mount of overlayfs with casefolding
-enabled layers.
+Thread 1                           Thread 2
+--------                           --------
 
-Reported-by: André Almeida <andrealmeid@igalia.com>
-Closes: https://lore.kernel.org/r/18704e8c-c734-43f3-bc7c-b8be345e1bf5@igalia.com/
-Suggested-by: Neil Brown <neil@brown.name>
-Reviewed-by: Neil Brown <neil@brown.name>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+generic_shutdown_super()
+ shrink_dcache_for_umount
+  sb->s_root = NULL
+
+                    |
+                    |             vfs_read()
+                    |              inotify_fdinfo()
+                    |               * inode get from mark *
+                    |               show_mark_fhandle(m, inode)
+                    |                exportfs_encode_fid(inode, ..)
+                    |                 ovl_encode_fh(inode, ..)
+                    |                  ovl_check_encode_origin(inode)
+                    |                   * deref i_sb->s_root *
+                    |
+                    |
+                    v
+ fsnotify_sb_delete(sb)
+
+Which then leads to:
+
+[   32.133461] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000006: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
+[   32.134438] KASAN: null-ptr-deref in range [0x0000000000000030-0x0000000000000037]
+[   32.135032] CPU: 1 UID: 0 PID: 4468 Comm: systemd-coredum Not tainted 6.17.0-rc6 #22 PREEMPT(none)
+
+<snip registers, unreliable trace>
+
+[   32.143353] Call Trace:
+[   32.143732]  ovl_encode_fh+0xd5/0x170
+[   32.144031]  exportfs_encode_inode_fh+0x12f/0x300
+[   32.144425]  show_mark_fhandle+0xbe/0x1f0
+[   32.145805]  inotify_fdinfo+0x226/0x2d0
+[   32.146442]  inotify_show_fdinfo+0x1c5/0x350
+[   32.147168]  seq_show+0x530/0x6f0
+[   32.147449]  seq_read_iter+0x503/0x12a0
+[   32.148419]  seq_read+0x31f/0x410
+[   32.150714]  vfs_read+0x1f0/0x9e0
+[   32.152297]  ksys_read+0x125/0x240
+
+IOW ovl_check_encode_origin derefs inode->i_sb->s_root, after it was set
+to NULL in the unmount path.
+
+Fix it by protecting calling exportfs_encode_fid() from
+show_mark_fhandle() with s_umount lock.
+
+This form of fix was suggested by Amir in [1].
+
+[1]: https://lore.kernel.org/all/CAOQ4uxhbDwhb+2Brs1UdkoF0a3NSdBAOQPNfEHjahrgoKJpLEw@mail.gmail.com/
+
+Fixes: c45beebfde34 ("ovl: support encoding fid from inode with no alias")
+Signed-off-by: Jakub Acs <acsjakub@amazon.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+Signed-off-by: Jan Kara <jack@suse.cz>
+[ Adjust context ]
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
+ fs/notify/fdinfo.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-LLM Generated explanations, may be completely bogus:
-
-YES
-- `ovl_parent_lock()` now fails whenever the child dentry is unhashed
-  (fs/overlayfs/util.c:1552-1560), which is exactly what happens for
-  casefolded workdirs: `ovl_create_temp()` returns the unhashed dentry
-  to `ovl_check_rename_whiteout()`, the sanity check at
-  `ovl_parent_lock(workdir, temp)` (fs/overlayfs/super.c:575-584) hits
-  `-EINVAL`, and overlayfs refuses to mount. That is a major user-
-  visible regression caused by the earlier sanity check addition.
-- The patch guarantees that `ovl_create_real()` only hands back hashed
-  dentries: after the existing error gate (fs/overlayfs/dir.c:215), the
-  new block detects `d_unhashed(newdentry)` and re-issues
-  `ovl_lookup_upper()` while the parent lock is still held, replacing
-  the unhashed instance with a freshly looked-up, hashed, positive
-  dentry (fs/overlayfs/dir.c:218-237). This removes the false positive
-  from `ovl_parent_lock()` and lets casefolded overlays mount again.
-- The extra lookup only runs in the rare unhashed case, uses existing
-  helpers, and preserves the previous cleanup path via `dput(newdentry)`
-  and error propagation (fs/overlayfs/dir.c:234-239). All direct users
-  of `ovl_create_real()`—temp/workdir setup (fs/overlayfs/dir.c:251,
-  fs/overlayfs/copy_up.c:550, fs/overlayfs/dir.c:414) and generic upper
-  creation (fs/overlayfs/dir.c:362)—benefit without behavioural changes
-  elsewhere.
-- Scope is limited to overlayfs; no ABI or architectural changes; the
-  fix addresses a regression introduced by e8bd877fb76b and restores a
-  broken workflow. That is exactly the sort of targeted bug fix we want
-  in stable.
-
-Given the severity (overlayfs + casefold mount broken) and the
-contained, low-risk fix, this should be backported.
-
- fs/overlayfs/dir.c | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index dbd63a74df4b1..039e829aa7dee 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -205,12 +205,32 @@ struct dentry *ovl_create_real(struct ovl_fs *ofs, struct dentry *parent,
- 			err = -EPERM;
- 		}
- 	}
--	if (!err && WARN_ON(!newdentry->d_inode)) {
-+	if (err)
-+		goto out;
+diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
+index 26655572975d3..1aa7de55094cd 100644
+--- a/fs/notify/fdinfo.c
++++ b/fs/notify/fdinfo.c
+@@ -17,6 +17,7 @@
+ #include "fanotify/fanotify.h"
+ #include "fdinfo.h"
+ #include "fsnotify.h"
++#include "../internal.h"
+ 
+ #if defined(CONFIG_PROC_FS)
+ 
+@@ -50,7 +51,12 @@ static void show_mark_fhandle(struct seq_file *m, struct inode *inode)
+ 	f.handle.handle_bytes = sizeof(f.pad);
+ 	size = f.handle.handle_bytes >> 2;
+ 
++	if (!super_trylock_shared(inode->i_sb))
++		return;
 +
-+	if (WARN_ON(!newdentry->d_inode)) {
- 		/*
- 		 * Not quite sure if non-instantiated dentry is legal or not.
- 		 * VFS doesn't seem to care so check and warn here.
- 		 */
- 		err = -EIO;
-+	} else if (d_unhashed(newdentry)) {
-+		struct dentry *d;
-+		/*
-+		 * Some filesystems (i.e. casefolded) may return an unhashed
-+		 * negative dentry from the ovl_lookup_upper() call before
-+		 * ovl_create_real().
-+		 * In that case, lookup again after making the newdentry
-+		 * positive, so ovl_create_upper() always returns a hashed
-+		 * positive dentry.
-+		 */
-+		d = ovl_lookup_upper(ofs, newdentry->d_name.name, parent,
-+				     newdentry->d_name.len);
-+		dput(newdentry);
-+		if (IS_ERR_OR_NULL(d))
-+			err = d ? PTR_ERR(d) : -ENOENT;
-+		else
-+			return d;
- 	}
- out:
- 	if (err) {
+ 	ret = exportfs_encode_fid(inode, (struct fid *)f.handle.f_handle, &size);
++	up_read(&inode->i_sb->s_umount);
++
+ 	if ((ret == FILEID_INVALID) || (ret < 0))
+ 		return;
+ 
 -- 
 2.51.0
 
