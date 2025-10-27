@@ -1,48 +1,42 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from forward103d.mail.yandex.net (forward103d.mail.yandex.net [178.154.239.214])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCAD845C0B;
-	Sun, 26 Oct 2025 16:05:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AFE8307ADE
+	for <linux-unionfs@vger.kernel.org>; Mon, 27 Oct 2025 14:13:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.214
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761494701; cv=none; b=CSr62wCUTNzU7FYBZXTDeANpTmpY1xH5PERbSFVWgeTgqLTIVNEJzYS9m8VKdPC7lCMc455x7xDpFWwVVGOw85kd2AW083gsIHQmrb4K+BU3sbx2Xir3Fi6PjMRKDUEN0jnI5YYUdbHnx+SI5rg42+JNnXDRIfBbb1axXnla1Rw=
+	t=1761574409; cv=none; b=fRVCzl1FtdtoCeE2RhifDM43+dGVWIIkeESJVTq7AeQrS1fA2VkMrYqnj7/GZemhYefANDi44v+PVb76OVT6ci1+4fKHFBE6Pyu3nm5dPXdMm4pXxuXPRnODfjf3daq4LrH3NX1Rnoikd8/9zpHfnQs/3dCK4GAgTgQOTHqLYwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761494701; c=relaxed/simple;
-	bh=l7JPkliu+UAJY5jgLqKO+0m/pMNLoNR87mNscuCPqhU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZVwcl7R94FKOADTOEJA3xYIi0iTV1FVp53wNOj+nR8gi6xZosseAearHn922EbTmWdWiuEzLGH+3W07aNhFdpZOO8TzTYJ92RlPVeprzIfnA4yuhYl7I99lUj8JB9+0FC67ZUfLhiBM9cilI4f6P74edLoysu1CiUAVVoO3jy0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cVtW0NKe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761574409; c=relaxed/simple;
+	bh=kPNzQJv3lnN5vjpALOGsj/HLDV6WrLpSqWEi3V+C9ps=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=r0rOVJH4u7iymLX+0d31Zn7wu2WpnVjXx1YymuiADcha2n67RitMmOosiEDKaAKTiIIem6/bNnjNw5hBpEL82cfAeN8pRBCs5ufs/mfq6necm9zOiwhC+vj6CCPovakJIHmhuAL/BqfnufENL8rmE8zcrbBPrR7PPV3wKmopBQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=yandex.ru; spf=pass smtp.mailfrom=yandex.ru; dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b=m3oAmPfY; arc=none smtp.client-ip=178.154.239.214
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=yandex.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yandex.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cVtW0NKe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D019DC4CEE7;
-	Sun, 26 Oct 2025 16:04:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1761494700;
-	bh=l7JPkliu+UAJY5jgLqKO+0m/pMNLoNR87mNscuCPqhU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=cVtW0NKeE9+CKIn2dxUtvyxQTcVBo2OzidnfN8htCwbPWpSB1XMuemJIcPEWAZM3b
-	 bRe0TG/rWB1cLfzjIjYD7wZyRZgR9Fj1c1uNFQWRKnPag6j7Qwwf82h7YJAdDWJ6Ab
-	 yxGHmGJ/pgobJEX/BFUsh2wqo8YGQp9I1nmjS6uNsNwj2U6RrUcwrnOgONCRvKIi2P
-	 Usva7N/bsQXopbVKo5FzJ1xPU5ROegU21mq6V4hmzKXq3VLFFYJMlSnQ8aIDZN43HX
-	 q9IlwrPhYYIw8UXDnyYDB/kXwzR87H2UCv5D2+wro75USR+JwwtiKs1JGhIuxfJnu1
-	 EovmCwQVFBcBA==
-From: Sasha Levin <sashal@kernel.org>
-To: stable@vger.kernel.org
-Cc: Jakub Acs <acsjakub@amazon.de>,
-	Jan Kara <jack@suse.cz>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.6.y] fs/notify: call exportfs_encode_fid with s_umount
-Date: Sun, 26 Oct 2025 12:04:56 -0400
-Message-ID: <20251026160456.99836-1-sashal@kernel.org>
+	dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b="m3oAmPfY"
+Received: from mail-nwsmtp-smtp-production-main-92.iva.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-92.iva.yp-c.yandex.net [IPv6:2a02:6b8:c0c:a498:0:640:c8b9:0])
+	by forward103d.mail.yandex.net (Yandex) with ESMTPS id DED8AC0078;
+	Mon, 27 Oct 2025 17:13:17 +0300 (MSK)
+Received: by mail-nwsmtp-smtp-production-main-92.iva.yp-c.yandex.net (smtp/Yandex) with ESMTPSA id GDd6H7tLNKo0-vcEnPhVh;
+	Mon, 27 Oct 2025 17:13:17 +0300
+X-Yandex-Fwd: 1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex.ru; s=mail;
+	t=1761574397; bh=j51lPqtmvQCREZ7Zbqr/fhfMJNADCAgzpj1jWsm4njI=;
+	h=Message-ID:Date:Cc:Subject:To:From;
+	b=m3oAmPfYNxNoIgZZpI2rFlRQj2AMAE8xHGpDB6QfM2eZRmA7nB0TMiLXCA9DWjqvI
+	 NW5R2EJoIeq1h4qvESmgOLsbpI6HtJVyW5fwZePiKGXvV3huewE/iQ3XllOAkUPx4y
+	 6G7NkRRcs6uz+q/dZ2weBSkhQRC0SquAbps6SC6s=
+Authentication-Results: mail-nwsmtp-smtp-production-main-92.iva.yp-c.yandex.net; dkim=pass header.i=@yandex.ru
+From: Dmitry Antipov <dmantipov@yandex.ru>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org,
+	Dmitry Antipov <dmantipov@yandex.ru>
+Subject: [PATCH] overlayfs: avoid redundant call to strlen() in ovl_lookup_temp()
+Date: Mon, 27 Oct 2025 17:12:30 +0300
+Message-ID: <20251027141230.657732-1-dmantipov@yandex.ru>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <2025102612-kissing-atrocious-4949@gregkh>
-References: <2025102612-kissing-atrocious-4949@gregkh>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -51,110 +45,41 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jakub Acs <acsjakub@amazon.de>
+Since 'snprintf()' returns the number of characters emitted
+and an overflow is impossible, an extra call to 'strlen()'
+in 'ovl_lookup_temp()' may be dropped. Compile tested only.
 
-[ Upstream commit a7c4bb43bfdc2b9f06ee9d036028ed13a83df42a ]
+To whom it still concerns, this also reduces .text a bit.
 
-Calling intotify_show_fdinfo() on fd watching an overlayfs inode, while
-the overlayfs is being unmounted, can lead to dereferencing NULL ptr.
+Before:
+   text	   data	    bss	    dec	    hex	filename
+ 162522	  10954	     22	 173498	  2a5ba	fs/overlayfs/overlay.ko
 
-This issue was found by syzkaller.
+After:
+   text	   data	    bss	    dec	    hex	filename
+ 162430	  10954	     22	 173406	  2a55e	fs/overlayfs/overlay.ko
 
-Race Condition Diagram:
-
-Thread 1                           Thread 2
---------                           --------
-
-generic_shutdown_super()
- shrink_dcache_for_umount
-  sb->s_root = NULL
-
-                    |
-                    |             vfs_read()
-                    |              inotify_fdinfo()
-                    |               * inode get from mark *
-                    |               show_mark_fhandle(m, inode)
-                    |                exportfs_encode_fid(inode, ..)
-                    |                 ovl_encode_fh(inode, ..)
-                    |                  ovl_check_encode_origin(inode)
-                    |                   * deref i_sb->s_root *
-                    |
-                    |
-                    v
- fsnotify_sb_delete(sb)
-
-Which then leads to:
-
-[   32.133461] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000006: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
-[   32.134438] KASAN: null-ptr-deref in range [0x0000000000000030-0x0000000000000037]
-[   32.135032] CPU: 1 UID: 0 PID: 4468 Comm: systemd-coredum Not tainted 6.17.0-rc6 #22 PREEMPT(none)
-
-<snip registers, unreliable trace>
-
-[   32.143353] Call Trace:
-[   32.143732]  ovl_encode_fh+0xd5/0x170
-[   32.144031]  exportfs_encode_inode_fh+0x12f/0x300
-[   32.144425]  show_mark_fhandle+0xbe/0x1f0
-[   32.145805]  inotify_fdinfo+0x226/0x2d0
-[   32.146442]  inotify_show_fdinfo+0x1c5/0x350
-[   32.147168]  seq_show+0x530/0x6f0
-[   32.147449]  seq_read_iter+0x503/0x12a0
-[   32.148419]  seq_read+0x31f/0x410
-[   32.150714]  vfs_read+0x1f0/0x9e0
-[   32.152297]  ksys_read+0x125/0x240
-
-IOW ovl_check_encode_origin derefs inode->i_sb->s_root, after it was set
-to NULL in the unmount path.
-
-Fix it by protecting calling exportfs_encode_fid() from
-show_mark_fhandle() with s_umount lock.
-
-This form of fix was suggested by Amir in [1].
-
-[1]: https://lore.kernel.org/all/CAOQ4uxhbDwhb+2Brs1UdkoF0a3NSdBAOQPNfEHjahrgoKJpLEw@mail.gmail.com/
-
-Fixes: c45beebfde34 ("ovl: support encoding fid from inode with no alias")
-Signed-off-by: Jakub Acs <acsjakub@amazon.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
-[ Adjust context ]
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
 ---
- fs/notify/fdinfo.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/overlayfs/dir.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
-index 26655572975d3..1aa7de55094cd 100644
---- a/fs/notify/fdinfo.c
-+++ b/fs/notify/fdinfo.c
-@@ -17,6 +17,7 @@
- #include "fanotify/fanotify.h"
- #include "fdinfo.h"
- #include "fsnotify.h"
-+#include "../internal.h"
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index a5e9ddf3023b..c5b2553ef6f1 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -66,9 +66,9 @@ struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdir)
+ 	static atomic_t temp_id = ATOMIC_INIT(0);
  
- #if defined(CONFIG_PROC_FS)
+ 	/* counter is allowed to wrap, since temp dentries are ephemeral */
+-	snprintf(name, sizeof(name), "#%x", atomic_inc_return(&temp_id));
++	int len = snprintf(name, sizeof(name), "#%x", atomic_inc_return(&temp_id));
  
-@@ -50,7 +51,12 @@ static void show_mark_fhandle(struct seq_file *m, struct inode *inode)
- 	f.handle.handle_bytes = sizeof(f.pad);
- 	size = f.handle.handle_bytes >> 2;
- 
-+	if (!super_trylock_shared(inode->i_sb))
-+		return;
-+
- 	ret = exportfs_encode_fid(inode, (struct fid *)f.handle.f_handle, &size);
-+	up_read(&inode->i_sb->s_umount);
-+
- 	if ((ret == FILEID_INVALID) || (ret < 0))
- 		return;
- 
+-	temp = ovl_lookup_upper(ofs, name, workdir, strlen(name));
++	temp = ovl_lookup_upper(ofs, name, workdir, len);
+ 	if (!IS_ERR(temp) && temp->d_inode) {
+ 		pr_err("workdir/%s already exists\n", name);
+ 		dput(temp);
 -- 
 2.51.0
 
