@@ -1,102 +1,227 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-b7-smtp.messagingengine.com (flow-b7-smtp.messagingengine.com [202.12.124.142])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5629936CA7C
-	for <linux-unionfs@vger.kernel.org>; Thu, 30 Oct 2025 17:54:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5BF32F6577;
+	Thu, 30 Oct 2025 23:23:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.142
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761846885; cv=none; b=MrBU8AlYsHveSDoU1X93dVZKRYF6K2dFt6+rCwKeC6ugVyI4k9ZeQAwmmMDcz/+WLOU0x9J/51chwjMh7loWPYfW4m6cErL20LSr9LUC3POmzYbuINrIHq5Qtf6yxllH9Dt7qtAYhnffyou+8zf8wKXrw8VOwRjyt4bnxhgbsTg=
+	t=1761866583; cv=none; b=BcIzOL+JJo+h9SJO8dPwLfG2M6RMG3PQtth7fzXsHEFwpHtjB6rSsHVgcNxhUUHJGK6T2+msGqG6SLcQsB/SxHc9bzgMHovSJyG8/jdsLFdhCAmwhO43mcG570xNCmHZZ9Tew/9vPUhDKjGERQTXHygCDplET+QGNul0i9fyoSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761846885; c=relaxed/simple;
-	bh=nXxBkZGVZtzRg1B3Eyts+wCNuzoBAwe/J70dIjGd/gY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sXF17hYt20GVlqHRy7VcisnxzGkTUzPvDeDCIhZ8YFSyYWzKSJ1RuPxba7Sc46qAlTjYxlYiJ7PUw3ZLFNBPsmZq6F5EopranDIEDp5mziT0FLNqcL+zPJbT1fkpkSWOe/kdnYzTQGQzYy/pHA6bIGyikOjamsmAOY02IhMGiJ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NSgFjTfs; arc=none smtp.client-ip=209.85.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1761866583; c=relaxed/simple;
+	bh=S7s7dokVdFKGKrrKiqnoayVZMt1AiI9aemANRN265QY=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=CiT1y33w5LvKNHMqk9WpxbHm+JeUgRZm9Iv6wVVaoQUc0uySQ6ZDd3FMwxwND+KvBomoKLM3FSj8O40j5HI9GMD5kzkNin4CUQRzuN+NXiHIC20XzegAQjIGi7gTxIJ2yhTbUYQZH0NJcXl3iu76RHpFdz0yLYOg+Ce6SNKYY5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=TCq7ftdg; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=lByC82tf; arc=none smtp.client-ip=202.12.124.142
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NSgFjTfs"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-4771b03267bso9759555e9.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 30 Oct 2025 10:54:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1761846881; x=1762451681; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nXxBkZGVZtzRg1B3Eyts+wCNuzoBAwe/J70dIjGd/gY=;
-        b=NSgFjTfsoRN0LMvsFn2k/r9PljpSswXHafwwZgGr/jgadbj8a6vWdJkOL5spIlwEwt
-         CUiAYpQxZtCgG4k5DwtlE2eEmR625KDbCsHJAwUref27rtqau8w9u5g0oV4Tybi0yd1L
-         kcWFJbxrQnX6+wJ5XbwNa7w4HjQUr5pQMn4V7Iqg+KsvgKjef9a1vAwszJOQfnwj7GLU
-         iBsffQlGr4znAiJXtXcy3YSZlZWPy+8KpleN9l/XG0YEjl/BJ6LJ/AcfCUd7VNCB37h2
-         9/qGzwUMZW+ecbVAmun18ZOc/DvpvZfnXEi9j2NS2FEuj8eSnttUmyFHvRgFVNm5HcpY
-         A/GA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761846881; x=1762451681;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=nXxBkZGVZtzRg1B3Eyts+wCNuzoBAwe/J70dIjGd/gY=;
-        b=C2FNtA3epdyQfIs7LHLBlDG7dXEYeERmQfjta99hTFZ6XEywwIBEewI0eZVUXKtwi4
-         9jTw/dIHT1tG/BRsD0SY8au4bB1RDDPR3OqRk81voWmGkyJnk1pL0jcmbwQDFnTXzV7v
-         EklkvaRkpIpx63PlnbE/7/r1F7KY4M1S7hfkxgVZ1wlKBvnoFqnE9GhrwNQrlN2k8nf2
-         StgPRdv5sfydNU1He6H5BPm8kV6Z2dhC0nEKAXp0b38oVTIVopWYbCu1w1mktCaEjms+
-         PdEhYTqCSLUs7HMoc4UTtEQUyfwhPSlfG0zAyeGWQvYNf+91zvAXaNbPtpkMSCgSorI8
-         WFjQ==
-X-Gm-Message-State: AOJu0YzHuYOfDy9p+Tab7FUMU0nFSXzz37NBJguL9HEaiydR8RchMQ4I
-	30UQGxCOMNpjb7hTah165fAGeORh9y8aZoozPdvwtOwxBSln9ip4ltvLqyrhxR7yLLDa98NARfH
-	Xi0w4mfMvCHwLKT1VbU7e0q9Fmp9FX9ENRgBDUk8ulA==
-X-Gm-Gg: ASbGnctsWfVpe3NZGzuLkJeNYs2Oq26gNtBaoxQPBNr5lQYOSyTdXOlK7+Iv5S23Tlm
-	Hqb26vXC8RGCumwp1s3SMXffn0DD5SMGR3TTzXRpHObvQMdtOtMGTQBvDhHr7QQw83aI8AtEHNJ
-	K6kcXxNEy2dcuLQrhrjDaZE5udCfeZvRJtEwRqGdRKh8oywaH2RNx3a5yyuLN5fJFe78bHGbOFG
-	TJkD+/fWuZ9bcH+uhmOSNImrewKR4XHA/RXRskuG5zEZj90ix04PFG1B5o+72rgJoOpLtCLerBt
-	0k9whGdAUdfcja0BBQ==
-X-Google-Smtp-Source: AGHT+IGBm82dcuK1yFNIQ+ie9YO0cYMC1oz/+KVi3j3KwG2G0h5jn16JQSMesGNKvXMjfkuqgYZqlYed8dsIsbXwDbA=
-X-Received: by 2002:a05:600c:c172:b0:45d:d8d6:7fcc with SMTP id
- 5b1f17b1804b1-4773088ffe3mr4951235e9.27.1761846881260; Thu, 30 Oct 2025
- 10:54:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="TCq7ftdg";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="lByC82tf"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailflow.stl.internal (Postfix) with ESMTP id BC65313000CB;
+	Thu, 30 Oct 2025 19:22:59 -0400 (EDT)
+Received: from phl-mailfrontend-01 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Thu, 30 Oct 2025 19:23:00 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm3; t=
+	1761866579; x=1761873779; bh=hvbbxiEqeKOPLV15+amtC5BVkJM9zfXU4+P
+	k3GSk48w=; b=TCq7ftdgwGivoKj2hAIF9AvUFPJGc0vADUYKumDOEz/qIezJWGl
+	gnzbZnPiifNw3COiR8GxTl91Gf8Rbq+FrAGOQufTMrm8C8m+9hlYqRrZrTwJ+g8K
+	20VD6M+2yrAl7K6LoIIQDoqcD1sGEeCXEsAtpDM1j3tE0Yd0AZtC92b4/hyJ6qTq
+	C/EQdlj8PQQur6U25As8epdpAKaeil7QOz00GappXprYPbYnL96Zhe5btlbRiSTY
+	zsb5M5miarjxUMxhQy2PY/oLyPXGdkEzci8MfaAjKN8WnMtOZwZb12JU7GAECu8c
+	hOmldHjWyNT/WtipJr4NtA3//jnMWP2XeNA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1761866579; x=
+	1761873779; bh=hvbbxiEqeKOPLV15+amtC5BVkJM9zfXU4+Pk3GSk48w=; b=l
+	ByC82tfl/EMQQRfkYqkDz3IJ7sRI/WQXG2mcBDyJW2v2hXqVKSNQlqoQzEem5Eym
+	dR9MImcEWJmOIF1xR5FKhIPik83yNa6QT/fk9TqIqdIVAFoSoeHLMcBvDrzEDD8D
+	XjdMAiA35425YFXSxF5x+0qNcY2W/MVxg/TcY0YIKXL3xKuTvuoDJIasxC0Qxxmi
+	iTm5aTaKG9pIhv6A+jNXcFgENGr5j/ldMZv5wV8XUdvkg+7O5aFtxXorlGOjXT5b
+	tLjd+kxVdbT3deiBaC6grJvvbfJjS+2jpuAjxSkr5PY4R0j1Nku+VxyFrvYfpEWe
+	/cWGsReam2wLzO1MMOROw==
+X-ME-Sender: <xms:UPMDaRhUVZd0x7_m2K17HihcRjCDpVNYHFuEuX0MMgm20e897e5KkA>
+    <xme:UPMDaY7AjV2fQCLr_snCqH1fQeOzq1khXo6h6YlzncD-hrTaP3jvkupkkSppCGbEK
+    3_FJ-R2P97AhdeuJVUfknkc1NHRstlmMB11PTJieu4Jgrp6>
+X-ME-Received: <xmr:UPMDaR4wtri-pKxjBpYPkO67BfCd6oydbgfEbdFMML-UxKIpAqf7uEQcrmb8ircyBRb3gkh38Y-CFv6PS5eeA8faA1-9rnol0Gt6iFnCvxLw>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggdduieejledvucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepgedupdhmohguvgepshhmthhp
+    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
+    hrtghpthhtohepshgvlhhinhhugiesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphht
+    thhopehlihhnuhigqdigfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoh
+    eplhhinhhugidquhhnihhonhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphht
+    thhopehlihhnuhigqdhsvggtuhhrihhthidqmhhoughulhgvsehvghgvrhdrkhgvrhhnvg
+    hlrdhorhhgpdhrtghpthhtoheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdr
+    ohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlh
+    drohhrghdprhgtphhtthhopehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhn
+    vghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqtghifhhssehvghgvrhdrkhgvrhhnvg
+    hlrdhorhhg
+X-ME-Proxy: <xmx:UPMDaYFGMua7g80kGbfcUaz9Di8tafwlq4iKeb9hO4aVvX2qo_uERw>
+    <xmx:UPMDacsdmaie4UXKmXFZ3mEfrheGemagwqaZFEvxWGs9YShlaMG9lQ>
+    <xmx:UPMDaf4TguqIroQ6tzSgxweML37Y98bapEIbob097jWZZJuu0xphMA>
+    <xmx:UPMDaQnurzcpOOav6s9l9JXVYIdItJKKsSEy0NTn122915Snsl7u-w>
+    <xmx:U_MDaaJxwd0jRvItfq6nxG-85nWt4d2jCvckXynlPHJGLvIfrzldVxtX>
+Feedback-ID: iab3e480c:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 30 Oct 2025 19:22:46 -0400 (EDT)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAPfD7wmf=ks9WEgAKdLWsn1igWG+v4bYsM=+ATat_0BZ+djaOA@mail.gmail.com>
-In-Reply-To: <CAPfD7wmf=ks9WEgAKdLWsn1igWG+v4bYsM=+ATat_0BZ+djaOA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 30 Oct 2025 18:54:29 +0100
-X-Gm-Features: AWmQ_bk7Rr_1awBfFlzNSESHO9nSTxcy4KWYTuqLllFu4N0WRBY80Gktid4l_74
-Message-ID: <CAOQ4uxhbdE-HE5wX2nJ3oFy++BJqSWctwaoXGnk=-1hTp8VOvg@mail.gmail.com>
-Subject: Re: overlayfs - vaild to mount mergedir over lowerdir?
-To: Mark Corbin <mcorbin@lunarenergy.com>
-Cc: linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: NeilBrown <neilb@ownmail.net>
+To: "Al Viro" <viro@zeniv.linux.org.uk>
+Cc: "Christian Brauner" <brauner@kernel.org>,
+ "Amir Goldstein" <amir73il@gmail.com>, "Jan Kara" <jack@suse.cz>,
+ linux-fsdevel@vger.kernel.org, "Jeff Layton" <jlayton@kernel.org>,
+ "Chris Mason" <clm@fb.com>, "David Sterba" <dsterba@suse.com>,
+ "David Howells" <dhowells@redhat.com>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ "Danilo Krummrich" <dakr@kernel.org>, "Tyler Hicks" <code@tyhicks.com>,
+ "Miklos Szeredi" <miklos@szeredi.hu>,
+ "Chuck Lever" <chuck.lever@oracle.com>,
+ "Olga Kornievskaia" <okorniev@redhat.com>,
+ "Dai Ngo" <Dai.Ngo@oracle.com>, "Namjae Jeon" <linkinjeon@kernel.org>,
+ "Steve French" <smfrench@gmail.com>,
+ "Sergey Senozhatsky" <senozhatsky@chromium.org>,
+ "Carlos Maiolino" <cem@kernel.org>,
+ "John Johansen" <john.johansen@canonical.com>,
+ "Paul Moore" <paul@paul-moore.com>, "James Morris" <jmorris@namei.org>,
+ "Serge E. Hallyn" <serge@hallyn.com>,
+ "Stephen Smalley" <stephen.smalley.work@gmail.com>,
+ "Ondrej Mosnacek" <omosnace@redhat.com>,
+ "Mateusz Guzik" <mjguzik@gmail.com>,
+ "Lorenzo Stoakes" <lorenzo.stoakes@oracle.com>,
+ "Stefan Berger" <stefanb@linux.ibm.com>,
+ "Darrick J. Wong" <djwong@kernel.org>, linux-kernel@vger.kernel.org,
+ netfs@lists.linux.dev, ecryptfs@vger.kernel.org,
+ linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+ linux-cifs@vger.kernel.org, linux-xfs@vger.kernel.org,
+ apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+ selinux@vger.kernel.org
+Subject: Re: [PATCH v4 07/14] VFS: introduce start_removing_dentry()
+In-reply-to: <20251030061159.GV2441659@ZenIV>
+References: <20251029234353.1321957-1-neilb@ownmail.net>,
+ <20251029234353.1321957-8-neilb@ownmail.net>,
+ <20251030061159.GV2441659@ZenIV>
+Date: Fri, 31 Oct 2025 10:22:43 +1100
+Message-id: <176186656376.1793333.1075264554692169239@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-On Thu, Oct 30, 2025 at 6:26=E2=80=AFPM Mark Corbin <mcorbin@lunarenergy.co=
-m> wrote:
->
-> Hello
->
-> Is it valid/safe to mount an overlayfs mergedir over the lowerdir?
->
-> The Yocto/OE mount-copybind script does exactly that:
->
-> overlay on /srv type overlay
-> (rw,relatime,lowerdir=3D/srv,upperdir=3D/var/volatile/srv,workdir=3D/var/=
-vola
-> tile/.srv-work)
->
-> I wanted to do something similar with a read-only /etc where the
-> merged /etc is mounted on /etc, e.g.
-> mount -v -t overlay overlay -o
-> lowerdir=3D/etc,upperdir=3D/data/etc,workdir=3D/data/etc-work /etc
->
-> Any issues or recommendations?
+On Thu, 30 Oct 2025, Al Viro wrote:
+> On Thu, Oct 30, 2025 at 10:31:07AM +1100, NeilBrown wrote:
+>=20
+> > @@ -428,11 +429,14 @@ static bool cachefiles_invalidate_cookie(struct fsc=
+ache_cookie *cookie)
+> >  		if (!old_tmpfile) {
+> >  			struct cachefiles_volume *volume =3D object->volume;
+> >  			struct dentry *fan =3D volume->fanout[(u8)cookie->key_hash];
+> > -
+> > -			inode_lock_nested(d_inode(fan), I_MUTEX_PARENT);
+> > -			cachefiles_bury_object(volume->cache, object, fan,
+> > -					       old_file->f_path.dentry,
+> > -					       FSCACHE_OBJECT_INVALIDATED);
+> > +			struct dentry *obj;
+> > +
+> > +			obj =3D start_removing_dentry(fan, old_file->f_path.dentry);
+> > +			if (!IS_ERR(obj))
+> > +				cachefiles_bury_object(volume->cache, object,
+> > +						       fan, obj,
+> > +						       FSCACHE_OBJECT_INVALIDATED);
+> > +			end_removing(obj);
+>=20
+> Huh?  Where did you change cachefiles_bury_object to *not* unlock the paren=
+t?
+> Not in this commit, AFAICS, and that means at least a bisection hazard arou=
+nd
+> here...
+>=20
+> Confused...
+>=20
 
-None that I can think of.
-Overlayfs has no problem with that.
-It gets a reference to the lowerdir object at mount time *before*
-attaching itself to the mount point and that's it.
+Thanks for the review and for catching that error.
+This incremental patch should fix it.
 
 Thanks,
-Amir.
+NeilBrown
+
+diff --git a/fs/cachefiles/interface.c b/fs/cachefiles/interface.c
+index 3f8a6f1a8fc3..a08250d244ea 100644
+--- a/fs/cachefiles/interface.c
++++ b/fs/cachefiles/interface.c
+@@ -436,7 +436,6 @@ static bool cachefiles_invalidate_cookie(struct fscache_c=
+ookie *cookie)
+ 				cachefiles_bury_object(volume->cache, object,
+ 						       fan, obj,
+ 						       FSCACHE_OBJECT_INVALIDATED);
+-			end_removing(obj);
+ 		}
+ 		fput(old_file);
+ 	}
+diff --git a/fs/cachefiles/namei.c b/fs/cachefiles/namei.c
+index b97a40917a32..0104ac00485d 100644
+--- a/fs/cachefiles/namei.c
++++ b/fs/cachefiles/namei.c
+@@ -261,6 +261,7 @@ static int cachefiles_unlink(struct cachefiles_cache *cac=
+he,
+  * - Directory backed objects are stuffed into the graveyard for userspace to
+  *   delete
+  * On entry dir must be locked.  It will be unlocked on exit.
++ * On entry there must be at least 2 refs on rep, one will be dropped on exi=
+t.
+  */
+ int cachefiles_bury_object(struct cachefiles_cache *cache,
+ 			   struct cachefiles_object *object,
+@@ -275,12 +276,6 @@ int cachefiles_bury_object(struct cachefiles_cache *cach=
+e,
+=20
+ 	_enter(",'%pd','%pd'", dir, rep);
+=20
+-	/* end_removing() will dput() @rep but we need to keep
+-	 * a ref, so take one now.  This also stops the dentry
+-	 * being negated when unlinked which we need.
+-	 */
+-	dget(rep);
+-
+ 	if (rep->d_parent !=3D dir) {
+ 		end_removing(rep);
+ 		_leave(" =3D -ESTALE");
+@@ -650,7 +645,6 @@ bool cachefiles_look_up_object(struct cachefiles_object *=
+object)
+ 			ret =3D cachefiles_bury_object(volume->cache, object,
+ 						     fan, de,
+ 						     FSCACHE_OBJECT_IS_WEIRD);
+-		end_removing(de);
+ 		dput(dentry);
+ 		if (ret < 0)
+ 			return false;
+diff --git a/fs/cachefiles/volume.c b/fs/cachefiles/volume.c
+index ddf95ff5daf0..90ba926f488e 100644
+--- a/fs/cachefiles/volume.c
++++ b/fs/cachefiles/volume.c
+@@ -64,7 +64,6 @@ void cachefiles_acquire_volume(struct fscache_volume *vcook=
+ie)
+ 				cachefiles_bury_object(cache, NULL, cache->store,
+ 						       vdentry,
+ 						       FSCACHE_VOLUME_IS_WEIRD);
+-			end_removing(vdentry);
+ 			cachefiles_put_directory(volume->dentry);
+ 			cond_resched();
+ 			goto retry;
+
