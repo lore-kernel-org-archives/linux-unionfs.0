@@ -1,59 +1,59 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A93102848BE
-	for <linux-unionfs@vger.kernel.org>; Mon, 10 Nov 2025 16:09:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04DD72D7DC1
+	for <linux-unionfs@vger.kernel.org>; Mon, 10 Nov 2025 17:30:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762790952; cv=none; b=E/CX4Dr9xVfL1/ujyUpBqapCMi4SSJ2Eh4+UTFJ13Q4aPm3lj8KQE98AndbKHztfruyHJbRcxb3yuJh/CyrCWZNMctp447vAmocnofOsSe56KcciBfPI9kizoKhZNMqlRTgWpa2zsu2ECkBMmMmIS19yQ0aG89FRetESVlDcEIM=
+	t=1762795854; cv=none; b=WVFLtq3MGzmK/upY2XfKRjiNlklry1E3kUazcpNdCq6DQaytl9rB8yirs7uK1fLfJqrwGM82giUXvwUVSB1QpuD5Kj8xm2YHKJg77Q+YB6Ct0dbgNOA8Khq+6tlylF0T1Io0bg9ZqIpab9zFq6IT0nnKMZHOCsa7Zv9R+LkOJYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762790952; c=relaxed/simple;
-	bh=OKZOzwPNbZ0eA/RzD6GT+kbo2DW/QUWT3Vl/4pt9v6g=;
+	s=arc-20240116; t=1762795854; c=relaxed/simple;
+	bh=troxVhxfQBVjFwf8LpZkj4v60KJWpcZ7GG8KqeA3sP8=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=JiwKgSHQEF73kOO9dmrILHlUsd/bCektTGGEAS7Phte/PdB+OubmFyYW7SlGyCe/NVv+ioZUIrBvEzQwZZllq3+3+HjnrOWbJBkmkNkrgN69QUPeQEb01dqlhlPF6JffhI/DQg+N+gCRFNH9Q8foNlF1vwG/ia84SH+2yLFaN0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Cns/P4eR; arc=none smtp.client-ip=209.85.214.174
+	 To:Cc:Content-Type; b=FnefUfYzXEleAXMXHRoZc6kzVKktBqsGw56sKzlaMwFqhnSxBT47hZeYkSJMa9ViEiljiTBUy+cvcZCoSOGzewQQBnQqFfZpgPj/EAF5Di0pyPEGN3NpDJcyFXLt4rh3gHHrtBZMY0jrjMQcTeRCszjxQGXfVAMZo1EGnD6iRtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AC9XHANc; arc=none smtp.client-ip=209.85.216.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Cns/P4eR"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-29812589890so15916335ad.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 10 Nov 2025 08:09:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AC9XHANc"
+Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-3410c86070dso2169753a91.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 10 Nov 2025 09:30:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1762790949; x=1763395749; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1762795851; x=1763400651; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=s031glNNGPLU3pRhUQF/ls9Tz5E2v6rbM7VrNj/wX3k=;
-        b=Cns/P4eRZdvAKqqYulMy3O1Se0Q8vGE+7/KHmQttIzBeZCAOQ3gDDvSz3+XnUlGKlA
-         ppSKeNsijOTb87pYJLJ5k50or0OD1zAuKx/P/eWX4037TVlQqVFL7riJfGpFR9PAw+yw
-         i35r/J2t++VuZnABkylXNQyFo7vmT/bIkC+03kUsYMfoOuA7srfNplO+MWMCLOUdocys
-         kRK/1v7Xiv6BFDNMUQPEYULvJr7NvgOzNoNfsVhFwskwuZScbX19Hu9fVDnvws6rf1/r
-         DA+gIfmMJ73YHlRbfF1hWRILx2jnva0+aojFy/GW3Cs+8rmIhzmtKqGnwi/roZpbzNmm
-         7H8g==
+        bh=ZBupVcckmVz5Ln4jfPWyUolTVnASsByCuaOtA4I7qvo=;
+        b=AC9XHANc7Jv98OiD1RAbXbgghzmw1fEwG+S7ohAbVKTZWl40zZDYQxjQT60E0kzVgF
+         0lDK3EhNyqlXgP46+IyQtHB8hn5TTuyX8hGN7aPnqGaC/cZ/twGlZbKdZ4mHsmjIMj2m
+         9B235fBEy+69JEIZbjZKnmzi0oot5veGPLpqdFnhs6N0L6Z4WRAY3bOc2sWGobkCepm7
+         29F+ut8qbkM9nIyouH+e9sIriR42Kmct4jI6zyyL2LV5cRdCJE9MZ2KaCcj1YONMjG0N
+         BLlTXjRo6B8D1sl2IY0/xH6nDtCVzbGhLx6JTNf/sUskbrDXyIOTzOZLSIPdvJK0aHUy
+         HwUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762790949; x=1763395749;
+        d=1e100.net; s=20230601; t=1762795851; x=1763400651;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=s031glNNGPLU3pRhUQF/ls9Tz5E2v6rbM7VrNj/wX3k=;
-        b=uYdWnK1h25W0Hapjqycb5UvRD01O5ZzcbsqlLcAtHUtvF85YDLma05L6UfIn/BMpn4
-         HWbgyH1ZoxuHeLr+kAZTmKMJ7ZCUF1GMJ3joATpAvvPjlU/x+DBHQovU4u/+KZVU5/Pv
-         bbFeRz49OAQNVh7Coo1xf9f/u6TYPO7ColqLKvXw2I5EsW8C7UuqQvgUNrv5lvPrB8Qb
-         N9gj3nGbBSke9Ley7czTcwEW4moCz/9/1TAqcZlP0Z1bFVsnoQepIxRaPyU7QHGKyeF5
-         w+vtik0wbQCyTMGkHK+C4tozCTjRX6VTJPrZEG01BXdVvCvYINTD1zlAEQxk5MMJRpvQ
-         /uXA==
-X-Forwarded-Encrypted: i=1; AJvYcCXa/iKvgTlMgLa7uFiX4EaprSZmjt7raMUAVIwsUDQa7LPivFpOhTawWOQIJwS8fBkpwN68caKfmq2HNdg7@vger.kernel.org
-X-Gm-Message-State: AOJu0YzkOyO8vP7J6NixB4OshQYcQ+hho2loh6igoKl+GKbyv532jIxv
-	wlHwyYo5SQGKlKuxtZIfUQGwp/KioMlvvdUE2uL1gYmBl6GBWYe6GC7cs4/6hL1gqahYEhBSdzm
-	/eYTZStZw2ckc1sLnf29O9TyMIyWaXT8=
-X-Gm-Gg: ASbGncsUu98P31DEQL2xOvgUTvoWKapbgEb+i+01qWmxDG+Gl7QD9YbsmDMXplA9mea
-	0pXep4HaRHnCPNKAUFwY5FeKW9rMEelcSiIjsLS84p5moOnowNhEdOhTnnPhjZNGDaSURDql1mo
-	wIZbdZICHfxEY4ItDtZxyVTC6bMeI8M9VQePPcSHjHubQ8eRtxs2U+XNprOeVViFDdiOtFqlVvV
-	f8wwWPnS+RXrp0H1CywCzg1TiGojb1kyB3bUyuSnkAHje9CBOo5umePbU+PFqoVOH5SfO0=
-X-Google-Smtp-Source: AGHT+IHOYPI89bvNijFudu8ipuYpe33+VB7nbqJZeXEdLg498kOVR3mmjHBZOcylAlfsBqli+DO2uzjCmhEfT9se4Vs=
-X-Received: by 2002:a17:902:fc4f:b0:298:2237:a2eb with SMTP id
- d9443c01a7336-2982237a409mr51261425ad.16.1762790948766; Mon, 10 Nov 2025
- 08:09:08 -0800 (PST)
+        bh=ZBupVcckmVz5Ln4jfPWyUolTVnASsByCuaOtA4I7qvo=;
+        b=fjbBO+D9vZGRW8Q+tH4sSxsAwIIThpw82SVtHSUWepEu8gB8rekYF6s9Qg4+H+r6cG
+         UPrhqEGDsUNgWyfH+4LUFQpZHr80hyXrsq8dRU8aEJnt2v9cw9NuMiVFRLVK8Wn3Fgti
+         7yzJNECbeP+wQu9J2EFTv5wpbQTFZJj2xPCnlWchFDcuxPOZ6vybufBWDtu7RhlfJgKS
+         aV1yGiToqocHfNN6bnK7mgcVKXJUoZwOx17UgWN9CiGm8MxzGO62cw+Hy3R4OsX0eAqt
+         3PXmVY4tsr0U558XXW9ltfHlVXddPfGf1/DenoHqbsKD/jOw42wak32sFIqb1IL6fWpC
+         soog==
+X-Forwarded-Encrypted: i=1; AJvYcCUQlxSp5UxElTDtrPGoXlqNzADRzqolen0KxD+pWdN8RcnK8XOZXfyJ9V1l35hGu3R9BQnKmcfvEcMLpkmm@vger.kernel.org
+X-Gm-Message-State: AOJu0YxZUzs6hVDVGfNOui/E+WLWRkwumVEWvMHkjagOTD9/oa9MSXjD
+	qaWkndfu9cjlY1YViQdDUBs03t70gWWLgGHrvsB4t5ZhPveq6UKgn5FUJo/92XPIok/gn+pI1ZY
+	t0TEFsCB7ki3L8WYpWMeezQaq6F/TNsA=
+X-Gm-Gg: ASbGncueVAfK3W4jQKA8TCf/Qnq0rcFQVeqztCYOi6UmS7zB3yHMl57j6z3+OmEf2p6
+	RxVCAvhjpX8JNzrMDxgf9THTwFjZLhaKGD60ey1nb6HlpDED+ugnjy5zsY4Jo3xG+ZOFhAL1yUr
+	OHFxA3vv51g4IQETzrrWq+fYUzOOy2nhjidK6AKedpcI8mGzBtkSbzYVtVocKqaOT0nh2vMUpww
+	j7qgrz7EVykCtOE3uuEATSOVC9S93XkVbf2jB2bmdDkwj7MligLfK3gMMiN
+X-Google-Smtp-Source: AGHT+IG1vzxlgOlG9RofPIQ8HXS/TzZg0c7M7/gWC0zTYmT64xMp8LfK4tDIRftHYt3f+PSr3BPp3nPvSQoI3SsCuMA=
+X-Received: by 2002:a17:90a:ac0e:b0:343:747e:2cab with SMTP id
+ 98e67ed59e1d1-343747e31a5mr6285125a91.8.1762795851107; Mon, 10 Nov 2025
+ 09:30:51 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -61,11 +61,12 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20251106005333.956321-1-neilb@ownmail.net> <20251106005333.956321-12-neilb@ownmail.net>
-In-Reply-To: <20251106005333.956321-12-neilb@ownmail.net>
+ <CAEjxPJ528Ou4dvRwHo+kXjWreGicda8BOXkQRvq3vMED6JQKOQ@mail.gmail.com>
+In-Reply-To: <CAEjxPJ528Ou4dvRwHo+kXjWreGicda8BOXkQRvq3vMED6JQKOQ@mail.gmail.com>
 From: Stephen Smalley <stephen.smalley.work@gmail.com>
-Date: Mon, 10 Nov 2025 11:08:57 -0500
-X-Gm-Features: AWmQ_bnsQdAKOPc2sWsQJTL6A89EPTloA4MsBf1tbsCjlSWDuuet8e3lOwk-mCw
-Message-ID: <CAEjxPJ528Ou4dvRwHo+kXjWreGicda8BOXkQRvq3vMED6JQKOQ@mail.gmail.com>
+Date: Mon, 10 Nov 2025 12:30:39 -0500
+X-Gm-Features: AWmQ_bndNmWOI1mokvMjGbHl4ympSya5-SIjECF6vpxPVypYlN3NvFXLixarZ1U
+Message-ID: <CAEjxPJ6-BXRntLqNRJxveAbwHmC2EB9YYg7f4hLD9T2g-H3fzw@mail.gmail.com>
 Subject: Re: [PATCH v5 11/14] Add start_renaming_two_dentries()
 To: NeilBrown <neil@brown.name>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
@@ -89,88 +90,100 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 5, 2025 at 7:56=E2=80=AFPM NeilBrown <neilb@ownmail.net> wrote:
+On Mon, Nov 10, 2025 at 11:08=E2=80=AFAM Stephen Smalley
+<stephen.smalley.work@gmail.com> wrote:
 >
-> From: NeilBrown <neil@brown.name>
->
-> A few callers want to lock for a rename and already have both dentries.
-> Also debugfs does want to perform a lookup but doesn't want permission
-> checking, so start_renaming_dentry() cannot be used.
->
-> This patch introduces start_renaming_two_dentries() which is given both
-> dentries.  debugfs performs one lookup itself.  As it will only continue
-> with a negative dentry and as those cannot be renamed or unlinked, it is
-> safe to do the lookup before getting the rename locks.
->
-> overlayfs uses start_renaming_two_dentries() in three places and  selinux
-> uses it twice in sel_make_policy_nodes().
->
-> In sel_make_policy_nodes() we now lock for rename twice instead of just
-> once so the combined operation is no longer atomic w.r.t the parent
-> directory locks.  As selinux_state.policy_mutex is held across the whole
-> operation this does open up any interesting races.
->
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: NeilBrown <neil@brown.name>
->
-> ---
-> changes since v3:
->  added missing assignment to rd.mnt_idmap in ovl_cleanup_and_whiteout
-> ---
+> On Wed, Nov 5, 2025 at 7:56=E2=80=AFPM NeilBrown <neilb@ownmail.net> wrot=
+e:
+> >
+> > From: NeilBrown <neil@brown.name>
+> >
+> > A few callers want to lock for a rename and already have both dentries.
+> > Also debugfs does want to perform a lookup but doesn't want permission
+> > checking, so start_renaming_dentry() cannot be used.
+> >
+> > This patch introduces start_renaming_two_dentries() which is given both
+> > dentries.  debugfs performs one lookup itself.  As it will only continu=
+e
+> > with a negative dentry and as those cannot be renamed or unlinked, it i=
+s
+> > safe to do the lookup before getting the rename locks.
+> >
+> > overlayfs uses start_renaming_two_dentries() in three places and  selin=
+ux
+> > uses it twice in sel_make_policy_nodes().
+> >
+> > In sel_make_policy_nodes() we now lock for rename twice instead of just
+> > once so the combined operation is no longer atomic w.r.t the parent
+> > directory locks.  As selinux_state.policy_mutex is held across the whol=
+e
+> > operation this does open up any interesting races.
 
-> diff --git a/security/selinux/selinuxfs.c b/security/selinux/selinuxfs.c
-> index 232e087bce3e..a224ef9bb831 100644
-> --- a/security/selinux/selinuxfs.c
-> +++ b/security/selinux/selinuxfs.c
-> @@ -539,22 +540,30 @@ static int sel_make_policy_nodes(struct selinux_fs_=
-info *fsi,
->         if (ret)
->                 goto out;
->
-> -       lock_rename(tmp_parent, fsi->sb->s_root);
-> +       rd.old_parent =3D tmp_parent;
-> +       rd.new_parent =3D fsi->sb->s_root;
->
->         /* booleans */
-> -       d_exchange(tmp_bool_dir, fsi->bool_dir);
-> +       ret =3D start_renaming_two_dentries(&rd, tmp_bool_dir, fsi->bool_=
-dir);
-> +       if (!ret) {
-> +               d_exchange(tmp_bool_dir, fsi->bool_dir);
+Also, I assume you mean "does NOT open up any interesting races" above.
 
-I would recommend an immediate goto out if ret !=3D 0; we don't want to
-silently fall through and possibly reset ret on the next
-start_renaming_two_dentries() call, thereby ultimately returning 0 to
-the caller and acting as if nothing bad happened.
-
+> >
+> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> > Signed-off-by: NeilBrown <neil@brown.name>
+> >
+> > ---
+> > changes since v3:
+> >  added missing assignment to rd.mnt_idmap in ovl_cleanup_and_whiteout
+> > ---
 >
-> -       swap(fsi->bool_num, bool_num);
-> -       swap(fsi->bool_pending_names, bool_names);
-> -       swap(fsi->bool_pending_values, bool_values);
-> +               swap(fsi->bool_num, bool_num);
-> +               swap(fsi->bool_pending_names, bool_names);
-> +               swap(fsi->bool_pending_values, bool_values);
+> > diff --git a/security/selinux/selinuxfs.c b/security/selinux/selinuxfs.=
+c
+> > index 232e087bce3e..a224ef9bb831 100644
+> > --- a/security/selinux/selinuxfs.c
+> > +++ b/security/selinux/selinuxfs.c
+> > @@ -539,22 +540,30 @@ static int sel_make_policy_nodes(struct selinux_f=
+s_info *fsi,
+> >         if (ret)
+> >                 goto out;
+> >
+> > -       lock_rename(tmp_parent, fsi->sb->s_root);
+> > +       rd.old_parent =3D tmp_parent;
+> > +       rd.new_parent =3D fsi->sb->s_root;
+> >
+> >         /* booleans */
+> > -       d_exchange(tmp_bool_dir, fsi->bool_dir);
+> > +       ret =3D start_renaming_two_dentries(&rd, tmp_bool_dir, fsi->boo=
+l_dir);
+> > +       if (!ret) {
+> > +               d_exchange(tmp_bool_dir, fsi->bool_dir);
 >
-> -       fsi->bool_dir =3D tmp_bool_dir;
-> +               fsi->bool_dir =3D tmp_bool_dir;
-> +               end_renaming(&rd);
-> +       }
+> I would recommend an immediate goto out if ret !=3D 0; we don't want to
+> silently fall through and possibly reset ret on the next
+> start_renaming_two_dentries() call, thereby ultimately returning 0 to
+> the caller and acting as if nothing bad happened.
 >
->         /* classes */
-> -       d_exchange(tmp_class_dir, fsi->class_dir);
-> -       fsi->class_dir =3D tmp_class_dir;
-> +       ret =3D start_renaming_two_dentries(&rd, tmp_class_dir, fsi->clas=
-s_dir);
-> +       if (ret =3D=3D 0) {
-> +               d_exchange(tmp_class_dir, fsi->class_dir);
-> +               fsi->class_dir =3D tmp_class_dir;
->
-> -       unlock_rename(tmp_parent, fsi->sb->s_root);
-> +               end_renaming(&rd);
-> +       }
->
->  out:
->         sel_remove_old_bool_data(bool_num, bool_names, bool_values);
-> --
-> 2.50.0.107.gf914562f5916.dirty
->
+> >
+> > -       swap(fsi->bool_num, bool_num);
+> > -       swap(fsi->bool_pending_names, bool_names);
+> > -       swap(fsi->bool_pending_values, bool_values);
+> > +               swap(fsi->bool_num, bool_num);
+> > +               swap(fsi->bool_pending_names, bool_names);
+> > +               swap(fsi->bool_pending_values, bool_values);
+> >
+> > -       fsi->bool_dir =3D tmp_bool_dir;
+> > +               fsi->bool_dir =3D tmp_bool_dir;
+> > +               end_renaming(&rd);
+> > +       }
+> >
+> >         /* classes */
+> > -       d_exchange(tmp_class_dir, fsi->class_dir);
+> > -       fsi->class_dir =3D tmp_class_dir;
+> > +       ret =3D start_renaming_two_dentries(&rd, tmp_class_dir, fsi->cl=
+ass_dir);
+> > +       if (ret =3D=3D 0) {
+> > +               d_exchange(tmp_class_dir, fsi->class_dir);
+> > +               fsi->class_dir =3D tmp_class_dir;
+> >
+> > -       unlock_rename(tmp_parent, fsi->sb->s_root);
+> > +               end_renaming(&rd);
+> > +       }
+> >
+> >  out:
+> >         sel_remove_old_bool_data(bool_num, bool_names, bool_values);
+> > --
+> > 2.50.0.107.gf914562f5916.dirty
+> >
