@@ -1,437 +1,332 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC69431327B
-	for <linux-unionfs@vger.kernel.org>; Mon, 10 Nov 2025 18:10:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5F034EF01
+	for <linux-unionfs@vger.kernel.org>; Tue, 11 Nov 2025 10:37:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762798220; cv=none; b=NbxIErl60wEw2ojPYLMOHpeCXtct7OdFierR+cmNYq5sK0qzKCg9H/ulkMg4VAAV5mROQuAJeaB5bc0xWox3uPK3Mzad6gcE/q5UOOsnSIheYWmy7gHaOUdXYhIKGfP3o+pNf2UFsPRFlNADBv616R960s5lYmNgN2tTMQ53Sjo=
+	t=1762857463; cv=none; b=MGAOAZUJZ2m4cXI2TUbECpm20rQTL/dursVQiHitJg6CRiP6fCifrAHkDFO6ErZZmxrqNIXRzIYu4DEu5qHZ5HgyIcTbhIJoimAvnwwDUAHzEvwRk8ufzwEfvnmecNdu4YJsWFBdLGBWwIgQprYB4n0iHBgsJI+MnLApODWmaZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762798220; c=relaxed/simple;
-	bh=7A/klNTfb+YT/8QV/hZyS+urovDgy5B3ogLjInLQ19o=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YcE0pon78+Bh8gaXCm7N9fcRO/g/+dQQ8DcW5O6EUrkeKJ3rUL44dOw2RQ+7tbkIZDniq5PY8ino2oxiRL/PuvqqBMZiGf0FYVjxPRi2ye3+/mh4fj3iD5jEULKh52yZ2Wp0EtgUzb6knNMjQN21sYyzsHUBS0l/9sZjlh2HUOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bjeFNZDD; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1762857463; c=relaxed/simple;
+	bh=hyNCHdMdIEMpcB1iHJpcmtHhO0cY+NOEEI3eHb/ZxTw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pg4XKnsOyAkJz5bDsFgc9upTSIoaAE1O2VlZzXy7FoxMXRds1YGyLXATGNDlfRtiky1gSCNUuJii+UMvMDr1GAIO/yFQjTBDpqLrZdiDE/RjxHgsnhlDkrV4lmJPaamrwURbUdObLCgsfr+P8p0EJgbXsi0YtCUCeugS9bXRtbo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=ABmQSe0O; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=jkz/qW7s; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=VntBozyr; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=T2bebI6e; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bjeFNZDD"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-b72e43405e2so4940866b.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 10 Nov 2025 10:10:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1762798209; x=1763403009; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qm1ipUFEbh/EJjaySV8xjvMxbZYgzFThW1ifj+hci64=;
-        b=bjeFNZDDxAWFD2vij8VdLsrKbI/eo9lC7mbnK8+6iNbwfa3f9tutw22ZV+NS1imrX4
-         DMOrEcs9cXeQJois7/jRJL4OwCXYAKDAYhO0+q1jNWLXjk0R7f4YutYWdeJT0tD0Vi62
-         AK7O7lBbhAWImROW7YozkP4P/OxLzZBucyGmlUDB8AcIGXMB56KqEXTCaoyJUvXk9eq9
-         tvlwSMkQA64oIYMtm8hnF0CdDUrfsPoyUw4Nvf+TtWUGX9x1J7DMYKLf6cbADXVYdxrd
-         qToWt9D9r1elHzvdLs/ExWd17M5M2xByb4hq9nYNifYPAnbm7DlW7rQyVYH8VTk/HLYR
-         +Rbg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762798209; x=1763403009;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=qm1ipUFEbh/EJjaySV8xjvMxbZYgzFThW1ifj+hci64=;
-        b=p7Np07Nq0ujVGA4cjAh+wDV/+0RPSiW6vuOHOBQaq8hE7xzyD8AM5zbMxt6Wi/dhDb
-         qeXRTmsxBgGudLhQYtpINOyOKaw3iEX+ZHebRilo8XkdA66S76RsvgPbuFY3ayHjymYJ
-         HAiu6yeodyVInonHooOcD34DRyfHC/lh0uYSABebaNHrI+xVbWS+5bKPTekjMei1TS7L
-         QFL3ZWVbQXPxcogI/zx0sUPTIOmGpUzbWtqwPQfLjRaIgAuqvI8Z294d7HTPhdFti24K
-         adpE8YM5XkxkdE4pm/axEY5yf5qvRfmk3DcK0ky74AT2qZrQg1X+aIsMH56GN2sbfiex
-         d/Xg==
-X-Forwarded-Encrypted: i=1; AJvYcCVKP1TcF1nLMDrvrSeVe+CKxHcWUVIPVGWJ05IY2Tbylx7lwB+yahIfpWWHM0RtZ3VK9ycyXczlnYbsNfFj@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5fuIUJoM7iNye4slaguPesfoaC7XUOBHQwqfLkUWzVUzZ12E7
-	UpGlj7LeaN1iq1RwSQJXIbd5mF8yOQ1duMvonDomo87uS0SEMk3zluQqe420ok8xvJj0sPgx9k3
-	a7/aYf0BiwIJXLRz2iytA8ULNAG0P/3Y=
-X-Gm-Gg: ASbGncv0arXyt2wo17/QasZpE0kFg9On38sA8YBpZZALJ9ZkwblnE13G5lfxNHAQ4uP
-	vPreuZNR+H5wfZb/ZfavFP7DhQ2oJNF6u3/4JXlszWPfn/DZBZCUFcBBH/zZ92vy5+OsLsMQ14D
-	g3vaON7vxDuokIb6nqqSJZDnlR4ZyUHjTb1nxSazZVFHo6A8PR5YvLRSZ7fC7UWuDB2L0g0dlDz
-	KHN+svAKGPZm3zZ24HdNO30npA+Vn7S/4Mhwh+XkoJTaoiFT2PVjldDLl9+QykQZIoG/NCFWYZ2
-	PZpRziKbNJOCOVp5mTM=
-X-Google-Smtp-Source: AGHT+IE9RQ43bxTeJulVyOuNdqaDcNxUbFWXXka/BBJZ48N/in36UvSy9kHZh0gvmBt8RT82ewTHZRiGgWl0tNf1oCk=
-X-Received: by 2002:a17:907:7e88:b0:b72:6d68:6663 with SMTP id
- a640c23a62f3a-b731da47f5dmr30594566b.31.1762798209172; Mon, 10 Nov 2025
- 10:10:09 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="ABmQSe0O";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="jkz/qW7s";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="VntBozyr";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="T2bebI6e"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id E1E551F750;
+	Tue, 11 Nov 2025 10:37:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1762857457; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TEc5BMTgakLjP2lCVtIyTqJLSeq6a+T/g0/3T6sOX5U=;
+	b=ABmQSe0O1DSmwu4YW8RIxEoGNBGD+4SQhQzJNFk7ZIK/wi1vrlGnLIPVriMj95Ui3+p9mx
+	Yd9UGrSajO0qV2Bht3YikO09LuHTEssfjHksnNrnqdIMybRvVPBE2k7viEu7oL10CxU7Wp
+	zZEbIsiQ2mLyhAEHZgq5Jy4hmevTtak=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1762857457;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TEc5BMTgakLjP2lCVtIyTqJLSeq6a+T/g0/3T6sOX5U=;
+	b=jkz/qW7s9eoNvg0Y9NyoTKRl1CvNA7QZbsZl15s/0xIal0ZkL87Xv+ZpSBJWNabgCS/cBA
+	sSwA+bE4gBgZFbCA==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=VntBozyr;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=T2bebI6e
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1762857456; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TEc5BMTgakLjP2lCVtIyTqJLSeq6a+T/g0/3T6sOX5U=;
+	b=VntBozyrZOAwKMhMIiNgxjR0KRGEpKVeRCJN7GjFlWWR3GAVTLaBB12PQhXoalsSNvR29T
+	eJAe4uA/CLjC/RkCVPY1m/Z0HuNeRSv2ONIkwfnmCBZ7yfZsVyA36iQF4JOwCbXzwqXCJV
+	4rlGyoMFfgMKp2cuB4/q0PLoHrmRCrY=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1762857456;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TEc5BMTgakLjP2lCVtIyTqJLSeq6a+T/g0/3T6sOX5U=;
+	b=T2bebI6e2BNXdytzddpspO6C6YUZ4uUPoYnCUJiePajNoGohIT8FiWbGYBMGrmJPUekWob
+	EW3tQuc1bsO/icAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id CF8A1148F0;
+	Tue, 11 Nov 2025 10:37:36 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id IuCoMvARE2kbNQAAD6G6ig
+	(envelope-from <jack@suse.cz>); Tue, 11 Nov 2025 10:37:36 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 8D536A28C8; Tue, 11 Nov 2025 11:37:36 +0100 (CET)
+Date: Tue, 11 Nov 2025 11:37:36 +0100
+From: Jan Kara <jack@suse.cz>
+To: Jeff Layton <jlayton@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Chuck Lever <chuck.lever@oracle.com>, Alexander Aring <alex.aring@gmail.com>, 
+	Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, 
+	Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.org>, 
+	Ronnie Sahlberg <ronniesahlberg@gmail.com>, Shyam Prasad N <sprasad@microsoft.com>, 
+	Tom Talpey <tom@talpey.com>, Bharath SM <bharathsm@microsoft.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, David Howells <dhowells@redhat.com>, 
+	Tyler Hicks <code@tyhicks.com>, NeilBrown <neil@brown.name>, 
+	Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
+	Amir Goldstein <amir73il@gmail.com>, Namjae Jeon <linkinjeon@kernel.org>, 
+	Steve French <smfrench@gmail.com>, Sergey Senozhatsky <senozhatsky@chromium.org>, 
+	Carlos Maiolino <cem@kernel.org>, Kuniyuki Iwashima <kuniyu@google.com>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, netfs@lists.linux.dev, 
+	ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
+	netdev@vger.kernel.org, NeilBrown <neilb@ownmail.net>
+Subject: Re: [PATCH v5 09/17] vfs: clean up argument list for vfs_create()
+Message-ID: <g3si4zuuhxleat2gkebyhnokq5eiymatgi36ad25datcbvinfs@nsk4fop6sz5f>
+References: <20251105-dir-deleg-ro-v5-0-7ebc168a88ac@kernel.org>
+ <20251105-dir-deleg-ro-v5-9-7ebc168a88ac@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251017170649.2092386-1-amir73il@gmail.com>
-In-Reply-To: <20251017170649.2092386-1-amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 10 Nov 2025 19:09:57 +0100
-X-Gm-Features: AWmQ_bmJvBv64mZ2hcxf8Ude9CefbMAaAwDMgeRenHoZ2qoqHTt4RKvwPpXm_68
-Message-ID: <CAOQ4uxjj3J0exNb4ik0h4Q2P_J+pRm8qVw2jmoGmzopc+1zaiw@mail.gmail.com>
-Subject: Re: [PATCH] overlay: add tests for casefolded layers
-To: Zorro Lang <zlang@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
-	=?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
-	linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251105-dir-deleg-ro-v5-9-7ebc168a88ac@kernel.org>
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Rspamd-Queue-Id: E1E551F750
+X-Rspamd-Action: no action
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-2.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RCVD_TLS_LAST(0.00)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RCVD_COUNT_THREE(0.00)[3];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[45];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com,ownmail.net];
+	FREEMAIL_CC(0.00)[szeredi.hu,zeniv.linux.org.uk,kernel.org,suse.cz,oracle.com,gmail.com,samba.org,manguebit.org,microsoft.com,talpey.com,linuxfoundation.org,redhat.com,tyhicks.com,brown.name,chromium.org,google.com,davemloft.net,vger.kernel.org,lists.samba.org,lists.linux.dev,ownmail.net];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	TAGGED_RCPT(0.00)[];
+	R_RATELIMIT(0.00)[to_ip_from(RLpnapcpkwxdkc5mopt1ezhhna)];
+	MISSING_XM_UA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.com:email]
+X-Spam-Score: -2.51
 
-On Fri, Oct 17, 2025 at 7:06=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> Overalyfs did not allow mounting layers with casefold capable fs
-> until kernel v6.17-rc1 and did not allow casefold enabled layers
-> until kernel v6.18-rc1.
->
-> Since kernel v6.18-rc1, overalyfs allows this kind of setups,
-> as long as the layers have consistent encoding and all the directories
-> in the subtree have consistent casefolding.
->
-> Create test cases for the following scenarios:
-> - Mounting overlayfs with casefold disabled
-> - Mounting overlayfs with casefold enabled
-> - Lookup subdir in overlayfs with mismatch casefold to parent dir
-> - Change casefold of underlying subdir while overalyfs is mounted
-> - Mounting overlayfs with strict enconding, but casefold disabled
-> - Mounting overlayfs with strict enconding casefold enabled
-> - Mounting overlayfs with layers with inconsistent UTF8 version
->
-> Co-developed-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> Signed-off-by: Andr=C3=A9 Almeida <andrealmeid@igalia.com>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+On Wed 05-11-25 11:53:55, Jeff Layton wrote:
+> As Neil points out:
+> 
+> "I would be in favour of dropping the "dir" arg because it is always
+> d_inode(dentry->d_parent) which is stable."
+> 
+> ...and...
+> 
+> "Also *every* caller of vfs_create() passes ".excl = true".  So maybe we
+> don't need that arg at all."
+> 
+> Drop both arguments from vfs_create() and fix up the callers.
+> 
+> Suggested-by: NeilBrown <neilb@ownmail.net>
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+
+Looks good. Feel free to add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
 > ---
->
-> Zorro,
-
-Ping?
-
-Thanks,
-Amir.
-
->
-> This test covers the overlayfs casefold feature that was introduced in
-> two steps - casefold disabled layers in 6.17-rc1 and casefold enabled
-> layers in 6.18-rc1.
->
-> I think there is less interest in testing the v6.17 changes on their own
-> so this test requires support for casefold enabled layers from 6.18-rc1
-> and will notrun on kernel < 6.18-rc1:
->
-> generic/999 5s ...  [12:43:16] [12:43:18] [not run]
->         generic/999 -- overlayfs does not support casefold enabled layers
->
-> If there is a demand, we could split a test for the v6.17 support.
->
-> Note that this test is written as a generic and not an overlay test,
-> because we do not have the infrastructure to format and mount a base fs
-> with casefold support, so this test can run with e.g. ext4 FSTYP, but it
-> will notrun with e.g. xfs FSTYPE:
->
-> generic/999 6s ...  [12:30:03] [12:30:05] [not run]
->         generic/999 -- xfs does not support casefold feature
->
-> I left the test number 999 for you to re-number.
-> If you prefer that I post with another test number assignment in the
-> future please let me know.
->
-> Thanks,
-> Amir.
->
->
->  tests/generic/999     | 243 ++++++++++++++++++++++++++++++++++++++++++
->  tests/generic/999.out |  13 +++
->  2 files changed, 256 insertions(+)
->  create mode 100755 tests/generic/999
->  create mode 100644 tests/generic/999.out
->
-> diff --git a/tests/generic/999 b/tests/generic/999
-> new file mode 100755
-> index 00000000..e81ea036
-> --- /dev/null
-> +++ b/tests/generic/999
-> @@ -0,0 +1,243 @@
-> +#! /bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2025 CTERA Networks. All Rights Reserved.
-> +#
-> +# FS QA Test 999
-> +#
-> +# Test overlayfs error cases with casefold enabled layers
-> +#
-> +# Overalyfs did not allow mounting layers with casefold capable fs
-> +# until kernel v6.17 and with casefold enabled until kernel v6.18.
-> +# Since kernel v6.17, overalyfs allows the mount, as long as casefolding
-> +# is disabled on all directories.
-> +# Since kernel v6.18, overalyfs allows the mount, as long as casefolding
-> +# is consistent on all directories and encoding is consistent on all lay=
-ers.
-> +#
-> +. ./common/preamble
-> +_begin_fstest auto quick mount casefold
-> +
-> +# Override the default cleanup function.
-> +_cleanup()
-> +{
-> +       cd /
-> +       _unmount $merge 2>/dev/null
-> +       rm -r -f $tmp.*
-> +}
-> +
-> +
-> +# Import common functions.
-> +. ./common/filter
-> +. ./common/casefold
-> +
-> +_exclude_fs overlay
-> +_require_extra_fs overlay
-> +
-> +_require_scratch_casefold
-> +
-> +# Create casefold capable base fs
-> +_scratch_mkfs_casefold >>$seqres.full 2>&1
-> +_scratch_mount_casefold
-> +
-> +# Create lowerdir, upperdir and workdir without casefold enabled
-> +lowerdir=3D"$SCRATCH_MNT/ovl-lower"
-> +upperdir=3D"$SCRATCH_MNT/ovl-upper"
-> +workdir=3D"$SCRATCH_MNT/ovl-work"
-> +merge=3D"$SCRATCH_MNT/ovl-merge"
-> +
-> +mount_casefold_version()
-> +{
-> +       option=3D"casefold=3D$1"
-> +       mount -t tmpfs -o $option tmpfs $2
-> +}
-> +
-> +mount_overlay()
-> +{
-> +       local lowerdirs=3D$1
-> +
-> +       _mount -t overlay overlay $merge \
-> +               -o lowerdir=3D$lowerdirs,upperdir=3D$upperdir,workdir=3D$=
-workdir
-> +}
-> +
-> +unmount_overlay()
-> +{
-> +       _unmount $SCRATCH_MNT/ovl-merge 2>/dev/null
-> +}
-> +
-> +# Try to mount an overlay with casefold enabled layers.
-> +# On kernels older than v6.18 expect failure and skip the test
-> +mkdir -p $merge $upperdir $workdir $lowerdir
-> +_casefold_set_attr $upperdir >>$seqres.full
-> +_casefold_set_attr $workdir >>$seqres.full
-> +_casefold_set_attr $lowerdir >>$seqres.full
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 || \
-> +       _notrun "overlayfs does not support casefold enabled layers"
-> +unmount_overlay
-> +
-> +# Re-create casefold disabled layers with lower subdir
-> +casefolddir=3D$lowerdir/casefold
-> +rm -rf $upperdir $workdir $lowerdir
-> +mkdir -p $upperdir $workdir $lowerdir $casefolddir
-> +
-> +# Try to mount an overlay with casefold capable but disabled layers.
-> +# Since we already verified that overalyfs supports casefold enabled lay=
-ers
-> +# this is expected to succeed.
-> +echo Casefold disabled
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 || \
-> +       echo "Overlayfs mount with casefold disabled layers failed (1)"
-> +ls $merge/casefold/ >>$seqres.full
-> +unmount_overlay
-> +
-> +# Use new upper/work dirs for each test to avoid ESTALE errors
-> +# on mismatch lowerdir/upperdir (see test overlay/037)
-> +rm -rf $upperdir $workdir
-> +mkdir $upperdir $workdir
-> +
-> +# Try to mount an overlay with casefold disabled layers and
-> +# enable casefold on lowerdir root after mount - expect ESTALE error on =
-lookup.
-> +echo Casefold enabled after mount
-> +mount_overlay $casefolddir >>$seqres.full || \
-> +       echo "Overlayfs mount with casefold disabled layers failed (2)"
-> +_casefold_set_attr $casefolddir >>$seqres.full
-> +mkdir $casefolddir/subdir
-> +ls $merge/subdir |& _filter_scratch
-> +unmount_overlay
-> +
-> +# Try to mount an overlay with casefold enabled lowerdir root - expect E=
-INVAL.
-> +# With libmount version >=3D v1.39, we expect the following descriptive =
-error:
-> +# mount: overlay: case-insensitive directory on .../ovl-lower/casefold n=
-ot supported
-> +# but we want the test to run with older libmount, so we so not expect t=
-his output
-> +# we just expect a mount failure.
-> +echo Casefold enabled lower dir
-> +mount_overlay $casefolddir >>$seqres.full 2>&1 && \
-> +       echo "Overlayfs mount with casefold enabled lowerdir should have =
-failed" && \
-> +       unmount_overlay
-> +
-> +# Changing lower layer root again
-> +rm -rf $upperdir $workdir
-> +mkdir $upperdir $workdir
-> +
-> +# Try to mount an overlay with casefold disabled layers, but with
-> +# casefold enabled subdir in lowerdir - expect EREMOTE error on lookup.
-> +echo Casefold enabled lower subdir
-> +mount_overlay $lowerdir >>$seqres.full
-> +ls $merge/casefold/subdir |& _filter_scratch
-> +unmount_overlay
-> +
-> +# workdir needs to be empty to set casefold attribute
-> +rm -rf $workdir/*
-> +
-> +_casefold_set_attr $upperdir >>$seqres.full
-> +_casefold_set_attr $workdir >>$seqres.full
-> +
-> +echo Casefold enabled upper dir
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 && \
-> +       echo "Overlayfs mount with casefold enabled upperdir should have =
-failed" && \
-> +       unmount_overlay
-> +
-> +# lowerdir needs to be empty to set casefold attribute
-> +rm -rf $lowerdir/*
-> +_casefold_set_attr $lowerdir >>$seqres.full
-> +mkdir $casefolddir
-> +
-> +# Try to mount an overlay with casefold enabled layers.
-> +# On kernels older than v6.18 expect failure and skip the rest of the te=
-st
-> +# On kernels v6.18 and newer, expect success and run the rest of the tes=
-t cases.
-> +echo Casefold enabled
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 || \
-> +       echo "Overlayfs mount with casefold enabled layers failed (1)"
-> +ls $merge/casefold/ >>$seqres.full
-> +unmount_overlay
-> +
-> +# Try to mount an overlayfs with casefold enabled layers. After the moun=
-t,
-> +# disable casefold on the lower layer and try to lookup a file. Should r=
-eturn
-> +# -ESTALE
-> +echo Casefold disabled on lower after mount
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 || \
-> +       echo "Overlayfs mount with casefold enabled layers failed (2)"
-> +rm -rf $lowerdir/*
-> +_casefold_unset_attr $lowerdir >>$seqres.full
-> +mkdir $lowerdir/dir
-> +ls $merge/dir/ |& _filter_scratch
-> +unmount_overlay
-> +
-> +# cleanup
-> +rm -rf $lowerdir/*
-> +_casefold_set_attr $lowerdir >>$seqres.full
-> +
-> +# Try to mount an overlayfs with casefold enabled layers. After the moun=
-t,
-> +# disable casefold on a subdir in  the lower layer and try to lookup it.
-> +# Should return -EREMOTE
-> +echo Casefold disabled on subdir after mount
-> +mkdir $lowerdir/casefold/
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 || \
-> +       echo "Overlayfs mount with casefold enabled layers failed (3)"
-> +_casefold_unset_attr $lowerdir/casefold/
-> +mkdir $lowerdir/casefold/subdir
-> +ls $merge/casefold/subdir |& _filter_scratch
-> +unmount_overlay
-> +
-> +# cleanup
-> +rm -rf $lowerdir/*
-> +
-> +# Test strict enconding, but casefold not enabled. Should work
-> +_scratch_umount_idmapped
-> +
-> +_scratch_mkfs_casefold_strict >>$seqres.full 2>&1
-> +_scratch_mount_casefold
-> +
-> +mkdir -p $merge $upperdir $workdir $lowerdir
-> +
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 || \
-> +       echo "Overlayfs mount with strict casefold disabled layers failed=
-"
-> +unmount_overlay
-> +
-> +# Test strict enconding, with casefold enabled. Should fail
-> +# dmesg: overlayfs: strict encoding not supported
-> +rm -rf $upperdir $workdir
-> +mkdir $upperdir $workdir
-> +
-> +_casefold_set_attr $upperdir >>$seqres.full
-> +_casefold_set_attr $workdir >>$seqres.full
-> +_casefold_set_attr $lowerdir >>$seqres.full
-> +
-> +mount_overlay $lowerdir >>$seqres.full 2>&1 && \
-> +       echo "Overlayfs mount with strict casefold enabled should have fa=
-iled" && \
-> +       unmount_overlay
-> +
-> +# Test inconsistent casefold version. Should fail
-> +# dmesg: overlayfs: all layers must have the same encoding
-> +
-> +# use tmpfs to make easier to create two different mount points with dif=
-ferent
-> +# utf8 versions
-> +testdir=3D"$SCRATCH_MNT/newdir/"
-> +mkdir $testdir
-> +
-> +MNT1=3D"$testdir/mnt1"
-> +MNT2=3D"$testdir/mnt2"
-> +
-> +mkdir $MNT1 $MNT2 "$testdir/merge"
-> +
-> +mount_casefold_version "utf8-12.1.0" $MNT1
-> +mount_casefold_version "utf8-11.0.0" $MNT2
-> +
-> +mkdir "$MNT1/dir" "$MNT2/dir"
-> +
-> +_casefold_set_attr "$MNT1/dir"
-> +_casefold_set_attr "$MNT2/dir"
-> +
-> +mkdir "$MNT1/dir/lower" "$MNT2/dir/upper" "$MNT2/dir/work"
-> +
-> +upperdir=3D"$MNT2/dir/upper"
-> +workdir=3D"$MNT2/dir/work"
-> +lowerdir=3D"$MNT1/dir/lower"
-> +
-> +mount_overlay $lowerdir >>$seqres.full 2>&1  && \
-> +       echo "Overlayfs mount different unicode versions should have fail=
-ed" && \
-> +       unmount_overlay
-> +
-> +umount $MNT1
-> +umount $MNT2
-> +
-> +# success, all done
-> +status=3D0
-> +exit
-> diff --git a/tests/generic/999.out b/tests/generic/999.out
-> new file mode 100644
-> index 00000000..ce383d94
-> --- /dev/null
-> +++ b/tests/generic/999.out
-> @@ -0,0 +1,13 @@
-> +QA output created by 999
-> +Casefold disabled
-> +Casefold enabled after mount
-> +ls: cannot access 'SCRATCH_MNT/ovl-merge/subdir': Stale file handle
-> +Casefold enabled lower dir
-> +Casefold enabled lower subdir
-> +ls: cannot access 'SCRATCH_MNT/ovl-merge/casefold/subdir': Object is rem=
-ote
-> +Casefold enabled upper dir
-> +Casefold enabled
-> +Casefold disabled on lower after mount
-> +ls: cannot access 'SCRATCH_MNT/ovl-merge/dir/': Stale file handle
-> +Casefold disabled on subdir after mount
-> +ls: cannot access 'SCRATCH_MNT/ovl-merge/casefold/subdir': Object is rem=
-ote
-> --
-> 2.50.1
->
+>  fs/ecryptfs/inode.c      |  3 +--
+>  fs/namei.c               | 11 ++++-------
+>  fs/nfsd/nfs3proc.c       |  2 +-
+>  fs/nfsd/vfs.c            |  3 +--
+>  fs/open.c                |  4 +---
+>  fs/overlayfs/overlayfs.h |  2 +-
+>  fs/smb/server/vfs.c      |  3 +--
+>  include/linux/fs.h       |  3 +--
+>  8 files changed, 11 insertions(+), 20 deletions(-)
+> 
+> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+> index 88631291b32535f623a3fbe4ea9b6ed48a306ca0..d109e3763a88150bfe64cd2d5564dc9802ef3386 100644
+> --- a/fs/ecryptfs/inode.c
+> +++ b/fs/ecryptfs/inode.c
+> @@ -188,8 +188,7 @@ ecryptfs_do_create(struct inode *directory_inode,
+>  
+>  	rc = lock_parent(ecryptfs_dentry, &lower_dentry, &lower_dir);
+>  	if (!rc)
+> -		rc = vfs_create(&nop_mnt_idmap, lower_dir,
+> -				lower_dentry, mode, true);
+> +		rc = vfs_create(&nop_mnt_idmap, lower_dentry, mode);
+>  	if (rc) {
+>  		printk(KERN_ERR "%s: Failure to create dentry in lower fs; "
+>  		       "rc = [%d]\n", __func__, rc);
+> diff --git a/fs/namei.c b/fs/namei.c
+> index f439429bdfa271ccc64c937771ef4175597feb53..9586c6aba6eae05a9fc3c103b8501d98767bef53 100644
+> --- a/fs/namei.c
+> +++ b/fs/namei.c
+> @@ -3461,10 +3461,8 @@ static inline umode_t vfs_prepare_mode(struct mnt_idmap *idmap,
+>  /**
+>   * vfs_create - create new file
+>   * @idmap:	idmap of the mount the inode was found from
+> - * @dir:	inode of the parent directory
+>   * @dentry:	dentry of the child file
+>   * @mode:	mode of the child file
+> - * @want_excl:	whether the file must not yet exist
+>   *
+>   * Create a new file.
+>   *
+> @@ -3474,9 +3472,9 @@ static inline umode_t vfs_prepare_mode(struct mnt_idmap *idmap,
+>   * On non-idmapped mounts or if permission checking is to be performed on the
+>   * raw inode simply pass @nop_mnt_idmap.
+>   */
+> -int vfs_create(struct mnt_idmap *idmap, struct inode *dir,
+> -	       struct dentry *dentry, umode_t mode, bool want_excl)
+> +int vfs_create(struct mnt_idmap *idmap, struct dentry *dentry, umode_t mode)
+>  {
+> +	struct inode *dir = d_inode(dentry->d_parent);
+>  	int error;
+>  
+>  	error = may_create(idmap, dir, dentry);
+> @@ -3490,7 +3488,7 @@ int vfs_create(struct mnt_idmap *idmap, struct inode *dir,
+>  	error = security_inode_create(dir, dentry, mode);
+>  	if (error)
+>  		return error;
+> -	error = dir->i_op->create(idmap, dir, dentry, mode, want_excl);
+> +	error = dir->i_op->create(idmap, dir, dentry, mode, true);
+>  	if (!error)
+>  		fsnotify_create(dir, dentry);
+>  	return error;
+> @@ -4383,8 +4381,7 @@ static int do_mknodat(int dfd, struct filename *name, umode_t mode,
+>  	idmap = mnt_idmap(path.mnt);
+>  	switch (mode & S_IFMT) {
+>  		case 0: case S_IFREG:
+> -			error = vfs_create(idmap, path.dentry->d_inode,
+> -					   dentry, mode, true);
+> +			error = vfs_create(idmap, dentry, mode);
+>  			if (!error)
+>  				security_path_post_mknod(idmap, dentry);
+>  			break;
+> diff --git a/fs/nfsd/nfs3proc.c b/fs/nfsd/nfs3proc.c
+> index b6d03e1ef5f7a5e8dd111b0d56c061f1e91abff7..30ea7ffa2affdb9a959b0fd15a630de056d6dc3c 100644
+> --- a/fs/nfsd/nfs3proc.c
+> +++ b/fs/nfsd/nfs3proc.c
+> @@ -344,7 +344,7 @@ nfsd3_create_file(struct svc_rqst *rqstp, struct svc_fh *fhp,
+>  	status = fh_fill_pre_attrs(fhp);
+>  	if (status != nfs_ok)
+>  		goto out;
+> -	host_err = vfs_create(&nop_mnt_idmap, inode, child, iap->ia_mode, true);
+> +	host_err = vfs_create(&nop_mnt_idmap, child, iap->ia_mode);
+>  	if (host_err < 0) {
+>  		status = nfserrno(host_err);
+>  		goto out;
+> diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
+> index c400ea94ff2e837fd59719bf2c4b79ef1d064743..464fd54675f3b16fce9ae5f05ad22e0e6b363eb3 100644
+> --- a/fs/nfsd/vfs.c
+> +++ b/fs/nfsd/vfs.c
+> @@ -1552,8 +1552,7 @@ nfsd_create_locked(struct svc_rqst *rqstp, struct svc_fh *fhp,
+>  	err = 0;
+>  	switch (type) {
+>  	case S_IFREG:
+> -		host_err = vfs_create(&nop_mnt_idmap, dirp, dchild,
+> -				      iap->ia_mode, true);
+> +		host_err = vfs_create(&nop_mnt_idmap, dchild, iap->ia_mode);
+>  		if (!host_err)
+>  			nfsd_check_ignore_resizing(iap);
+>  		break;
+> diff --git a/fs/open.c b/fs/open.c
+> index fdaa6f08f6f4cac5c2fefd3eafa5e430e51f3979..e440f58e3ce81e137aabdf00510d839342a19219 100644
+> --- a/fs/open.c
+> +++ b/fs/open.c
+> @@ -1171,9 +1171,7 @@ struct file *dentry_create(const struct path *path, int flags, umode_t mode,
+>  	if (IS_ERR(f))
+>  		return f;
+>  
+> -	error = vfs_create(mnt_idmap(path->mnt),
+> -			   d_inode(path->dentry->d_parent),
+> -			   path->dentry, mode, true);
+> +	error = vfs_create(mnt_idmap(path->mnt), path->dentry, mode);
+>  	if (!error)
+>  		error = vfs_open(path, f);
+>  
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index d215d7349489686b66bb66e939b27046f7d836f6..2bdc434941ebc70f6d4f57cca4f68125112a7bc4 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -235,7 +235,7 @@ static inline int ovl_do_create(struct ovl_fs *ofs,
+>  				struct inode *dir, struct dentry *dentry,
+>  				umode_t mode)
+>  {
+> -	int err = vfs_create(ovl_upper_mnt_idmap(ofs), dir, dentry, mode, true);
+> +	int err = vfs_create(ovl_upper_mnt_idmap(ofs), dentry, mode);
+>  
+>  	pr_debug("create(%pd2, 0%o) = %i\n", dentry, mode, err);
+>  	return err;
+> diff --git a/fs/smb/server/vfs.c b/fs/smb/server/vfs.c
+> index c5f0f3170d586cb2dc4d416b80948c642797fb82..83ece2de4b23bf9209137e7ca414a72439b5cc2e 100644
+> --- a/fs/smb/server/vfs.c
+> +++ b/fs/smb/server/vfs.c
+> @@ -188,8 +188,7 @@ int ksmbd_vfs_create(struct ksmbd_work *work, const char *name, umode_t mode)
+>  	}
+>  
+>  	mode |= S_IFREG;
+> -	err = vfs_create(mnt_idmap(path.mnt), d_inode(path.dentry),
+> -			 dentry, mode, true);
+> +	err = vfs_create(mnt_idmap(path.mnt), dentry, mode);
+>  	if (!err) {
+>  		ksmbd_vfs_inherit_owner(work, d_inode(path.dentry),
+>  					d_inode(dentry));
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 12873214e1c7811735ea5d2dee3d57e2a5604d8f..21876ef1fec90181b9878372c7c7e710773aae9f 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2111,8 +2111,7 @@ bool inode_owner_or_capable(struct mnt_idmap *idmap,
+>  /*
+>   * VFS helper functions..
+>   */
+> -int vfs_create(struct mnt_idmap *, struct inode *,
+> -	       struct dentry *, umode_t, bool);
+> +int vfs_create(struct mnt_idmap *, struct dentry *, umode_t);
+>  struct dentry *vfs_mkdir(struct mnt_idmap *, struct inode *,
+>  			 struct dentry *, umode_t, struct delegated_inode *);
+>  int vfs_mknod(struct mnt_idmap *, struct inode *, struct dentry *,
+> 
+> -- 
+> 2.51.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
