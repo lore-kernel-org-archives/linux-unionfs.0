@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0714A31A554;
-	Thu, 13 Nov 2025 13:02:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB89831A554;
+	Thu, 13 Nov 2025 13:02:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763038973; cv=none; b=mN7EKnLGRRo+VDoHxGb25Cg+w2CcXEN4HbXeIiPvWaCzpvPG4/9DikFT68nmCvG31JPrpNy2ORzY4DJ/0bCvjvhMSstbIQDV8OVHka63qbLRGk+IsXgU3swrFj33hN9pCmQQPWPF47H0QHyfzE0siSh11ybe/jFQqqdgGtbceKk=
+	t=1763038975; cv=none; b=jyx8fO3OTWZExQce3rXyl+PCP847Uk5JI0vOFRS+aVV8OlAD0D7a4RFR8gkY72/3zjSKc9qDRc+m2GBC2rrgI+koKb5GLdNgeZ+LAOjv5IM3Mb+nmcUhgw0OaTzQC4p5mI6fq97ufxHRBth2CyPH8IMe7fgECD14uUH8EPCGs6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763038973; c=relaxed/simple;
-	bh=sqUSmSJqtQfDlz+Sg+xtIxiPn64KYGI9BokrEmpKoyg=;
+	s=arc-20240116; t=1763038975; c=relaxed/simple;
+	bh=s59GJd+3qbQosJPVYIBystxZvR+2Nr2DP7U6ljLzoAc=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=MatKHOtEhFHH368ZhWJwHmTP8VE6k3fdglwwqNutUZcwCT/iD44W32WCVLSpAi88/ce/jrwTWr6VQiTdpufUbsFC/joCN9WMo9OKiqY0ianN0Uwt8zRR/Vd8OHdWGkGrnzaxpairp471TEsPrGdyJbfzpibm3Acj4Oim76xEgOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=egNP3sb4; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=Sf+NheKlM1Xj4quXWOsjeCar/2MwkQ3Ms0nV5ekxhUSL8Z0T0p8UdBgjemAy7smtrgnZIkmhHnOh+xClPwP87Z3xjw6fpY6hmZrt4uq3DLsmwynalR+UUHwi7WAaDDmS5imLae1oz5ogOYfmoXA+XjaYoP0eCUVMa7rvFG6yy24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i/EtseIs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="egNP3sb4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B549C2BC86;
-	Thu, 13 Nov 2025 13:02:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i/EtseIs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FA09C4CEF1;
+	Thu, 13 Nov 2025 13:02:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763038972;
-	bh=sqUSmSJqtQfDlz+Sg+xtIxiPn64KYGI9BokrEmpKoyg=;
+	s=k20201202; t=1763038974;
+	bh=s59GJd+3qbQosJPVYIBystxZvR+2Nr2DP7U6ljLzoAc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=egNP3sb4A1bt+cqN8Y4On7arIF6sgDmZ7qfBV0CiBlTLmY+i0XRSOgWNb+EyUUONx
-	 rM56gLjsZEvBWhNHvRwBvJp/Iby09aFBuvt0/p9LWGil3hPue/JjYKW0VNM7Uko7iJ
-	 faTGqnenRn0h2ubgntj5EJp2RitZQpaqa/g1yMTitlOS9aYTmml9ebqiicyifoFKGv
-	 VGXAcxJSung/V9bu+sSyRaopEQART8pa6f5qIRg0YEkjD5ppZoTAF82jLujIz5NSYN
-	 wcJFqUis9X32IBEdKE6E6X1+8v4hyTp5Qck/CyqCyM3pweBzF1FL7uwMqX956zCHYA
-	 uEEdYWOg+JALQ==
+	b=i/EtseIs5aupb4hrezY8YjjzrrevxAnQADu1qxwjYzuhA+w9+00UKkaJTeoJtOuhP
+	 j362neicYL4LZitIE7hLPmgOYehNmItKqWSbNdKshnfANaeQ5s+neBF+48x//rEPwR
+	 eWGFZs2D84wGp6IhhMmjt/mP1cDtJf60wTRPlWmbcHHKEnw3/vMOjuiTNpj+0ZufMR
+	 G0ucAnAoUYyo84mBHEjB2T/O9wyODt+ov6U0Z9HK85eH4H2zYML+qXhg7KCpP8FSQO
+	 qg8T2mqSZhdk/dalghhQNWIjapqQLUfdKCxTFpZyNPYnqetL/Bm3jp9ZTa1I1f+D7/
+	 t7AS3ea8ogRWQ==
 From: Christian Brauner <brauner@kernel.org>
-Date: Thu, 13 Nov 2025 14:01:32 +0100
-Subject: [PATCH RFC 12/42] ovl: port ovl_flush() to cred guard
+Date: Thu, 13 Nov 2025 14:01:33 +0100
+Subject: [PATCH RFC 13/42] ovl: port ovl_setattr() to cred guard
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -37,7 +37,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20251113-work-ovl-cred-guard-v1-12-fa9887f17061@kernel.org>
+Message-Id: <20251113-work-ovl-cred-guard-v1-13-fa9887f17061@kernel.org>
 References: <20251113-work-ovl-cred-guard-v1-0-fa9887f17061@kernel.org>
 In-Reply-To: <20251113-work-ovl-cred-guard-v1-0-fa9887f17061@kernel.org>
 To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
@@ -45,12 +45,12 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
  linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
  Christian Brauner <brauner@kernel.org>
 X-Mailer: b4 0.15-dev-a6db3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1004; i=brauner@kernel.org;
- h=from:subject:message-id; bh=sqUSmSJqtQfDlz+Sg+xtIxiPn64KYGI9BokrEmpKoyg=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSKXnu8YdME/rxtFj+2+6YFHJhwMe/cw252ddOk5yyes
- qX3f9+d3lHKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjCRmyWMDDvVirhzPXzyAz8t
- 1hLR2JbhmT/984VTebZ3w9dN+ffN9RfDb/bMyVFWN5bwnKuTFkl+erqOSanOSOGDr+ymncfSF2/
- Yxg8A
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1109; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=s59GJd+3qbQosJPVYIBystxZvR+2Nr2DP7U6ljLzoAc=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSKXns8cxFjlsibY0q3e64dsv2tZKuoKWgS8m6HvsCfH
+ esd09ezd5SwMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEyk3oDhm1rzngvsBquWimuv
+ OKd2Ya1qlqil5tz7LeGz0h3sVE1/MzL83KDbsmrfbKnq7RUS3RyzvkYw6O+rfMda0s5odGtZTBc
+ LAA==
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
@@ -58,33 +58,33 @@ Use the scoped ovl cred guard.
 
 Signed-off-by: Christian Brauner <brauner@kernel.org>
 ---
- fs/overlayfs/file.c | 6 ++----
+ fs/overlayfs/inode.c | 6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index f562f908f48a..e375c7306051 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -620,7 +620,6 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
- static int ovl_flush(struct file *file, fl_owner_t id)
- {
- 	struct file *realfile;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index e11f310ce092..7b28318b7f31 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -25,7 +25,6 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+ 	bool full_copy_up = false;
+ 	struct dentry *upperdentry;
 -	const struct cred *old_cred;
- 	int err = 0;
  
- 	realfile = ovl_real_file(file);
-@@ -628,9 +627,8 @@ static int ovl_flush(struct file *file, fl_owner_t id)
- 		return PTR_ERR(realfile);
+ 	err = setattr_prepare(&nop_mnt_idmap, dentry, attr);
+ 	if (err)
+@@ -78,9 +77,8 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 			goto out_put_write;
  
- 	if (realfile->f_op->flush) {
--		old_cred = ovl_override_creds(file_inode(file)->i_sb);
--		err = realfile->f_op->flush(realfile, id);
+ 		inode_lock(upperdentry->d_inode);
+-		old_cred = ovl_override_creds(dentry->d_sb);
+-		err = ovl_do_notify_change(ofs, upperdentry, attr);
 -		ovl_revert_creds(old_cred);
-+		with_ovl_creds(file_inode(file)->i_sb)
-+			err = realfile->f_op->flush(realfile, id);
- 	}
- 
- 	return err;
++		with_ovl_creds(dentry->d_sb)
++			err = ovl_do_notify_change(ofs, upperdentry, attr);
+ 		if (!err)
+ 			ovl_copyattr(dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
 
 -- 
 2.47.3
