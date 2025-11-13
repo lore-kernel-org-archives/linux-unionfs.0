@@ -1,143 +1,81 @@
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDAF351FDE
-	for <linux-unionfs@vger.kernel.org>; Thu, 13 Nov 2025 13:29:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07C581E633C
+	for <linux-unionfs@vger.kernel.org>; Thu, 13 Nov 2025 13:31:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763040546; cv=none; b=NCNRjK/o2VaSkjabHTo4kJi5deIB2DOqjaFH444NNkIIss5dsUOked5yEPvE9tkLCAoPzvYVzcQEGrVzxIgzVL5uzKvJlqATO6JV5ay3HHBkWBIt4/Wok7MNvgFKt5GgnnaCSFNzNuFlRrTJVq2Z17IJG26kEeSuWvApP0PKXS0=
+	t=1763040701; cv=none; b=bmSJJOhsiA/g8heV0Qh0iwBSLrB1h4hOkdqcVegQ8kHSr+rm0gCHBb7kLbX9ScmzsdS3w15kwvuCo/BlwsfHJQCsWvwogCgih5BJwmSsctLboBcGT09OQP47hI3PnUBCUSWW7P3jtI5UxymGEaWwP/Wyur9EXzcUDUcN8ZtH0xI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763040546; c=relaxed/simple;
-	bh=X2R+F/XRtaKhmUDSKPMYcTX6v8IAEUkyS/OWFpx+E2g=;
+	s=arc-20240116; t=1763040701; c=relaxed/simple;
+	bh=Ax3Y9gX1ZUmbL/q+/mzj3MbH2+MCJsINuDamRAt4zMc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Uq1UImOl1q8WnowHpoHKTz9SKAksWYXFIU/O2Q5WBt9EtuzkIkJ5i/Aw9C2m6B3mhD7/vNhFWx+0ySl5FaxTSrEhMFdyaLg39Jr0/CoefOUJtYVebjdEhW8GNVUmjlZLjBp49IMWlGk69O+LF18jIlprS1VtdR8N9QTiPKQMco8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eUf+W6FA; arc=none smtp.client-ip=209.85.208.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=S7TFbdkTpu/AlJMLjTi8kMjZfuOKcITklmAqzCHqusFrkWboeftn7ZSasD7APiHR3iLna+E+rI0bp6fvBmz/9QgH9a2WfmOYNS2kR5NjfTOa47fHuLOVeH1jFsRic0BwHZkMCdfNosc/+f82EYpGbWNuLaJAWE74RwyG4PS3W6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=NQXBE3Gy; arc=none smtp.client-ip=209.85.222.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eUf+W6FA"
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-640bd9039fbso1518711a12.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Nov 2025 05:29:04 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="NQXBE3Gy"
+Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-8b21fa7b91bso81086585a.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Nov 2025 05:31:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763040543; x=1763645343; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oY71TIPYVN9PuTiZ3OlvZTDSV+me+lv0LSynZBsnDaM=;
-        b=eUf+W6FARmBejhLDTdbSSxh8+IN5pl4cUzj7BTggr3MXR8y26RgddMXJ8LFw2ZSGHz
-         iebTeyqOE+ghXtuw3N4h0ZqY3naaCk3Aio5UmtawkwpUJ8XcMd/EPVEot02OBvNCk/28
-         NWkCvYTVifpUy1b627ojojUjvtNO+GlhIW/pQoBOEJydxzoJYjyDS7J464WWR5n5rcf7
-         OZhdCyp5ulxhLZTqcSyR3zmeTUnFF3nNHbG3QYtYLNZ4Bu6IPaR073h3jN7Zk4A0AZrs
-         OehtGsDbTXCWxy6TMrHPA1EaTc9z3YL44YnKa+LjDjMN403gnRELCZO8s2Q09RTRnBwU
-         LVeA==
+        d=szeredi.hu; s=google; t=1763040699; x=1763645499; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ax3Y9gX1ZUmbL/q+/mzj3MbH2+MCJsINuDamRAt4zMc=;
+        b=NQXBE3GyjbeYG+FB+5iEXaf/C2FpVRQuRGEiAmTFqJGsJ6C3uspZb8znaV/gMlG9m5
+         4Qedtj748xlH/OjqdgT41rfzQdqrW3oleNOBFngm4/BOmZ9JAFqL7Z6XEw8QurCL83GV
+         AxZbAcdfURYSN/juYDFCdsP7R9/4wAbiI6fEg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763040543; x=1763645343;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=oY71TIPYVN9PuTiZ3OlvZTDSV+me+lv0LSynZBsnDaM=;
-        b=j+Sz1/NjjvM7Vzmch6U1gRx2OznO3QSPHq9tyxXr08dWzs7lyiQ23KT9P3CxkIp8my
-         fnmcGyebNGRBoWqxbguSiVyRLEh11oqtIZ6US2akn4o2IdLtJUYhakdTvQx3EHZluP4L
-         j4qilDJSGeokGN+V5qB2qay5nVmbe1bgULdQqxReMDjq6ZW6r1Y6co7akih9nkqeTgdI
-         cBLwqULXsicjY0/hCLUlPnxcHogSv7VHtYNrRweB4PWqt/pfpNb3pzduytBPdIOsblDz
-         UyF6CRAp50ud7tPeE13DAIkrarAiutUK0xn17m9tbE1AtCeLitCwJ0WixpiEqYaaLgTa
-         Lr8A==
-X-Forwarded-Encrypted: i=1; AJvYcCU2BXcwwQBEdyWCqeu+4rH3RjebuHQ5eIy7Byvv0ev+XW8WgfqrXKvjas+FDPpehLPn8HKg7ShY9Gz7R0GL@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzr5kY0hMusYADwlgq54pQA0vwMH3wn/0koUhAZVkOEIwbar5Jk
-	GuvuTuoVoOF4l/8ibAcMzavFFfuQqQUK29ro9harmOn4C4E/hXXBPqxlsYpcr7/NHJEuM5fJnqO
-	uRVBZIs5cHRzngX6NwDI2GD/+cnmfTD0=
-X-Gm-Gg: ASbGncuYNceeDuDHPpjxbdKhoSD1glza8SpfGEHmnOOMPhrIzhsG/0sAuDv+Pbi7vw1
-	cGR0nNfX4YWzgjT70CplhrDKA/riLKTN8c04XPAEKSpydFwTCpeoOW2Ek+IzoV/bpGbcqUD06sn
-	WaBdunrdseVjrrHuAJ/KlieJe3j3YWeYRWUs41NH2avQuL8ArMFW792OC+G2b4trWpQk7j/Njxk
-	9NBQBLnFr6zj270s9EoGWAFN/jXihG8drEgzy5u9DH71KkBODtZhT3PWMSn36fR3kuRjI31R+Fu
-	tzezL2oHANWMcnLBpjc=
-X-Google-Smtp-Source: AGHT+IG6QRdFBuSfgkoabmXTvXE8ZnDE+eQzyviPPzlvtafhiPqXkvftCkuT4MQoh0Za7vLQNsP91nL7FaNQn+LD8Rw=
-X-Received: by 2002:a05:6402:1cc1:b0:643:46cb:dad6 with SMTP id
- 4fb4d7f45d1cf-64346cbdd85mr682950a12.19.1763040543274; Thu, 13 Nov 2025
- 05:29:03 -0800 (PST)
+        d=1e100.net; s=20230601; t=1763040699; x=1763645499;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Ax3Y9gX1ZUmbL/q+/mzj3MbH2+MCJsINuDamRAt4zMc=;
+        b=scHeGSUfT3Tn3YL26ZcfGie9i8P+0xYvknLtXBpKMx7xGDnulTvE6i3rBSCWQlF+QF
+         AnuMN9+QeM85nS4UgWqG7toQET8GS0WgVzpRvYSyfVbhD7yeCwo05URFOHEC08gXwzDX
+         jyB2RJ3yb1NQShyb4Q6Bhxwwr+mmxQQV3ruhcA4JDGxn5tlb1txVe/pnY0ZBfKJAHyON
+         kthih7ZJ94KrImSl+NaQicqt6eWRbhCoWPhHRHlRNHrQ+HBbntzp2NiAsW48QRywka9T
+         vLvHkM/u233jKyLR/lth+fotaWbulB0sU6+QANAEd0IgUeKoU+wZ0UVZA5MPTitKGvEh
+         q06Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUXxEb3sZ0HUZihnMyAFFlMJiFpyAXIuzgmZLhJT8qT/s0TaYrXhNenZFX8/ziFeIf/5sjIvVxZHn/w8W7Y@vger.kernel.org
+X-Gm-Message-State: AOJu0YxkRBQ70/3K8xALzEh8/wWhctj1JUi2PG9hKlGjbey22xWux8Nc
+	akOr/5TkBR6flejbN4cKowPXmrTHvDGK8sOfmkZAXC785BnBizLKgJRsK+l7wl86NAUNyNOgF/S
+	CK9XbdIxVZkHbZxPvS3yF5i/6fUtXhZquO34p8855ehq0QRFweaf84EA=
+X-Gm-Gg: ASbGnctFsO6hVrcd/VdBdwtHUCkwgDsTwU5FSJxFmKLOW56msGDnZhU0E60Ajqg4lvr
+	UZf6BQBS6XiwIBAyiAjoS9/9eKPTTyausdlGZoWOQE4tBv40GvVe0+583BqyjYO6DlUn5rAB2v8
+	F288q1wV314Et0oRVw7QGuSa303H3FwHTtSGk7lGAQ9jlpEot0cmNK53QBRj90VFLso+kOMcGwp
+	3JPC/HkPsyN4RvH2We2TiZ4O2raB/7vlOx2KQpJ7t2qbJr4CjSUV8/Tk2Nn
+X-Google-Smtp-Source: AGHT+IE4l67LfIFUAoL6YMj4yvFrNq3hC+Odb67sFJq1MxiWP5V2TQHshdoS6oFGQ4ou5uOwv72kTlMOEbZ4Ve/bk7g=
+X-Received: by 2002:ac8:5884:0:b0:4ed:6504:96ec with SMTP id
+ d75a77b69052e-4eddbda900cmr87104421cf.54.1763040698916; Thu, 13 Nov 2025
+ 05:31:38 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113-work-ovl-cred-guard-v1-0-fa9887f17061@kernel.org> <20251113-work-ovl-cred-guard-v1-15-fa9887f17061@kernel.org>
-In-Reply-To: <20251113-work-ovl-cred-guard-v1-15-fa9887f17061@kernel.org>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 13 Nov 2025 14:28:50 +0100
-X-Gm-Features: AWmQ_bmfC3d1_ow-oZGvxLTAnQ7gAY9RNR8soroa1d8l0d8d2H5GDHsMtZAD7qM
-Message-ID: <CAOQ4uxjGAz+WR0iseLLrMskseqGgQGEoVrJo1Jm_yFCnx=W3YA@mail.gmail.com>
-Subject: Re: [PATCH RFC 15/42] ovl: return directly
+References: <20251113-work-ovl-cred-guard-v1-0-fa9887f17061@kernel.org> <20251113-work-ovl-cred-guard-v1-3-fa9887f17061@kernel.org>
+In-Reply-To: <20251113-work-ovl-cred-guard-v1-3-fa9887f17061@kernel.org>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Thu, 13 Nov 2025 14:31:27 +0100
+X-Gm-Features: AWmQ_bmSbb3TqI3Bzf63PgWag3y9K5UzJmasfZ98WfjSXHrA36CooBlTamJElpA
+Message-ID: <CAJfpegt9LQe_L=Ki0x6G+OMuNhzof3i4KAcGWGrDNDq3tBfMtA@mail.gmail.com>
+Subject: Re: [PATCH RFC 03/42] ovl: port ovl_create_or_link() to cred guard
 To: Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, 
+Cc: Amir Goldstein <amir73il@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 13, 2025 at 2:02=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
+On Thu, 13 Nov 2025 at 14:02, Christian Brauner <brauner@kernel.org> wrote:
 >
-> No need for the goto anymore after we ported to cred guard.
->
-> Signed-off-by: Christian Brauner <brauner@kernel.org>
-> ---
+> Use the scoped ovl cred guard.
 
-The subject is too generic ;)
-but I think this one should be squashed to prev patch
+Would it make sense to re-post the series with --ignore-space-change?
 
->  fs/overlayfs/inode.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
->
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 5fa6376f916b..00e1a47116d4 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -178,7 +178,7 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct=
- path *path,
->         type =3D ovl_path_real(dentry, &realpath);
->         err =3D ovl_real_getattr_nosec(sb, &realpath, stat, request_mask,=
- flags);
->         if (err)
-> -               goto out;
-> +               return err;
->
->         /* Report the effective immutable/append-only STATX flags */
->         generic_fill_statx_attr(inode, stat);
-> @@ -204,7 +204,7 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct=
- path *path,
->                         err =3D ovl_real_getattr_nosec(sb, &realpath, &lo=
-werstat,
->                                                      lowermask, flags);
->                         if (err)
-> -                               goto out;
-> +                               return err;
->
->                         /*
->                          * Lower hardlinks may be broken on copy up to di=
-fferent
-> @@ -258,7 +258,7 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct=
- path *path,
->                                                              &lowerdatast=
-at,
->                                                              lowermask, f=
-lags);
->                                 if (err)
-> -                                       goto out;
-> +                                       return err;
->                         } else {
->                                 lowerdatastat.blocks =3D
->                                         round_up(stat->size, stat->blksiz=
-e) >> 9;
-> @@ -286,7 +286,6 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct=
- path *path,
->         if (!is_dir && ovl_test_flag(OVL_INDEX, d_inode(dentry)))
->                 stat->nlink =3D dentry->d_inode->i_nlink;
->
-> -out:
->         return err;
->  }
->
->
-> --
-> 2.47.3
->
+Otherwise it's basically impossible for a human to review patches
+which mostly consist of indentation change.
+
+Thanks,
+Miklos
