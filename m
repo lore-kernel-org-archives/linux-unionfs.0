@@ -1,98 +1,102 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4912A329E55;
-	Thu, 13 Nov 2025 21:33:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6926A242D86;
+	Fri, 14 Nov 2025 06:26:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763069607; cv=none; b=pbcj7EMfGVkRZNMMonEwYimB+9o9pIchYgBfpnCHpjW+mPepQIdfLvKYBXXOWlisv8xxxQQcE21gUAMNZw2CSK1pOVOEXch9Rpf3YHkPxIZ2C091vmfSURKQMkD/7EgzlwV/hP63dT9w/SHE6HliKi5xQ6K/eb4+tM/KkFKIFPY=
+	t=1763101613; cv=none; b=ra3XoVsukAJn1SwvzmgfOtJnW2tN7JtJKo3tP6uN8NAdRDFOR+ElUBmZFOdQx1VOW26xAIfWQH4cn35bFsTR8muaRmwZ4uSn2dcSg3+w5A56NubBff/s4jBIa/XFPOFmQsT13OhX5+FD+BzHJZVNzabO+05neR9BerBEOecz0mI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763069607; c=relaxed/simple;
-	bh=ULK38kqJjMiA+l8RFycLI4QMy+N0BxTIEV+IiefQ7LY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Dwkgrsoru+7gFIs+aEqeJM5j9nY8GsrWk10ftUd89QY01y2recx60rxihXXLe57j3Sjn1sbwKncCWp3AHcrkswP43bt7ksADoRDaWBcj8Su5SwraDMhAWt2PHJdyNkl6H/VIqPrmFJier3+R9jwGCbWONCD5dxHgr3ZJXgW+gAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u7kxPAqz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763101613; c=relaxed/simple;
+	bh=5V0zYJxbf6yTcvA5sVd3U6L3B6QdKntz+6MjepAGQS0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LScG4zl2bf8zhLhWz4Ab6W26nBIXfNSNczbHwEZM/1aZl7jZX85ZJwGveay+nqzVXbETc8NAU/RYDETCaU3VznDQy8q6r314DvX5FihZpqWiPHupBg0VJ0AsJYkOi2CGAB4uxloiD+aFcj4w8jdwTW8gTHfHi1X1CmFc2uM+IGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=yc1BbnIP; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u7kxPAqz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D4BC4CEF7;
-	Thu, 13 Nov 2025 21:33:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763069607;
-	bh=ULK38kqJjMiA+l8RFycLI4QMy+N0BxTIEV+IiefQ7LY=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=u7kxPAqzFjv0XhtLwcWgtD1/om8F6MhEfuw3lX2Ibh2ZsWT4g9YUSvwqR+Zpj0T2y
-	 0fazGzIMuqlNNrZhq+v1i68twdJUtHwhKfZ3W8atBZwR7iGsmHSO6BEwKBtftA9P3e
-	 QIz/9PGupYsLFudsOPlyk+MQR315MJbdbtlDwZyVVcGhJ7kYCAuuDy84UYj1wm+fnq
-	 6elOok2TwC4B8u7QK/xTbx2Dlhr3HxQm/tWE8gIgeNmA07DCVsn5dS0LTkDtAwQhpm
-	 5W1gFflDp3BlVmmxBZm46R42P+mXbnQH+sGw4l/RNAL4xu/BTtjxT6NdNd9INBNuF9
-	 QPsO7SUbpVQRg==
-From: Christian Brauner <brauner@kernel.org>
-Date: Thu, 13 Nov 2025 22:32:25 +0100
-Subject: [PATCH v3 42/42] ovl: remove ovl_revert_creds()
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="yc1BbnIP"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=k1LbDExrN0ggsKL8BG2ZZifr9NCiwP7806AdNTSqrTo=; b=yc1BbnIPmw7r8r6Ligj0NRD8pt
+	XBQJz9ltXrPwFOlsy0m+7pUmq9nSRoegHccYW3JeNVnf6Wp/qlgoA6DzKwejQfJud0x/kY8PTIkoz
+	bg/dq3maUqbxl0MC/eedcbkJL9LoHn29AfMeOojS4jhZZP8Z7JYv2T+voKIls25rangHauouswCkJ
+	6TyZED9nZGX6JYDJmxJEAUJQlehv8IlNyHtuG0jLcueP2dqrt/DssOEhSyR1FYdXlUE5fGlkAlW9C
+	U5ZrPbzRoj2Db8vZur7MJyMdF6cTXKn5Cl3BS/2BkYx7vJoE7l1EebrCU0dao8tzuRmslpJbrZyqr
+	ugVlRwsw==;
+Received: from 2a02-8389-2341-5b80-d601-7564-c2e0-491c.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:d601:7564:c2e0:491c] helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vJnGh-0000000BeQ2-3r71;
+	Fri, 14 Nov 2025 06:26:48 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	David Sterba <dsterba@suse.com>,
+	Jan Kara <jack@suse.cz>,
+	Mike Marshall <hubcap@omnibond.com>,
+	Martin Brandenburg <martin@omnibond.com>,
+	Carlos Maiolino <cem@kernel.org>,
+	Stefan Roesch <shr@fb.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-btrfs@vger.kernel.org,
+	gfs2@lists.linux.dev,
+	io-uring@vger.kernel.org,
+	devel@lists.orangefs.org,
+	linux-unionfs@vger.kernel.org,
+	linux-mtd@lists.infradead.org,
+	linux-xfs@vger.kernel.org,
+	linux-nfs@vger.kernel.org
+Subject: re-enable IOCB_NOWAIT writes to files
+Date: Fri, 14 Nov 2025 07:26:03 +0100
+Message-ID: <20251114062642.1524837-1-hch@lst.de>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251113-work-ovl-cred-guard-v3-42-b35ec983efc1@kernel.org>
-References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
-In-Reply-To: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, 
- linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
- Christian Brauner <brauner@kernel.org>
-X-Mailer: b4 0.15-dev-a6db3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1387; i=brauner@kernel.org;
- h=from:subject:message-id; bh=ULK38kqJjMiA+l8RFycLI4QMy+N0BxTIEV+IiefQ7LY=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSK+UW4nlea8ozv9yK/s0pu1+w1HkzJ0f+0P3z1hK+2n
- Eo9foImHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABN5fYPhf2Du9GnFGoYGhz9e
- uf2g/dXMhUGP3gYIrHGxjTHwvS7TPo2RYaY0U/+5a/LMFsEvAr0uap3eaZqU/n/6k/vKoQte8Rd
- n8QIA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-The wrapper isn't needed anymore. Overlayfs completely relies on its
-cleanup guard.
+Hi all,
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Christian Brauner <brauner@kernel.org>
----
- fs/overlayfs/overlayfs.h | 1 -
- fs/overlayfs/util.c      | 5 -----
- 2 files changed, 6 deletions(-)
+commit 66fa3cedf16a ("fs: Add async write file modification handling.")
+effectively disabled IOCB_NOWAIT writes as timestamp updates currently
+always require blocking, and the modern timestamp resolution means we
+always update timestamps.  This leads to a lot of context switches from
+applications using io_uring to submit file writes, making it often worse
+than using the legacy aio code that is not using IOCB_NOWAIT.
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index eeace590ba57..41a3c0e9595b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -437,7 +437,6 @@ int ovl_want_write(struct dentry *dentry);
- void ovl_drop_write(struct dentry *dentry);
- struct dentry *ovl_workdir(struct dentry *dentry);
- const struct cred *ovl_override_creds(struct super_block *sb);
--void ovl_revert_creds(const struct cred *old_cred);
- 
- EXTEND_CLASS(override_creds, _ovl, ovl_override_creds(sb), struct super_block *sb)
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index e2f2e0d17f0b..dc521f53d7a3 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -69,11 +69,6 @@ const struct cred *ovl_override_creds(struct super_block *sb)
- 	return override_creds(ofs->creator_cred);
- }
- 
--void ovl_revert_creds(const struct cred *old_cred)
--{
--	revert_creds(old_cred);
--}
--
- /*
-  * Check if underlying fs supports file handles and try to determine encoding
-  * type, in order to deduce maximum inode number used by fs.
+This series allows non-blocking updates for lazytime if the file system
+supports it, and adds that support for XFS.
 
--- 
-2.47.3
+It also fixes the layering bypass in btrfs when updating timestamps on
+device files for devices removed from btrfs usage, and FMODE_NOCMTIME
+handling in the VFS now that nfsd started using it.  Note that I'm still
+not sure that nfsd usage is fully correct for all file systems, as only
+XFS explicitly supports FMODE_NOCMTIME, but at least the generic code
+does the right thing now.
 
+Diffstat:
+ Documentation/filesystems/locking.rst |    2 
+ Documentation/filesystems/vfs.rst     |    6 ++
+ fs/btrfs/inode.c                      |    3 +
+ fs/btrfs/volumes.c                    |   11 +--
+ fs/fat/misc.c                         |    3 +
+ fs/fs-writeback.c                     |   53 ++++++++++++++----
+ fs/gfs2/inode.c                       |    6 +-
+ fs/inode.c                            |  100 +++++++++++-----------------------
+ fs/internal.h                         |    3 -
+ fs/orangefs/inode.c                   |    7 ++
+ fs/overlayfs/inode.c                  |    3 +
+ fs/sync.c                             |    4 -
+ fs/ubifs/file.c                       |    9 +--
+ fs/utimes.c                           |    1 
+ fs/xfs/xfs_iops.c                     |   29 ++++++++-
+ fs/xfs/xfs_super.c                    |   29 ---------
+ include/linux/fs.h                    |   17 +++--
+ include/trace/events/writeback.h      |    6 --
+ 18 files changed, 152 insertions(+), 140 deletions(-)
