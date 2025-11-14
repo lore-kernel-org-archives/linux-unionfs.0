@@ -1,205 +1,393 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8FD82EDD53;
-	Fri, 14 Nov 2025 19:47:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1D32DCC06
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 19:48:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763149636; cv=none; b=O1f+P8PelD9nTkshXf173r7zOG4VxcyFonQ4q05XAD8DMhPqsnrBF7cHdZszS/oSG3ovPGUpv1In9bIgf7usPBFJitvlGH4q71cIyFj+mZDLG6slAHLihwsGfjsKOR0XWWryjmQoaEfMuttSXNUGaNDghn2df75Vk2l2MaUuPxw=
+	t=1763149737; cv=none; b=pt+SbhB4l/AT7vU9e3PA4UjoSvzlm1Khpvl7mLBILgL+hQL/JrxVP9lzVmspDJ04jnwGjmEQ3Pz5TktYARnG95NEck+DFjfIpWvxWFfmjy5epbyrvtr8aYFRhyfSFaDrOwOskpDLVorgxyGo+jpQOK3tpj57WuFFBKLPWsD3dTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763149636; c=relaxed/simple;
-	bh=REeSO5rMp1YGjY627e4cE9lzZEy2V6tti6RpwKKRYO4=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=MTNjLUi+u/qSHMTTAMfFD8K4Wx7BKSlEhQosqFfgOGeJF8CJLFWAqrVdI7UU25zOExN6k2r6dNfMtOVK5GsbLuKY0SanBFRKxzHAenpZjYqwutETkMcGRkANmeBeHgHuWVxcPKZ5tyBdeWr5qPdjyAlkBjxIGEuGwg2mZDyI96g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DxygaeVo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763149737; c=relaxed/simple;
+	bh=j6twI5SqQGvOPFdhGNQNuBtlelBO6pkQcYFTuqJo4NE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BMpglcz3LUD6n7g9xxng2tzGTkujz/YT5U0wjbwx0IHnnEyaHNowQY9rmtPkiadQbwfKF9T/F4hpwsidVMWMCPAn51JKOPtHwh5OF3O8vAYPqA39I1ShyQEQgRhr7Vqw9cWCl1j5oxXjUc0KV9bR6ZW6QJZkTTQ4PWbe5HSKpXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QeuOC15F; arc=none smtp.client-ip=209.85.208.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DxygaeVo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1033C116B1;
-	Fri, 14 Nov 2025 19:47:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763149635;
-	bh=REeSO5rMp1YGjY627e4cE9lzZEy2V6tti6RpwKKRYO4=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-	b=DxygaeVo++Am9yVdIn2xmS6RdOu/inN1IV3jHs/i65Il9sH4kXFCXZQRH5PqD9kr7
-	 EEjZxd3IRMWSOQchWHEfgw+idatwGYPzx/gD3u5YjLB1Pt0fG2Pogz1QmjK0o00JkM
-	 DrMxy1bSGkJycCGUE+c/nOa8kTJi6YXXNZF7GP2h2ijlzMvK0RwGo6u73krrsINHQT
-	 pjI7iap4NoyYLSCxOqlCq/TOw6v5+9tGwYMh8s5ujo+Q+Fl/45AJ5iWazDHDFLKddh
-	 7v9ff2dr2Gf3S9MQ8/+MOVQsoprAYDXpgjpmSCO+YO8o4MXPlDQeYOa9TdZi2Wi+l4
-	 X1LsouQTUgnng==
-Message-ID: <edac512451530bbe4b5f1e8baaeecdcc96e8d39b.camel@kernel.org>
-Subject: Re: re-enable IOCB_NOWAIT writes to files
-From: Jeff Layton <jlayton@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Christian Brauner <brauner@kernel.org>, Al Viro
- <viro@zeniv.linux.org.uk>,  David Sterba <dsterba@suse.com>, Jan Kara
- <jack@suse.cz>, Mike Marshall <hubcap@omnibond.com>, Martin Brandenburg
- <martin@omnibond.com>, Carlos Maiolino <cem@kernel.org>, Stefan Roesch
- <shr@fb.com>, 	linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- gfs2@lists.linux.dev, 	io-uring@vger.kernel.org, devel@lists.orangefs.org, 
-	linux-unionfs@vger.kernel.org, linux-mtd@lists.infradead.org, 
-	linux-xfs@vger.kernel.org, linux-nfs@vger.kernel.org
-Date: Fri, 14 Nov 2025 14:47:12 -0500
-In-Reply-To: <20251114152840.GD30351@lst.de>
-References: <20251114062642.1524837-1-hch@lst.de>
-	 <b7e8d5e3a0ce8da103f4591afc1f4a9c683ef3c7.camel@kernel.org>
-	 <20251114152840.GD30351@lst.de>
-Autocrypt: addr=jlayton@kernel.org; prefer-encrypt=mutual;
- keydata=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
- QZIQXVeAA+smfTT0tDrisj1U5x6ZB9b3nBg65kc=
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.1 (3.58.1-1.fc43) 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QeuOC15F"
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-64312565c10so3689943a12.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 11:48:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763149734; x=1763754534; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=tv0IKvKJcdm09lOdehlfWwQJkkukI0ZDKzc1jq3HU1E=;
+        b=QeuOC15FC1dM+LjGtYm2+HJJi+ZcdX+7R4qy5YOj6SHK4K4BXQsSUK4+gZ76QGDxG+
+         6IZDXnVMDR6uhv62oj3gMvVrcsdDI/a7yT5CLTTrMKcIY+sHM+EFJy341C5GX7N3mBUX
+         S+Q6waWwjTLRT+fsfSQs9yirxmKEJxLCDHUwedUX+n3Urxnasu3+M0eGSslkaAQI9DWe
+         zi5ebipEpC0SXK8yz+Do/DtG+B+QjwvXDsldufLAITQrl9v86nA3JtGldl2GprtA/E1B
+         Az3GQ8/7ZOF4Vt2e4P/hE9mB7wMRFEUPYefm7D3BSgNS9/Hz1PM95oqgb+x7I9ZfexUM
+         nkXQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763149734; x=1763754534;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tv0IKvKJcdm09lOdehlfWwQJkkukI0ZDKzc1jq3HU1E=;
+        b=BCbKs0Em8Wzwa/x95WpPgO6MVp8o4jgZwdgi4g4ZpxevDRShNAC5j0jRsLHR8cE5V4
+         sP9Icd/MnbDp/YdiRlVzD1vR78RBWPYFeg4P0hG4SzKw3bSDXMfhnRjpzojL0dhdSsEE
+         /Dgo+W48JfEqfq9Hq8wleGOv9dty5sQACARYim5oSjFR9HxWxgHY1Kcp21H0vwC58n3z
+         XV8q4NZ7aeM6h8e+9sBL1IZ3IxzVi5NlHizMhCn8FWu9NMam3HgQ1M+iWaho99eIo3HC
+         e0nFbDNZLk7rwzcAWZ1q14BZXdhF0Vg0wSUOqKqtrimpWK2I8LlNp6+Bay27CTNl94UG
+         AZYA==
+X-Forwarded-Encrypted: i=1; AJvYcCXDv83hz8oyGNMd+kFqfrr+UWei2CHbIMmcHgTMPqYL9kaI6MoBxPwOYlUI2SXrSitxKw/LXnzeix3+zsg0@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy0fI9vzMU+ic+MlaSOrpw8zE1EFmF3IFuUX1PdMSUYnZRSu27O
+	zINDxE9CPXbgp8DtsRuTaQY+eshBMcyVmSGLsm7K4fz0Bd3T/UkXr9rd/e9Z+tPjiuw=
+X-Gm-Gg: ASbGncvL1XXxCAewKiPT5nlJfXZFvVKJDSfESuCcMcdA6XHhw/5s7MPWF70NKZVG/d3
+	WNpUoV1KohApFy4PpqPwSY6Oow/FuPnGM1fghBnWkSJ2xCRnyV4aV3D0Qwuum35n093MgW+RLCq
+	8MAc/LtZl0EW3TGS9v+gfKjw+/rp4ZkHJF/VkSXtvWNMGZG+KiGCra2FfNW3T2Obxk+N9jNzVWg
+	D3/M0Z13ZLweAz5Ys6oV8ooaATcpqigUT3JDWAxk09a3/Vwo3SvG625CXPgI4sfNNSkVFMcx2Bs
+	hVqAvt++9/wKIWUnLkB/F6sgrcFEPIXrJ2v1KjJ7gagxXeYRI1944b99QMBjEvWfwcFQostTERn
+	6Q80aYZ+jP3I1q/TMoVklRhyk0tpOREiWzMHmdZAJF/WmMKxY6pc03r1P+ni5rULG/FKZMpwQ+H
+	neIS6mL2LuOqnmnjFclT0lbCDzZvWRGCwmEIERD+9LsmY/uTNJoeT3o4UZeIaCM4FjXU1W6Rjdu
+	VWUXA==
+X-Google-Smtp-Source: AGHT+IH9/VmrpBDdC3X+Pu/jasW2eLDwTI8VLT3G+6FDxr+TM96Do/OesjkQl9u7f62ZGK9sRCOZvQ==
+X-Received: by 2002:a17:907:1b20:b0:b6d:3fc9:e60c with SMTP id a640c23a62f3a-b736780c131mr435172766b.20.1763149733822;
+        Fri, 14 Nov 2025 11:48:53 -0800 (PST)
+Received: from localhost (2001-1c00-570d-ee00-9bc7-e3f9-3583-f90e.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:9bc7:e3f9:3583:f90e])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b734fad41cesm443604066b.16.2025.11.14.11.48.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 14 Nov 2025 11:48:53 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Zorro Lang <zlang@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
+	linux-unionfs@vger.kernel.org,
+	fstests@vger.kernel.org
+Subject: [PATCH v2] overlay: add tests for casefolded layers
+Date: Fri, 14 Nov 2025 20:48:52 +0100
+Message-ID: <20251114194852.1344740-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.51.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Fri, 2025-11-14 at 16:28 +0100, Christoph Hellwig wrote:
-> On Fri, Nov 14, 2025 at 09:04:58AM -0500, Jeff Layton wrote:
-> > This all looks pretty reasonable to me. There are a few changelog and
-> > subject line typos, but the code changes look fine. You can add:
->=20
-> Please tell me about them so I can fix them.=20
->=20
-> > As far as nfsd's usage of FMODE_NOCMTIME, it looks OK to me. That's
-> > implemented today by the check in file_modified_flags(), which is
-> > generic and should work across filesystems.
->=20
-> Nothing requires file_update_time / file_modified_flags are helpers
-> that a file system may or may not call.  I've not done an audit
-> if everyone actually uses them.
+Overalyfs did not allow mounting layers with casefold capable fs
+until kernel v6.17 and did not allow casefold enabled layers
+until kernel v6.18.
 
-FWIW, I turned claude loose on this, and it produced:
+Since kernel v6.18, overalyfs allows this kind of setups,
+as long as the layers have consistent encoding and all the directories
+in the subtree have consistent casefolding.
 
--------------------------------8<----------------------------------
-  Findings:                                                          =20
-                                                                           =
-                             =20
-  1. coda_file_write_iter (fs/coda/file.c:66-94)                     =20
-                                                                           =
-                                                                           =
-                                                            =20
-  Location: fs/coda/file.c:86Issue: Manually updates ctime in
-write_iter operation                                                 =20
-  inode_set_mtime_to_ts(coda_inode,
-inode_set_ctime_current(coda_inode));
-  Context: This is a stacking filesystem that delegates writes to a
-container file via vfs_iter_write(), then manually copies attributes
-back. However, it bypasses file_update_time() or file_modified(),    =20
-  which means it doesn't handle:                   =20
-  - Read-only filesystem checks                                      =20
-  - Immutable inode checks                                           =20
-  - S_NOCMTIME flag                                                  =20
-  - i_version updates                                                =20
-  - Proper dirty marking                                             =20
-                                                                           =
-                             =20
-  2. efivarfs_file_write (fs/efivarfs/file.c:15-77)                  =20
+Create test cases for the following scenarios:
+- Mounting overlayfs with casefold disabled
+- Mounting overlayfs with casefold enabled
+- Lookup subdir in overlayfs with mismatch casefold to parent dir
+- Change casefold of underlying subdir while overalyfs is mounted
+- Mounting overlayfs with strict enconding, but casefold disabled
+- Mounting overlayfs with strict enconding casefold enabled
+- Mounting overlayfs with layers with inconsistent UTF8 version
 
-  Location: fs/efivarfs/file.c:66Issue: Manually updates ctime in write
-operation                       =20
-  inode_set_mtime_to_ts(inode, inode_set_ctime_current(inode));
-  Context: Uses the legacy .write operation (not .write_iter), but
-still a write path that should use proper timestamp helpers.
+Co-developed-by: André Almeida <andrealmeid@igalia.com>
+Signed-off-by: André Almeida <andrealmeid@igalia.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-  3. ocfs2_write_end_nolock (fs/ocfs2/aops.c:1926-2050)
+Hi Zorro,
 
-  Location: fs/ocfs2/aops.c:2024-2026Issue: Manually updates ctime in
-write_end callback
-  inode_set_mtime_to_ts(inode, inode_set_ctime_current(inode));
-  di->i_mtime =3D di->i_ctime =3D cpu_to_le64(inode_get_mtime_sec(inode));
-  di->i_mtime_nsec =3D di->i_ctime_nsec =3D
-cpu_to_le32(inode_get_mtime_nsec(inode));
-  Context: This is called from OCFS2's write path. While
-ocfs2_file_write_iter calls __generic_file_write_iter, the write_end
-callback manually manages timestamps. This is used both by regular
-writes and
-  page_mkwrite via __ocfs2_page_mkwrite.
+I fixed the bug you found with tmpfs.
 
-  4. ubifs_vm_page_mkwrite (fs/ubifs/file.c:1493-1580)
+Please note that I did not assign a sequential test number because
+I wanted to let you assign a non conflicting number when you merge it.
 
-  Location: fs/ubifs/file.c:1570Issue: Manually updates ctime in
-page_mkwrite operation
-  inode_set_mtime_to_ts(inode, inode_set_ctime_current(inode));
-  Context: UBIFS implements its own timestamp update logic with
-mctime_update_needed() and manual budgeting for space, bypassing
-file_update_time().
--------------------------------8<----------------------------------
+Thanks,
+Amir.
 
-Only ocfs2 is exportable, so I think we want to convert that one. The
-others I'm not sure of yet.
---=20
-Jeff Layton <jlayton@kernel.org>
+Chages since v1:
+- Fix test run with tmpfs (needed _scratch_mount_casefold_strict)
+- unmount MNT1/MNT2 in cleanup
+- Use _mount _unmount helpers
+
+ tests/generic/999     | 242 ++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/999.out |  13 +++
+ 2 files changed, 255 insertions(+)
+ create mode 100755 tests/generic/999
+ create mode 100644 tests/generic/999.out
+
+diff --git a/tests/generic/999 b/tests/generic/999
+new file mode 100755
+index 00000000..c315b8ba
+--- /dev/null
++++ b/tests/generic/999
+@@ -0,0 +1,242 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2025 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 999
++#
++# Test overlayfs error cases with casefold enabled layers
++#
++# Overalyfs did not allow mounting layers with casefold capable fs
++# until kernel v6.17 and with casefold enabled until kernel v6.18.
++# Since kernel v6.17, overalyfs allows the mount, as long as casefolding
++# is disabled on all directories.
++# Since kernel v6.18, overalyfs allows the mount, as long as casefolding
++# is consistent on all directories and encoding is consistent on all layers.
++#
++. ./common/preamble
++_begin_fstest auto quick mount casefold
++
++# Override the default cleanup function.
++_cleanup()
++{
++	cd /
++	_unmount $merge 2>/dev/null
++	_unmount $MNT1 2>/dev/null
++	_unmount $MNT2 2>/dev/null
++	rm -r -f $tmp.*
++}
++
++
++# Import common functions.
++. ./common/filter
++. ./common/casefold
++
++_exclude_fs overlay
++_require_extra_fs overlay
++
++_require_scratch_casefold
++
++# Create casefold capable base fs
++_scratch_mkfs_casefold >>$seqres.full 2>&1
++_scratch_mount_casefold
++
++# Create lowerdir, upperdir and workdir without casefold enabled
++lowerdir="$SCRATCH_MNT/ovl-lower"
++upperdir="$SCRATCH_MNT/ovl-upper"
++workdir="$SCRATCH_MNT/ovl-work"
++merge="$SCRATCH_MNT/ovl-merge"
++
++mount_casefold_version()
++{
++	option="casefold=$1"
++	_mount -t tmpfs -o $option tmpfs $2
++}
++
++mount_overlay()
++{
++	local lowerdirs=$1
++
++	_mount -t overlay overlay $merge \
++		-o lowerdir=$lowerdirs,upperdir=$upperdir,workdir=$workdir
++}
++
++unmount_overlay()
++{
++	_unmount $merge 2>/dev/null
++}
++
++# Try to mount an overlay with casefold enabled layers.
++# On kernels older than v6.18 expect failure and skip the test
++mkdir -p $merge $upperdir $workdir $lowerdir
++_casefold_set_attr $upperdir >>$seqres.full
++_casefold_set_attr $workdir >>$seqres.full
++_casefold_set_attr $lowerdir >>$seqres.full
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	_notrun "overlayfs does not support casefold enabled layers"
++unmount_overlay
++
++# Re-create casefold disabled layers with lower subdir
++casefolddir=$lowerdir/casefold
++rm -rf $upperdir $workdir $lowerdir
++mkdir -p $upperdir $workdir $lowerdir $casefolddir
++
++# Try to mount an overlay with casefold capable but disabled layers.
++# Since we already verified that overalyfs supports casefold enabled layers
++# this is expected to succeed.
++echo Casefold disabled
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold disabled layers failed (1)"
++ls $merge/casefold/ >>$seqres.full
++unmount_overlay
++
++# Use new upper/work dirs for each test to avoid ESTALE errors
++# on mismatch lowerdir/upperdir (see test overlay/037)
++rm -rf $upperdir $workdir
++mkdir $upperdir $workdir
++
++# Try to mount an overlay with casefold disabled layers and
++# enable casefold on lowerdir root after mount - expect ESTALE error on lookup.
++echo Casefold enabled after mount
++mount_overlay $casefolddir >>$seqres.full || \
++	echo "Overlayfs mount with casefold disabled layers failed (2)"
++_casefold_set_attr $casefolddir >>$seqres.full
++mkdir $casefolddir/subdir
++ls $merge/subdir |& _filter_scratch
++unmount_overlay
++
++# Try to mount an overlay with casefold enabled lowerdir root - expect EINVAL.
++# With libmount version >= v1.39, we expect the following descriptive error:
++# mount: overlay: case-insensitive directory on .../ovl-lower/casefold not supported
++# but we want the test to run with older libmount, so we so not expect this output
++# we just expect a mount failure.
++echo Casefold enabled lower dir
++mount_overlay $casefolddir >>$seqres.full 2>&1 && \
++	echo "Overlayfs mount with casefold enabled lowerdir should have failed" && \
++	unmount_overlay
++
++# Changing lower layer root again
++rm -rf $upperdir $workdir
++mkdir $upperdir $workdir
++
++# Try to mount an overlay with casefold disabled layers, but with
++# casefold enabled subdir in lowerdir - expect EREMOTE error on lookup.
++echo Casefold enabled lower subdir
++mount_overlay $lowerdir >>$seqres.full
++ls $merge/casefold/subdir |& _filter_scratch
++unmount_overlay
++
++# workdir needs to be empty to set casefold attribute
++rm -rf $workdir/*
++
++_casefold_set_attr $upperdir >>$seqres.full
++_casefold_set_attr $workdir >>$seqres.full
++
++echo Casefold enabled upper dir
++mount_overlay $lowerdir >>$seqres.full 2>&1 && \
++	echo "Overlayfs mount with casefold enabled upperdir should have failed" && \
++	unmount_overlay
++
++# lowerdir needs to be empty to set casefold attribute
++rm -rf $lowerdir/*
++_casefold_set_attr $lowerdir >>$seqres.full
++mkdir $casefolddir
++
++# Try to mount an overlay with casefold enabled layers.
++# On kernels older than v6.18 expect failure and skip the rest of the test
++# On kernels v6.18 and newer, expect success and run the rest of the test cases.
++echo Casefold enabled
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold enabled layers failed (1)"
++ls $merge/casefold/ >>$seqres.full
++unmount_overlay
++
++# Try to mount an overlayfs with casefold enabled layers. After the mount,
++# disable casefold on the lower layer and try to lookup a file. Should return
++# -ESTALE
++echo Casefold disabled on lower after mount
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold enabled layers failed (2)"
++rm -rf $lowerdir/*
++_casefold_unset_attr $lowerdir >>$seqres.full
++mkdir $lowerdir/dir
++ls $merge/dir/ |& _filter_scratch
++unmount_overlay
++
++# cleanup
++rm -rf $lowerdir/*
++_casefold_set_attr $lowerdir >>$seqres.full
++
++# Try to mount an overlayfs with casefold enabled layers. After the mount,
++# disable casefold on a subdir in  the lower layer and try to lookup it.
++# Should return -EREMOTE
++echo Casefold disabled on subdir after mount
++mkdir $lowerdir/casefold/
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with casefold enabled layers failed (3)"
++_casefold_unset_attr $lowerdir/casefold/
++mkdir $lowerdir/casefold/subdir
++ls $merge/casefold/subdir |& _filter_scratch
++unmount_overlay
++
++# cleanup
++rm -rf $lowerdir/*
++
++# Test strict enconding, but casefold not enabled. Should work
++_scratch_umount_idmapped
++
++_scratch_mkfs_casefold_strict >>$seqres.full 2>&1
++_scratch_mount_casefold_strict
++
++mkdir -p $merge $upperdir $workdir $lowerdir
++
++mount_overlay $lowerdir >>$seqres.full 2>&1 || \
++	echo "Overlayfs mount with strict casefold disabled layers failed"
++unmount_overlay
++
++# Test strict enconding, with casefold enabled. Should fail
++# dmesg: overlayfs: strict encoding not supported
++rm -rf $upperdir $workdir
++mkdir $upperdir $workdir
++
++_casefold_set_attr $upperdir >>$seqres.full
++_casefold_set_attr $workdir >>$seqres.full
++_casefold_set_attr $lowerdir >>$seqres.full
++
++mount_overlay $lowerdir >>$seqres.full 2>&1 && \
++	echo "Overlayfs mount with strict casefold enabled should have failed" && \
++	unmount_overlay
++
++# Test inconsistent casefold version. Should fail
++# dmesg: overlayfs: all layers must have the same encoding
++
++# use tmpfs to make easier to create two different mount points with different
++# utf8 versions
++testdir="$SCRATCH_MNT/newdir/"
++mkdir $testdir
++
++MNT1="$testdir/mnt1"
++MNT2="$testdir/mnt2"
++
++mkdir $MNT1 $MNT2 "$testdir/merge"
++
++mount_casefold_version "utf8-12.1.0" $MNT1
++mount_casefold_version "utf8-11.0.0" $MNT2
++
++mkdir "$MNT1/dir" "$MNT2/dir"
++
++_casefold_set_attr "$MNT1/dir"
++_casefold_set_attr "$MNT2/dir"
++
++mkdir "$MNT1/dir/lower" "$MNT2/dir/upper" "$MNT2/dir/work"
++
++upperdir="$MNT2/dir/upper"
++workdir="$MNT2/dir/work"
++lowerdir="$MNT1/dir/lower"
++
++mount_overlay $lowerdir >>$seqres.full 2>&1  && \
++	echo "Overlayfs mount different unicode versions should have failed" && \
++	unmount_overlay
++
++# success, all done
++status=0
++exit
+diff --git a/tests/generic/999.out b/tests/generic/999.out
+new file mode 100644
+index 00000000..ce383d94
+--- /dev/null
++++ b/tests/generic/999.out
+@@ -0,0 +1,13 @@
++QA output created by 999
++Casefold disabled
++Casefold enabled after mount
++ls: cannot access 'SCRATCH_MNT/ovl-merge/subdir': Stale file handle
++Casefold enabled lower dir
++Casefold enabled lower subdir
++ls: cannot access 'SCRATCH_MNT/ovl-merge/casefold/subdir': Object is remote
++Casefold enabled upper dir
++Casefold enabled
++Casefold disabled on lower after mount
++ls: cannot access 'SCRATCH_MNT/ovl-merge/dir/': Stale file handle
++Casefold disabled on subdir after mount
++ls: cannot access 'SCRATCH_MNT/ovl-merge/casefold/subdir': Object is remote
+-- 
+2.51.1
+
