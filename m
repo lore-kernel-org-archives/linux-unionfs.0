@@ -1,142 +1,150 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F27CB70814;
-	Fri, 14 Nov 2025 12:27:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5CF42459E1
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 13:01:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763123260; cv=none; b=MrapQir0vxYTQ7urk51LiIUig6K64u+GRFar/XVQKqyB0JYtsa98ypgtrXhxRvZ7M+21TNGtwvqiHCUpTD2DQoLrNtYwxweYQFczYx5CCL71r9Kt+rZS1ahaPGxaCvcZF1M6s3sQdKekQrMHEEbfUI7nFmlxQRZY2azcmlviilQ=
+	t=1763125309; cv=none; b=egG1Bui9T+reIzc1OXlsVd8YJowAeFKx+mVE/CARW/QUBsnmYY3CN28SIGnIqAFHcPsEmG26tUtS087Ha+d6dwN54lSoF1EYxE+3ipTuJNWrukf7lLkj69ksPtZ4bNCxeDxJBvxc3EeNrK2Ne2u5hybJME97JO1AdAAaaFP/KpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763123260; c=relaxed/simple;
-	bh=QtW3pIcizzKexpU9fz3Mn6XhYVCJ0IvGG+fMc/v2tu8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=YevJXSFr07KUWIZyS4/18AbmE2fkEqIdp9jM0M8ZKPDWi88m2hOr+YgwXrDMfdW1u4Cot5aaMN7uMLvB9Ei0F2jNgdJCxVvfByyNaeNlbibsSb7C5Lw23t3t3On/r59LU6q2q3ugOO0Ynps6gUEE/K+X7rJzYzU5+1JkPEifMNo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FMQD5HcG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763125309; c=relaxed/simple;
+	bh=HpAgGgaEFn90GAP+61OaPTHjskGHvMWPVJKnFRe5/SU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ujeMcDjoMtDKtMY8uquHMrZSWpVGORl266rCrMkUx/qQxRKJ3afNvnnVmx6YH2LMYllXXtwBwjstohNXgP7U5Y7o4H70uq3IV4jk6BHTZOFkRMCYkcwhx/esrESt0dPHKTuuJDOyaUGQUrw58/Q8VhCHgDNWuTSG0TuNI+wsQmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O1uJIFYg; arc=none smtp.client-ip=209.85.128.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FMQD5HcG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44684C4CEF1;
-	Fri, 14 Nov 2025 12:27:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763123259;
-	bh=QtW3pIcizzKexpU9fz3Mn6XhYVCJ0IvGG+fMc/v2tu8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FMQD5HcG1ffTWXT8Xo2OKDgOSP+sIJvH7CZn7AJBTrq0c7/YiBKxn7agHnwyzQHyr
-	 cGq9QLldky/rXqNJTecpRl63snIhwj0yMx2RfY9LOyFToZRKxUOzos8LrUwLQbEwos
-	 wO78E3u2todLW/YXRHsaxHppzJgMdENH4klpYWJSGxoNsnk0r93uBQ3QpevldKX40U
-	 eB/Suk11cWJqUxrq+uTS5IdSVBom+9Q+WQbGUtvsX4eK1zVfu3DPrjjnkQdz/XlRxa
-	 EPDcoZc3bR/HHBhyB9buCIGkgU4n6ajy5oBPPhyEcnGv79EiNFL/etbevd3L/I9VKU
-	 Lh2B6zgqwL5xg==
-From: Christian Brauner <brauner@kernel.org>
-To: NeilBrown <neilb@ownmail.net>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	linux-fsdevel@vger.kernel.org,
-	Jeff Layton <jlayton@kernel.org>,
-	Chris Mason <clm@fb.com>,
-	David Sterba <dsterba@suse.com>,
-	David Howells <dhowells@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Tyler Hicks <code@tyhicks.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Olga Kornievskaia <okorniev@redhat.com>,
-	Dai Ngo <Dai.Ngo@oracle.com>,
-	Namjae Jeon <linkinjeon@kernel.org>,
-	Steve French <smfrench@gmail.com>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Carlos Maiolino <cem@kernel.org>,
-	John Johansen <john.johansen@canonical.com>,
-	Paul Moore <paul@paul-moore.com>,
-	James Morris <jmorris@namei.org>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Stephen Smalley <stephen.smalley.work@gmail.com>,
-	Ondrej Mosnacek <omosnace@redhat.com>,
-	Mateusz Guzik <mjguzik@gmail.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Stefan Berger <stefanb@linux.ibm.com>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	linux-kernel@vger.kernel.org,
-	netfs@lists.linux.dev,
-	ecryptfs@vger.kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	linux-cifs@vger.kernel.org,
-	linux-xfs@vger.kernel.org,
-	linux-security-module@vger.kernel.org,
-	selinux@vger.kernel.org,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v6 00/15] Create and use APIs to centralise locking for directory ops.
-Date: Fri, 14 Nov 2025 13:27:18 +0100
-Message-ID: <20251114-zweifach-schrebergarten-a49fa00bcfc5@brauner>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20251113002050.676694-1-neilb@ownmail.net>
-References: <20251113002050.676694-1-neilb@ownmail.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O1uJIFYg"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4777a9aeedaso17692625e9.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 05:01:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763125306; x=1763730106; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WrJ7wpuffsUOhxttMGNEH1UpdA6aqm646ujYOAqkR8Q=;
+        b=O1uJIFYgf/y6lfrRpBXdOjWUq4jTOxTW6QXaNsDmSPJzPUxgLDB8DGdqYTYHg2plzw
+         6TbrvO8NNOa2OizD6zFMDXdM9ieZKmf5Dum9EwDrUDc1+JGfZ7snMwKv2TDjN6WhTEox
+         nS34KcYkEUEKYUZ4DAh1WCQEwxFwBcVfH0xzvd3OmRBjS0GMi1Uc+0aFXMiBkvLdBahR
+         pNATAh/aacX2tacq2MYxUW63yy92vkSYNhkWMvxfg3BDueig0orDMqPJp//Pmyg35RP3
+         tDBZP/cUfUhYWsB1rY/7wGYukUKk5iSn8MG53Uyc9n+d9dH732Ow/KuI7TDDPfTAsFb+
+         VuuQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763125306; x=1763730106;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=WrJ7wpuffsUOhxttMGNEH1UpdA6aqm646ujYOAqkR8Q=;
+        b=ErQ+iRb5c9HVWPSzeS4FX+fWI3gadgcfvmzZ7S5ghet8f77DSaL0hBdpLbT62NRgxf
+         vcT0FSmslNa4v7i7Hcu4Ds0B+5cVIQ2HG35z49PsBC9zw7exLqMvWVNTOBydoKTihl+I
+         qg2cddXmtyvfgw7QODR6PtRc28aHLHrGgORDUbmyDQm3DNtTeEkEraTkLErpCWISpr6X
+         7sGrdQQcemA2GFUBYawxKWxcddvftP8YdisF461d1U5XF/Q5gQ+IpD7P32V7WJhEGN5H
+         MMhlfqu4FmbVERiocKLbAkSWGYuqELRktwqqIE8Bc+E+5q4B7Wuo4JFGD9RPXI7ytPCG
+         8NxA==
+X-Forwarded-Encrypted: i=1; AJvYcCXWIAHahZUDTDEjdk2GANDzXE3oj7pW4H1G0ij9YTQEtPNxjEZj1A1rL6uxd5q9Oqt5TapDXPDRlLqeel+2@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx2yZS7j6UG8xvbO7HTGtb9MCGRQ0nCt7UqKQ9VFFy3vw5OuM75
+	pBUIgpMMZ4/yLFQx6n7Qz8Bs8tRBRPGH/icOR6kd7G4QI1t3a4oErNhPSp3F6EQ8kBEpHlvZUzE
+	wyztRN61AtV2V4aewjrbeZvJN+SRN/8EU5XYMab/u6g==
+X-Gm-Gg: ASbGnctttANlBOgUqAcTbFV3xPDSZ8mD2cGk/hKwYKEWB4l/qi7FWc+Mr/tQKIYiwG1
+	h4/wjUicJsjn5p2LnYuGZwUPTkzFGvre37KtvxEpsUnw4J8gfSl4I8nrTwLx862uqBjfRRcqAmn
+	y8ade0gxZGWGmycDr44Xwph/6v8iZSPfXLfCjR7p8mzK9BYNn+u58fN5ImXJrt5gcm1lwy5jSIk
+	IQOXz99ExvOQl2LH8uBIk5rSj9P6n3qbqWmc8DL4RdY/MoC/g1rByOqMRJgMzuZ6Y5f+VWGEdc7
+	ZtznxnVA4czuFW9+GOQ=
+X-Google-Smtp-Source: AGHT+IHDM8QKUyFSrd+0zQEKPdCoF3WxF1zjcOTRuW4aKiXzh3MUt7l88tj/0/w7OQqiDd1Hj2Wm7NhMaFNyqPhLxJ4=
+X-Received: by 2002:a05:600c:1f12:b0:45d:5c71:769a with SMTP id
+ 5b1f17b1804b1-4778fe9aedcmr26119325e9.26.1763125305993; Fri, 14 Nov 2025
+ 05:01:45 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2736; i=brauner@kernel.org; h=from:subject:message-id; bh=QtW3pIcizzKexpU9fz3Mn6XhYVCJ0IvGG+fMc/v2tu8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSKK+g9CNad3XLpuvKKDY8aeY7vMktbWx69Sdl+3Uc3g /dHlb4JdZSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwkhI3hf4CaY3qJwLfFDDf3 TWQR9nlwdocQW/NbFtsr0uenrXzbYsPIsGvJZNG119cwTFzxXv3QEi7ZQ3HpLrnxWa980lrmieT 84gMA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
+ <20251113-work-ovl-cred-guard-v3-33-b35ec983efc1@kernel.org>
+ <CAOQ4uxjeZC0V_jWA=8u+vTw0FDWehdu8Owz8qzO8bTqYVb6A_w@mail.gmail.com> <CAOQ4uxi05JPptYgXXzLN_C4LAOWyriZGvJdrWydzjBv-q_aGFg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxi05JPptYgXXzLN_C4LAOWyriZGvJdrWydzjBv-q_aGFg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 14 Nov 2025 14:01:34 +0100
+X-Gm-Features: AWmQ_bknCoTAmCyGwxVzXTxM2Q2Ddou5vVmeK1m50HLLQqaH7FXQMQ0KGc9mHeM
+Message-ID: <CAOQ4uxhcVRQvT7pbtmEVBpjYSBwr8zCo5Rao5p2hwS=OFHHttQ@mail.gmail.com>
+Subject: Re: [PATCH v3 33/42] ovl: introduce struct ovl_renamedata
+To: Christian Brauner <brauner@kernel.org>, NeilBrown <neil@brown.name>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 13 Nov 2025 11:18:23 +1100, NeilBrown wrote:
-> Following is a new version of this series:
->  - fixed a bug found by syzbot
->  - cleanup suggested by Stephen Smalley
->  - added patch for missing updates in smb/server - thanks Jeff Layton
->  - various s-o-b
-> 
-> 
-> [...]
+On Fri, Nov 14, 2025 at 11:26=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
+> wrote:
+>
+> On Fri, Nov 14, 2025 at 10:04=E2=80=AFAM Amir Goldstein <amir73il@gmail.c=
+om> wrote:
+> >
+> > On Thu, Nov 13, 2025 at 10:33=E2=80=AFPM Christian Brauner <brauner@ker=
+nel.org> wrote:
+> > >
+> > > Add a struct ovl_renamedata to group rename-related state that was
+> > > previously stored in local variables. Embedd struct renamedata direct=
+ly
+> > > aligning with the vfs.
+> > >
+> > > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
+> > > ---
+> > >  fs/overlayfs/dir.c | 123 +++++++++++++++++++++++++++++--------------=
+----------
+> > >  1 file changed, 68 insertions(+), 55 deletions(-)
+> > >
+> > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > > index 86b72bf87833..052929b9b99d 100644
+> > > --- a/fs/overlayfs/dir.c
+> > > +++ b/fs/overlayfs/dir.c
+> > > @@ -1090,6 +1090,15 @@ static int ovl_set_redirect(struct dentry *den=
+try, bool samedir)
+> > >         return err;
+> > >  }
+> > >
+> > > +struct ovl_renamedata {
+> > > +       struct renamedata;
+> > > +       struct dentry *opaquedir;
+> > > +       struct dentry *olddentry;
+> > > +       struct dentry *newdentry;
+> > > +       bool cleanup_whiteout;
+> > > +       bool overwrite;
+> > > +};
+> > > +
+> >
+> > It's very clever to use fms extensions here
+> > However, considering the fact that Neil's patch
+> > https://lore.kernel.org/linux-fsdevel/20251113002050.676694-11-neilb@ow=
+nmail.net/
+> > creates and uses ovl_do_rename_rd(), it might be better to use separate
+> > struct renamedata *rd, ovl_rename_ctx *ctx
+> > unless fms extensions have a way to refer to the embedded struct?
+> >
+>
+> Doh, I really got confused.
+> The dentries in ovl_renamedata are ovl dentries and the entries in
+> renamedata passed to ovl_do_rename_rd() are real dentries.
+> So forget what I said.
 
-Applied to the vfs-6.19.directory.locking branch of the vfs/vfs.git tree.
-Patches in the vfs-6.19.directory.locking branch should appear in linux-next soon.
+To help with mine (and others) confusion I think it would be better to
+be explicit about upper vs. plain dentry in ovl functions where
+both types exist. It's one of the easiest things to get wrong in ovl code:
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+struct ovl_renamedata {
+       struct renamedata;
+       struct dentry *opaquedir;
+       struct dentry *old_upper;
+       struct dentry *new_upper;
+       bool cleanup_whiteout;
+       bool overwrite;
+};
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+IMO ovl_rename() was not doing a good job with 'old' vs. 'olddentry',
+so for the conversion to ovl_renamedata, we should fix this misnomer.
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-6.19.directory.locking
-
-[01/15] debugfs: rename end_creating() to debugfs_end_creating()
-        https://git.kernel.org/vfs/vfs/c/8b45b9a88233
-[02/15] VFS: introduce start_dirop() and end_dirop()
-        https://git.kernel.org/vfs/vfs/c/4037d966f034
-[03/15] VFS: tidy up do_unlinkat()
-        https://git.kernel.org/vfs/vfs/c/3661a7887462
-[04/15] VFS/nfsd/cachefiles/ovl: add start_creating() and end_creating()
-        https://git.kernel.org/vfs/vfs/c/7ab96df840e6
-[05/15] VFS/nfsd/cachefiles/ovl: introduce start_removing() and end_removing()
-        https://git.kernel.org/vfs/vfs/c/bd6ede8a06e8
-[06/15] VFS: introduce start_creating_noperm() and start_removing_noperm()
-        https://git.kernel.org/vfs/vfs/c/c9ba789dad15
-[07/15] smb/server: use end_removing_noperm for for target of smb2_create_link()
-        https://git.kernel.org/vfs/vfs/c/1ead2213dd7d
-[08/15] VFS: introduce start_removing_dentry()
-        https://git.kernel.org/vfs/vfs/c/7bb1eb45e43c
-[09/15] VFS: add start_creating_killable() and start_removing_killable()
-        https://git.kernel.org/vfs/vfs/c/ff7c4ea11a05
-[10/15] VFS/nfsd/ovl: introduce start_renaming() and end_renaming()
-        https://git.kernel.org/vfs/vfs/c/5c8752729970
-[11/15] VFS/ovl/smb: introduce start_renaming_dentry()
-        https://git.kernel.org/vfs/vfs/c/ac50950ca143
-[12/15] Add start_renaming_two_dentries()
-        https://git.kernel.org/vfs/vfs/c/833d2b3a072f
-[13/15] ecryptfs: use new start_creating/start_removing APIs
-        https://git.kernel.org/vfs/vfs/c/f046fbb4d81d
-[14/15] VFS: change vfs_mkdir() to unlock on failure.
-        https://git.kernel.org/vfs/vfs/c/fe497f0759e0
-[15/15] VFS: introduce end_creating_keep()
-        https://git.kernel.org/vfs/vfs/c/cf296b294c3b
+Thanks,
+Amir.
