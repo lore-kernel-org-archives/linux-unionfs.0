@@ -1,99 +1,146 @@
-Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E604C288514
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 07:18:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E4902F4A1B
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 08:12:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763104731; cv=none; b=bw0Wm47Xtr79V6kXo0R8i+2MNma6khDHZWtk02dr/mCUnGezDA+Cdmx8lSChDRygtvmZ1ULHp0OF9sD3ZSM4rjk6WuwHXa4kap219WOVYBJm8V2FX1BmulZJ5YfYgm9CGaPBwM7s3XxEFwDJnPvzEGqtTCfuvUqj/0kVVHXtja0=
+	t=1763107925; cv=none; b=br1pi5MrEo/g8RKJFvPbtWQhg/P3eAn2dL4inWOaRE4yLnWWQxXMTBQ1VpOQVunAhIoWr9MYyd5RMlgLeBHarQ7OJrCS5CnP0afFSVQYDluBKFU4BG1E/oKv1ymAeS0iTFdSfN3NwlJcKxCALZdOPmI4zg/pUdM8jaoSL/ev/pk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763104731; c=relaxed/simple;
-	bh=pBruvPUEk9sdm7ojTRfuAmE5tz4M39hzPy9nFvCgxXE=;
+	s=arc-20240116; t=1763107925; c=relaxed/simple;
+	bh=2Nn/O+GZJ8UWH7JXYzyAxSsE/VBZL5uhOgeHLPsrSJA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=GKsYEGLkucnP2biCAbdgnrPblubIk8xRPskS4/mpL5JQyQdQI6UTcQwdV21H3CZtPAh6ICC4TuB/bB7wmsVHcGIDEGxZO2KJRx8hjce8AxB8mn/1W8LY5eI173NK5JSaoUuwwrHd05BG/Bn0i3QZsob/mcRV5faCzkRSD3YKNWw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=JywJOkRZ; arc=none smtp.client-ip=209.85.219.47
+	 To:Cc:Content-Type; b=pqG+opJDOmQf7pHcIvdUN8yIqsjlKciCofJ+klppAiiyptOXOGEVx8K7fx5xkbB6SFsMfyuVXjLyYPuZ2LG42OAMLrn7Xqsn00ofR+x/3ZWrbCpAzKqZeqmiI0V8IJM+XGLcJqP7vY3njYX+XNuBkkqe2FDklgg4IIN51wbXHlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=JapMT2ri; arc=none smtp.client-ip=209.85.160.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="JywJOkRZ"
-Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-88246676008so20064426d6.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Nov 2025 23:18:47 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="JapMT2ri"
+Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-4ed83ad277fso11746261cf.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 00:12:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1763104726; x=1763709526; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=RSUC6I/0xtkTFjc0S9sYd9t9bOQZ6fRfLXdwbkZEqCo=;
-        b=JywJOkRZMMuhTpFpEvs34qunX7J3CRQqIzA25kMCrRs3AtHzNRpbAezcS2m9b3vqMo
-         CmLtxXyLfNfcItKN20LU1GAwHi5Sha2MqsY482dcNQgVZeQKGGIuiVTLiqAC9Oh4YpK7
-         kGeqS354X0K9TR/nUQILU6uXomY1FYAoWu2dM=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763104726; x=1763709526;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=szeredi.hu; s=google; t=1763107922; x=1763712722; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RSUC6I/0xtkTFjc0S9sYd9t9bOQZ6fRfLXdwbkZEqCo=;
-        b=ao2/c0JdI1mQV1BLoiwq+mR7ujyLswW+6JH2+ymdRzq1vW/FB7z1eb3stwCWYthrvW
-         nM2YAY4ZeeCOWlmuJyzsgkG8KiH9eIlQFqYmDBUUWaOVCCUGiOndG6uRaHknrZLHuYq6
-         8+RnWjUW1GOtrxSUFoD1ouXu2u5Z/SzCld5f4qTl71n1Bc8PckaGos7iB4JwOeV8IbY3
-         zOKa4jIBSKqVWP2Z6B7xUxGJjzJ+2upShFDgT12dnvk4Y0MdWS+per9I6XEBdWeZtUl8
-         +FPKPg5UdZyDSmSABYBpy50DEJMUOjsCONsfYt017Ayo5a9hsALvfn8FrzDo4ecJ/PvQ
-         F+BQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU5PI8SDdz57hxix2Tv50CgNf78XPg1/B3r6G3DWJquLOGJNYTV20aNJqVDJpUeDn3ODbEgsw60Urr2nbgF@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw/UcILhSIvTkA1hyHxeXcnclqnfyuqfvX+Hi1PqZySEYCP0hsW
-	kxLSCnES997pQiwMEkHJ+3wIIyz4CwSmRwqF40p74hHrFyzf6bOSsFo2cG9WectoDvYYkTteEGM
-	wUVi/PQwJoayXtBXqam2Z6+6WX34KGjw4TTh4VWju+Q==
-X-Gm-Gg: ASbGnctxELB0Wxfk4o4zcS4hd75zazXLQVpQvT3XafpR83X3V6LGZ5/ApUVZXGMefEh
-	TVBplYNNVafzBRdoZfgrK2Pa1EIrUpmpXxEXupc8lwT9GL+MfKrw6Hdq0/2MU2SF/RxoNy0eIaL
-	t8z8Wt/MIRrIr00LmAFw43Z+HetoVACJvAf5uA7np6cfvuYQ66lPvRy3H42XdF9BGclnfO2Xqal
-	njM9uT+JPs7w60uRV/d3WHcY69uJDmWDZJIIX4QUEddohQEaUyimJ2x3gmj/+F6cQf9
-X-Google-Smtp-Source: AGHT+IH9defKmC5r+LJeQ1e6mdHLF4LbeJoqfB5vpMC/YabfqRZyvpmEh8pDIVCEspEp39Qry07R+fhopAd9kUSsFWM=
-X-Received: by 2002:ac8:5e0d:0:b0:4ed:d2b:d43f with SMTP id
- d75a77b69052e-4edf2048479mr32594541cf.7.1763104726664; Thu, 13 Nov 2025
- 23:18:46 -0800 (PST)
+        bh=YLfVcDpI3RAusEuEjFESKY20VJ4qiWxE+QiJxYfv3Ak=;
+        b=JapMT2ribPIROP7WfJcXYJ22ItfTSnvPLpVuyqfS3gN15UKuc7OHDazwv01fgmjG00
+         4yyk0yZUW8bM+bWuSwAwqDu6gG2UBG9Iz0DO6ZltkyM5VtdazgUh/kfS1VRn/aDmSXEh
+         6itWE1cA24DQi7m6xrocRSa0IJdJOqcuNb/uw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763107922; x=1763712722;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=YLfVcDpI3RAusEuEjFESKY20VJ4qiWxE+QiJxYfv3Ak=;
+        b=k9+E0x6oJAHsVO0+DHADa27UEze80zepC4HDTu2WeE/vfJgb74nkmVCc5Pk13bKDQI
+         FXMZqtRJOaevywLUM+VYZHN/uZNHA+rkcgQ+8AhkFeT+AcT+vJtMDboA3/0bqkxwVF4w
+         /2WzHYYwErMEz8iVd7o5LerckTKZC5B6V5PoD/eQU1gnkLc70jm6liQVbq2HF5CRra5e
+         bJkMGFKSkng1vQ8eHkKUrYP9rPOAp/PAn9iFUiQiZbeMigWoFLNKJPi5dsKmzPZn31DL
+         z1eaX9OPun6gYkbnd7wttQn+PzrzP36l1TP5odv/7KN6/1OE84nQu1XUU7wYPktm1Yac
+         nDVQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWeIqxivEr61KrPU73Y+VOKh8o703uX1QK8Lu2CHM2mbLiGUYyt+bdSG/AsUh9KazI81tVWN4fcy3DtomHs@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxo/hi8/LsUJmTsOY6uIMiRP09cuzaZkySfHwJyIkvDNSHEfm5b
+	LLQlYs+hB5HKCrZaoTumgZ6KP/KPzosSJFtLnM5VTGuzUqRlV0ntsp83BC2b1i4sqvOqilq2hsx
+	r+/D0WcQXk5ThkKMcif2ofh1KtSyDajMkyw0Zz8WwpA==
+X-Gm-Gg: ASbGncv3ceyPcrDtTSBmVfxXo5xx+8RM8InYsf88seXz+WTJryMKoErrH32iRua7iTl
+	VvT4GHmf6Eh9IU8XRFXDhsibpNxyXMYAyhS6fgb9yurYB9kQmfk/eGVlKbVRIAiyBf2tKUG72FS
+	wGi0DFMTVBfXGw/BDgodQc0AZLk1KKZ5GDULkvN2PfADg48uN7jBuH9WXQOaLZwbbuhpTwxeqEN
+	/3O2ALdXJEuPHoAurjbo/LSxT8ArGgDjtBw8gZTCP2FmrYIntBK3P0XthdUMOfnqf89e+PMBKG6
+	B6ActVtxQMy8zrj2JWp0o1ztGKu1
+X-Google-Smtp-Source: AGHT+IEOOLPA2Vz2a8o6ePEs13VnvFpU+d4CJUKkLnlVnfKTf5HEFL/JokcFdJIUBaveIyTl86u8Ryz1YZG91FRmGzk=
+X-Received: by 2002:ac8:5d08:0:b0:4ed:b6aa:ee13 with SMTP id
+ d75a77b69052e-4edf2048517mr27830481cf.13.1763107921940; Fri, 14 Nov 2025
+ 00:12:01 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org> <20251113-work-ovl-cred-guard-v3-6-b35ec983efc1@kernel.org>
-In-Reply-To: <20251113-work-ovl-cred-guard-v3-6-b35ec983efc1@kernel.org>
+References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org> <20251113-work-ovl-cred-guard-v3-24-b35ec983efc1@kernel.org>
+In-Reply-To: <20251113-work-ovl-cred-guard-v3-24-b35ec983efc1@kernel.org>
 From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Fri, 14 Nov 2025 08:18:35 +0100
-X-Gm-Features: AWmQ_bmo0OzcPAWZX1QwevX3GLs4HxBqX6zuFXDJXLl0cJT40hnDYO9AGPqQCOA
-Message-ID: <CAJfpegv=yshvPv432F6ytAcuBLWQnx5MvRQjKenmzg-WafZ_VA@mail.gmail.com>
-Subject: Re: [PATCH v3 06/42] ovl: port ovl_create_tmpfile() to cred guard
+Date: Fri, 14 Nov 2025 09:11:50 +0100
+X-Gm-Features: AWmQ_blmlrX7aK71yUPHFTI6Pz3X49d6a6ZAw8kI-vVkPe14egOcQPWSJ9rtF7c
+Message-ID: <CAJfpegtrXoywfudc+x7tP_riDeSM2AGFwgGwWjdUa3UqQ85ndA@mail.gmail.com>
+Subject: Re: [PATCH v3 24/42] ovl: don't override credentials for ovl_check_whiteouts()
 To: Christian Brauner <brauner@kernel.org>
 Cc: Amir Goldstein <amir73il@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
 On Thu, 13 Nov 2025 at 22:32, Christian Brauner <brauner@kernel.org> wrote:
-
-> @@ -1332,27 +1332,25 @@ static int ovl_create_tmpfile(struct file *file, struct dentry *dentry,
->         int flags = file->f_flags | OVL_OPEN_FLAGS;
->         int err;
 >
-> -       old_cred = ovl_override_creds(dentry->d_sb);
-> +       scoped_class(override_creds_ovl, old_cred, dentry->d_sb) {
->                 new_cred = ovl_setup_cred_for_create(dentry, inode, mode, old_cred);
-> -       err = PTR_ERR(new_cred);
-> -       if (IS_ERR(new_cred)) {
-> -               new_cred = NULL;
-> -               goto out_revert_creds;
-> -       }
-> +               if (IS_ERR(new_cred))
-> +                       return PTR_ERR(new_cred);
-
-Same thing here.
-
+> The function is only called when rdd->dentry is non-NULL:
 >
->                 ovl_path_upper(dentry->d_parent, &realparentpath);
-> -       realfile = backing_tmpfile_open(&file->f_path, flags, &realparentpath,
-> -                                       mode, current_cred());
-> +               realfile = backing_tmpfile_open(&file->f_path, flags,
-> +                                               &realparentpath, mode,
-> +                                               current_cred());
+> if (!err && rdd->first_maybe_whiteout && rdd->dentry)
+>     err =3D ovl_check_whiteouts(realpath, rdd);
+>
+> | Caller                        | Sets rdd->dentry? | Can call ovl_check_=
+whiteouts()? |
+> |-------------------------------|-------------------|--------------------=
+-------------|
+> | ovl_dir_read_merged()         | =E2=9C=93 Yes (line 430)  | =E2=9C=93 Y=
+ES                           |
+> | ovl_dir_read_impure()         | =E2=9C=97 No              | =E2=9C=97 N=
+O                            |
+> | ovl_check_d_type_supported()  | =E2=9C=97 No              | =E2=9C=97 N=
+O                            |
+> | ovl_workdir_cleanup_recurse() | =E2=9C=97 No              | =E2=9C=97 N=
+O                            |
+> | ovl_indexdir_cleanup()        | =E2=9C=97 No              | =E2=9C=97 N=
+O                            |
+>
+> VFS layer (.iterate_shared file operation)
+>   =E2=86=92 ovl_iterate()
+>       [CRED OVERRIDE]
+>       =E2=86=92 ovl_cache_get()
+>           =E2=86=92 ovl_dir_read_merged()
+>               =E2=86=92 ovl_dir_read()
+>                   =E2=86=92 ovl_check_whiteouts()
+>       [CRED REVERT]
+>
+> ovl_unlink()
+>   =E2=86=92 ovl_do_remove()
+>       =E2=86=92 ovl_check_empty_dir()
+>           [CRED OVERRIDE]
+>           =E2=86=92 ovl_dir_read_merged()
+>               =E2=86=92 ovl_dir_read()
+>                   =E2=86=92 ovl_check_whiteouts()
+>           [CRED REVERT]
+>
+> ovl_rename()
+>   =E2=86=92 ovl_check_empty_dir()
+>       [CRED OVERRIDE]
+>       =E2=86=92 ovl_dir_read_merged()
+>           =E2=86=92 ovl_dir_read()
+>               =E2=86=92 ovl_check_whiteouts()
+>       [CRED REVERT]
+>
+> All valid callchains already override credentials so drop the override.
+>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> ---
+>  fs/overlayfs/readdir.c | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
+>
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 1e9792cc557b..12f0bb1480d7 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -348,11 +348,7 @@ static bool ovl_fill_merge(struct dir_context *ctx, =
+const char *name,
+>
+>  static int ovl_check_whiteouts(const struct path *path, struct ovl_readd=
+ir_data *rdd)
+>  {
+> -       int err =3D 0;
+>         struct dentry *dentry, *dir =3D path->dentry;
+> -       const struct cred *old_cred;
+> -
+> -       old_cred =3D ovl_override_creds(rdd->dentry->d_sb);
 
-Where do we stand wrt "chars per line" thing?   checkpatch now allows
-100(?) so shouldn't we take advantage of that?
+Myabe ovl_assert_override_creds()?
