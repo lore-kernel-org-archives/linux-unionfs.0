@@ -1,99 +1,107 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67C802FE074
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 09:28:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5121230FC18;
+	Fri, 14 Nov 2025 10:15:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763112513; cv=none; b=hyvlVPCjafzZxRZPC4X66jhD46DZgqifdYDb2+pzBuSLYAmKnBbtm7SB6alLdtVWFFGEZKLK67L1YXYobzlow9JT4w/u4KLhZnQq45BbhrSUhgGSffQeRmHD+EWHgJ3VJ/tTWw1CshVptxNrc3KmHsxDum+POKD3517TPc6jlH8=
+	t=1763115333; cv=none; b=H2AYgcRZ7xkb+xf8zJFaTJI9abzq+3LhRvbZ1FVyTiJ/wWB+kpaPbJWt/JOKOAgIFuEBo9liwnLzYl8IHmBi+fXDQAxy7kB9xkK927zGM9jYVJXQB94or0ACDwLQvHkmgLZdSnlnrcJxi0/VhtdqiSEdlmGiR5PQ/ro4bfhGZZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763112513; c=relaxed/simple;
-	bh=N2HsaVvo0KSEbbEZeR56wpGL3gW/GUIlv6yaZlxQ++Y=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IhpPhLVLd6uIxPYPtLxE2qEoG2hCw0k6rWGtGlGzHGenufYWTmWoKQ1GnyjN7hl8xMlY5+ezzAguuQE3XDJyH/K8SVQsavp3DC7UZDVUz0DxViUKub23/w9xHMW8YtZwMylFBOcRybHGvMi2S/mLQw7BVZGkYnOYW+mWhQqzdrY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aOY4qmsy; arc=none smtp.client-ip=209.85.218.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1763115333; c=relaxed/simple;
+	bh=xxGmr78zm8u4YoVUi2DmguUH+VqTj0pJav3No1te3AM=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=M7NVB2a2swXZwNAr6BfRf2JBHYvWIwdD2qj9/CjBjmeso9KS+ihSNM+wNRUt1baA/tkolymbcJcFkWsBxpeZUzMu9DaovBJzJgC/w+03UGiEKZViJsws6DMSJAe72P8Lu+/24ML3hSWcP0DIXdah0IQ75zAtVZ81VZ8MknWK4kY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PPwVByzG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aOY4qmsy"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-b73161849e1so295436366b.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 01:28:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763112510; x=1763717310; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mdMtsLR/yBE7DI/ay1aYqX9mhRKvn8Ih43ILpIKpzlQ=;
-        b=aOY4qmsyrAn331tkkY5sSZSlo379tqHRGwG2A5xcfT9l70PiBxI9dANnMKUPzRuElt
-         pX7dcfJcV2cBbB92BoyK9H+EucsC6wSYribHEJ0VavesYBpqW8IR+4g1LN45kBUzKsnt
-         9bszre3+CdceeAqKXFbwmg6w0uynebZ9xT92a0cLjGJZp7Nx3uRjbkAdrbSQ0pUIHllX
-         kLRmcR8DT4RRJq99MhCmYqL20R3GDDY2Wa4dxnF7fogeE+Mn5athPbBdK+QmZta7uaIj
-         H8+4A2N7AxH2XsKUtAoRiYNFqS35/7SnABy0kYhp9f6cJAZj8iJZZx7nY8Mlw7CRt3Rt
-         6YmA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763112510; x=1763717310;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=mdMtsLR/yBE7DI/ay1aYqX9mhRKvn8Ih43ILpIKpzlQ=;
-        b=ixIDaw6OO/TXIY/+ccliCS9Ei/c+Se1pi1DQrM5UNtuZiIURKBVlscxjaQYnUrfOHc
-         89tewSPoPnh0wW6HXjomJOIj9zCGQ4wk1GLd53y1VNXcjKfYFC8tY2ELZZDVAOQlMxN4
-         e1c2Zj3YBpKNwQLqqyILYcYnAwgEGo16+T5DjFW9nK5g8XW7ottbQDvhMRdzKc6AmYoQ
-         +3FdhwijE/otm0t0ErrHFcCjR7YY5wG2GTSGKsYlrin+bYrOL1vdG9ws4FxFZCG1YgmP
-         PTLW6k+NnJCgK2U5sZEIeU7wd1uIv5L93b47VQUqj6Ivme6X5PCq7ihvNLtisyRuJp8v
-         yeQA==
-X-Forwarded-Encrypted: i=1; AJvYcCWvJ28QHnm0xJ4j3wwSGzQmOKqAiS+zhDM9/McEh/gfc/zxjD9/HiYbXjRMjKHloswqC6clOWB5xE4SfqIj@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx+Ty8HGMO0iILaKDV5sSOkgn7bpgG+ndL4O4V40Zql++5+GxHC
-	OnZKwAgD9bu93RmIdx2rKq4YnfftqPNiwGsDdyamvqPQK3zEqo7K14MBi66lTVUPQhnEKs6WTQ9
-	9YDfyPGijhr3DRjVQWlwVXuBgvdZa5kE=
-X-Gm-Gg: ASbGncuTv3DeZUPbBWZNcXP2tUgj7+TgiPyNf5c+AyNYKY8QnpkNaitjM43oKQNKYiO
-	lK0SdlkTIiMeiO3jhfx4hVDpBG0pxsdD1WbcnrEKHw74blCNenffQSnlzUOB46kvMMWiCfJh+Be
-	h0qTDng1GvWMQ2/j0KEhtheqkNFtU86VoLpKWWAktddh2nLTPvuK9m/5ZgNCjqOrViR+NBIwwUq
-	kzEO+lSj1l5e2dzchZ97dLGyXtz/aVs64sH9vZUIENbWK/NNaAro5LUn8hRyzCcWa2tIEwUwC62
-	roFADZXAiYQeCTf40TKW4938OiI9UQ==
-X-Google-Smtp-Source: AGHT+IEQn9wcqUkGIDv9+SWfVNmW1suJw4n4ETUx4HO3uhrfcZ4SvLzlbujzxBpT/QeYEKI2BB8t32Aqd5/pM7fQaTo=
-X-Received: by 2002:a17:907:874a:b0:b73:6f8c:612a with SMTP id
- a640c23a62f3a-b736f8c6f46mr99527466b.11.1763112509488; Fri, 14 Nov 2025
- 01:28:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PPwVByzG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 883B7C4CEF1;
+	Fri, 14 Nov 2025 10:15:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1763115331;
+	bh=xxGmr78zm8u4YoVUi2DmguUH+VqTj0pJav3No1te3AM=;
+	h=From:Subject:Date:To:Cc:From;
+	b=PPwVByzGOA7/N182YdkY2QAEqNE4w7EVUeJoTLrzgBmhWji0loZRwQq6t0jIx54Do
+	 Xy24a2/gFN8cp3du2tvIVcI5eBUzDCZYRnhRi59vuQRx9+qGISI+xV0gdz6bTAq3hO
+	 KUMhhQhKrQwMB4xJalO/yxlh+PSVInM+fAANMCAX9Rl46wZFUIc7MnuaFUO+gWhDNo
+	 Ka54/3TcA/RnAHuRLqipkhyx74JG0nuMw1Eabi+H77pv00eJYRSYgke4m6X7l75C0t
+	 5hz3TO0eA3nav1AVTABuFP2N6Ydl9ALthV9iGxeK2AqvNU09GExA6eRnumcJuSP2o9
+	 XddlXolB1MFbw==
+From: Christian Brauner <brauner@kernel.org>
+Subject: [PATCH 0/6] ovl: convert creation credential override to cred
+ guard
+Date: Fri, 14 Nov 2025 11:15:15 +0100
+Message-Id: <20251114-work-ovl-cred-guard-prepare-v1-0-4fc1208afa3d@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
- <20251113-work-ovl-cred-guard-v3-34-b35ec983efc1@kernel.org> <CAJfpegsdtHgiGFi5EEjaN9but0A7VTZA4M2hSg=Q7ynAozhqAQ@mail.gmail.com>
-In-Reply-To: <CAJfpegsdtHgiGFi5EEjaN9but0A7VTZA4M2hSg=Q7ynAozhqAQ@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 14 Nov 2025 10:28:18 +0100
-X-Gm-Features: AWmQ_bmGihuGYGvIZV5ONblHyPajU4eus5nTPeVXJfYteHaXhQN19O77H7b7y5s
-Message-ID: <CAOQ4uxhjwt7oKEmoumcf+BidgKNCp7yX57T4CrYi-OWx=+0EnA@mail.gmail.com>
-Subject: Re: [PATCH v3 34/42] ovl: extract do_ovl_rename() helper function
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christian Brauner <brauner@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIADMBF2kC/y3MQQrCMBBA0auUWTuhE1sUryIu0mTaBiUpE6xC6
+ d2dFJf/L94GhSVygVuzgfAaS8xJg04N+NmliTEGbbCt7Ymow0+WJ+b1hV444PR2EnARXpww9md
+ LLV+4o/EKKugf4/fQ7w/twRXGQVzyczVrmuoZ9Uz1zOGZvwf7/gPKkL8koAAAAA==
+X-Change-ID: 20251114-work-ovl-cred-guard-prepare-53210e7e41f8
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, 
+ linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+ Christian Brauner <brauner@kernel.org>
+X-Mailer: b4 0.15-dev-a6db3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1854; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=xxGmr78zm8u4YoVUi2DmguUH+VqTj0pJav3No1te3AM=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSKMzqKrjl5maX+oURd3ulpFq3bfv5lDjiyXEly9bqq7
+ nXyUf/ZOkpZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACYiUMbIsKJst9p9cTn7dc48
+ 1SuWdExsOr1IZ4LsFvEJOtutbn071cjIMH//SkkLMbdZz77+Ncy+yV///Fd13rubSZouRqIKRoV
+ 8TAA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-On Fri, Nov 14, 2025 at 10:17=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu>=
- wrote:
->
-> On Thu, 13 Nov 2025 at 22:33, Christian Brauner <brauner@kernel.org> wrot=
-e:
-> >
-> > Extract the code that runs under overridden credentials into a separate
-> > do_ovl_rename() helper function. Error handling is simplified. The
->
-> Hmm, it's getting confusing between ovl_do_rename() and
-> do_ovl_rename().   Also I'd prefer not to lose ovl_ as /the/ prefix
-> unless absolutely necessary.
+Hey,
 
-I was just thinking the same thing as I was trying to refactor
-ovl_rename() to ovl_rename_start(); (something); ovl_rename_end()
-I will try to think of a better convention.
+This is on top of the overlayfs cleanup guard work I already sent out.
+This cleans up the creation specific credential override.
 
-BTW, we also have do_ovl_get_acl() which has managed to escape
-the ovl_ namespace and has the same confusion with the ovl_do_ bunch.
+The current code to override credentials for creation operations is
+pretty difficult to understand as we override the credentials twice:
 
-Thanks,
-Amir.
+(1) override with the mounter's credentials
+(2) copy the mounts credentials and override the fs{g,u}id with the inode {u,g}id
+
+And then we elide the revert_creds() because it would be an idempotent
+revert. That elision doesn't buy us anything anymore though because it's
+all reference count less anyway.
+
+The fact that this is done in a function and that the revert is
+happening in the original override makes this a lot to grasp.
+
+By introducing a cleanup guard for the creation case we can make this a
+lot easier to understand and extremely visually prevalent:
+
+with_ovl_creds(dentry->d_sb) {
+	scoped_class(prepare_creds_ovl, cred, dentry, inode, mode) {
+		if (IS_ERR(cred))
+			return PTR_ERR(cred);
+
+		ovl_path_upper(dentry->d_parent, &realparentpath);
+
+		/* more stuff you want to do */
+}
+
+I think this is a big improvement over what we have now.
+
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+Christian Brauner (6):
+      ovl: add prepare_creds_ovl cleanup guard
+      ovl: port ovl_create_tmpfile() to new prepare_creds_ovl cleanup guard
+      ovl: reflow ovl_create_or_link()
+      ovl: mark ovl_setup_cred_for_create() as unused temporarily
+      ovl: port ovl_create_or_link() to new prepare_creds_ovl cleanup guard
+      ovl: drop ovl_setup_cred_for_create()
+
+ fs/overlayfs/dir.c | 151 ++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 80 insertions(+), 71 deletions(-)
+---
+base-commit: b4f90b838f462d46522e17de86431b171937adc2
+change-id: 20251114-work-ovl-cred-guard-prepare-53210e7e41f8
+
