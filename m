@@ -1,103 +1,88 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8967A2F25FA;
-	Fri, 14 Nov 2025 06:28:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28BE6224B14
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 07:09:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763101710; cv=none; b=r46qDz5RXhXJD6V3Fw8Saj7fgbJhbS/seFbvctPx00YrKWbx0DWWGm77F0HeCV327jtmrqBiDB0EBe8h5IcgXBhjFVYTRAB7BgnBgjs+MUOfbWACtIAXpYurfEOdbTl6O0n0x3w/4/SyQ7IiMsroQ0jiZghhVCXYWXx1v2xuukE=
+	t=1763104192; cv=none; b=NceP7a4u3lWdeIm1I1d6uG4mzyCKBoUhJpU0VlykqP7LVtsS9VxTy35FgngT6QpVkowqiAEvOKabKRy8rLQzcqSxyCctPn2Dtov5N/Kz9qHVgu5ar6cLBj/1e/EwZsJWQOAP6sRgCE1eQfOETS3kTdqb0dnE3zHsgqQKar5xAi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763101710; c=relaxed/simple;
-	bh=Px//exW9w+i1Xyx0n/Gu2ivv2DKbOfMBeouZxCEIvg4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ml1BggoMyumwRgwONzKZtibJsqmCW2f5255RTbTy0mW71DJ4voNhxj1IOZuhYO+KBw6qja46EolEstDGRZ7XQl+uhnUUG9J2rlMJKELhgDceL4C97VD9tT22qgP+x8i8juf+lglPiL9I+hQPiQzoA6YH6TllK1RlZKvAKxS11p0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=wDjPg/Hn; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1763104192; c=relaxed/simple;
+	bh=E06eWH/B19XQlvXFz1DPzyDdhpFnpRK56zuzDqc3nDw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hfWXKo8yYl5GuNM+KEuOaKiSGUBCCPbiB7LRYM5GLObrZL+huutsxOPrhDnUz/KG4xemsXSR3hphWAKrqps+Wjy/b1UJ+nRHgEdtxFsRuMF8sHBx5zY1ey6h+sslGRRkcvbmwliRNlRzBP2EyCC4p92yRKdNbXD/6p5XP5IKBIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=ZEGNGLmm; arc=none smtp.client-ip=209.85.160.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="wDjPg/Hn"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=wLYiunlc4HRKn1/cO6G76qMYBolsg+5Lse9an4ctyXI=; b=wDjPg/HnYNzaiMxT8G9jB6lS4A
-	7iN7sM3Ekdm2Y6UeAx6yBrOE/02uZVIC5ITdC+LD0180UwMMnX5hOq0PIibCShC3MMzISsNP9XXq6
-	VZylP7Zr9IdEEkPqJBNzqX/e8IRX6CyNdJRAlwfilDk+O1L30SGJbpNZ3WGlPVeVhQieOv13EAZ/k
-	VUUjjD4BEOG8AOlr18JvaUhH3mHzKKKw3eoxHGMP7KThMLN3jr6kT/+L6kecdQKPoZnsfsFrkCbJT
-	roucWpCkQe22oqYGzMwe2fB9AIYqy7GRKQJ9FZgDpboo8q0DRVtmvkZdsmVTuF/7bcn4x82tnhNmH
-	fUvOZNGQ==;
-Received: from 2a02-8389-2341-5b80-d601-7564-c2e0-491c.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:d601:7564:c2e0:491c] helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vJnIJ-0000000BfCq-0DHz;
-	Fri, 14 Nov 2025 06:28:27 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	David Sterba <dsterba@suse.com>,
-	Jan Kara <jack@suse.cz>,
-	Mike Marshall <hubcap@omnibond.com>,
-	Martin Brandenburg <martin@omnibond.com>,
-	Carlos Maiolino <cem@kernel.org>,
-	Stefan Roesch <shr@fb.com>,
-	Jeff Layton <jlayton@kernel.org>,
-	linux-kernel@vger.kernel.org,
-	linux-btrfs@vger.kernel.org,
-	gfs2@lists.linux.dev,
-	io-uring@vger.kernel.org,
-	devel@lists.orangefs.org,
-	linux-unionfs@vger.kernel.org,
-	linux-mtd@lists.infradead.org,
-	linux-xfs@vger.kernel.org,
-	linux-nfs@vger.kernel.org
-Subject: [PATCH 14/14] xfs: enable non-blocking timestamp updates
-Date: Fri, 14 Nov 2025 07:26:17 +0100
-Message-ID: <20251114062642.1524837-15-hch@lst.de>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20251114062642.1524837-1-hch@lst.de>
-References: <20251114062642.1524837-1-hch@lst.de>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="ZEGNGLmm"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-4ed59386345so6836991cf.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Nov 2025 23:09:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1763104187; x=1763708987; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=SyZzeGaFJhk0rTaUbsr78GBXbJj3F8nSjFa0Vp62350=;
+        b=ZEGNGLmmrCFkPujjRkv6c7sIUGoJxCAtcWq2Ghn8xkxb6Rzh6B1MP3TbtHYSOBKllC
+         pCvm0cZ84WjOuEYjsC2ctZNF606l5VCDdytMVY2t1oB2f++p14szVvL2TBeI/6hijUpP
+         c/Z/tqTVSu48yhVHgXZtLsd8Px0j54BupxiTk=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763104187; x=1763708987;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=SyZzeGaFJhk0rTaUbsr78GBXbJj3F8nSjFa0Vp62350=;
+        b=JN76iv3s4NBNVO7a893WoYMO+KbbtlvWhyM4LfLn78IZE5uE9RVRSG21efRmAPtEtC
+         +TBn+AgDGa0LSw5y+mkAhssVOygC7E0BPc1jRzQuZcou7GXe7kjohtcaBfxC3paLbEpQ
+         9/axYWoal9tgGpDoRype6NtNonomOBs+7cWD+dJgH/lEOv3I7ClSmLYwfd49BANQvwLq
+         FPDhJDZz7MYFMcVNNMj1/53Dw5+7Cv9TL6cMhJp7pROMcYXfQWok1sFycETCNtmCk/6g
+         bwR8bWmjNKLnw9Qmzk5bCeWtJ3cC7UajTkaDD7ugED3CPuIUAtfoxYwmh1GA/FpH1BKv
+         dZLw==
+X-Forwarded-Encrypted: i=1; AJvYcCWCKKdF3Nxbaf/od7YNHi/m6NKCdnVtp3WW6vqditG65OLfVsXB1gvQ3bEbbJU2bpxqq4RSBQ+m6vbyoy2k@vger.kernel.org
+X-Gm-Message-State: AOJu0YzoaFEGTXG5QeZqsQReplCQvWANMe676cdZvLvmtEs9vC3m6BkW
+	QuIBFmsTlMQ0w96oY/4K//Y0EAmFfROsa/dsKVmUwPQQePzqatc2XcEYfIt/3hb0IzVYWzthHQw
+	Zrvg/WIlTs7eSZB3nuT6VDUNrUsJMA48wUJUd6X2vW9KeemEbGQwB
+X-Gm-Gg: ASbGncs+8BbwXAKjjsAPRGWJoNGhygzzUB4HAIU7JPdEgCTvny/Spdix70xOEPuTKLO
+	uBu/DtUrGRGpTYg4MTVLItZBMIe4bJpEG+1q9Ito4fq9bDLkwnublNd3q0Tl8qwxo8dDHEFrozo
+	IjTCf5BbvnEIHvs0WNdqg2vBmatLSsfR7oUuif8l0Ue5skIUTWuH2Ei3dW1hxMpQjtQNXap052U
+	o/jVLFDy0iWMJshnT0f8qJlOb8UJqSISqpbX7b/9o/qfz27oEUvSqG1MQ==
+X-Google-Smtp-Source: AGHT+IFOSVJvXV1OcjbCp2tNCmKIqjhBe/HN4xDG2P/zX6+RE9u8PQoIv/hpBwulbdMxQR8y96wz/zC8GlmXCJvFWmQ=
+X-Received: by 2002:ac8:5890:0:b0:4ed:b6aa:ee2b with SMTP id
+ d75a77b69052e-4edf2063f39mr34591371cf.18.1763104186667; Thu, 13 Nov 2025
+ 23:09:46 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org> <20251113-work-ovl-cred-guard-v3-3-b35ec983efc1@kernel.org>
+In-Reply-To: <20251113-work-ovl-cred-guard-v3-3-b35ec983efc1@kernel.org>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 14 Nov 2025 08:09:35 +0100
+X-Gm-Features: AWmQ_blmZknZYznECSy4HXGEdaW63w0Uq9RQ67Oq-ScGROKoZXIUAbDUXPVUGG0
+Message-ID: <CAJfpegtLkj_+W_rZxoMQ3zO_ZYrcKstWHPaRd6BmD4j80+SCdA@mail.gmail.com>
+Subject: Re: [PATCH v3 03/42] ovl: port ovl_create_or_link() to cred guard
+To: Christian Brauner <brauner@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-The lazytime path using generic_update_time can never block in XFS
-because there is no ->dirty_inode method that could block.  Allow
-non-blocking timestamp updates for this case.
+On Thu, 13 Nov 2025 at 22:32, Christian Brauner <brauner@kernel.org> wrote:
 
-Fixes: 66fa3cedf16a ("fs: Add async write file modification handling.")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/xfs/xfs_iops.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> @@ -641,23 +640,17 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+>                          * create a new inode, so just use the ovl mounter's
+>                          * fs{u,g}id.
+>                          */
+> -               new_cred = ovl_setup_cred_for_create(dentry, inode, attr->mode,
+> -                                                    old_cred);
+> -               err = PTR_ERR(new_cred);
+> -               if (IS_ERR(new_cred)) {
+> -                       new_cred = NULL;
+> -                       goto out_revert_creds;
+> -               }
+> +                       new_cred = ovl_setup_cred_for_create(dentry, inode, attr->mode, old_cred);
+> +                       if (IS_ERR(new_cred))
+> +                               return PTR_ERR(new_cred);
 
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index bd0b7e81f6ab..3d7b89ffacde 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1195,9 +1195,6 @@ xfs_vn_update_time(
- 
- 	trace_xfs_update_time(ip);
- 
--	if (flags & S_NOWAIT)
--		return -EAGAIN;
--
- 	if (inode->i_sb->s_flags & SB_LAZYTIME) {
- 		if (!((flags & S_VERSION) &&
- 		      inode_maybe_inc_iversion(inode, false)))
-@@ -1207,6 +1204,9 @@ xfs_vn_update_time(
- 		log_flags |= XFS_ILOG_CORE;
- 	}
- 
-+	if (flags & S_NOWAIT)
-+		return -EAGAIN;
-+
- 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_fsyncts, 0, 0, 0, &tp);
- 	if (error)
- 		return error;
--- 
-2.47.3
-
+put_cred() doesn't handle IS_ERR() pointers, AFAICS.
