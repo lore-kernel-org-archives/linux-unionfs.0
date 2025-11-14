@@ -1,323 +1,333 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A5BF2FB0A0
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 11:19:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2746F313E14
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 11:40:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763119182; cv=none; b=b4wnMEr3CkNb/ZwG8+Qm+QzOT/bC+ZkVphriy4amFivjkoqZCY/rJPjCjb4+EZOHkcsOw+SduGRgU7c37zWG+6vFVFSPr0FQdVJbeI1oBwvoGTxUKPbyV5bwq0aqkJTYbhoGDpwI1oeKF7/MxhpAqb2NdutxyOOZR3VKHb7jVes=
+	t=1763120463; cv=none; b=pMvsdIn4o0CH0fnr6GPTgHQt5XDVbgNZmlZOV2P9WkGvnP/83Aw/mEe7gPVXYfDkgz9tFlFc5VOHkxWYVjc5wkbasqYrSFVnTMI1z5Oci5sBY6MyPLNwRrxW3lc64CPwGWhHmc5G1k4lHwItdp9vzKXa32ymOvEs4Knv619fnCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763119182; c=relaxed/simple;
-	bh=xQl0kwtOKB4hUaJLVPlxW0Z2GQ2BADFX8oBEUcH7TM0=;
+	s=arc-20240116; t=1763120463; c=relaxed/simple;
+	bh=1oOVxW9E1tiKTn/6IWaX0aOxtjFOX7jpbXxx7pcOB7g=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hTFbAX6Hpif7RnaoJEK/G4zmie6KEsgLQJTviKEVv7s/TGRGQWdAY8a0cIMthPILMaX8W8wlIbDLGI1pSnwUDgV1iJ0CeoCfRStzcQEA6k2a6RQ1TOb77OSOOeTyJNgRB8BHQ337DAMiXryIQqaymlW7DGmLxtC6MRPkCKw9Q3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W+9GMQiY; arc=none smtp.client-ip=209.85.208.50
+	 To:Cc:Content-Type; b=mhfg3x00eMiGMBgvZAseefUpvuka8DniCQenCaCcTK2p84eVyNZijjMMNCYGBFmhePQq9la2n9M7Z/A9LIT8dO8BOyd0t2SCzR4VPIx4yz/is8aQ+fwz8mPP7hc5YGr20dBSOVn1WVZYUXLruCFOpgBKfiZRsqSh7ROiC6b9W6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lb1SQ2kU; arc=none smtp.client-ip=209.85.208.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W+9GMQiY"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-64320b9bb4bso3969530a12.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 03:19:39 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lb1SQ2kU"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-640a0812658so3004217a12.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 03:40:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763119178; x=1763723978; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=7rBdBhzlwm7YPA0zoQgUCR4OvA8LuRHjaxMOlqWI3x4=;
-        b=W+9GMQiYSkydETbNhSo/P6dSiGHlRG4koMv/HK49uWs3kjS1/9I2B6RAnAJ6ebx6S8
-         gLAc7a5URdg0QNXYjou6M5+Ar2ifP5nqSFFtywZuSaCZvD2hrLwhqUziG2d4aLoIB015
-         Um1dgSxZr1PGrMY0q1UWU/IGFSWmI35qGofwvMlHZLOEg4lquG44IXcnxyoFXtKq2GmI
-         +oAHV0csuscLVOcFjyfJ0DUFfYyi7YybF7L5KKD0oB/79wFiWMu25Pv8bfWsUsF0S1Tq
-         59X2RuMjifjyCeDt6DtljxUait472txPwxkKq83f/hElGTqAiaYHqY4MQ5N74j4u7skH
-         DDvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763119178; x=1763723978;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1763120458; x=1763725258; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=7rBdBhzlwm7YPA0zoQgUCR4OvA8LuRHjaxMOlqWI3x4=;
-        b=FLpW6QuTwe+N0jzsl/swOJiKWDbNMVfLpfNgUkLcIIUo1QipV59T/5wH21/XQ0gP3W
-         Lnf98bIXCo6OKFd53puUfxVw3TOSJLJm+BOYw93XudYpu7C7M7YywcDj85lhWM7tfkBi
-         yFbXDGqhJHvmu8yXAZMhU6h/YEdF4u2Hq7/Od1qATiHVocvbkItDv/9oCtohxH7jPO8p
-         O6lx+eiK8TzjO7br4SOZCWuK7ExKR5NTwqFSfcsDOxsPKbuAdppMknSLvXz1UfbQqNYp
-         hBk8k1jDzhpeod0uopmza5DyHcerSwQHIBAfbFOkc7+Gfr5xnnUY53DWEcmKJE02SzNV
-         qktQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUkrxkvU4axiLY7HacgbKvtplv3MNYJf2kQWqiqLTmE2COgCTX8Y3ewnnscQyZ1J9euFyjovxJAcSMJCCmT@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx4RzNb5uvmXgJUeznAMK429MmvJPT/0GNbgkbSRud02okAL3w6
-	JaXgpdOFtiRlLCEoAVoeZTgtnWV9YcntlARmPSRD5E+lFUB7YML2W9MmPWzKo8WJf5EbZdU+Rso
-	GSczHnQII/bNjMeLV+1Em6kwlFuxcVh4=
-X-Gm-Gg: ASbGncsQ+Atp0ANm5f//IQSDzkwQxQhK8ArDeHHV2CZPGRY7Qe0ZrcUrSlL9GLgcN0z
-	GNaSegtge462BVzgxgMMHAAf6GcCZsP/rrzEB+UrjgQb9L75Xe6zCulSMt1CH27R7fwFYWESTUc
-	i5hppchzSKP0R7HPcQDxzSDqxqE+l/B+iQEqQ2S1Q+qqLK+TarDMLuZZg+OB0iW4QidK8sTNxF5
-	rnF6Pgwb41jQe321xbo43VQvaTt2n4/Lq2y+N2dv6a1XiTg7axrgyQr+insDw12jqmoS1zXfzF1
-	zW9HwUn+gsCHrKwNRz0=
-X-Google-Smtp-Source: AGHT+IFfZe0g4fezpRDc+X7fNelXv5yG5z8Dl1kfaKgD+zJaqJyK3GgAr0cpsSdbQrwgHJlqGwBfpnmgbXGH3rI+SB4=
-X-Received: by 2002:aa7:c899:0:b0:640:abb1:5eff with SMTP id
- 4fb4d7f45d1cf-64334c7e578mr4363029a12.8.1763119178278; Fri, 14 Nov 2025
- 03:19:38 -0800 (PST)
+        bh=/5oJbCCfMjKZTBM19Ms4JBV8hzYnz4qzAWkgC6tGXMU=;
+        b=lb1SQ2kUB9/S5khd5B3ahF86BSuNfP60HMjkXkpKU+OInaHeQv//DjPSk4LS5jbhvz
+         a4GfOf/X0+vc9+vZ5KP6VgBLi1OaF6D5zWJoWl8kx8ZdxHEoUkSOg29yGvDXAoB+qDZf
+         /EA1lY/YNvfRGYa9OKSTJo7yGZue6EZ7hyZQf6mh37mCv1TPkyBscq2egdSMuizm4BmZ
+         moxQlT8eWeFLgU5H0Ua0P/6QUIm2i+5DecrmyMV+yvShUYV/HUvq49uYFbyYIWUU6xLn
+         6Gp4+fi3cwxdt0HgroRbwnW/ooUgi1L2DQzWm6SQUBo07XWlrrPGAU0xpQ9H7tgYQS6U
+         y5Yg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763120458; x=1763725258;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=/5oJbCCfMjKZTBM19Ms4JBV8hzYnz4qzAWkgC6tGXMU=;
+        b=BLZ3CqeW4TOgPQGAQYKYUKhIjG+cip8OU9vWUe6r5Hk+qIYsYj35H5YLefsmBXXlRr
+         FqTBcKD9ilAUgLw1hGkzZ9i192nE9S1lithlbpF8llX5vunG6yI/rYfxrszfXy1X/uY1
+         TDiKuryp0bZt3nwxjjUcTWwWBmM0PDpEuaZdmJf4bHoshZQv8poaXIJILjOO14pIvBKW
+         pu9+BB22YXyISm10pfhTUGB8vl/lyRGOmr08NgDWVLZLXR+gClgWuWQAbJYxq/5FfA09
+         jK7PnYqqbBpPdiyiH+EIJUYpb5bDGvllhMIAQznTSxt/TrDiFsurAPW1qEy/ARuKxm30
+         wMHA==
+X-Forwarded-Encrypted: i=1; AJvYcCUfoMH1dDWerp1ZSGBC7mbDi0371F1jCpkvX1verBi8bFbkuR/g+kykyZbK8R2BoZrY5OwaKjL6AqfNVTeb@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywu3Xfif8QXe1GaQO7QIPROpf677Xfn6ZVBAsVR0ZG+SKGzCYrv
+	V+OGXy+/4Ue4CXOOG5tnwE62c8lxY/MKmbVq2Ky4UhGa4+SB3r/vjvQh5GnSv/WoackZnZdjZUc
+	Q2EWfVlkH+Myk+lPgT1MXHkce8U21mQs=
+X-Gm-Gg: ASbGncu+sU1WdDSe04Y9303ItpyEwbHYaRNg/5ArV6Ho7Sqn6Bcu5tmhmpCo222FGey
+	ockcB2q9YME/qqXp1kVM2Md+H7T86kHMHI3xauO1xqPzw5bwEwDBOqmN9ezi05pIj5YGJydT69p
+	gM1n984o+G83NpHQ8nDAEADCwOsfxfLhuyDYUQX51MWNxFcbZKQ3QmpIaFbvP9wACq01Oqqi94i
+	h9bc7ceBHhOgVPn8ybw1O8n6LxLtP/rZXf5ROFIL5uKkx3oEoEWzSJwEYZemsso6r7OBYs3mEHc
+	42J8TegOTBmHaqYjm0OoRJRjVucEGA==
+X-Google-Smtp-Source: AGHT+IFCUX+g4UhvxSRaKEbX8Hqx/rv343OKMl8lUiRejGtQdQsfKUQsIZV/CdM1Mz1hWzGJEWfv4c4G7+xvH5u/2Do=
+X-Received: by 2002:a05:6402:13cb:b0:640:bc0b:887d with SMTP id
+ 4fb4d7f45d1cf-64350e00abdmr2334062a12.2.1763120458231; Fri, 14 Nov 2025
+ 03:40:58 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
- <20251113-work-ovl-cred-guard-v3-34-b35ec983efc1@kernel.org>
- <CAOQ4uxgumgfM1GVE1oMiiN=aW3RBxM67OZGfVE+7e2qW6Ne_jw@mail.gmail.com> <20251114-zurief-tagebuch-790cf513c676@brauner>
-In-Reply-To: <20251114-zurief-tagebuch-790cf513c676@brauner>
+References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org> <20251113-work-ovl-cred-guard-v3-40-b35ec983efc1@kernel.org>
+In-Reply-To: <20251113-work-ovl-cred-guard-v3-40-b35ec983efc1@kernel.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 14 Nov 2025 12:19:26 +0100
-X-Gm-Features: AWmQ_bnW81RKVT4zioOTExERbm9Z_pQrgb_3xg_8UTQcV1TBkOsnnL6nQiY7gQQ
-Message-ID: <CAOQ4uxhB_Jbu=t9VdPBdYLMwbd+HPJf9WX2XBsaonoSPpPLsqw@mail.gmail.com>
-Subject: Re: [PATCH v3 34/42] ovl: extract do_ovl_rename() helper function
+Date: Fri, 14 Nov 2025 12:40:46 +0100
+X-Gm-Features: AWmQ_bkOpOm5Nz9thMjahRZdsG2whDHw0P6RjfOIgGaDWmcM0O9fH2oEaHxrrDg
+Message-ID: <CAOQ4uxi43BPTsdxScnpT2vHJHo1npgnF4FD8hJSPsbOQBn=qVg@mail.gmail.com>
+Subject: Re: [PATCH v3 40/42] ovl: refactor ovl_fill_super()
 To: Christian Brauner <brauner@kernel.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: multipart/mixed; boundary="00000000000051b28e06438c2c6a"
-
---00000000000051b28e06438c2c6a
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 14, 2025 at 11:21=E2=80=AFAM Christian Brauner <brauner@kernel.=
+On Thu, Nov 13, 2025 at 10:33=E2=80=AFPM Christian Brauner <brauner@kernel.=
 org> wrote:
 >
-> On Fri, Nov 14, 2025 at 10:03:56AM +0100, Amir Goldstein wrote:
-> > On Thu, Nov 13, 2025 at 10:33=E2=80=AFPM Christian Brauner <brauner@ker=
-nel.org> wrote:
-> > >
-> > > Extract the code that runs under overridden credentials into a separa=
-te
-> > > do_ovl_rename() helper function. Error handling is simplified. The
-> > > helper returns errors directly instead of using goto labels.
-> > >
-> > > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > ---
-> >
-> > For the record, the only way I could review this patch is by manually
-> > moving the helper and doing diff, so while I approve the code
-> > I think this is unreviewable as it is posted.
+> Split the core into a separate helper in preparation of converting the
+> caller to the scoped ovl cred guard.
 >
-> This function should've never been allowed to be this large in the first
-> place. It is a giant pain to read and modify.
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> ---
+>  fs/overlayfs/super.c | 91 +++++++++++++++++++++++++++-------------------=
+------
+>  1 file changed, 48 insertions(+), 43 deletions(-)
 >
-> If you have an approach where you can refactor it in tiny steps that I
-> can incorporate, be my guest. The only reason I'm doing it is because it
-> gets in my way here.
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 43ee4c7296a7..e3781fccaef8 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1369,53 +1369,35 @@ static void ovl_set_d_op(struct super_block *sb)
+>         set_default_d_op(sb, &ovl_dentry_operations);
+>  }
+>
+> -int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+> +static int do_ovl_fill_super(struct fs_context *fc, struct super_block *=
+sb)
+>  {
+>         struct ovl_fs *ofs =3D sb->s_fs_info;
+> +       struct cred *creator_cred =3D (struct cred *)ofs->creator_cred;
+>         struct ovl_fs_context *ctx =3D fc->fs_private;
+> -       const struct cred *old_cred =3D NULL;
+> -       struct dentry *root_dentry;
+> -       struct ovl_entry *oe;
+>         struct ovl_layer *layers;
+> -       struct cred *cred;
+> +       struct ovl_entry *oe =3D NULL;
+>         int err;
+>
+> -       err =3D -EIO;
+> -       if (WARN_ON(fc->user_ns !=3D current_user_ns()))
+> -               goto out_err;
+> -
+> -       ovl_set_d_op(sb);
+> -
+> -       err =3D -ENOMEM;
+> -       if (!ofs->creator_cred)
+> -               ofs->creator_cred =3D cred =3D prepare_creds();
+> -       else
+> -               cred =3D (struct cred *)ofs->creator_cred;
+> -       if (!cred)
+> -               goto out_err;
+> -
+> -       old_cred =3D ovl_override_creds(sb);
+> -
+>         err =3D ovl_fs_params_verify(ctx, &ofs->config);
+>         if (err)
+> -               goto out_err;
+> +               return err;
+>
+>         err =3D -EINVAL;
+>         if (ctx->nr =3D=3D 0) {
+>                 if (!(fc->sb_flags & SB_SILENT))
+>                         pr_err("missing 'lowerdir'\n");
+> -               goto out_err;
+> +               return err;
+>         }
+>
+>         err =3D -ENOMEM;
+>         layers =3D kcalloc(ctx->nr + 1, sizeof(struct ovl_layer), GFP_KER=
+NEL);
+>         if (!layers)
+> -               goto out_err;
+> +               return err;
+>
+>         ofs->config.lowerdirs =3D kcalloc(ctx->nr + 1, sizeof(char *), GF=
+P_KERNEL);
+>         if (!ofs->config.lowerdirs) {
+>                 kfree(layers);
+> -               goto out_err;
+> +               return err;
+>         }
+>         ofs->layers =3D layers;
+>         /*
+> @@ -1448,12 +1430,12 @@ int ovl_fill_super(struct super_block *sb, struct=
+ fs_context *fc)
+>                 err =3D -EINVAL;
+>                 if (!ofs->config.workdir) {
+>                         pr_err("missing 'workdir'\n");
+> -                       goto out_err;
+> +                       return err;
+>                 }
+>
+>                 err =3D ovl_get_upper(sb, ofs, &layers[0], &ctx->upper);
+>                 if (err)
+> -                       goto out_err;
+> +                       return err;
+>
+>                 upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+>                 if (!ovl_should_sync(ofs)) {
+> @@ -1461,13 +1443,13 @@ int ovl_fill_super(struct super_block *sb, struct=
+ fs_context *fc)
+>                         if (errseq_check(&upper_sb->s_wb_err, ofs->errseq=
+)) {
+>                                 err =3D -EIO;
+>                                 pr_err("Cannot mount volatile when upperd=
+ir has an unseen error. Sync upperdir fs to clear state.\n");
+> -                               goto out_err;
+> +                               return err;
+>                         }
+>                 }
+>
+>                 err =3D ovl_get_workdir(sb, ofs, &ctx->upper, &ctx->work)=
+;
+>                 if (err)
+> -                       goto out_err;
+> +                       return err;
+>
+>                 if (!ofs->workdir)
+>                         sb->s_flags |=3D SB_RDONLY;
+> @@ -1478,7 +1460,7 @@ int ovl_fill_super(struct super_block *sb, struct f=
+s_context *fc)
+>         oe =3D ovl_get_lowerstack(sb, ctx, ofs, layers);
+>         err =3D PTR_ERR(oe);
+>         if (IS_ERR(oe))
+> -               goto out_err;
+> +               return err;
+>
+>         /* If the upper fs is nonexistent, we mark overlayfs r/o too */
+>         if (!ovl_upper_mnt(ofs))
+> @@ -1531,7 +1513,7 @@ int ovl_fill_super(struct super_block *sb, struct f=
+s_context *fc)
+>                 sb->s_export_op =3D &ovl_export_fid_operations;
+>
+>         /* Never override disk quota limits or use reserved space */
+> -       cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
+> +       cap_lower(creator_cred->cap_effective, CAP_SYS_RESOURCE);
+>
+>         sb->s_magic =3D OVERLAYFS_SUPER_MAGIC;
+>         sb->s_xattr =3D ovl_xattr_handlers(ofs);
+> @@ -1549,27 +1531,50 @@ int ovl_fill_super(struct super_block *sb, struct=
+ fs_context *fc)
+>         sb->s_iflags |=3D SB_I_EVM_HMAC_UNSUPPORTED;
+>
+>         err =3D -ENOMEM;
+> -       root_dentry =3D ovl_get_root(sb, ctx->upper.dentry, oe);
+> -       if (!root_dentry)
+> +       sb->s_root =3D ovl_get_root(sb, ctx->upper.dentry, oe);
+> +       if (!sb->s_root)
+>                 goto out_free_oe;
+>
+> -       sb->s_root =3D root_dentry;
+> -
+> -       ovl_revert_creds(old_cred);
+>         return 0;
+>
+>  out_free_oe:
+>         ovl_free_entry(oe);
+> -out_err:
+> -       /*
+> -        * Revert creds before calling ovl_free_fs() which will call
+> -        * put_cred() and put_cred() requires that the cred's that are
+> -        * put are not the caller's creds, i.e., current->cred.
+> -        */
+> -       if (old_cred)
+> +       return err;
+> +}
+> +
+> +int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+> +{
+> +       struct ovl_fs *ofs =3D sb->s_fs_info;
+> +       const struct cred *old_cred =3D NULL;
+> +       struct cred *cred;
+> +       int err;
+> +
+> +       err =3D -EIO;
+> +       if (WARN_ON(fc->user_ns !=3D current_user_ns()))
+> +               goto out_err;
+> +
+> +       ovl_set_d_op(sb);
+> +
+> +       err =3D -ENOMEM;
+> +       if (!ofs->creator_cred)
+> +               ofs->creator_cred =3D cred =3D prepare_creds();
+> +       else
+> +               cred =3D (struct cred *)ofs->creator_cred;
+> +       if (!cred)
+> +               goto out_err;
+> +
+> +       old_cred =3D ovl_override_creds(sb);
+> +
+> +       err =3D do_ovl_fill_super(fc, sb);
+> +
+>         ovl_revert_creds(old_cred);
+> +
+> +out_err:
+> +       if (err) {
+>                 ovl_free_fs(ofs);
+>                 sb->s_fs_info =3D NULL;
+> +       }
+> +
+>         return err;
+>  }
+>
+>
+> --
+> 2.47.3
+>
 
-Here you go
+Considering Miklos' complaint about do_ovl_ helpers, how about:
 
-large function split into ovl_rename_start() ovl_rename_upper() ovl_rename_=
-end()
-this is clear, smallish patch and conforming to other overlayfs code.
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1369,10 +1369,10 @@ static void ovl_set_d_op(struct super_block *sb)
+        set_default_d_op(sb, &ovl_dentry_operations);
+ }
 
-Also tested that together with your new patches and all tests still pass.
+-static int do_ovl_fill_super(struct fs_context *fc, struct super_block *sb=
+)
++static int ovl_fill_super_cred(struct fs_context *fc, struct super_block *=
+sb,
++                              struct cred *creator_cred)
+ {
+        struct ovl_fs *ofs =3D sb->s_fs_info;
+-       struct cred *creator_cred =3D (struct cred *)ofs->creator_cred;
+        struct ovl_fs_context *ctx =3D fc->fs_private;
+        struct ovl_layer *layers;
+        struct ovl_entry *oe =3D NULL;
+@@ -1545,6 +1545,7 @@ static int do_ovl_fill_super(struct fs_context
+*fc, struct super_block *sb)
+ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+        struct ovl_fs *ofs =3D sb->s_fs_info;
++       struct cred *cred =3D (struct cred *)ofs->creator_cred;
+        int err;
+
+        err =3D -EIO;
+@@ -1555,13 +1556,13 @@ int ovl_fill_super(struct super_block *sb,
+struct fs_context *fc)
+
+        if (!ofs->creator_cred) {
+                err =3D -ENOMEM;
+-               ofs->creator_cred =3D prepare_creds();
+-               if (!ofs->creator_cred)
++               ofs->creator_cred =3D cred =3D prepare_creds();
++               if (!cred)
+                        goto out_err;
+        }
+
+        with_ovl_creds(sb)
+-               err =3D do_ovl_fill_super(fc, sb);
++               err =3D ovl_fill_super_cred(fc, sb, cred);
+
+---
+
+Which is also a bit more explicit about the fact that the helper
+is modifying the creator_cred.
 
 Thanks,
 Amir.
-
---00000000000051b28e06438c2c6a
-Content-Type: text/x-patch; charset="US-ASCII"; name="0001-ovl-refactor-ovl_rename.patch"
-Content-Disposition: attachment; 
-	filename="0001-ovl-refactor-ovl_rename.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_mhyr861m0>
-X-Attachment-Id: f_mhyr861m0
-
-RnJvbSA3NmJiMjM5MWQ3NjllMDZjZjBmZTZlZDFiNGVmNmE4N2M5N2YzMjkwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBDaHJpc3RpYW4gQnJhdW5lciA8YnJhdW5lckBrZXJuZWwub3Jn
-PgpEYXRlOiBUaHUsIDEzIE5vdiAyMDI1IDIyOjA5OjQ1ICswMTAwClN1YmplY3Q6IFtQQVRDSF0g
-b3ZsOiByZWZhY3RvciBvdmxfcmVuYW1lKCkKCkV4dHJhY3QgdGhlIGNvZGUgdGhhdCBydW5zIHVu
-ZGVyIG92ZXJyaWRkZW4gY3JlZGVudGlhbHMgaW50byBhIHNlcGFyYXRlCm92bF9yZW5hbWVfdXBw
-ZXIoKSBoZWxwZXIgZnVuY3Rpb24gYW5kIHRoZSBjb2RlIHRoYXQgcnVucyBiZWZvcmUgYW5kCmFm
-dGVyIHRvIG92bF9yZW5hbWVfe3N0YXJ0LGVuZH0oKS4gRXJyb3IgaGFuZGxpbmcgaXMgc2ltcGxp
-ZmllZC4gVGhlCmhlbHBlcnMgcmV0dXJucyBlcnJvcnMgZGlyZWN0bHkgaW5zdGVhZCBvZiB1c2lu
-ZyBnb3RvIGxhYmVscy4KClNpZ25lZC1vZmYtYnk6IENocmlzdGlhbiBCcmF1bmVyIDxicmF1bmVy
-QGtlcm5lbC5vcmc+ClNpZ25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFp
-bC5jb20+Ci0tLQogZnMvb3ZlcmxheWZzL2Rpci5jIHwgMjMyICsrKysrKysrKysrKysrKysrKysr
-KysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDEyNiBpbnNlcnRpb25z
-KCspLCAxMDYgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL2Rpci5jIGIv
-ZnMvb3ZlcmxheWZzL2Rpci5jCmluZGV4IDA1MjkyOWI5Yjk5ZDEuLmY2ZDlkNTY4ZTk0NDAgMTAw
-NjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9kaXIuYworKysgYi9mcy9vdmVybGF5ZnMvZGlyLmMKQEAg
-LTEwOTYsMTA5ICsxMDk2LDEwMSBAQCBzdHJ1Y3Qgb3ZsX3JlbmFtZWRhdGEgewogCXN0cnVjdCBk
-ZW50cnkgKm9sZGRlbnRyeTsKIAlzdHJ1Y3QgZGVudHJ5ICpuZXdkZW50cnk7CiAJYm9vbCBjbGVh
-bnVwX3doaXRlb3V0OworCWJvb2wgdXBkYXRlX25saW5rOwogCWJvb2wgb3ZlcndyaXRlOwogfTsK
-IAotc3RhdGljIGludCBvdmxfcmVuYW1lKHN0cnVjdCBtbnRfaWRtYXAgKmlkbWFwLCBzdHJ1Y3Qg
-aW5vZGUgKm9sZGRpciwKLQkJICAgICAgc3RydWN0IGRlbnRyeSAqb2xkLCBzdHJ1Y3QgaW5vZGUg
-Km5ld2RpciwKLQkJICAgICAgc3RydWN0IGRlbnRyeSAqbmV3LCB1bnNpZ25lZCBpbnQgZmxhZ3Mp
-CitzdGF0aWMgaW50IG92bF9yZW5hbWVfc3RhcnQoc3RydWN0IG92bF9yZW5hbWVkYXRhICpvdmxy
-ZCwgc3RydWN0IGxpc3RfaGVhZCAqbGlzdCkKIHsKLQlpbnQgZXJyOwotCXN0cnVjdCBkZW50cnkg
-Km9sZF91cHBlcmRpcjsKLQlzdHJ1Y3QgZGVudHJ5ICpuZXdfdXBwZXJkaXI7Ci0Jc3RydWN0IGRl
-bnRyeSAqdHJhcCwgKmRlOwotCWJvb2wgb2xkX29wYXF1ZTsKLQlib29sIG5ld19vcGFxdWU7Ci0J
-Ym9vbCB1cGRhdGVfbmxpbmsgPSBmYWxzZTsKKwlzdHJ1Y3QgZGVudHJ5ICpvbGQgPSBvdmxyZC0+
-b2xkX2RlbnRyeTsKKwlzdHJ1Y3QgZGVudHJ5ICpuZXcgPSBvdmxyZC0+bmV3X2RlbnRyeTsKIAli
-b29sIGlzX2RpciA9IGRfaXNfZGlyKG9sZCk7CiAJYm9vbCBuZXdfaXNfZGlyID0gZF9pc19kaXIo
-bmV3KTsKLQljb25zdCBzdHJ1Y3QgY3JlZCAqb2xkX2NyZWQgPSBOVUxMOwotCXN0cnVjdCBvdmxf
-ZnMgKm9mcyA9IE9WTF9GUyhvbGQtPmRfc2IpOwotCXN0cnVjdCBvdmxfcmVuYW1lZGF0YSBvdmxy
-ZCA9IHsKLQkJLm9sZF9wYXJlbnQJCT0gb2xkLT5kX3BhcmVudCwKLQkJLm9sZF9kZW50cnkJCT0g
-b2xkLAotCQkubmV3X3BhcmVudAkJPSBuZXctPmRfcGFyZW50LAotCQkubmV3X2RlbnRyeQkJPSBu
-ZXcsCi0JCS5mbGFncwkJCT0gZmxhZ3MsCi0JCS5jbGVhbnVwX3doaXRlb3V0CT0gZmFsc2UsCi0J
-CS5vdmVyd3JpdGUJCT0gIShmbGFncyAmIFJFTkFNRV9FWENIQU5HRSksCi0JfTsKLQlMSVNUX0hF
-QUQobGlzdCk7Ci0JYm9vbCBzYW1lZGlyID0gb3ZscmQub2xkX3BhcmVudCA9PSBvdmxyZC5uZXdf
-cGFyZW50OworCWludCBlcnI7CiAKLQllcnIgPSAtRUlOVkFMOwotCWlmIChvdmxyZC5mbGFncyAm
-IH4oUkVOQU1FX0VYQ0hBTkdFIHwgUkVOQU1FX05PUkVQTEFDRSkpCi0JCWdvdG8gb3V0OworCWlm
-IChvdmxyZC0+ZmxhZ3MgJiB+KFJFTkFNRV9FWENIQU5HRSB8IFJFTkFNRV9OT1JFUExBQ0UpKQor
-CQlyZXR1cm4gLUVJTlZBTDsKIAotCW92bHJkLmZsYWdzICY9IH5SRU5BTUVfTk9SRVBMQUNFOwor
-CW92bHJkLT5mbGFncyAmPSB+UkVOQU1FX05PUkVQTEFDRTsKIAogCS8qIERvbid0IGNvcHkgdXAg
-ZGlyZWN0b3J5IHRyZWVzICovCiAJZXJyID0gLUVYREVWOwogCWlmICghb3ZsX2Nhbl9tb3ZlKG9s
-ZCkpCi0JCWdvdG8gb3V0OwotCWlmICghb3ZscmQub3ZlcndyaXRlICYmICFvdmxfY2FuX21vdmUo
-bmV3KSkKLQkJZ290byBvdXQ7CisJCXJldHVybiBlcnI7CisJaWYgKCFvdmxyZC0+b3ZlcndyaXRl
-ICYmICFvdmxfY2FuX21vdmUobmV3KSkKKwkJcmV0dXJuIGVycjsKIAotCWlmIChvdmxyZC5vdmVy
-d3JpdGUgJiYgbmV3X2lzX2RpciAmJiAhb3ZsX3B1cmVfdXBwZXIobmV3KSkgewotCQllcnIgPSBv
-dmxfY2hlY2tfZW1wdHlfZGlyKG5ldywgJmxpc3QpOworCWlmIChvdmxyZC0+b3ZlcndyaXRlICYm
-IG5ld19pc19kaXIgJiYgIW92bF9wdXJlX3VwcGVyKG5ldykpIHsKKwkJZXJyID0gb3ZsX2NoZWNr
-X2VtcHR5X2RpcihuZXcsIGxpc3QpOwogCQlpZiAoZXJyKQotCQkJZ290byBvdXQ7CisJCQlyZXR1
-cm4gZXJyOwogCX0KIAotCWlmIChvdmxyZC5vdmVyd3JpdGUpIHsKKwlpZiAob3ZscmQtPm92ZXJ3
-cml0ZSkgewogCQlpZiAob3ZsX2xvd2VyX3Bvc2l0aXZlKG9sZCkpIHsKIAkJCWlmICghb3ZsX2Rl
-bnRyeV9pc193aGl0ZW91dChuZXcpKSB7CiAJCQkJLyogV2hpdGVvdXQgc291cmNlICovCi0JCQkJ
-b3ZscmQuZmxhZ3MgfD0gUkVOQU1FX1dISVRFT1VUOworCQkJCW92bHJkLT5mbGFncyB8PSBSRU5B
-TUVfV0hJVEVPVVQ7CiAJCQl9IGVsc2UgewogCQkJCS8qIFN3aXRjaCB3aGl0ZW91dHMgKi8KLQkJ
-CQlvdmxyZC5mbGFncyB8PSBSRU5BTUVfRVhDSEFOR0U7CisJCQkJb3ZscmQtPmZsYWdzIHw9IFJF
-TkFNRV9FWENIQU5HRTsKIAkJCX0KIAkJfSBlbHNlIGlmIChpc19kaXIgJiYgb3ZsX2RlbnRyeV9p
-c193aGl0ZW91dChuZXcpKSB7Ci0JCQlvdmxyZC5mbGFncyB8PSBSRU5BTUVfRVhDSEFOR0U7Ci0J
-CQlvdmxyZC5jbGVhbnVwX3doaXRlb3V0ID0gdHJ1ZTsKKwkJCW92bHJkLT5mbGFncyB8PSBSRU5B
-TUVfRVhDSEFOR0U7CisJCQlvdmxyZC0+Y2xlYW51cF93aGl0ZW91dCA9IHRydWU7CiAJCX0KIAl9
-CiAKIAllcnIgPSBvdmxfY29weV91cChvbGQpOwogCWlmIChlcnIpCi0JCWdvdG8gb3V0OworCQly
-ZXR1cm4gZXJyOwogCi0JZXJyID0gb3ZsX2NvcHlfdXAob3ZscmQubmV3X3BhcmVudCk7CisJZXJy
-ID0gb3ZsX2NvcHlfdXAobmV3LT5kX3BhcmVudCk7CiAJaWYgKGVycikKLQkJZ290byBvdXQ7Ci0J
-aWYgKCFvdmxyZC5vdmVyd3JpdGUpIHsKKwkJcmV0dXJuIGVycjsKKwlpZiAoIW92bHJkLT5vdmVy
-d3JpdGUpIHsKIAkJZXJyID0gb3ZsX2NvcHlfdXAobmV3KTsKIAkJaWYgKGVycikKLQkJCWdvdG8g
-b3V0OworCQkJcmV0dXJuIGVycjsKIAl9IGVsc2UgaWYgKGRfaW5vZGUobmV3KSkgewogCQllcnIg
-PSBvdmxfbmxpbmtfc3RhcnQobmV3KTsKIAkJaWYgKGVycikKLQkJCWdvdG8gb3V0OworCQkJcmV0
-dXJuIGVycjsKIAotCQl1cGRhdGVfbmxpbmsgPSB0cnVlOworCQlvdmxyZC0+dXBkYXRlX25saW5r
-ID0gdHJ1ZTsKIAl9CiAKLQlpZiAoIXVwZGF0ZV9ubGluaykgeworCWlmICghb3ZscmQtPnVwZGF0
-ZV9ubGluaykgewogCQkvKiBvdmxfbmxpbmtfc3RhcnQoKSB0b29rIG92bF93YW50X3dyaXRlKCkg
-Ki8KIAkJZXJyID0gb3ZsX3dhbnRfd3JpdGUob2xkKTsKIAkJaWYgKGVycikKLQkJCWdvdG8gb3V0
-OworCQkJcmV0dXJuIGVycjsKIAl9CiAKLQlvbGRfY3JlZCA9IG92bF9vdmVycmlkZV9jcmVkcyhv
-bGQtPmRfc2IpOworCXJldHVybiAwOworfQogCi0JaWYgKCFsaXN0X2VtcHR5KCZsaXN0KSkgewot
-CQlvdmxyZC5vcGFxdWVkaXIgPSBvdmxfY2xlYXJfZW1wdHkobmV3LCAmbGlzdCk7Ci0JCWVyciA9
-IFBUUl9FUlIob3ZscmQub3BhcXVlZGlyKTsKLQkJaWYgKElTX0VSUihvdmxyZC5vcGFxdWVkaXIp
-KSB7Ci0JCQlvdmxyZC5vcGFxdWVkaXIgPSBOVUxMOwotCQkJZ290byBvdXRfcmV2ZXJ0X2NyZWRz
-OwotCQl9Ci0JfQorc3RhdGljIGludCBvdmxfcmVuYW1lX3VwcGVyKHN0cnVjdCBvdmxfcmVuYW1l
-ZGF0YSAqb3ZscmQsIHN0cnVjdCBsaXN0X2hlYWQgKmxpc3QpCit7CisJc3RydWN0IGRlbnRyeSAq
-b2xkID0gb3ZscmQtPm9sZF9kZW50cnk7CisJc3RydWN0IGRlbnRyeSAqbmV3ID0gb3ZscmQtPm5l
-d19kZW50cnk7CisJc3RydWN0IG92bF9mcyAqb2ZzID0gT1ZMX0ZTKG9sZC0+ZF9zYik7CisJdW5z
-aWduZWQgaW50IGZsYWdzID0gb3ZscmQtPmZsYWdzOworCXN0cnVjdCBkZW50cnkgKm9sZF91cHBl
-cmRpciA9IG92bF9kZW50cnlfdXBwZXIob3ZscmQtPm9sZF9wYXJlbnQpOworCXN0cnVjdCBkZW50
-cnkgKm5ld191cHBlcmRpciA9IG92bF9kZW50cnlfdXBwZXIob3ZscmQtPm5ld19wYXJlbnQpOwor
-CWJvb2wgc2FtZWRpciA9IG92bHJkLT5vbGRfcGFyZW50ID09IG92bHJkLT5uZXdfcGFyZW50Owor
-CWJvb2wgaXNfZGlyID0gZF9pc19kaXIob2xkKTsKKwlib29sIG5ld19pc19kaXIgPSBkX2lzX2Rp
-cihuZXcpOworCXN0cnVjdCBkZW50cnkgKnRyYXAsICpkZTsKKwlib29sIG9sZF9vcGFxdWUsIG5l
-d19vcGFxdWU7CisJaW50IGVycjsKIAotCW9sZF91cHBlcmRpciA9IG92bF9kZW50cnlfdXBwZXIo
-b3ZscmQub2xkX3BhcmVudCk7Ci0JbmV3X3VwcGVyZGlyID0gb3ZsX2RlbnRyeV91cHBlcihvdmxy
-ZC5uZXdfcGFyZW50KTsKKwlpZiAoIWxpc3RfZW1wdHkobGlzdCkpIHsKKwkJZGUgPSBvdmxfY2xl
-YXJfZW1wdHkobmV3LCBsaXN0KTsKKwkJaWYgKElTX0VSUihkZSkpCisJCQlyZXR1cm4gUFRSX0VS
-UihkZSk7CisJCW92bHJkLT5vcGFxdWVkaXIgPSBkZTsKKwl9CiAKIAlpZiAoIXNhbWVkaXIpIHsK
-IAkJLyoKQEAgLTEyMDgsMzIgKzEyMDAsMzAgQEAgc3RhdGljIGludCBvdmxfcmVuYW1lKHN0cnVj
-dCBtbnRfaWRtYXAgKmlkbWFwLCBzdHJ1Y3QgaW5vZGUgKm9sZGRpciwKIAkJICogbG9va3VwIHRo
-ZSBvcmlnaW4gaW5vZGVzIG9mIHRoZSBlbnRyaWVzIHRvIGZpbGwgZF9pbm8uCiAJCSAqLwogCQlp
-ZiAob3ZsX3R5cGVfb3JpZ2luKG9sZCkpIHsKLQkJCWVyciA9IG92bF9zZXRfaW1wdXJlKG92bHJk
-Lm5ld19wYXJlbnQsIG5ld191cHBlcmRpcik7CisJCQllcnIgPSBvdmxfc2V0X2ltcHVyZShvdmxy
-ZC0+bmV3X3BhcmVudCwgbmV3X3VwcGVyZGlyKTsKIAkJCWlmIChlcnIpCi0JCQkJZ290byBvdXRf
-cmV2ZXJ0X2NyZWRzOworCQkJCXJldHVybiBlcnI7CiAJCX0KLQkJaWYgKCFvdmxyZC5vdmVyd3Jp
-dGUgJiYgb3ZsX3R5cGVfb3JpZ2luKG5ldykpIHsKLQkJCWVyciA9IG92bF9zZXRfaW1wdXJlKG92
-bHJkLm9sZF9wYXJlbnQsIG9sZF91cHBlcmRpcik7CisJCWlmICghb3ZscmQtPm92ZXJ3cml0ZSAm
-JiBvdmxfdHlwZV9vcmlnaW4obmV3KSkgeworCQkJZXJyID0gb3ZsX3NldF9pbXB1cmUob3ZscmQt
-Pm9sZF9wYXJlbnQsIG9sZF91cHBlcmRpcik7CiAJCQlpZiAoZXJyKQotCQkJCWdvdG8gb3V0X3Jl
-dmVydF9jcmVkczsKKwkJCQlyZXR1cm4gZXJyOwogCQl9CiAJfQogCiAJdHJhcCA9IGxvY2tfcmVu
-YW1lKG5ld191cHBlcmRpciwgb2xkX3VwcGVyZGlyKTsKLQlpZiAoSVNfRVJSKHRyYXApKSB7Ci0J
-CWVyciA9IFBUUl9FUlIodHJhcCk7Ci0JCWdvdG8gb3V0X3JldmVydF9jcmVkczsKLQl9CisJaWYg
-KElTX0VSUih0cmFwKSkKKwkJcmV0dXJuIFBUUl9FUlIodHJhcCk7CiAKIAlkZSA9IG92bF9sb29r
-dXBfdXBwZXIob2ZzLCBvbGQtPmRfbmFtZS5uYW1lLCBvbGRfdXBwZXJkaXIsCiAJCQkgICAgICBv
-bGQtPmRfbmFtZS5sZW4pOwogCWVyciA9IFBUUl9FUlIoZGUpOwogCWlmIChJU19FUlIoZGUpKQog
-CQlnb3RvIG91dF91bmxvY2s7Ci0Jb3ZscmQub2xkZGVudHJ5ID0gZGU7CisJb3ZscmQtPm9sZGRl
-bnRyeSA9IGRlOwogCiAJZXJyID0gLUVTVEFMRTsKLQlpZiAoIW92bF9tYXRjaGVzX3VwcGVyKG9s
-ZCwgb3ZscmQub2xkZGVudHJ5KSkKKwlpZiAoIW92bF9tYXRjaGVzX3VwcGVyKG9sZCwgb3ZscmQt
-Pm9sZGRlbnRyeSkpCiAJCWdvdG8gb3V0X3VubG9jazsKIAogCWRlID0gb3ZsX2xvb2t1cF91cHBl
-cihvZnMsIG5ldy0+ZF9uYW1lLm5hbWUsIG5ld191cHBlcmRpciwKQEAgLTEyNDEsNzMgKzEyMzEs
-NzQgQEAgc3RhdGljIGludCBvdmxfcmVuYW1lKHN0cnVjdCBtbnRfaWRtYXAgKmlkbWFwLCBzdHJ1
-Y3QgaW5vZGUgKm9sZGRpciwKIAllcnIgPSBQVFJfRVJSKGRlKTsKIAlpZiAoSVNfRVJSKGRlKSkK
-IAkJZ290byBvdXRfdW5sb2NrOwotCW92bHJkLm5ld2RlbnRyeSA9IGRlOworCW92bHJkLT5uZXdk
-ZW50cnkgPSBkZTsKIAogCW9sZF9vcGFxdWUgPSBvdmxfZGVudHJ5X2lzX29wYXF1ZShvbGQpOwog
-CW5ld19vcGFxdWUgPSBvdmxfZGVudHJ5X2lzX29wYXF1ZShuZXcpOwogCiAJZXJyID0gLUVTVEFM
-RTsKIAlpZiAoZF9pbm9kZShuZXcpICYmIG92bF9kZW50cnlfdXBwZXIobmV3KSkgewotCQlpZiAo
-b3ZscmQub3BhcXVlZGlyKSB7Ci0JCQlpZiAob3ZscmQubmV3ZGVudHJ5ICE9IG92bHJkLm9wYXF1
-ZWRpcikKKwkJaWYgKG92bHJkLT5vcGFxdWVkaXIpIHsKKwkJCWlmIChvdmxyZC0+bmV3ZGVudHJ5
-ICE9IG92bHJkLT5vcGFxdWVkaXIpCiAJCQkJZ290byBvdXRfdW5sb2NrOwogCQl9IGVsc2Ugewot
-CQkJaWYgKCFvdmxfbWF0Y2hlc191cHBlcihuZXcsIG92bHJkLm5ld2RlbnRyeSkpCisJCQlpZiAo
-IW92bF9tYXRjaGVzX3VwcGVyKG5ldywgb3ZscmQtPm5ld2RlbnRyeSkpCiAJCQkJZ290byBvdXRf
-dW5sb2NrOwogCQl9CiAJfSBlbHNlIHsKLQkJaWYgKCFkX2lzX25lZ2F0aXZlKG92bHJkLm5ld2Rl
-bnRyeSkpIHsKLQkJCWlmICghbmV3X29wYXF1ZSB8fCAhb3ZsX3VwcGVyX2lzX3doaXRlb3V0KG9m
-cywgb3ZscmQubmV3ZGVudHJ5KSkKKwkJaWYgKCFkX2lzX25lZ2F0aXZlKG92bHJkLT5uZXdkZW50
-cnkpKSB7CisJCQlpZiAoIW5ld19vcGFxdWUgfHwgIW92bF91cHBlcl9pc193aGl0ZW91dChvZnMs
-IG92bHJkLT5uZXdkZW50cnkpKQogCQkJCWdvdG8gb3V0X3VubG9jazsKIAkJfSBlbHNlIHsKLQkJ
-CWlmIChvdmxyZC5mbGFncyAmIFJFTkFNRV9FWENIQU5HRSkKKwkJCWlmIChmbGFncyAmIFJFTkFN
-RV9FWENIQU5HRSkKIAkJCQlnb3RvIG91dF91bmxvY2s7CiAJCX0KIAl9CiAKLQlpZiAob3ZscmQu
-b2xkZGVudHJ5ID09IHRyYXApCisJaWYgKG92bHJkLT5vbGRkZW50cnkgPT0gdHJhcCkKIAkJZ290
-byBvdXRfdW5sb2NrOwotCWlmIChvdmxyZC5uZXdkZW50cnkgPT0gdHJhcCkKKwlpZiAob3ZscmQt
-Pm5ld2RlbnRyeSA9PSB0cmFwKQogCQlnb3RvIG91dF91bmxvY2s7CiAKLQlpZiAob3ZscmQub2xk
-ZGVudHJ5LT5kX2lub2RlID09IG92bHJkLm5ld2RlbnRyeS0+ZF9pbm9kZSkKKwlpZiAob3ZscmQt
-Pm9sZGRlbnRyeS0+ZF9pbm9kZSA9PSBvdmxyZC0+bmV3ZGVudHJ5LT5kX2lub2RlKQogCQlnb3Rv
-IG91dF91bmxvY2s7CiAKIAllcnIgPSAwOwogCWlmIChvdmxfdHlwZV9tZXJnZV9vcl9sb3dlcihv
-bGQpKQogCQllcnIgPSBvdmxfc2V0X3JlZGlyZWN0KG9sZCwgc2FtZWRpcik7Ci0JZWxzZSBpZiAo
-aXNfZGlyICYmICFvbGRfb3BhcXVlICYmIG92bF90eXBlX21lcmdlKG92bHJkLm5ld19wYXJlbnQp
-KQotCQllcnIgPSBvdmxfc2V0X29wYXF1ZV94ZXJyKG9sZCwgb3ZscmQub2xkZGVudHJ5LCAtRVhE
-RVYpOworCWVsc2UgaWYgKGlzX2RpciAmJiAhb2xkX29wYXF1ZSAmJiBvdmxfdHlwZV9tZXJnZShv
-dmxyZC0+bmV3X3BhcmVudCkpCisJCWVyciA9IG92bF9zZXRfb3BhcXVlX3hlcnIob2xkLCBvdmxy
-ZC0+b2xkZGVudHJ5LCAtRVhERVYpOwogCWlmIChlcnIpCiAJCWdvdG8gb3V0X3VubG9jazsKIAot
-CWlmICghb3ZscmQub3ZlcndyaXRlICYmIG92bF90eXBlX21lcmdlX29yX2xvd2VyKG5ldykpCisJ
-aWYgKCFvdmxyZC0+b3ZlcndyaXRlICYmIG92bF90eXBlX21lcmdlX29yX2xvd2VyKG5ldykpCiAJ
-CWVyciA9IG92bF9zZXRfcmVkaXJlY3QobmV3LCBzYW1lZGlyKTsKLQllbHNlIGlmICghb3ZscmQu
-b3ZlcndyaXRlICYmIG5ld19pc19kaXIgJiYgIW5ld19vcGFxdWUgJiYKLQkJIG92bF90eXBlX21l
-cmdlKG92bHJkLm9sZF9wYXJlbnQpKQotCQllcnIgPSBvdmxfc2V0X29wYXF1ZV94ZXJyKG5ldywg
-b3ZscmQubmV3ZGVudHJ5LCAtRVhERVYpOworCWVsc2UgaWYgKCFvdmxyZC0+b3ZlcndyaXRlICYm
-IG5ld19pc19kaXIgJiYgIW5ld19vcGFxdWUgJiYKKwkJIG92bF90eXBlX21lcmdlKG92bHJkLT5v
-bGRfcGFyZW50KSkKKwkJZXJyID0gb3ZsX3NldF9vcGFxdWVfeGVycihuZXcsIG92bHJkLT5uZXdk
-ZW50cnksIC1FWERFVik7CiAJaWYgKGVycikKIAkJZ290byBvdXRfdW5sb2NrOwogCi0JZXJyID0g
-b3ZsX2RvX3JlbmFtZShvZnMsIG9sZF91cHBlcmRpciwgb3ZscmQub2xkZGVudHJ5LAotCQkJICAg
-IG5ld191cHBlcmRpciwgb3ZscmQubmV3ZGVudHJ5LCBmbGFncyk7CisJZXJyID0gb3ZsX2RvX3Jl
-bmFtZShvZnMsIG9sZF91cHBlcmRpciwgb3ZscmQtPm9sZGRlbnRyeSwKKwkJCSAgICBuZXdfdXBw
-ZXJkaXIsIG92bHJkLT5uZXdkZW50cnksIGZsYWdzKTsKK291dF91bmxvY2s6CiAJdW5sb2NrX3Jl
-bmFtZShuZXdfdXBwZXJkaXIsIG9sZF91cHBlcmRpcik7CiAJaWYgKGVycikKLQkJZ290byBvdXRf
-cmV2ZXJ0X2NyZWRzOworCQlyZXR1cm4gZXJyOwogCi0JaWYgKG92bHJkLmNsZWFudXBfd2hpdGVv
-dXQpCi0JCW92bF9jbGVhbnVwKG9mcywgb2xkX3VwcGVyZGlyLCBvdmxyZC5uZXdkZW50cnkpOwor
-CWlmIChvdmxyZC0+Y2xlYW51cF93aGl0ZW91dCkKKwkJb3ZsX2NsZWFudXAob2ZzLCBvbGRfdXBw
-ZXJkaXIsIG92bHJkLT5uZXdkZW50cnkpOwogCi0JaWYgKG92bHJkLm92ZXJ3cml0ZSAmJiBkX2lu
-b2RlKG5ldykpIHsKKwlpZiAob3ZscmQtPm92ZXJ3cml0ZSAmJiBkX2lub2RlKG5ldykpIHsKIAkJ
-aWYgKG5ld19pc19kaXIpCiAJCQljbGVhcl9ubGluayhkX2lub2RlKG5ldykpOwogCQllbHNlCiAJ
-CQlvdmxfZHJvcF9ubGluayhuZXcpOwogCX0KIAotCW92bF9kaXJfbW9kaWZpZWQob3ZscmQub2xk
-X3BhcmVudCwgb3ZsX3R5cGVfb3JpZ2luKG9sZCkgfHwKLQkJCSAoIW92bHJkLm92ZXJ3cml0ZSAm
-JiBvdmxfdHlwZV9vcmlnaW4obmV3KSkpOwotCW92bF9kaXJfbW9kaWZpZWQob3ZscmQubmV3X3Bh
-cmVudCwgb3ZsX3R5cGVfb3JpZ2luKG9sZCkgfHwKKwlvdmxfZGlyX21vZGlmaWVkKG92bHJkLT5v
-bGRfcGFyZW50LCBvdmxfdHlwZV9vcmlnaW4ob2xkKSB8fAorCQkJICghb3ZscmQtPm92ZXJ3cml0
-ZSAmJiBvdmxfdHlwZV9vcmlnaW4obmV3KSkpOworCW92bF9kaXJfbW9kaWZpZWQob3ZscmQtPm5l
-d19wYXJlbnQsIG92bF90eXBlX29yaWdpbihvbGQpIHx8CiAJCQkgKGRfaW5vZGUobmV3KSAmJiBv
-dmxfdHlwZV9vcmlnaW4obmV3KSkpOwogCiAJLyogY29weSBjdGltZTogKi8KQEAgLTEzMTUsMjIg
-KzEzMDYsNTEgQEAgc3RhdGljIGludCBvdmxfcmVuYW1lKHN0cnVjdCBtbnRfaWRtYXAgKmlkbWFw
-LCBzdHJ1Y3QgaW5vZGUgKm9sZGRpciwKIAlpZiAoZF9pbm9kZShuZXcpICYmIG92bF9kZW50cnlf
-dXBwZXIobmV3KSkKIAkJb3ZsX2NvcHlhdHRyKGRfaW5vZGUobmV3KSk7CiAKLW91dF9yZXZlcnRf
-Y3JlZHM6Ci0Jb3ZsX3JldmVydF9jcmVkcyhvbGRfY3JlZCk7Ci0JaWYgKHVwZGF0ZV9ubGluaykK
-LQkJb3ZsX25saW5rX2VuZChuZXcpOworCXJldHVybiBlcnI7Cit9CisKK3N0YXRpYyB2b2lkIG92
-bF9yZW5hbWVfZW5kKHN0cnVjdCBvdmxfcmVuYW1lZGF0YSAqb3ZscmQpCit7CisJaWYgKG92bHJk
-LT51cGRhdGVfbmxpbmspCisJCW92bF9ubGlua19lbmQob3ZscmQtPm5ld19kZW50cnkpOwogCWVs
-c2UKLQkJb3ZsX2Ryb3Bfd3JpdGUob2xkKTsKKwkJb3ZsX2Ryb3Bfd3JpdGUob3ZscmQtPm9sZF9k
-ZW50cnkpOworCisJZHB1dChvdmxyZC0+bmV3ZGVudHJ5KTsKKwlkcHV0KG92bHJkLT5vbGRkZW50
-cnkpOworCWRwdXQob3ZscmQtPm9wYXF1ZWRpcik7Cit9CisKK3N0YXRpYyBpbnQgb3ZsX3JlbmFt
-ZShzdHJ1Y3QgbW50X2lkbWFwICppZG1hcCwgc3RydWN0IGlub2RlICpvbGRkaXIsCisJCSAgICAg
-IHN0cnVjdCBkZW50cnkgKm9sZCwgc3RydWN0IGlub2RlICpuZXdkaXIsCisJCSAgICAgIHN0cnVj
-dCBkZW50cnkgKm5ldywgdW5zaWduZWQgaW50IGZsYWdzKQoreworCWNvbnN0IHN0cnVjdCBjcmVk
-ICpvbGRfY3JlZCA9IE5VTEw7CisJc3RydWN0IG92bF9yZW5hbWVkYXRhIG92bHJkID0geworCQku
-b2xkX3BhcmVudAkJPSBvbGQtPmRfcGFyZW50LAorCQkub2xkX2RlbnRyeQkJPSBvbGQsCisJCS5u
-ZXdfcGFyZW50CQk9IG5ldy0+ZF9wYXJlbnQsCisJCS5uZXdfZGVudHJ5CQk9IG5ldywKKwkJLmZs
-YWdzCQkJPSBmbGFncywKKwkJLm92ZXJ3cml0ZQkJPSAhKGZsYWdzICYgUkVOQU1FX0VYQ0hBTkdF
-KSwKKwl9OworCUxJU1RfSEVBRChsaXN0KTsKKwlpbnQgZXJyOworCisJZXJyID0gb3ZsX3JlbmFt
-ZV9zdGFydCgmb3ZscmQsICZsaXN0KTsKKwlpZiAoZXJyKQorCQlnb3RvIG91dDsKKworCW9sZF9j
-cmVkID0gb3ZsX292ZXJyaWRlX2NyZWRzKG9sZC0+ZF9zYik7CisKKwllcnIgPSBvdmxfcmVuYW1l
-X3VwcGVyKCZvdmxyZCwgJmxpc3QpOworCisJb3ZsX3JldmVydF9jcmVkcyhvbGRfY3JlZCk7CisK
-KwlvdmxfcmVuYW1lX2VuZCgmb3ZscmQpOwogb3V0OgotCWRwdXQob3ZscmQubmV3ZGVudHJ5KTsK
-LQlkcHV0KG92bHJkLm9sZGRlbnRyeSk7Ci0JZHB1dChvdmxyZC5vcGFxdWVkaXIpOwogCW92bF9j
-YWNoZV9mcmVlKCZsaXN0KTsKIAlyZXR1cm4gZXJyOwotCi1vdXRfdW5sb2NrOgotCXVubG9ja19y
-ZW5hbWUobmV3X3VwcGVyZGlyLCBvbGRfdXBwZXJkaXIpOwotCWdvdG8gb3V0X3JldmVydF9jcmVk
-czsKIH0KIAogc3RhdGljIGludCBvdmxfY3JlYXRlX3RtcGZpbGUoc3RydWN0IGZpbGUgKmZpbGUs
-IHN0cnVjdCBkZW50cnkgKmRlbnRyeSwKLS0gCjIuNTEuMQoK
---00000000000051b28e06438c2c6a--
