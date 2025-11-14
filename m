@@ -1,333 +1,151 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2746F313E14
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 11:40:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F0143128C0
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 11:53:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763120463; cv=none; b=pMvsdIn4o0CH0fnr6GPTgHQt5XDVbgNZmlZOV2P9WkGvnP/83Aw/mEe7gPVXYfDkgz9tFlFc5VOHkxWYVjc5wkbasqYrSFVnTMI1z5Oci5sBY6MyPLNwRrxW3lc64CPwGWhHmc5G1k4lHwItdp9vzKXa32ymOvEs4Knv619fnCw=
+	t=1763121194; cv=none; b=J2zhzQJgmoB3+GFPdU1FZ0qXtGET03JY4y+sj3YVFmr8pnfsvVwnNN7JWzF4JwhIlNje+8MJvW4e62GV/BGVST17xOEcIPHPUpwiLdEgA5iatVr4igLtOT1Qc4poczdedjJ0viAMqI7YCWN25mNfug+wm/TnYqlN7gzlyFzHjOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763120463; c=relaxed/simple;
-	bh=1oOVxW9E1tiKTn/6IWaX0aOxtjFOX7jpbXxx7pcOB7g=;
+	s=arc-20240116; t=1763121194; c=relaxed/simple;
+	bh=tCwBw4AnF2vtIl9rSeHRKWGJE+A+XndJ29JaC2CBIps=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mhfg3x00eMiGMBgvZAseefUpvuka8DniCQenCaCcTK2p84eVyNZijjMMNCYGBFmhePQq9la2n9M7Z/A9LIT8dO8BOyd0t2SCzR4VPIx4yz/is8aQ+fwz8mPP7hc5YGr20dBSOVn1WVZYUXLruCFOpgBKfiZRsqSh7ROiC6b9W6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lb1SQ2kU; arc=none smtp.client-ip=209.85.208.42
+	 To:Cc:Content-Type; b=VmqX6HE+xeaeYpCI9t8pfwZaUxHeyuExwsrhGWJlUiQwgLpNst/HWy6QtsVAO9Gs+fXDq9+697XVgIO0pflqBULTXyCZ1uKZa/QoB4G2zioGW28fLrRO15SZAkqJ8gkGrnsZpatCf6U0Y5jXC5IWwbbVo13Z1mgikuG3qEf+VAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jNK46nwF; arc=none smtp.client-ip=209.85.208.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lb1SQ2kU"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-640a0812658so3004217a12.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 03:40:59 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jNK46nwF"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-640860f97b5so3089054a12.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 03:53:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763120458; x=1763725258; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1763121190; x=1763725990; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=/5oJbCCfMjKZTBM19Ms4JBV8hzYnz4qzAWkgC6tGXMU=;
-        b=lb1SQ2kUB9/S5khd5B3ahF86BSuNfP60HMjkXkpKU+OInaHeQv//DjPSk4LS5jbhvz
-         a4GfOf/X0+vc9+vZ5KP6VgBLi1OaF6D5zWJoWl8kx8ZdxHEoUkSOg29yGvDXAoB+qDZf
-         /EA1lY/YNvfRGYa9OKSTJo7yGZue6EZ7hyZQf6mh37mCv1TPkyBscq2egdSMuizm4BmZ
-         moxQlT8eWeFLgU5H0Ua0P/6QUIm2i+5DecrmyMV+yvShUYV/HUvq49uYFbyYIWUU6xLn
-         6Gp4+fi3cwxdt0HgroRbwnW/ooUgi1L2DQzWm6SQUBo07XWlrrPGAU0xpQ9H7tgYQS6U
-         y5Yg==
+        bh=ksUowDiMBBw0jAf3Vm8E59fNicG0SGTHjGTGP1KX/Rc=;
+        b=jNK46nwFz076NcnM8Kw/MYbGa0ePwD8HKqOPj4mn1tSDkIP0VkY7fBp50a4I0uZBdr
+         UACnW2ct5H0O4hYOzyS5kJOUCgg+o92FBdgJkWq7DRlJ3Kc7XGQMii4eCT3A1Bp1hkTU
+         qinmVtgAAvEX1c4d4sftmIiXpuIqVYT9ApT3eJfi7KTLlYs4EolCWR3zndMpCS/8Mhgz
+         B2OhiedvC+OufyR+U5zdXmNG86s6qGBbcBrBcpxPIfauONoWv2G3Yz1XHoV4T5eGMcvK
+         u9yY/merK3TuiEwRRyN9qcfBY2BAVWfuUosNja+DdEU/KW/97KibzY1k2MF78F9J5Kng
+         9Ofg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763120458; x=1763725258;
+        d=1e100.net; s=20230601; t=1763121190; x=1763725990;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=/5oJbCCfMjKZTBM19Ms4JBV8hzYnz4qzAWkgC6tGXMU=;
-        b=BLZ3CqeW4TOgPQGAQYKYUKhIjG+cip8OU9vWUe6r5Hk+qIYsYj35H5YLefsmBXXlRr
-         FqTBcKD9ilAUgLw1hGkzZ9i192nE9S1lithlbpF8llX5vunG6yI/rYfxrszfXy1X/uY1
-         TDiKuryp0bZt3nwxjjUcTWwWBmM0PDpEuaZdmJf4bHoshZQv8poaXIJILjOO14pIvBKW
-         pu9+BB22YXyISm10pfhTUGB8vl/lyRGOmr08NgDWVLZLXR+gClgWuWQAbJYxq/5FfA09
-         jK7PnYqqbBpPdiyiH+EIJUYpb5bDGvllhMIAQznTSxt/TrDiFsurAPW1qEy/ARuKxm30
-         wMHA==
-X-Forwarded-Encrypted: i=1; AJvYcCUfoMH1dDWerp1ZSGBC7mbDi0371F1jCpkvX1verBi8bFbkuR/g+kykyZbK8R2BoZrY5OwaKjL6AqfNVTeb@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywu3Xfif8QXe1GaQO7QIPROpf677Xfn6ZVBAsVR0ZG+SKGzCYrv
-	V+OGXy+/4Ue4CXOOG5tnwE62c8lxY/MKmbVq2Ky4UhGa4+SB3r/vjvQh5GnSv/WoackZnZdjZUc
-	Q2EWfVlkH+Myk+lPgT1MXHkce8U21mQs=
-X-Gm-Gg: ASbGncu+sU1WdDSe04Y9303ItpyEwbHYaRNg/5ArV6Ho7Sqn6Bcu5tmhmpCo222FGey
-	ockcB2q9YME/qqXp1kVM2Md+H7T86kHMHI3xauO1xqPzw5bwEwDBOqmN9ezi05pIj5YGJydT69p
-	gM1n984o+G83NpHQ8nDAEADCwOsfxfLhuyDYUQX51MWNxFcbZKQ3QmpIaFbvP9wACq01Oqqi94i
-	h9bc7ceBHhOgVPn8ybw1O8n6LxLtP/rZXf5ROFIL5uKkx3oEoEWzSJwEYZemsso6r7OBYs3mEHc
-	42J8TegOTBmHaqYjm0OoRJRjVucEGA==
-X-Google-Smtp-Source: AGHT+IFCUX+g4UhvxSRaKEbX8Hqx/rv343OKMl8lUiRejGtQdQsfKUQsIZV/CdM1Mz1hWzGJEWfv4c4G7+xvH5u/2Do=
-X-Received: by 2002:a05:6402:13cb:b0:640:bc0b:887d with SMTP id
- 4fb4d7f45d1cf-64350e00abdmr2334062a12.2.1763120458231; Fri, 14 Nov 2025
- 03:40:58 -0800 (PST)
+        bh=ksUowDiMBBw0jAf3Vm8E59fNicG0SGTHjGTGP1KX/Rc=;
+        b=fwj/cByMurI+e2+k4cqOwoAeVvmGdZpyhD/oqS+HzFGuDkpRjWXxp7TxTo+TvYwiXd
+         VgP+6Lx9Gt2HivEFKakfjnGbwoDrON1lywP7a0rcq2jwW+Z+fMhNqLvxuSO9qb6hD3Hw
+         JYlmbFyuF+w7K0bScj932iflFYumEB2zP+9wum2IPaIWGSfkfzew6keqKH4xG5r+Lo+G
+         p3Oz++bCJWKtUArfBaG0y8lk+jJ+dbIGC/CeOHQSHtWe0nHqUYP1TO3a/cTMibrqc81j
+         XAh0QGHE5/MTJaG5wkpBLGWmd5EVWn3xyhQG0aEhvAfQBg2RMes1QI4NudiiYIerWCD+
+         q0Cg==
+X-Forwarded-Encrypted: i=1; AJvYcCU2y21ZXQIiLMuahWOgMNQj8f7R3dplvGiafSIdEAMiD6H5GJgqc5pL1rApF+634+DpBaUlNJPteJGTWU+9@vger.kernel.org
+X-Gm-Message-State: AOJu0YwPI9NsCvS1IuuTFCf9Zqz5smXMqrQ57PEyTBk8hAA0IAXhhRo2
+	Aw0W0n6Lv0r9FCpsM95Wicg0xq/yKg+gzu61ONuwg5jISWjPgdMcLiahesYA72Akb6SWZJTRrlZ
+	4ewY6ZAOtxQidZVsLmQrZDaIySGRwyPw=
+X-Gm-Gg: ASbGncvCWuZbOHczwXmOYjBML5n3zRblbjZu523meQVnzOtITButdH9mr6A837wg5Y3
+	P3ncWcMrhk+08R58FBjGmtwGxyLZT1DS7Rp10jOqnWuxrZQJdaWiiaPm8dyFksVGji5QcEF0HP8
+	edDF5wwarQ62QsfhCkKjwPF9HU7/8l8Liy7GnwMU1GK1uFQaw5OEbfFudbHmcvJan1jJWjPDaXb
+	p46e5/51n39nwfOpk8udArxrY5TV/0yhalelW/goZ9Mb5vKOrcy0hx0QRlC8x9aH/0ixqclzDAA
+	arAmsdNwtf0ZnUh5voX9Lwi/dv5vgQ==
+X-Google-Smtp-Source: AGHT+IFkNCbCK3wtGpbvZ8sWyqGdvw8H6M3hi3GmiaEXmGlh4THeFELMo16lZrrcznsxz7tUwsSSgqFG6UbMZJsfjjE=
+X-Received: by 2002:a05:6402:13c8:b0:63b:f67b:3782 with SMTP id
+ 4fb4d7f45d1cf-64350e9e7b4mr2686740a12.27.1763121190367; Fri, 14 Nov 2025
+ 03:53:10 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org> <20251113-work-ovl-cred-guard-v3-40-b35ec983efc1@kernel.org>
-In-Reply-To: <20251113-work-ovl-cred-guard-v3-40-b35ec983efc1@kernel.org>
+References: <20251114-work-ovl-cred-guard-prepare-v1-0-4fc1208afa3d@kernel.org>
+ <20251114-work-ovl-cred-guard-prepare-v1-3-4fc1208afa3d@kernel.org>
+In-Reply-To: <20251114-work-ovl-cred-guard-prepare-v1-3-4fc1208afa3d@kernel.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 14 Nov 2025 12:40:46 +0100
-X-Gm-Features: AWmQ_bkOpOm5Nz9thMjahRZdsG2whDHw0P6RjfOIgGaDWmcM0O9fH2oEaHxrrDg
-Message-ID: <CAOQ4uxi43BPTsdxScnpT2vHJHo1npgnF4FD8hJSPsbOQBn=qVg@mail.gmail.com>
-Subject: Re: [PATCH v3 40/42] ovl: refactor ovl_fill_super()
+Date: Fri, 14 Nov 2025 12:52:58 +0100
+X-Gm-Features: AWmQ_bmj3WV3e9oB_pc-wmTp-eN0ihrkNcdAYjq3ylUYQU-O6HjG8yRlK0U2GcQ
+Message-ID: <CAOQ4uxhB2am_xAGugZvAiuEx7ud+8QGPJBwcA+M+LmRvWC-nsA@mail.gmail.com>
+Subject: Re: [PATCH 3/6] ovl: reflow ovl_create_or_link()
 To: Christian Brauner <brauner@kernel.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 13, 2025 at 10:33=E2=80=AFPM Christian Brauner <brauner@kernel.=
+On Fri, Nov 14, 2025 at 11:15=E2=80=AFAM Christian Brauner <brauner@kernel.=
 org> wrote:
 >
-> Split the core into a separate helper in preparation of converting the
-> caller to the scoped ovl cred guard.
+> Reflow the creation routine in preparation of porting it to a guard.
 >
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > Signed-off-by: Christian Brauner <brauner@kernel.org>
 > ---
->  fs/overlayfs/super.c | 91 +++++++++++++++++++++++++++-------------------=
-------
->  1 file changed, 48 insertions(+), 43 deletions(-)
+>  fs/overlayfs/dir.c | 23 +++++++++++++++--------
+>  1 file changed, 15 insertions(+), 8 deletions(-)
 >
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 43ee4c7296a7..e3781fccaef8 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1369,53 +1369,35 @@ static void ovl_set_d_op(struct super_block *sb)
->         set_default_d_op(sb, &ovl_dentry_operations);
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index a276eafb5e78..ff30a91e07f8 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -644,14 +644,23 @@ static const struct cred *ovl_setup_cred_for_create=
+(struct dentry *dentry,
+>         return override_cred;
 >  }
 >
-> -int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
-> +static int do_ovl_fill_super(struct fs_context *fc, struct super_block *=
-sb)
->  {
->         struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct cred *creator_cred =3D (struct cred *)ofs->creator_cred;
->         struct ovl_fs_context *ctx =3D fc->fs_private;
-> -       const struct cred *old_cred =3D NULL;
-> -       struct dentry *root_dentry;
-> -       struct ovl_entry *oe;
->         struct ovl_layer *layers;
-> -       struct cred *cred;
-> +       struct ovl_entry *oe =3D NULL;
->         int err;
->
-> -       err =3D -EIO;
-> -       if (WARN_ON(fc->user_ns !=3D current_user_ns()))
-> -               goto out_err;
-> -
-> -       ovl_set_d_op(sb);
-> -
-> -       err =3D -ENOMEM;
-> -       if (!ofs->creator_cred)
-> -               ofs->creator_cred =3D cred =3D prepare_creds();
-> -       else
-> -               cred =3D (struct cred *)ofs->creator_cred;
-> -       if (!cred)
-> -               goto out_err;
-> -
-> -       old_cred =3D ovl_override_creds(sb);
-> -
->         err =3D ovl_fs_params_verify(ctx, &ofs->config);
->         if (err)
-> -               goto out_err;
-> +               return err;
->
->         err =3D -EINVAL;
->         if (ctx->nr =3D=3D 0) {
->                 if (!(fc->sb_flags & SB_SILENT))
->                         pr_err("missing 'lowerdir'\n");
-> -               goto out_err;
-> +               return err;
->         }
->
->         err =3D -ENOMEM;
->         layers =3D kcalloc(ctx->nr + 1, sizeof(struct ovl_layer), GFP_KER=
-NEL);
->         if (!layers)
-> -               goto out_err;
-> +               return err;
->
->         ofs->config.lowerdirs =3D kcalloc(ctx->nr + 1, sizeof(char *), GF=
-P_KERNEL);
->         if (!ofs->config.lowerdirs) {
->                 kfree(layers);
-> -               goto out_err;
-> +               return err;
->         }
->         ofs->layers =3D layers;
->         /*
-> @@ -1448,12 +1430,12 @@ int ovl_fill_super(struct super_block *sb, struct=
- fs_context *fc)
->                 err =3D -EINVAL;
->                 if (!ofs->config.workdir) {
->                         pr_err("missing 'workdir'\n");
-> -                       goto out_err;
-> +                       return err;
->                 }
->
->                 err =3D ovl_get_upper(sb, ofs, &layers[0], &ctx->upper);
->                 if (err)
-> -                       goto out_err;
-> +                       return err;
->
->                 upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
->                 if (!ovl_should_sync(ofs)) {
-> @@ -1461,13 +1443,13 @@ int ovl_fill_super(struct super_block *sb, struct=
- fs_context *fc)
->                         if (errseq_check(&upper_sb->s_wb_err, ofs->errseq=
-)) {
->                                 err =3D -EIO;
->                                 pr_err("Cannot mount volatile when upperd=
-ir has an unseen error. Sync upperdir fs to clear state.\n");
-> -                               goto out_err;
-> +                               return err;
->                         }
->                 }
->
->                 err =3D ovl_get_workdir(sb, ofs, &ctx->upper, &ctx->work)=
-;
->                 if (err)
-> -                       goto out_err;
-> +                       return err;
->
->                 if (!ofs->workdir)
->                         sb->s_flags |=3D SB_RDONLY;
-> @@ -1478,7 +1460,7 @@ int ovl_fill_super(struct super_block *sb, struct f=
-s_context *fc)
->         oe =3D ovl_get_lowerstack(sb, ctx, ofs, layers);
->         err =3D PTR_ERR(oe);
->         if (IS_ERR(oe))
-> -               goto out_err;
-> +               return err;
->
->         /* If the upper fs is nonexistent, we mark overlayfs r/o too */
->         if (!ovl_upper_mnt(ofs))
-> @@ -1531,7 +1513,7 @@ int ovl_fill_super(struct super_block *sb, struct f=
-s_context *fc)
->                 sb->s_export_op =3D &ovl_export_fid_operations;
->
->         /* Never override disk quota limits or use reserved space */
-> -       cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-> +       cap_lower(creator_cred->cap_effective, CAP_SYS_RESOURCE);
->
->         sb->s_magic =3D OVERLAYFS_SUPER_MAGIC;
->         sb->s_xattr =3D ovl_xattr_handlers(ofs);
-> @@ -1549,27 +1531,50 @@ int ovl_fill_super(struct super_block *sb, struct=
- fs_context *fc)
->         sb->s_iflags |=3D SB_I_EVM_HMAC_UNSUPPORTED;
->
->         err =3D -ENOMEM;
-> -       root_dentry =3D ovl_get_root(sb, ctx->upper.dentry, oe);
-> -       if (!root_dentry)
-> +       sb->s_root =3D ovl_get_root(sb, ctx->upper.dentry, oe);
-> +       if (!sb->s_root)
->                 goto out_free_oe;
->
-> -       sb->s_root =3D root_dentry;
-> -
-> -       ovl_revert_creds(old_cred);
->         return 0;
->
->  out_free_oe:
->         ovl_free_entry(oe);
-> -out_err:
-> -       /*
-> -        * Revert creds before calling ovl_free_fs() which will call
-> -        * put_cred() and put_cred() requires that the cred's that are
-> -        * put are not the caller's creds, i.e., current->cred.
-> -        */
-> -       if (old_cred)
-> +       return err;
+> +static int do_ovl_create_or_link(struct dentry *dentry, struct inode *in=
+ode,
+> +                                struct ovl_cattr *attr)
+
+Trying to avert the bikesheding over do_ovl_ helper name...
+
+> +{
+> +       if (!ovl_dentry_is_whiteout(dentry))
+> +               return ovl_create_upper(dentry, inode, attr);
+> +
+> +       return ovl_create_over_whiteout(dentry, inode, attr);
 > +}
 > +
-> +int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
-> +{
-> +       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       const struct cred *old_cred =3D NULL;
-> +       struct cred *cred;
-> +       int err;
-> +
-> +       err =3D -EIO;
-> +       if (WARN_ON(fc->user_ns !=3D current_user_ns()))
-> +               goto out_err;
-> +
-> +       ovl_set_d_op(sb);
-> +
-> +       err =3D -ENOMEM;
-> +       if (!ofs->creator_cred)
-> +               ofs->creator_cred =3D cred =3D prepare_creds();
-> +       else
-> +               cred =3D (struct cred *)ofs->creator_cred;
-> +       if (!cred)
-> +               goto out_err;
-> +
-> +       old_cred =3D ovl_override_creds(sb);
-> +
-> +       err =3D do_ovl_fill_super(fc, sb);
-> +
->         ovl_revert_creds(old_cred);
-> +
-> +out_err:
-> +       if (err) {
->                 ovl_free_fs(ofs);
->                 sb->s_fs_info =3D NULL;
-> +       }
-> +
->         return err;
->  }
+>  static int ovl_create_or_link(struct dentry *dentry, struct inode *inode=
+,
+>                               struct ovl_cattr *attr, bool origin)
+>  {
+>         int err;
+> -       const struct cred *new_cred __free(put_cred) =3D NULL;
+>         struct dentry *parent =3D dentry->d_parent;
 >
+>         scoped_class(override_creds_ovl, old_cred, dentry->d_sb) {
+> +               const struct cred *new_cred __free(put_cred) =3D NULL;
+>                 /*
+>                  * When linking a file with copy up origin into a new par=
+ent, mark the
+>                  * new parent dir "impure".
+> @@ -662,7 +671,6 @@ static int ovl_create_or_link(struct dentry *dentry, =
+struct inode *inode,
+>                                 return err;
+>                 }
 >
-> --
-> 2.47.3
->
+> -               if (!attr->hardlink) {
+>                 /*
+>                  * In the creation cases(create, mkdir, mknod, symlink),
+>                  * ovl should transfer current's fs{u,g}id to underlying
+> @@ -676,16 +684,15 @@ static int ovl_create_or_link(struct dentry *dentry=
+, struct inode *inode,
+>                  * create a new inode, so just use the ovl mounter's
+>                  * fs{u,g}id.
+>                  */
+> +
+> +               if (attr->hardlink)
+> +                       return do_ovl_create_or_link(dentry, inode, attr)=
+;
+> +
 
-Considering Miklos' complaint about do_ovl_ helpers, how about:
-
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1369,10 +1369,10 @@ static void ovl_set_d_op(struct super_block *sb)
-        set_default_d_op(sb, &ovl_dentry_operations);
- }
-
--static int do_ovl_fill_super(struct fs_context *fc, struct super_block *sb=
-)
-+static int ovl_fill_super_cred(struct fs_context *fc, struct super_block *=
-sb,
-+                              struct cred *creator_cred)
- {
-        struct ovl_fs *ofs =3D sb->s_fs_info;
--       struct cred *creator_cred =3D (struct cred *)ofs->creator_cred;
-        struct ovl_fs_context *ctx =3D fc->fs_private;
-        struct ovl_layer *layers;
-        struct ovl_entry *oe =3D NULL;
-@@ -1545,6 +1545,7 @@ static int do_ovl_fill_super(struct fs_context
-*fc, struct super_block *sb)
- int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
- {
-        struct ovl_fs *ofs =3D sb->s_fs_info;
-+       struct cred *cred =3D (struct cred *)ofs->creator_cred;
-        int err;
-
-        err =3D -EIO;
-@@ -1555,13 +1556,13 @@ int ovl_fill_super(struct super_block *sb,
-struct fs_context *fc)
-
-        if (!ofs->creator_cred) {
-                err =3D -ENOMEM;
--               ofs->creator_cred =3D prepare_creds();
--               if (!ofs->creator_cred)
-+               ofs->creator_cred =3D cred =3D prepare_creds();
-+               if (!cred)
-                        goto out_err;
-        }
-
-        with_ovl_creds(sb)
--               err =3D do_ovl_fill_super(fc, sb);
-+               err =3D ovl_fill_super_cred(fc, sb, cred);
-
----
-
-Which is also a bit more explicit about the fact that the helper
-is modifying the creator_cred.
+^^^ This looks like an optimization (don't setup cred for hardlink).
+Is it really an important optimization that is worth complicating the code =
+flow?
+What if we just drop the optimization instead?
+Would that creak anything?
 
 Thanks,
 Amir.
