@@ -1,60 +1,60 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E7E7306B0D
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 12:07:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82EAC50276
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 12:15:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763122060; cv=none; b=etLobRZyTRz6dl38liMTohS8N2NTCKOTiUKttudI3ERMtA0iaQ/68EOeyGMDv+9vRwvwI0O+tZGpkYPJ96ys6lk8cbKKqKSOI3J3SrCBxkB/aQRIJW6R/Gh2rVd2huInBcXREpzWiuUK3h090FoVTneBUTtvn8xepl2XTwBkYac=
+	t=1763122557; cv=none; b=SGSNL6A71lpG8XTTLvayhDEWEa+pNBmVW2TdbSaXv/lSpF7v2GD29lb9IT9Ngq51if6QvOSiJugEfKVvIHkmZthbRblkYW4cMBXTBg2BUtWmInxF6BLZ0KtDoi9dwHOp6ELJSoA0gHhQlOSlVYkZcGzXaq+P55YcZ7qVq1K2eec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763122060; c=relaxed/simple;
-	bh=nS8fwHEQj4VeU7JYF+1Vur6CmNLUaf0gsfVJCcbwq0A=;
+	s=arc-20240116; t=1763122557; c=relaxed/simple;
+	bh=47PNF5RVuJ3c8BHjRUvOBQJmrdIH6tNxp/wXGr1F1mY=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fOPK1r0lVjZzDe1V4TqcSvYBqxDSKam6KYSwli+615M6doW0CCamq3NtC8BHJZDo7GCC3ueDWbXPmacm1VGIRtVJVXyUYWsUeN/Gk8tvFegKHE3J9JVWijpHOSLDAgQ/TKqr1Y2LY8GTGfx2cLpFr3gJTNuaehx+cYGairsKzCs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eBh9ztrX; arc=none smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=mdyx6ZpKXmzI48QmR+hPo5bx25qxwUT/dGDiY+SHEREaX9zGcizseSjerODXjn2AWEBToe0pS0auNVd4zxC3NmdFMuLjbMaeTayukLhyHdMH3sfFFYHm7/LfHaeShsX7rx4phpLUP4+TVp62jm/J6tDnD58bmcmIi1eG/ThYPYI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SneHrKKF; arc=none smtp.client-ip=209.85.208.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eBh9ztrX"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-641677916b5so3474278a12.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 04:07:38 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SneHrKKF"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-641977dc00fso2822746a12.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 04:15:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763122057; x=1763726857; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1763122554; x=1763727354; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=f7c2Or+t9SJ4JcJ4QHM6wwh2YCSGgVhmzcFUnOogJw4=;
-        b=eBh9ztrXrgyTOFo/9pfsoB5YEPHa0/IOKwy8HLFxx3/VfX7gpfrtM9Bv0J2Ar0MmUf
-         UUlt8YHdDBZnn0r2qGER3sqOqsQeZSQbyS/vNO1JVz0rTjcaamqDeFz6AS1BphYqOOOb
-         XF5stBFl3mQDpeKeu5hQYZjM+lOkCJo49/Vh6a6hLb7MJb5pT0U+z47sUx5Ssv0/oSV4
-         IymUPgGGq+f5QfDSXOzaGQkklBrMY7KHpqzJQ2hJISE6DjwP4D1pljeirKlkqjT311N6
-         KGa0y0+HfsvhDG8FnTzR5fMcbSHltEE2cf6RFOyBkNqC+ABwGSpMb1gO+pbXdUY4FGXY
-         UM1w==
+        bh=S7PXXqBWzJqn3zGwsEpNyZu8WMfzixBgnRapPRgsdvM=;
+        b=SneHrKKFVnDueYScYsWsC+x+Eo1saV/U+y0dIYM04JxQ+1XCaHB1m5/KL/EoIbRQc6
+         slsTLgqauDk1JqCc9F7NUHGHnvlAlEf8hujjmx9vxveZvG73uy1del5FxWw3v03t/asZ
+         3vH/QL0ERlnBhF7NtugZ4jkc7nEJ9HX3gHIZdBI8oMJ76ZZcumRW5W+klcE/2dcDpHOR
+         WOTGlDWPRLcnZsnPPH9J5S46CJKyxiRkqjtwp/vChp314BIOEPcCuDc1KPjos83u/ukZ
+         mSpszbrz3VXCjVG0X0+cEZA9Lrad6stIqVCZAx9BOSfE1oW1IpRqniG+tqfSeznS3tmI
+         DaoA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763122057; x=1763726857;
+        d=1e100.net; s=20230601; t=1763122554; x=1763727354;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=f7c2Or+t9SJ4JcJ4QHM6wwh2YCSGgVhmzcFUnOogJw4=;
-        b=ApNRIuHOvaVynjHeENzjJy/tL1z2deXCil13vwb1MELahH1qXX4HtBF8prNICak3q9
-         6HiebZ0z9kpPbE2FDq3hwxzBTRkT1jT4dwUShOkPRiPIyOU6crlEJLzZRWs3lWF0M4ta
-         1t2qxac1YvrKijcZ1ka8OvMiTar/Nc+ffYqt0nMfMlwDT5I8VdxCcMO1SFddAzQ62gvK
-         RTbW4/perIcbZhZUqqA+vG2szj7iRSzMD6ksdMiRfK3L0UcoF9QNifzrwWibMTayM6w3
-         lop1qeRusplvFhGUzqTQokG5vD9197ntX9kdrp11Hvlb46xrhKYIiYp6W2/TM7sxVwlc
-         LG6w==
-X-Forwarded-Encrypted: i=1; AJvYcCVlay7QLfpjL0xpQCMhCrdG+yQtzCKpYisMNoBNouOY7bBVp/5wFxjWQtNIXqwPPoie8AL/4EdwL5dafcRM@vger.kernel.org
-X-Gm-Message-State: AOJu0YzW3KB29y0tjyn+1Bx/oAxNzi3Xmw+INhHK/fgOzvv3ZKccKC6H
-	NMp7SQXz67/4JkhW94lSX7Sbesv5miqgbLtyU8PuitnJ+IG/1D6V0U0mfkWcNlCehNBtZUvuw4x
-	32sZpznf7p3wfMEj+2i31pfSxb/HvUiM=
-X-Gm-Gg: ASbGnctMBjvPmvsbntfPdyjW9BIt6wJBkaYkvCl/+eFRMSYdjf56JCucHVCllaZpPUN
-	oKRyM3uph3OWLLaSz774OoOsjlOaUFzv5zfa8vBNeb4O6bj58Vz/P83VKTjvUXeuEpAQyDajx5L
-	/hsB3wBX2IrEjgaQL8TXafroQuDsiBORy2hp2I7+CY4nkCjVdX3Q+ynGtDcH5hDDCOrY3fGX8Vx
-	rgGxkE/LmCWsqUIKdJgOL3x32l1X0YwNY7vbK0zuLrg3h8nAldIOpWyHqkhvnVaEDi9h2bC2gFp
-	8chxcPvI/z44LS77dqc=
-X-Google-Smtp-Source: AGHT+IHgxAhdbgMpAOpIU/vg0eaXb2xu5A3f/rcYvzKrOMUJkbv7i4ilBYyFXDvbZh3aSGwZg+9SiGNuMyf5t8+4Zi8=
-X-Received: by 2002:a05:6402:4504:b0:643:5884:b4a6 with SMTP id
- 4fb4d7f45d1cf-6435884b979mr1313605a12.31.1763122057402; Fri, 14 Nov 2025
- 04:07:37 -0800 (PST)
+        bh=S7PXXqBWzJqn3zGwsEpNyZu8WMfzixBgnRapPRgsdvM=;
+        b=aVgofK/JJn6FqT30/vk8S/ohd3WubDijJCFXfJQqBHW8CwMsE37pKU+u7a1ZoUVXKj
+         2Pif2OdCO9+2nYKS1mdAkQXOZslOCtuf3tIV4Bcxs+hKKIKA3sQnXJYycw2KuqBsQlt1
+         6TfFHkEa31bPXcBcOq5JVaJ1IAO12mHl7nz6Qt5U/snW0ZLNBxEjlviZqPr9BQ3yI/fZ
+         LFRAZ5eQJGX5C2VsiPRobkVAbHB4S61phsyzti6KoKGIEaryhdC2br9UBhqHeZ0RLRlN
+         dbkPl6DxWcLJMJCL3CxbJPwoG3qUNPz/VcfFYh9soWzU3NUwe1wuWg2NGqLqm1k2Hqdt
+         Hybw==
+X-Forwarded-Encrypted: i=1; AJvYcCUjb/sFWDMiVUZRPH6n4Q+5a83YrsfnOYuxGIHQS+FGKoAm8Hbx2T+73It/aT7ROR5hDOA3NwVZ191wqQ8V@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy6VAsaUJT0bgCrGYaNmKGa4kSDJr3pTshSx14Xt0NtQoaAvuGH
+	T55DxA3k1ADahWh4ane0bJO1z0U353dYNIvfkgmE6WIlJesieM37WW4jFPQqsbzIk2MTibKDzhB
+	THkq5LsepqCcEy/8v12l+u2BzwonH4U0=
+X-Gm-Gg: ASbGncufYZroDD8ZHTMsRtzE9m+FEkXquzA9jQM+NCE/Y9G6aA7YVY0GPB1jmgxwe1p
+	BsHutGw8QonLV/OfJbECnsJOgURtnVnYcripY63AFiqTY52BKCCIVJAmFXZ2zJ3vZv09v1886qc
+	2DYk5XFB5alu6Xj+4ZZ2pZeXqs3+h7PHTyoI9bEClkurXMg8dVoXXDWEDehtSjtd3H9LxEId2kV
+	Bgg6pHhStkyI0MOFPb0EVQpVWzkV09ikIS5bjLzNyBHGurIaRr+THY49Fm+k3Rcz7X1we5k7ClY
+	YcmKMU8wF75o8d20U7mi6YUiCLmiaA==
+X-Google-Smtp-Source: AGHT+IGzFauNutjrU2V3aB20Ao5tLDc8f5yniDQzWBbdBv99NzPZX+H4OgBmFD4r8eLpzR3oWyiB94uGg8RieaeaJAM=
+X-Received: by 2002:a05:6402:2115:b0:640:ef03:82c9 with SMTP id
+ 4fb4d7f45d1cf-64350e1fa2cmr2264080a12.11.1763122553522; Fri, 14 Nov 2025
+ 04:15:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -62,110 +62,74 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20251114-work-ovl-cred-guard-prepare-v1-0-4fc1208afa3d@kernel.org>
- <20251114-work-ovl-cred-guard-prepare-v1-3-4fc1208afa3d@kernel.org>
- <CAOQ4uxhB2am_xAGugZvAiuEx7ud+8QGPJBwcA+M+LmRvWC-nsA@mail.gmail.com> <20251114-gasleitung-muffel-2a5478a34a6b@brauner>
-In-Reply-To: <20251114-gasleitung-muffel-2a5478a34a6b@brauner>
+In-Reply-To: <20251114-work-ovl-cred-guard-prepare-v1-0-4fc1208afa3d@kernel.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 14 Nov 2025 13:07:25 +0100
-X-Gm-Features: AWmQ_bnsXv9Z9oRwqDJ96sy0kp-0qOvb1j0w_1F3esqg2JheMpC50V3b9oI_8i8
-Message-ID: <CAOQ4uxie_CSG7kPBCZaKEfiQmLH7EAcMqrHXvy78ciLqX4QuKA@mail.gmail.com>
-Subject: Re: [PATCH 3/6] ovl: reflow ovl_create_or_link()
+Date: Fri, 14 Nov 2025 13:15:41 +0100
+X-Gm-Features: AWmQ_bnStc9yabet7bIV01pOuNjHccizHxm665gq1pv8xM9J20chqME7d-5dp2s
+Message-ID: <CAOQ4uxi5OntG9b7d9DZY2cS4xMtXNp7x-gUWespxgubf8UBNJQ@mail.gmail.com>
+Subject: Re: [PATCH 0/6] ovl: convert creation credential override to cred guard
 To: Christian Brauner <brauner@kernel.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 14, 2025 at 1:00=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
+On Fri, Nov 14, 2025 at 11:15=E2=80=AFAM Christian Brauner <brauner@kernel.=
+org> wrote:
 >
-> On Fri, Nov 14, 2025 at 12:52:58PM +0100, Amir Goldstein wrote:
-> > On Fri, Nov 14, 2025 at 11:15=E2=80=AFAM Christian Brauner <brauner@ker=
-nel.org> wrote:
-> > >
-> > > Reflow the creation routine in preparation of porting it to a guard.
-> > >
-> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > ---
-> > >  fs/overlayfs/dir.c | 23 +++++++++++++++--------
-> > >  1 file changed, 15 insertions(+), 8 deletions(-)
-> > >
-> > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > > index a276eafb5e78..ff30a91e07f8 100644
-> > > --- a/fs/overlayfs/dir.c
-> > > +++ b/fs/overlayfs/dir.c
-> > > @@ -644,14 +644,23 @@ static const struct cred *ovl_setup_cred_for_cr=
-eate(struct dentry *dentry,
-> > >         return override_cred;
-> > >  }
-> > >
-> > > +static int do_ovl_create_or_link(struct dentry *dentry, struct inode=
- *inode,
-> > > +                                struct ovl_cattr *attr)
-> >
-> > Trying to avert the bikesheding over do_ovl_ helper name...
-> >
-> > > +{
-> > > +       if (!ovl_dentry_is_whiteout(dentry))
-> > > +               return ovl_create_upper(dentry, inode, attr);
-> > > +
-> > > +       return ovl_create_over_whiteout(dentry, inode, attr);
-> > > +}
-> > > +
-> > >  static int ovl_create_or_link(struct dentry *dentry, struct inode *i=
-node,
-> > >                               struct ovl_cattr *attr, bool origin)
-> > >  {
-> > >         int err;
-> > > -       const struct cred *new_cred __free(put_cred) =3D NULL;
-> > >         struct dentry *parent =3D dentry->d_parent;
-> > >
-> > >         scoped_class(override_creds_ovl, old_cred, dentry->d_sb) {
-> > > +               const struct cred *new_cred __free(put_cred) =3D NULL=
-;
-> > >                 /*
-> > >                  * When linking a file with copy up origin into a new=
- parent, mark the
-> > >                  * new parent dir "impure".
-> > > @@ -662,7 +671,6 @@ static int ovl_create_or_link(struct dentry *dent=
-ry, struct inode *inode,
-> > >                                 return err;
-> > >                 }
-> > >
-> > > -               if (!attr->hardlink) {
-> > >                 /*
-> > >                  * In the creation cases(create, mkdir, mknod, symlin=
-k),
-> > >                  * ovl should transfer current's fs{u,g}id to underly=
-ing
-> > > @@ -676,16 +684,15 @@ static int ovl_create_or_link(struct dentry *de=
-ntry, struct inode *inode,
-> > >                  * create a new inode, so just use the ovl mounter's
-> > >                  * fs{u,g}id.
-> > >                  */
-> > > +
-> > > +               if (attr->hardlink)
-> > > +                       return do_ovl_create_or_link(dentry, inode, a=
-ttr);
-> > > +
-> >
-> > ^^^ This looks like an optimization (don't setup cred for hardlink).
-> > Is it really an important optimization that is worth complicating the c=
-ode flow?
+> Hey,
 >
-> It elides a bunch of allocations and an rcu cycle from put_cred().
-> So yes, I think it's worth it.
+> This is on top of the overlayfs cleanup guard work I already sent out.
+> This cleans up the creation specific credential override.
+>
+> The current code to override credentials for creation operations is
+> pretty difficult to understand as we override the credentials twice:
+>
+> (1) override with the mounter's credentials
+> (2) copy the mounts credentials and override the fs{g,u}id with the inode=
+ {u,g}id
+>
+> And then we elide the revert_creds() because it would be an idempotent
+> revert. That elision doesn't buy us anything anymore though because it's
+> all reference count less anyway.
+>
+> The fact that this is done in a function and that the revert is
+> happening in the original override makes this a lot to grasp.
+>
+> By introducing a cleanup guard for the creation case we can make this a
+> lot easier to understand and extremely visually prevalent:
+>
+> with_ovl_creds(dentry->d_sb) {
+>         scoped_class(prepare_creds_ovl, cred, dentry, inode, mode) {
+>                 if (IS_ERR(cred))
+>                         return PTR_ERR(cred);
+>
+>                 ovl_path_upper(dentry->d_parent, &realparentpath);
+>
+>                 /* more stuff you want to do */
+> }
+>
+> I think this is a big improvement over what we have now.
+>
 
-I have no doubt that ovl_setup_cred_for_create() has a price.
-The question is whether hardlinking over ovl is an interesting use case
-to optimize for.
+I agree!
 
-Miklos? WDYT?
+This bonus cleanup looks very good and helps with hairy parts of the
+ovl code.
 
-> You can always remove the special-case later yourself.
+Overall, apart from the reuse of ovl_revert_creds() helper name,
+I had only minor comments about suggestions for
+CLASS name and helpers, take it or leave it.
 
-Sure. Just as we touch and improve the code, it's worth asking those
-questions.
+Personally, I think I can leave with the minor confusion of the
+static do_ovl_ helpers vs. ovl_do_ helpers, so this one is up to Miklos
+to stand ground or not.
 
-Thanks,
+After rename of ovl_revert_creds(),
+Feel free to add to this series as well:
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+This series also passed the ovl sanity tests.
+
+Thanks!
 Amir.
