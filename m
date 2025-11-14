@@ -1,150 +1,135 @@
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5CF42459E1
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 13:01:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23AF219AD5C;
+	Fri, 14 Nov 2025 13:34:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763125309; cv=none; b=egG1Bui9T+reIzc1OXlsVd8YJowAeFKx+mVE/CARW/QUBsnmYY3CN28SIGnIqAFHcPsEmG26tUtS087Ha+d6dwN54lSoF1EYxE+3ipTuJNWrukf7lLkj69ksPtZ4bNCxeDxJBvxc3EeNrK2Ne2u5hybJME97JO1AdAAaaFP/KpI=
+	t=1763127261; cv=none; b=HV/BwWVnol4tETAiEpCF9cEGYrOBmnJuYUIkdb/ABGBQv1uLsQ/V01KX2dCaHJyqgXftg94t9c0ztz87s43XN2R49tVy/08RZW/lv9iEpLEC+dkV+R6DfKWzJkxAhHr2Kdx4SJhreXwGPQ8g+FIFzqY/qugtSj8nhhWRdH96zko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763125309; c=relaxed/simple;
-	bh=HpAgGgaEFn90GAP+61OaPTHjskGHvMWPVJKnFRe5/SU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ujeMcDjoMtDKtMY8uquHMrZSWpVGORl266rCrMkUx/qQxRKJ3afNvnnVmx6YH2LMYllXXtwBwjstohNXgP7U5Y7o4H70uq3IV4jk6BHTZOFkRMCYkcwhx/esrESt0dPHKTuuJDOyaUGQUrw58/Q8VhCHgDNWuTSG0TuNI+wsQmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O1uJIFYg; arc=none smtp.client-ip=209.85.128.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1763127261; c=relaxed/simple;
+	bh=Pw9CZgXixEV8n9eSXq8KsMdfVNRpSuJx7Ns+sPFC8ik=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PTqefXKqtE2vfmCLuIrOdEsLZrOyM5eEOefG7HVUt7u78yXjE2ZM+3UrWblsmu6HHnG72vurpXNY6r7APeRY4y9RhEpdEXFomBY9i/9eARPYn4O7zTuGGA7I/sSzfeMkJa5YazXMKrGNo0t1NibT4Zb7lOwMwkOvZxDSdkE9Cec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l3KHHaJ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O1uJIFYg"
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4777a9aeedaso17692625e9.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 05:01:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763125306; x=1763730106; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=WrJ7wpuffsUOhxttMGNEH1UpdA6aqm646ujYOAqkR8Q=;
-        b=O1uJIFYgf/y6lfrRpBXdOjWUq4jTOxTW6QXaNsDmSPJzPUxgLDB8DGdqYTYHg2plzw
-         6TbrvO8NNOa2OizD6zFMDXdM9ieZKmf5Dum9EwDrUDc1+JGfZ7snMwKv2TDjN6WhTEox
-         nS34KcYkEUEKYUZ4DAh1WCQEwxFwBcVfH0xzvd3OmRBjS0GMi1Uc+0aFXMiBkvLdBahR
-         pNATAh/aacX2tacq2MYxUW63yy92vkSYNhkWMvxfg3BDueig0orDMqPJp//Pmyg35RP3
-         tDBZP/cUfUhYWsB1rY/7wGYukUKk5iSn8MG53Uyc9n+d9dH732Ow/KuI7TDDPfTAsFb+
-         VuuQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763125306; x=1763730106;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=WrJ7wpuffsUOhxttMGNEH1UpdA6aqm646ujYOAqkR8Q=;
-        b=ErQ+iRb5c9HVWPSzeS4FX+fWI3gadgcfvmzZ7S5ghet8f77DSaL0hBdpLbT62NRgxf
-         vcT0FSmslNa4v7i7Hcu4Ds0B+5cVIQ2HG35z49PsBC9zw7exLqMvWVNTOBydoKTihl+I
-         qg2cddXmtyvfgw7QODR6PtRc28aHLHrGgORDUbmyDQm3DNtTeEkEraTkLErpCWISpr6X
-         7sGrdQQcemA2GFUBYawxKWxcddvftP8YdisF461d1U5XF/Q5gQ+IpD7P32V7WJhEGN5H
-         MMhlfqu4FmbVERiocKLbAkSWGYuqELRktwqqIE8Bc+E+5q4B7Wuo4JFGD9RPXI7ytPCG
-         8NxA==
-X-Forwarded-Encrypted: i=1; AJvYcCXWIAHahZUDTDEjdk2GANDzXE3oj7pW4H1G0ij9YTQEtPNxjEZj1A1rL6uxd5q9Oqt5TapDXPDRlLqeel+2@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx2yZS7j6UG8xvbO7HTGtb9MCGRQ0nCt7UqKQ9VFFy3vw5OuM75
-	pBUIgpMMZ4/yLFQx6n7Qz8Bs8tRBRPGH/icOR6kd7G4QI1t3a4oErNhPSp3F6EQ8kBEpHlvZUzE
-	wyztRN61AtV2V4aewjrbeZvJN+SRN/8EU5XYMab/u6g==
-X-Gm-Gg: ASbGnctttANlBOgUqAcTbFV3xPDSZ8mD2cGk/hKwYKEWB4l/qi7FWc+Mr/tQKIYiwG1
-	h4/wjUicJsjn5p2LnYuGZwUPTkzFGvre37KtvxEpsUnw4J8gfSl4I8nrTwLx862uqBjfRRcqAmn
-	y8ade0gxZGWGmycDr44Xwph/6v8iZSPfXLfCjR7p8mzK9BYNn+u58fN5ImXJrt5gcm1lwy5jSIk
-	IQOXz99ExvOQl2LH8uBIk5rSj9P6n3qbqWmc8DL4RdY/MoC/g1rByOqMRJgMzuZ6Y5f+VWGEdc7
-	ZtznxnVA4czuFW9+GOQ=
-X-Google-Smtp-Source: AGHT+IHDM8QKUyFSrd+0zQEKPdCoF3WxF1zjcOTRuW4aKiXzh3MUt7l88tj/0/w7OQqiDd1Hj2Wm7NhMaFNyqPhLxJ4=
-X-Received: by 2002:a05:600c:1f12:b0:45d:5c71:769a with SMTP id
- 5b1f17b1804b1-4778fe9aedcmr26119325e9.26.1763125305993; Fri, 14 Nov 2025
- 05:01:45 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l3KHHaJ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64499C4CEF8;
+	Fri, 14 Nov 2025 13:34:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1763127260;
+	bh=Pw9CZgXixEV8n9eSXq8KsMdfVNRpSuJx7Ns+sPFC8ik=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=l3KHHaJ0NEIIDp9gK7O9BgfEqhzs0Tzp3q83tNm4eoO5nYA0pucDk826tppSCuBnr
+	 q48sC//tbamEKFW95AG3X0GmJLQhir1GpnPE+0iLNycwZcAJAOLrxLXyaiG9JrjdhN
+	 +OOXFUPVWQD05RIcJFpE1HwNfJIWGb0g3HqHJcmAVNCVfC3Y7aU2bwhXlXkWnodiiZ
+	 D0qzlzW5eciY7IZPyO+eNWrk/Mw+0T8i8L4ywGB20ePDUJcvLL7obXz8PG6Wmg813W
+	 wynP0ydSObkW1E23v+wLetDOpEXf9GJhYT7g+wq0RbegL+ogg6HFO4ZMBQYpdtKB47
+	 oGZ03oaivSYrw==
+Date: Fri, 14 Nov 2025 14:34:17 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Linus Torvalds <torvalds@linux-foundation.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 1/6] ovl: add prepare_creds_ovl cleanup guard
+Message-ID: <20251114-irrational-vordach-e9dffb0968cd@brauner>
+References: <20251114-work-ovl-cred-guard-prepare-v1-0-4fc1208afa3d@kernel.org>
+ <20251114-work-ovl-cred-guard-prepare-v1-1-4fc1208afa3d@kernel.org>
+ <CAOQ4uxhpwpNKeTzR4D_LzOkwxMdpTrik0GmR1Z0UtMf16O29PQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
- <20251113-work-ovl-cred-guard-v3-33-b35ec983efc1@kernel.org>
- <CAOQ4uxjeZC0V_jWA=8u+vTw0FDWehdu8Owz8qzO8bTqYVb6A_w@mail.gmail.com> <CAOQ4uxi05JPptYgXXzLN_C4LAOWyriZGvJdrWydzjBv-q_aGFg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi05JPptYgXXzLN_C4LAOWyriZGvJdrWydzjBv-q_aGFg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 14 Nov 2025 14:01:34 +0100
-X-Gm-Features: AWmQ_bknCoTAmCyGwxVzXTxM2Q2Ddou5vVmeK1m50HLLQqaH7FXQMQ0KGc9mHeM
-Message-ID: <CAOQ4uxhcVRQvT7pbtmEVBpjYSBwr8zCo5Rao5p2hwS=OFHHttQ@mail.gmail.com>
-Subject: Re: [PATCH v3 33/42] ovl: introduce struct ovl_renamedata
-To: Christian Brauner <brauner@kernel.org>, NeilBrown <neil@brown.name>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, 
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxhpwpNKeTzR4D_LzOkwxMdpTrik0GmR1Z0UtMf16O29PQ@mail.gmail.com>
 
-On Fri, Nov 14, 2025 at 11:26=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
-> wrote:
->
-> On Fri, Nov 14, 2025 at 10:04=E2=80=AFAM Amir Goldstein <amir73il@gmail.c=
-om> wrote:
+On Fri, Nov 14, 2025 at 01:04:22PM +0100, Amir Goldstein wrote:
+> On Fri, Nov 14, 2025 at 11:15 AM Christian Brauner <brauner@kernel.org> wrote:
 > >
-> > On Thu, Nov 13, 2025 at 10:33=E2=80=AFPM Christian Brauner <brauner@ker=
-nel.org> wrote:
-> > >
-> > > Add a struct ovl_renamedata to group rename-related state that was
-> > > previously stored in local variables. Embedd struct renamedata direct=
-ly
-> > > aligning with the vfs.
-> > >
-> > > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > ---
-> > >  fs/overlayfs/dir.c | 123 +++++++++++++++++++++++++++++--------------=
-----------
-> > >  1 file changed, 68 insertions(+), 55 deletions(-)
-> > >
-> > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > > index 86b72bf87833..052929b9b99d 100644
-> > > --- a/fs/overlayfs/dir.c
-> > > +++ b/fs/overlayfs/dir.c
-> > > @@ -1090,6 +1090,15 @@ static int ovl_set_redirect(struct dentry *den=
-try, bool samedir)
-> > >         return err;
-> > >  }
-> > >
-> > > +struct ovl_renamedata {
-> > > +       struct renamedata;
-> > > +       struct dentry *opaquedir;
-> > > +       struct dentry *olddentry;
-> > > +       struct dentry *newdentry;
-> > > +       bool cleanup_whiteout;
-> > > +       bool overwrite;
-> > > +};
-> > > +
+> > The current code to override credentials for creation operations is
+> > pretty difficult to understand. We effectively override the credentials
+> > twice:
 > >
-> > It's very clever to use fms extensions here
-> > However, considering the fact that Neil's patch
-> > https://lore.kernel.org/linux-fsdevel/20251113002050.676694-11-neilb@ow=
-nmail.net/
-> > creates and uses ovl_do_rename_rd(), it might be better to use separate
-> > struct renamedata *rd, ovl_rename_ctx *ctx
-> > unless fms extensions have a way to refer to the embedded struct?
+> > (1) override with the mounter's credentials
+> > (2) copy the mounts credentials and override the fs{g,u}id with the inode {u,g}id
 > >
->
-> Doh, I really got confused.
-> The dentries in ovl_renamedata are ovl dentries and the entries in
-> renamedata passed to ovl_do_rename_rd() are real dentries.
-> So forget what I said.
+> > And then we elide the revert because it would be an idempotent revert.
+> > That elision doesn't buy us anything anymore though because I've made it
+> > all work without any reference counting anyway. All it does is mix the
+> > two credential overrides together.
+> >
+> > We can use a cleanup guard to clarify the creation codepaths and make
+> > them easier to understand.
+> >
+> > This just introduces the cleanup guard keeping the patch reviewable.
+> > We'll convert the caller in follow-up patches and then drop the
+> > duplicated code.
+> >
+> > Signed-off-by: Christian Brauner <brauner@kernel.org>
+> > ---
+> >  fs/overlayfs/dir.c | 36 ++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 36 insertions(+)
+> >
+> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > index 0030f5a69d22..87f6c5ea6ce0 100644
+> > --- a/fs/overlayfs/dir.c
+> > +++ b/fs/overlayfs/dir.c
+> > @@ -575,6 +575,42 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+> >         goto out_dput;
+> >  }
+> >
+> > +static const struct cred *ovl_prepare_creds(struct dentry *dentry, struct inode *inode, umode_t mode)
+> > +{
+> > +       int err;
+> > +
+> > +       if (WARN_ON_ONCE(current->cred != ovl_creds(dentry->d_sb)))
+> > +               return ERR_PTR(-EINVAL);
+> > +
+> > +       CLASS(prepare_creds, override_cred)();
+> > +       if (!override_cred)
+> > +               return ERR_PTR(-ENOMEM);
+> > +
+> > +       override_cred->fsuid = inode->i_uid;
+> > +       override_cred->fsgid = inode->i_gid;
+> > +
+> > +       err = security_dentry_create_files_as(dentry, mode, &dentry->d_name,
+> > +                                             current->cred, override_cred);
+> > +       if (err)
+> > +               return ERR_PTR(err);
+> > +
+> > +       return override_creds(no_free_ptr(override_cred));
+> > +}
+> > +
+> > +static void ovl_revert_creds(const struct cred *old_cred)
+> > +{
+> > +       const struct cred *override_cred;
+> > +
+> > +       override_cred = revert_creds(old_cred);
+> > +       put_cred(override_cred);
+> > +}
+> > +
+> 
+> Earlier patch removed a helper by the same name that does not put_cred()
+> That's a backporting trap.
+> 
+> Maybe something like ovl_revert_create_creds()?
+> 
+> And ovl_prepare_create_creds()?
 
-To help with mine (and others) confusion I think it would be better to
-be explicit about upper vs. plain dentry in ovl functions where
-both types exist. It's one of the easiest things to get wrong in ovl code:
+Ok.
 
-struct ovl_renamedata {
-       struct renamedata;
-       struct dentry *opaquedir;
-       struct dentry *old_upper;
-       struct dentry *new_upper;
-       bool cleanup_whiteout;
-       bool overwrite;
-};
+> 
+> > +DEFINE_CLASS(prepare_creds_ovl,
+> > +            const struct cred *,
+> > +            if (!IS_ERR(_T)) ovl_revert_creds(_T),
+> > +            ovl_prepare_creds(dentry, inode, mode),
+> > +            struct dentry *dentry, struct inode *inode, umode_t mode)
+> > +
+> 
+> Maybe also matching CLASS name.
 
-IMO ovl_rename() was not doing a good job with 'old' vs. 'olddentry',
-so for the conversion to ovl_renamedata, we should fix this misnomer.
-
-Thanks,
-Amir.
+Ok.
