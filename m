@@ -1,56 +1,60 @@
-Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BC002DCBF8
-	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 08:55:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE552FDC52
+	for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 08:58:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763110524; cv=none; b=fzhmgzQJxKH76hU3UzENTnv09kJPlu1ejFwGgic4Qib+MEi5ie6iO5nvDymZ21AB1jwU88rvmlsqFZQ9091B+o/H9gdWhC42+y7poe3irQ5uRPtv4vBD1clu7uesm4rhiw0VTWOgvKbM2Ii+5Owia5nufqQMnZC1H9FDRXY9emU=
+	t=1763110707; cv=none; b=gj6IiOHw0/D32jrqKN9/iSA6NUX9fR+YVGgeeBSXrE7x6KJq562P/uYcxNtV8IKIgodeo6jkQj+cOMdp9Mlp59DaLd9cMTODV6qpN6I3OqYGnT/oAllpUNPo8srFcfGAtKyyTmO/3l18l/gASbzS+sDpMOvvqyh//50MP+ZCMsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763110524; c=relaxed/simple;
-	bh=7QWyEaWPUG/dP82AsIRFxyl4HGCEfS7+WMTPWWej19w=;
+	s=arc-20240116; t=1763110707; c=relaxed/simple;
+	bh=sT7CmDk36b9P8vSRWRxbwIbOQOaHEdw1tS+A9QbyhZM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EfC0fnfWAV7kwanz8X8Ud9lhpRAFOpHAnWkYJMp14giZpQZJ5ccxU1D0G05G2fYs3F+HfXg8pGVrOBKUDzm0xPJO6dfewbl5HXOmSKNPcGNiqTfDYaNy912KmJ23HQnTmTuvXjCIVHGFFZ3hZDKQlWITVCneROiDfoc/TAZOWXs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=lvqgDMe+; arc=none smtp.client-ip=209.85.219.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=poI6lp8jMyx7hwTyYK+51E51ai6dv5UQNjQtNXGy2rRoIYlVsi2jJKNr29SKTRMAY8ULEC9+mw3H0o7886XbwCgRzeZhHNNY9Ctfo/0cbBxkiiOZ6DztWBSCCpZ5l/gxhzwbSgVVMz9l26JJ/MTD9zcVaYcIUqHtjS6mlAOvrUA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hBNHAVkn; arc=none smtp.client-ip=209.85.208.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="lvqgDMe+"
-Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-8824ce98111so21646466d6.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 00:55:23 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hBNHAVkn"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-64320b9bb4bso3720470a12.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Nov 2025 00:58:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1763110522; x=1763715322; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=7QWyEaWPUG/dP82AsIRFxyl4HGCEfS7+WMTPWWej19w=;
-        b=lvqgDMe+4ALyHXRYirCDOIiThCH5UKgjsiAgqVVIPcc52CVLOfJD79ppT2YVrdp9Yo
-         24RTWShWi8X6F8RIyzI68XVljErIEKgSlwzv0VKSFOo8FpHSauqv6EzWLaI0YjDb7KPh
-         cJk1LR7T/3C0qR/MVRoSBVQIERzQXTY4IwSkA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763110522; x=1763715322;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1763110703; x=1763715503; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=7QWyEaWPUG/dP82AsIRFxyl4HGCEfS7+WMTPWWej19w=;
-        b=ixUNYstVPba2TMQkKJUv2ZuIxG0+2GfzN14COvA6VFT7rtD8bIPm3vhvH1OUDe0ITa
-         AGhABiflZhMFhVaTL09Tpr9uRzajNbloAoyRPX06OIOD+a+MNgTuDlEjUr58UANT3Co0
-         k0sZwPJ86WxNaKgelkCkVnD0pUH2kzihprpqNgpgqQNp/M0vh5NNssdVnuMDk6e8mOeQ
-         GG7FkrSbL4BcYzBQrXqzfA44UD1FNOJ/IzKb/taaioHD8ai7yHNjMC1bAXlYl0pDfyeZ
-         DjXBKOc/FbxX039fRRwQDLf7kX9yt9iM9/jj/pW1nVxc9NsopKULrddJmvNMXxFu15dk
-         XT9g==
-X-Forwarded-Encrypted: i=1; AJvYcCXyZMgNM9aFWwvldGT2hXI18C7eCM1eEkgzyDC1Eu8nKL5SSu1mXekbLsZYCq0QFK+k0E+jTh+hLMYcSETB@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyu5ICBb8idgIyINIXQqlsAXYKjgh6h5OlOC34nZ1VcG0OSL94b
-	Tu6XfOH4a19K5mKfrIbjZB5hRWPRl/uAaO+CXLXDcr4Ejnd5fZQkIHj9KcMRCum+QHipj1efh6y
-	oOjLAigT6CLcAaJw80x7o/yYMa36mwdXwz+diKxmHoA==
-X-Gm-Gg: ASbGncuzXFFfQTNOC8VXyS1LxVoTMPWWYBPaMTSsvwJoiF7AnpSOXh3JOrxLc5nWbEq
-	eZstG7aXW3T1szKXlScpt3NlnxsmLXiTLKw2XPK9tReQzC2EdjmIROh0DDmU/lXjVeKrfLiQMgw
-	VUAX2A9TZaQgVbVrhweuVX4lKb9oNeI/AqJZlF/P1LztpdmeAGCythK1FOpvNcbWFRM0AUVDXJC
-	F/FGLQevEbuIddArH091um9/DxTrI8FzidmS7b41YLtZsyH8M1NrPTsUfOeKlN/AacSkiJesfT5
-	NRNG90lGR6NV4xUVLg==
-X-Google-Smtp-Source: AGHT+IHFOnYN8Yb+30eRqq4OIG/XqDhxG47QkCyDhPhoPo+n9+yo2rSsEgKlid6IjLr5km5pwKQxSfx3pTNFESrelRw=
-X-Received: by 2002:ad4:5bab:0:b0:882:3759:9155 with SMTP id
- 6a1803df08f44-882925b3364mr27129646d6.21.1763110522067; Fri, 14 Nov 2025
- 00:55:22 -0800 (PST)
+        bh=3XFOdlHqJwohSZc5ij9iHLsD3vkWYlIVMx2QhJPUN7Y=;
+        b=hBNHAVknrplz2L+f7Fhy4uLt90os/7oYnxRfawnTzyuio0DeNXwBMmkgzEz2MvIv/o
+         RYdZcYYcYEvKiUMqG29sFsK3VKifNSo/lI+V8VGj3gXvgqUv9e5CXNrR6mCbTiP+EAX+
+         CSzzqO17puotP/8y7bg6Cif8dmWINTazGC6Qq7ofQUwIZg3ViaFb37edvgISA1hujGLn
+         y8sdeQEpcU9w9YHGEW6Wd6QsVrmJXPscMn7e43dBQjly4cBxXxtEl3N3Yte4HT78HKe/
+         1FidYfsaJG4KX+eIq4BK93UIITrKGd9JUWI5/mRoiEcxxEnLicZ1AOMV2MpkaukuSN7B
+         IRFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763110703; x=1763715503;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=3XFOdlHqJwohSZc5ij9iHLsD3vkWYlIVMx2QhJPUN7Y=;
+        b=jfjAk+96vGdZ4KTr3sSMaYLrwHaTtAUwKdp2wxbup2K0OzxlwMsQFnH1C0t3g4A7Cw
+         DLMPG0n+c/4ItG0Nt7VGhpXNzcGXa3XG/dOAMXBNFw9mrJN+sJyLdzKH+zg5z4iChVrE
+         E26oVedtuoergb/mNatWvA/agoHNdPJlcQoTe6UEkUrU3N5lUGCzfyxcclUKSLSqTb+F
+         lTreGOwx8kxKBR8whKIOowF33RNuZTmSyxxJb+tlTV61dd27mlTvBwSFiNZBxzkxIFB7
+         44/Fy76h1bOcRNYk0vYNbRd47h51b8AzYuJ1dsorIYhu6+hzfYyH6uv/dvajr9d/fsob
+         3LzA==
+X-Forwarded-Encrypted: i=1; AJvYcCWncc6d8heOHN37FbuuJaxFJT8Opy1dEWLgVWSodcZmc+Ljq8cOe00qj/5rr+bF/JrKkMPE+5f0bcGqRUUr@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxk8dd0RyZBwsEdf8nDK3nYhe35Ra5HASmDiDXcrFDq7nLFPSwA
+	hu+dbWKd+iwrKYZPQ19IGQdfTLYdjQgV3oERCo7nqnM5WvAdVxlkZBkvbrJJ2RX7R/whzLlKJqg
+	WXNO6C0h+OVHJ5DFodgIhRmogx0siE8g=
+X-Gm-Gg: ASbGncvkCmcXnW7CI9DoIUmPozR/qi7iMdRJgG+9gzn5IIDb01uDwipDigOtbgWnAie
+	HS5h5ZvApnaWJnzaoQMPEJooQ0ApHK0pB9ybw1qVsG9p/cd64MXWBYoj84RjsBeDHKfXVOt1xDE
+	a3EYmoJ50xoQJ7f9In3L+5B4qNubwQfEs0Y2YEUKYa62vPzCER7hxVUCivN9I1VoqghgQVtBMIo
+	MjAXi3bRXar+TpyVE/KppM+8UT+WC+3xixwtiB4QG70ryZaKewmuKPb7iYUSAGVxODWYMn5OfTu
+	xakwz48be4Yc7fTBp8U=
+X-Google-Smtp-Source: AGHT+IG3KtZIvMppwUlc1+hhGf4HnZFAzuCh9/nipJX3qbxbEx1Xcv28/5uJEHFWaF3KtakxK4uZwPQchNPM4UOBZBg=
+X-Received: by 2002:aa7:d992:0:b0:640:92eb:aa24 with SMTP id
+ 4fb4d7f45d1cf-64334d04c8emr4103361a12.15.1763110703252; Fri, 14 Nov 2025
+ 00:58:23 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -58,25 +62,108 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20251113-work-ovl-cred-guard-v3-0-b35ec983efc1@kernel.org>
- <20251113-work-ovl-cred-guard-v3-3-b35ec983efc1@kernel.org>
- <CAJfpegtLkj_+W_rZxoMQ3zO_ZYrcKstWHPaRd6BmD4j80+SCdA@mail.gmail.com> <20251114-tyrannisieren-esstisch-9a596bcdeb7c@brauner>
-In-Reply-To: <20251114-tyrannisieren-esstisch-9a596bcdeb7c@brauner>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Fri, 14 Nov 2025 09:55:10 +0100
-X-Gm-Features: AWmQ_bmR62PzN-GIUHUeulqHbWxi5iB-_xxM8bQk7cBq0kWzSZBAuSsjjpdtUqw
-Message-ID: <CAJfpeguuzPB0O2suV4F_KDCMY3n8n27ct1gT27fepmG5-GDu8Q@mail.gmail.com>
-Subject: Re: [PATCH v3 03/42] ovl: port ovl_create_or_link() to cred guard
-To: Christian Brauner <brauner@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, 
+ <20251113-work-ovl-cred-guard-v3-25-b35ec983efc1@kernel.org> <CAJfpeguUirm5Hzrob=pBVgANym9wdJAEN1w7zEEuv-aW3P0ktw@mail.gmail.com>
+In-Reply-To: <CAJfpeguUirm5Hzrob=pBVgANym9wdJAEN1w7zEEuv-aW3P0ktw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 14 Nov 2025 09:58:11 +0100
+X-Gm-Features: AWmQ_blo-oqTHRHjnLGQ9oKOvC44EMOeiLnOmIbyPeV1nEk5zmvagZiTYche_hY
+Message-ID: <CAOQ4uxgXFWHheYCMgy5DPhsk_h4qtQ6Mf+c-jYq7cv78Z31saw@mail.gmail.com>
+Subject: Re: [PATCH v3 25/42] ovl: refactor ovl_iterate() and port to cred guard
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 14 Nov 2025 at 09:53, Christian Brauner <brauner@kernel.org> wrote:
+On Fri, Nov 14, 2025 at 9:40=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
+>
+> On Thu, 13 Nov 2025 at 22:32, Christian Brauner <brauner@kernel.org> wrot=
+e:
+>
+> > +       /*
+> > +        * With xino, we need to adjust d_ino of lower entries.
+> > +        * On same fs, if parent is merge, then need to adjust d_ino fo=
+r '..',
+> > +        * and if dir is impure then need to adjust d_ino for copied up=
+ entries.
+> > +        * Otherwise, we can iterate the real dir directly.
+> > +        */
+> > +       if (!ovl_xino_bits(ofs) &&
+> > +           !(ovl_same_fs(ofs) &&
+> > +             (ovl_is_impure_dir(file) ||
+> > +              OVL_TYPE_MERGE(ovl_path_type(dir->d_parent)))))
+> > +               return iterate_dir(od->realfile, ctx);
+>
+> If this condition was confusing before, it's even more confusing now.
 
-> The function doesn't but the cleanup macro (as is customary) does:
-> DEFINE_FREE(put_cred, struct cred *, if (!IS_ERR_OR_NULL(_T)) put_cred(_T))
+Indeed.
 
-Ah, missed that.
+>  What about
+>
+> static bool ovl_need_adjust_d_ino(struct file *file)
+> {
+>         struct dentry *dentry =3D file->f_path.dentry;
+>         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
+>
+>         /* If parent is merge, then need to adjust d_ino for '..' */
+>         if (ovl_xino_bits(ofs))
+>                 return true;
+>
+>         /* Can't do consistent inode numbering */
+>         if (!ovl_same_fs(ofs))
+>                 return false;
+>
+>         /* If dir is impure then need to adjust d_ino for copied up entri=
+es */
+>         if (ovl_is_impure_dir(file) ||
+> OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent)))
+>                 return true;
+>
+>         /* Pure: no need to adjust d_ino */
+>         return false;
+> }
+>
+
+I like it.
+
+> >
+> > +static int ovl_iterate(struct file *file, struct dir_context *ctx)
+> > +{
+> > +       struct ovl_dir_file *od =3D file->private_data;
+> > +
+> > +       if (!ctx->pos)
+> > +               ovl_dir_reset(file);
+> > +
+> > +       with_ovl_creds(file_dentry(file)->d_sb) {
+> > +               if (od->is_real)
+> > +                       return ovl_iterate_real(file, ctx);
+>
+>         if (od->is_real) {
+>                 if (ovl_need_d_ino_adjust(file))
+>                         return ovl_iterate_real(file, ctx);
+>                 else
+>                         return iterate_dir(od->realfile, ctx);
+>         }
+
+I find it very natural code flow that
+
+if (ovl_need_d_ino_adjust(file))
+         return ovl_iterate_real(file, ctx);
+
+is inside ovl_iterate_real()
+because it is literally the case of iterating real.
+
+but if you insist that it stays out, I'd prefer:
+
+with_ovl_creds(file_dentry(file)->d_sb) {
+    if (!od->is_real)
+         ovl_iterate_merged(file, ctx);
+    else if (ovl_need_d_ino_adjust(file))
+         return ovl_iterate_real(file, ctx);
+    else
+         return iterate_dir(od->realfile, ctx);
+}
 
 Thanks,
-Miklos
+Amir.
