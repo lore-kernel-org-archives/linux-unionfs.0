@@ -1,132 +1,133 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A0621A9FAC
-	for <linux-unionfs@vger.kernel.org>; Sat, 15 Nov 2025 13:41:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B450B2F6560
+	for <linux-unionfs@vger.kernel.org>; Sat, 15 Nov 2025 14:00:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763214112; cv=none; b=XsTM0loZqblDK3gGQf945NG12D2ymjNo8HvoGeXW9u58XCEeexuqNbHacDPS2vWQcP6tYSH+dJAAfnwyr7lIu0hVAmt8OYi+VArx89h4aI+WRgfvXe8PridQKUcnvtlc5but6zop9X5ixsEc4L1d4RIL5Kvn+g0vr5TDHL3mFBM=
+	t=1763215208; cv=none; b=YmtLc67FOJxx/RhhTY5KofqCyFjZwPki2msoMlEzu+v67NJ5MIv7eBW2WuSmuoBfQw5O/VS8tDazZ4HE6feMNbFG53atcSBrfykxYTJ4c6m1PowbRPB44lxtQSUN/v74KSOxrcTfW9xZb2rosUwI+AO4RTqpA+2zA3aFmUwvpOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763214112; c=relaxed/simple;
-	bh=2g+Ig9rajCSJQdPS5HN+sWyz1uVJcolY62QNF/qsOF8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=NQ3l/9augfLxVV5meARJHL8AdGhi0dwIEK2xqgnCmhrthJIRm5/BqfdI1Ws80rfDUb98v8koD4ac2UxAPHAb8m6ZboXDUwSiFQfSRcMdX1RSTmdVOmSxduyBMQ6qjXbvkJHkhb8JWY9Y5fWy856M+gxBtOcnx4VlZujB6hAsTfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Vrwmjsv3; arc=none smtp.client-ip=209.85.214.171
+	s=arc-20240116; t=1763215208; c=relaxed/simple;
+	bh=wjT4cPxw9n+CRZ5gG1OsJRuSB1fVM9ZvVkwoAk0bn3o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bgN7K4LxvD3oY3W14BgoXhHovBCcJ8dgWMTK0i6FlDAMT7T7TsDAXKUcHmnPGlhwj2mTpBXtLtcKkQu2XboNKqFdoIxc4+e1zwc1tdyo45d4BEs3xVFeE5lgdvdR4LMxd8r649NAr3k8kn86AsQJISGMAFS/cqBgdygSCKeqNIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j56cqykQ; arc=none smtp.client-ip=209.85.218.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Vrwmjsv3"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-297dc3e299bso29180025ad.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 15 Nov 2025 05:41:51 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j56cqykQ"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-b725ead5800so352239266b.1
+        for <linux-unionfs@vger.kernel.org>; Sat, 15 Nov 2025 06:00:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763214110; x=1763818910; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=vCuOKcivklTw1LxrDCwl7m8QKs9eVupotLkb+wFRGfA=;
-        b=Vrwmjsv3rxUATFJavLauucU+gryqAIgaNZ9GcADd9B6qD+D1iwLTO6lqplQb4KSpYI
-         u4nei6BMji4vPoCKfABrj6R4UfA7lAP5UYSeNwqx19qCUTaxC3fA3LNn7NwA3j0W0RXc
-         c0mchsdmJP77uiUn1NP5Pb2DvH3F+5cb3XUpWoxVB828WBVfj6bRrekHY6oCtWWCC+do
-         qqzU0vis5pC0j8DUOCJF1CxWx+USZJXCY/UNmFYMcE1VJWrkNIabynC9OVUbpFpa9ns3
-         lKnrtGHg3k8IzfiL9SxYHaYlGJPykKlscx2Hf3gIjPRrXMqaRVyP+xJCXmJhb1iDUfup
-         YFlA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763214110; x=1763818910;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1763215205; x=1763820005; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=vCuOKcivklTw1LxrDCwl7m8QKs9eVupotLkb+wFRGfA=;
-        b=MXSJZSGRE0ItbvRtrMgs64Ki4Sk612f3KFlQUXF+Oc9E8+MVC8/MyS98CTttsy/nlN
-         I0/UZTiro6dGvMme9wwdcKHUF/IzWWS8aIGHyVgr9vov3G7Em8n1RH9h7Vc5ZMG3k9YW
-         YPmT4pWEDbuc91bR0fdUbFvvDTKMOrSCZQeuvTZQH9EvIFkLmnXXMjDTdrjrkKOiBHOS
-         xbbGbFazTL+8DWHzaAzIaFx2jL1Zm9slgH14xks41KjpjQU2JdgMnDx9b5oHNTKtZpZm
-         18xfysDSEECjh258oVf+RjptE7KzoGwlGpPgWzv1UbC4d51cgYn/UIb5GSYCC5YcQ+j8
-         CDKw==
-X-Gm-Message-State: AOJu0YyAoSsIzLNNV2QY/c2RcjxKzeAqd8evYGS0j97a1HQnOhvkilgo
-	+Tq5+tJCCSGqPVRfFBP+W2+BO6hgnw1k98b47iZVXee79ai0itrGMQnvy51gRg==
-X-Gm-Gg: ASbGncvoI1M2QW0+ACxzPZ7oP7fI8zx4RlY7DxzN7qigL3sqF1aAAWX1UXWQsZ4kL38
-	P2DqT9p7YyQ6Usms5qN6ln0ZBJrHkHKqk8GgRsFnjxasikYNEjDtuOlCdA5u2Usbei36mUoDOmM
-	6eaQBExXTwu+SCtW1N+SpUJqp1I5HRVs+gxeou5PBPUR/XjYbQrO1wyctBiHs8mcBKXKCbg+ffU
-	io0x5nfuvUmd2lWKjvI6/BNyQDCOltWCDzqzE8r3unZGkiFiH6MwbwFoQNzxiEdtDsXrqrtXl9Q
-	M04qQHV+Coa12p6O5WckwYaEhnrBAKTxLudLUB1dJZrAUUGeDI4KoL8EEwvoCMHg0PQybmA/sCE
-	RSu/CvFiuv4XC76OYJpKf2kyFYKMs2kdTdvMlgU1lc1uNPNYOyxgIbrc/0UlJvH5PaHMD/3fTuQ
-	==
-X-Google-Smtp-Source: AGHT+IF54Re3ExzoazVcf8AZ8foNwyuzuy1McXXtSzG3Eaxo/eWEkrctnQvsUBeuHFdTTfqmxM62sg==
-X-Received: by 2002:a17:903:3586:b0:288:5d07:8a8f with SMTP id d9443c01a7336-2986a6d7a64mr69752785ad.24.1763214110435;
-        Sat, 15 Nov 2025 05:41:50 -0800 (PST)
-Received: from aheev.home ([106.215.173.137])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bc36e8a58cfsm7410316a12.10.2025.11.15.05.41.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 15 Nov 2025 05:41:49 -0800 (PST)
-From: Ally Heev <allyheev@gmail.com>
-Date: Sat, 15 Nov 2025 19:11:27 +0530
-Subject: [PATCH v2] overlayfs: fix uninitialized pointers with free
- attribute
+        bh=J43h/1x5aKFa5ODt/fuxF1QWDhQgw3hMaLHuRT5a54Y=;
+        b=j56cqykQI8Htkw8DMfR3nLAJhk0rhgCnBubaROeqWu/0GH5GAO22WAa2pUZYloxTF3
+         llY6p/eygXh7k5JInR/MLoVyE29b/WDAVBucOO0a88dI7VkmFq5HrTlDPyySw941SEhV
+         W/qiWImtzmqGuzNkz2n9Lve8K2xccjtKNDxp5ewRODoLKhIIj7YVvW7oD/NdYR8dYlgV
+         HtoPF6QdKrc5zE7k8D1HLuk3XKY8+PCXAsIaFq/LM9aScNZzFZxHmYx9KsTj948EyY9Q
+         f3V04MtwgdNgIAYxDhKsmkO6mv9XcydGtXnmgRyQCtwag4b5pXdb9H3RvhYgtLVqLlU/
+         QLNQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763215205; x=1763820005;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=J43h/1x5aKFa5ODt/fuxF1QWDhQgw3hMaLHuRT5a54Y=;
+        b=f1R9LVkdUMjzYSdkcC/wqOxAMRE2uhx+70gv5FplyQ9t4v8B76Oc4Z3yuLT2OL/0Hw
+         09ZyBuw0/N7H1ZDQow9xp3OAWh3b16+Mow16wcb5cBcjZZjpuRoDQKa0JTJM2dsgYJl3
+         0gXd1xdQhXltE5KK7uY+rOZEdMt8Fyhl3AFj59yfXJEPjhDeHHkOPTSxaXww+TjXrUEK
+         oCNtb08Wrd+g7RkS8KhEC3v6Yf29EBsVTIG9IWCNi6mPCqEe96Mc5Knd8ry3uxez4v02
+         +9OuiVc/goNMcEmwJBkTWluZA3i7t3lSjpkJwnnW60MJbVeR0sVgUuYTZsqBL2Ov9H4h
+         ABTQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU7LMO27E36+C2Vln+UFbqoxhOaEVRIgFSqygRXWWrbkv67Wk+pGLdYdnFcAMRiyfhhPX5K741wvRN40Rta@vger.kernel.org
+X-Gm-Message-State: AOJu0YyY0hz7dFirpnwHQpo5iA5E9YoOW3VU/DzsKKk6u0PVNweYalPs
+	ta2etgY1DiKL1dxIrGj48yqiGsYbsDkQYOk4bNxtoAiHllGdStyvSLHUKewkO4g1WArktl3sPzz
+	YI2w0zOpYeqyTaYLX00wmIepUUC2MJ0ZCdf4UozQ=
+X-Gm-Gg: ASbGncs5esU4Eouvkxs4wGZWB9JMaDoFGLfPEICNTSAHLA9bdVd40TgM37b968NoRkc
+	uKVKhN0fLAmamD+fyhipwuQOJ4uxjwb3N9sYAFFtrDGElBHrchH/Aeetw3RPtSzuNYJURRflt1L
+	Y0Yckm59i0gxuhfKQv//m1asgqotH1uQKkkXCgdBiEadVcFodTPnsyz5L6jvqtE+qUe7/G+mFTB
+	44fJ5k91aOhBw2ZHCJ3Z2gxmoLAiXXO4H8R0XZwX3ppDBiqPJNHDK1/CzsOTzVVQLH1VAEJ+wQ6
+	1UrFMFjxLCPGjJg8jVM=
+X-Google-Smtp-Source: AGHT+IHjbUcrFy1ldrBhWAEPrQ0poNVrH2TowQ0pqVXf+Apxrt9uWuY6zRojPvZOzHga/0hsSarrTfeb3k4Yh+CW+Tw=
+X-Received: by 2002:a17:906:7305:b0:b72:c103:88db with SMTP id
+ a640c23a62f3a-b736780a895mr622128166b.9.1763215204424; Sat, 15 Nov 2025
+ 06:00:04 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251115-aheev-uninitialized-free-attr-overlayfs-v2-1-815a48767340@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAAaDGGkC/5XNQQ7CIBCF4as0rB1TENC68h6mC2yn7SQtGEBib
- bi72Bu4/N/ifRsL6AkDu1Yb85gokLMlxKFi3WTsiEB9aSZqoTivFZgJMcHLkqVIZqYP9jB4RDA
- xenAJ/WzWIYC+nE+NllI0WLPy9vQ40HuX7m3piUJ0ft3hxH/r/0biwEEblFpIrVT/uI2LofnYu
- YW1Oecv1O//SN4AAAA=
-X-Change-ID: 20251105-aheev-uninitialized-free-attr-overlayfs-6873964429e0
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Christian Brauner <brauner@kernel.org>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Dan Carpenter <dan.carpenter@linaro.org>, Ally Heev <allyheev@gmail.com>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1625; i=allyheev@gmail.com;
- h=from:subject:message-id; bh=2g+Ig9rajCSJQdPS5HN+sWyz1uVJcolY62QNF/qsOF8=;
- b=owGbwMvMwCU2zXbRFfvr1TKMp9WSGDIlmnlW5N+xmXHh+X1rZpXV3gvr3j4qF7h3++fHJ2rMX
- /bmTpt3qKOUhUGMi0FWTJGFUVTKT2+T1IS4w0nfYOawMoEMYeDiFICJ/I5g+MP76c3TPYszdG9E
- Vb3v/VesmcP6xWjVlriPc+YHp1+KereOkWFfuM22H9MiD3g5/353cbY88471n07n5Jzzr8j4ZS0
- WM4MDAA==
-X-Developer-Key: i=allyheev@gmail.com; a=openpgp;
- fpr=01151A4E2EB21A905EC362F6963DA2D43FD77B1C
+References: <20251115-aheev-uninitialized-free-attr-overlayfs-v2-1-815a48767340@gmail.com>
+In-Reply-To: <20251115-aheev-uninitialized-free-attr-overlayfs-v2-1-815a48767340@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 15 Nov 2025 14:59:53 +0100
+X-Gm-Features: AWmQ_blwwZpIsbPVgY6ZYj-L3GniCx_BIt85HbnRyVt-rQbmg0zG1y3FixVIRl0
+Message-ID: <CAOQ4uxgLYwpwyoecazZovz490i3bPYSGRsi74NZQE4N4NT5q_A@mail.gmail.com>
+Subject: Re: [PATCH v2] overlayfs: fix uninitialized pointers with free attribute
+To: Ally Heev <allyheev@gmail.com>, Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Dan Carpenter <dan.carpenter@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Uninitialized pointers with `__free` attribute can cause undefined
-behavior as the memory assigned randomly to the pointer is freed
-automatically when the pointer goes out of scope.
+On Sat, Nov 15, 2025 at 2:41=E2=80=AFPM Ally Heev <allyheev@gmail.com> wrot=
+e:
+>
+> Uninitialized pointers with `__free` attribute can cause undefined
+> behavior as the memory assigned randomly to the pointer is freed
+> automatically when the pointer goes out of scope.
+>
+> overlayfs doesn't have any bugs related to this as of now, but
+> it is better to initialize and assign pointers with `__free` attribute
+> in one statement to ensure proper scope-based cleanup
+>
+> Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+> Closes: https://lore.kernel.org/all/aPiG_F5EBQUjZqsl@stanley.mountain/
+> Acked-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Ally Heev <allyheev@gmail.com>
+> ---
+> Changes in v2:
+> - moved the variable initialization to the top
+> - Link to v1: https://lore.kernel.org/r/20251105-aheev-uninitialized-free=
+-attr-overlayfs-v1-1-6ae4624655db@gmail.com
+> ---
 
-overlayfs doesn't have any bugs related to this as of now, but
-it is better to initialize and assign pointers with `__free` attribute
-in one statement to ensure proper scope-based cleanup
+Christian,
 
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/all/aPiG_F5EBQUjZqsl@stanley.mountain/
-Acked-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Ally Heev <allyheev@gmail.com>
----
-Changes in v2:
-- moved the variable initialization to the top
-- Link to v1: https://lore.kernel.org/r/20251105-aheev-uninitialized-free-attr-overlayfs-v1-1-6ae4624655db@gmail.com
----
- fs/overlayfs/params.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Mind picking this one?
 
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 63b7346c5ee1c127a9c33b12c3704aa035ff88cf..37086f73ac3ecfcd1c09ae6eccbb69723006e031 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -448,7 +448,7 @@ static int ovl_parse_layer(struct fs_context *fc, struct fs_parameter *param,
- 		err = ovl_do_parse_layer(fc, param->string, &layer_path, layer);
- 		break;
- 	case fs_value_is_file: {
--		char *buf __free(kfree);
-+		char *buf __free(kfree) = NULL;
- 		char *layer_name;
- 
- 		buf = kmalloc(PATH_MAX, GFP_KERNEL_ACCOUNT);
+Thanks,
+Amir.
 
----
-base-commit: c9cfc122f03711a5124b4aafab3211cf4d35a2ac
-change-id: 20251105-aheev-uninitialized-free-attr-overlayfs-6873964429e0
-
-Best regards,
--- 
-Ally Heev <allyheev@gmail.com>
-
+>  fs/overlayfs/params.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> index 63b7346c5ee1c127a9c33b12c3704aa035ff88cf..37086f73ac3ecfcd1c09ae6ec=
+cbb69723006e031 100644
+> --- a/fs/overlayfs/params.c
+> +++ b/fs/overlayfs/params.c
+> @@ -448,7 +448,7 @@ static int ovl_parse_layer(struct fs_context *fc, str=
+uct fs_parameter *param,
+>                 err =3D ovl_do_parse_layer(fc, param->string, &layer_path=
+, layer);
+>                 break;
+>         case fs_value_is_file: {
+> -               char *buf __free(kfree);
+> +               char *buf __free(kfree) =3D NULL;
+>                 char *layer_name;
+>
+>                 buf =3D kmalloc(PATH_MAX, GFP_KERNEL_ACCOUNT);
+>
+> ---
+> base-commit: c9cfc122f03711a5124b4aafab3211cf4d35a2ac
+> change-id: 20251105-aheev-uninitialized-free-attr-overlayfs-6873964429e0
+>
+> Best regards,
+> --
+> Ally Heev <allyheev@gmail.com>
+>
