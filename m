@@ -1,124 +1,172 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AF7B328B4F
-	for <linux-unionfs@vger.kernel.org>; Mon, 17 Nov 2025 10:38:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0FBF30F95C
+	for <linux-unionfs@vger.kernel.org>; Mon, 17 Nov 2025 23:04:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763375931; cv=none; b=g7GgAWe9ptJLZGAs9dKcloUdTa2YLA640wfYcr4QbHdi4E3KC2QkbSYp6+VZNwqEgrs4tVfIC1tdffK95M7P4zJ0SwQeOkTv2sxBbsNCaJ+MxMqCOKXgsVN8MDekt0dQkIWWA7a6XWmx9ToOWSbD4hAd48TJhUW8L/1ZY7dTQ+k=
+	t=1763420682; cv=none; b=oRMIdbIoAmj6YCOXyWgTSHIoTlrFu71jKrTRiEc/uRRw4fVJ1/qR2jH6+OWZ+OnKccBvGLbhTPXcfeC+P7cEU04VZzeXwfJIGJJPADUk3gKhIpgOpBmEDH4j2CknGDsCIDExzcAmCXlSGnwFO4GulnxnmuVo9oxgVDHx4xNda4M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763375931; c=relaxed/simple;
-	bh=A4OuYHNoNbmpT2j/hxsR/HSLdirQTZhZsI015gZWf1U=;
+	s=arc-20240116; t=1763420682; c=relaxed/simple;
+	bh=i7DdhnG71ftd4i2m2G21HgRfKhN3UzNnHz1O3MhLXC4=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KwfEpC6g0B2WA2ZTaDJBNDW4F+xCqICVQ1xKkjgV4fVY5mWUy9CzvVMgYwstVTMGM6Y3hy7/ZiJEk/HoNv87nMD7LqIUU7yywFpdW3HE0ZTN6i1KAwAadHy6Xtf8DSm4NTOv3dMNPC11vISIArit118Ce2OYqzhdTc8klcFvKiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PqEtcWN2; arc=none smtp.client-ip=209.85.208.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=avoEZ2zTayzRuWXZiy/Ed2uqVtgfXO/ZjNMC3Cx4zah7LWrQgZB54Q5BrgG3sC3F42ZM78BRPScSwQbXt5uBwlp2zLl0a95v8R5/AX0S0Uz80oyqmtShg3rQ1cbt0dL1VbEV53C2lo7MT3yE/qFUxcI7lRvKnoZA1sHzlDnXJ2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=YmjZq2vE; arc=none smtp.client-ip=209.85.216.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PqEtcWN2"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-64320b9bb4bso2807131a12.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Nov 2025 02:38:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="YmjZq2vE"
+Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-3436d6bdce8so6002826a91.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Nov 2025 15:04:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763375928; x=1763980728; darn=vger.kernel.org;
+        d=paul-moore.com; s=google; t=1763420676; x=1764025476; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Qap2iRcMcJlDJP5mFPyDz+ljNy7HqlA5ophrRA9mpfE=;
-        b=PqEtcWN2gMiSx7W1knC6NZG3sMg3hckJ8B9+HhTVq+jFG4T1E3iZhElpqfvnlvxXpE
-         O3Qb6fkq9IJMPmKRAWKcd+ps/ZRtjk+NgjrPrPSbOHe9lmimCJw9WzH1CiolY0k4Io4V
-         8lnoJih/Czr6EyY8ALekPSiIgK1f+zQyQZf6ByCadc/Lh2nWEmmUwJ34+vCCD27CIe6P
-         ze6QsQJ1V6anvJNulD9dqN35e7x4Vqnk31R2YtSVrq7I/cgKyGoOAqkYJRTNcjQevXLD
-         2UwCY1MonQbBZUaidEffPhNAmFmPE0Uu1ex+9HnGdAFmOzLTht/qzSuL9SIDXYX6M0te
-         vCsg==
+        bh=67DqjyCI/JhVTsF1ULoiPuOUOphLY2mp3g5O7RzL6g8=;
+        b=YmjZq2vEP3RrKkuynMuBECfzV/qmuCZcW2k5SrDDwNLrBwCjhC9leZeksspqC9Reg5
+         7m1qs16aYUYUzMy31VgnfaRfQ925KDC/Wf0JDl3vg/7PHxxunMH/Nn6A8qpdHIeOgmKF
+         SSalfOtnM6+aKcPi/R1diKoX6mzhOZoLeEgbC5txiQiK8mFtldLoRKhJhxkJw2YYx59r
+         W0OtXAGkR5gvdztwjWl9g4n1k7D8tVL8dwrwiXVcU0tTMTY3u4bltrQMVL5eUp5spcvr
+         GNGswPZEV3ZLiPG9FXx0fVQEcWAztc4A7KBMY/KmU8D+TNzUS8SypFep3kDas3TIZnAY
+         J+LA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763375928; x=1763980728;
+        d=1e100.net; s=20230601; t=1763420676; x=1764025476;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Qap2iRcMcJlDJP5mFPyDz+ljNy7HqlA5ophrRA9mpfE=;
-        b=FGaXlqJwRkYlZW/bbTDKEe2YwovAb4Mr+9E6CcB7an9iAVa/UAC5rfXhj00NYd4aXQ
-         I/i3P4qfUrZwVi1ay4etL8RIoSqTfyu1jtFI7txx6Bx2tXf03FY01wsJbAP9BoOzGHpP
-         3iPQCU/83nv5ubj9wjeKuGCBWbUfF6WhKSrrr5/GrDXkcWwP4Xk1vBZHm8hcQ6gA3n7C
-         O6d/603f1bJ8qjANirBvd/1rKWkclTfyK2KC081cRgygJNobCHtPsNP5sOU476wO1dmr
-         OBr05Afn0fnTj4FEdjcBrEX0P3at8eVzuJwpK3tZZQZiWTfT2dn55s6Wj20zCMpxs+EL
-         dCOw==
-X-Forwarded-Encrypted: i=1; AJvYcCXVqeAnDHSKyo3tRsIZ37c2ky1ZLAXwx6FeN75UHdo5ld3lOtW7IR/+xZNhcoAz/qiuuEOmD/0wI0QSjX+i@vger.kernel.org
-X-Gm-Message-State: AOJu0YwMhzji5CBz2YAippWupY8oW2Qll8A3SMAehI01str5rFfF8kdT
-	tFUq82pbb03TMqX6UnLbHRjoOrkFgd23Pprcj8p1Mjg3SxUH4bwpskQU+Qs2mFaIkI3APwy9oba
-	B+FQqzc7sAG4J6uHgmXYO0IivrQMekNA=
-X-Gm-Gg: ASbGncsPoWLHBnzZIKlFEkwab5rh5VbXYYuyLaPu9y7OzyrOsMJozHte3l4fZ4ZRAcN
-	q/q6simGeud6v3eP8QPxCxnK9t8Nwg9ZdiSYVbAY6P1PhPPpVWd49VtRyR5cJsUUL70PKq9ED8L
-	V8lk4Efn7+zTNy+kVjJNMDOMhCUg2bDX6chRcGgCCb6Z4WxB7xZn4goxu3VDirwGLSVoQIP4Ci1
-	2ZnTYOCtnSGjbfnZoiXFX40CRk1LMCHSMPdH5Iw189NMELQRzJQsayba/WpxBC0pp8VOTBmw6w/
-	QTBkNf/YSjKEFfOHOw==
-X-Google-Smtp-Source: AGHT+IFQBrieEzXt0BFp3NtQPrxoZm9Uol4G2t8bK38gMdj4cbpLL4aBaSCTVB54vvBgjrXba3gJvKXjhNbhaUad9hA=
-X-Received: by 2002:a05:6402:4404:b0:643:4e9c:d165 with SMTP id
- 4fb4d7f45d1cf-6434f81d559mr13217935a12.5.1763375928285; Mon, 17 Nov 2025
- 02:38:48 -0800 (PST)
+        bh=67DqjyCI/JhVTsF1ULoiPuOUOphLY2mp3g5O7RzL6g8=;
+        b=OBN8kGOl4rp/3QigL9kWN5rugWsejh02zEXJRnMny/xED21YurzRcDF8kUeAy2fSeP
+         Yl72L/H+mwbz2AgzzZXi33/k4byYrOuGxYvszfYG0puLNTult04O+toGVZs2Oi9cJ8WH
+         ARNvT/RVWE1Swaqi8S/O0VwijrsrpSqg0JeiQ+3Za6VrwoohbXghOj4EvAlw4vL9fyG7
+         39n/MOMa/y7sQxS8frmyfSXlif6FgmWGIwgfch/UPasSRml7ffolkN0ruLVJMlTEx6h2
+         5DKMMIYrVsSreKvqPsjT7BbeqxNlxD9/NlZ6yF7XtESWcJmJ7wWKFUvOtVPSgP3TZMAd
+         GJ5A==
+X-Forwarded-Encrypted: i=1; AJvYcCUNZjLEo7lo2tDQ1DoXtbGgihQ8BwWqJVmcD7/WaJqjNrWNo3KuYyYNbKxpJtn90KbuWMWi3tvEh90JxP3X@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy9SeUcZm4FrB19drPqaPX50p7zTGY26eSjqByWF9HmFKT/bS+h
+	BaCbcdzwKF5jaTZVOGY+91Rinyv+Wn4jhFLvNlsYBU7ov9s/yfO3xr7M9G7tUECX1dbtf80hzk9
+	qM2tuptdo2EERREMwYTWAQ2hSXlIhOxglPI8khYGH
+X-Gm-Gg: ASbGncsCB+B1++NIN5tIm5qhSUO7xjMXOGj5Ro5i/N2D1Jg76KqL1zFE6D8hT8kFqze
+	FUm/G+oYbJbJRbIkGbWIDUt8eNvBMWiuNYNKDjLjcngvRdBjwZxZ4C8kDzNLW6UQNINOYNxmF2d
+	7IN/cCXfg7m1g02FTQExcB2SiBom19AcmSAihOmaZdgTLszvTsnGeidFlsw905yQrFc0SQhOJXB
+	ySntvq43iIOl/S162mluTph5IGIwVsMcLwh/EASWNC9VF0fLq/pOeyVDZVANxS92s+fqOxLENEQ
+	+QVQEw==
+X-Google-Smtp-Source: AGHT+IEvNsvH0S9IPXXRMbbmgzHTccG9PPI2nYN0bRiYDZkjLr7eZa3zFcl2Aq+G2oZCl+9tdbOi4J//UzL45yvj1Lw=
+X-Received: by 2002:a17:90b:3a45:b0:341:2141:d809 with SMTP id
+ 98e67ed59e1d1-343fa74b235mr16121302a91.26.1763420676475; Mon, 17 Nov 2025
+ 15:04:36 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251117-work-ovl-cred-guard-v4-0-b31603935724@kernel.org>
- <20251117-work-ovl-cred-guard-v4-35-b31603935724@kernel.org> <CAHk-=whrCSbimz8jDhh+q8AJH2Ut9V3dgyLxVotn3WLCTyoN4g@mail.gmail.com>
-In-Reply-To: <CAHk-=whrCSbimz8jDhh+q8AJH2Ut9V3dgyLxVotn3WLCTyoN4g@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 17 Nov 2025 11:38:36 +0100
-X-Gm-Features: AWmQ_bmPS6llwzEBn2g7ry1ARvOA718wT0t_asNxjxv1iSyU-WgosyxIeDa1kRE
-Message-ID: <CAOQ4uxhTUZWUjUakUGzWh57iBKriAXqizBCPem3-7+Ng_Urgkg@mail.gmail.com>
-Subject: Re: [PATCH v4 35/42] ovl: port ovl_rename() to cred guard
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
+References: <20251113002050.676694-1-neilb@ownmail.net> <20251113002050.676694-13-neilb@ownmail.net>
+In-Reply-To: <20251113002050.676694-13-neilb@ownmail.net>
+From: Paul Moore <paul@paul-moore.com>
+Date: Mon, 17 Nov 2025 18:04:25 -0500
+X-Gm-Features: AWmQ_blmwKtGFLQfMeJ-bOJqBB1-xlrqHYzasnjIoux8218WIXniQF0qawaCUpA
+Message-ID: <CAHC9VhQERRrabQhMUd3DHRg+TqV6Ztoo0kqwK_tn5u--in-f4Q@mail.gmail.com>
+Subject: Re: [PATCH v6 12/15] Add start_renaming_two_dentries()
+To: NeilBrown <neil@brown.name>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, 
+	Jeff Layton <jlayton@kernel.org>, Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>, 
+	David Howells <dhowells@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Tyler Hicks <code@tyhicks.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Chuck Lever <chuck.lever@oracle.com>, 
+	Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
+	Namjae Jeon <linkinjeon@kernel.org>, Steve French <smfrench@gmail.com>, 
+	Sergey Senozhatsky <senozhatsky@chromium.org>, Carlos Maiolino <cem@kernel.org>, 
+	John Johansen <john.johansen@canonical.com>, James Morris <jmorris@namei.org>, 
+	"Serge E. Hallyn" <serge@hallyn.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Ondrej Mosnacek <omosnace@redhat.com>, Mateusz Guzik <mjguzik@gmail.com>, 
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Stefan Berger <stefanb@linux.ibm.com>, 
+	"Darrick J. Wong" <djwong@kernel.org>, linux-kernel@vger.kernel.org, netfs@lists.linux.dev, 
+	ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
+	linux-xfs@vger.kernel.org, linux-security-module@vger.kernel.org, 
+	selinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 17, 2025 at 11:30=E2=80=AFAM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
+On Wed, Nov 12, 2025 at 7:42=E2=80=AFPM NeilBrown <neilb@ownmail.net> wrote=
+:
 >
-> Does this old "goto out" make any sense any more:
+> From: NeilBrown <neil@brown.name>
 >
-> On Mon, 17 Nov 2025 at 01:34, Christian Brauner <brauner@kernel.org> wrot=
-e:
-> >
-> > @@ -1337,11 +1336,9 @@ static int ovl_rename(struct mnt_idmap *idmap, s=
-truct inode *olddir,
-> >         if (err)
-> >                 goto out;
-> >
-> > -       old_cred =3D ovl_override_creds(old->d_sb);
-> > -
-> > +       with_ovl_creds(old->d_sb)
-> >                 err =3D ovl_rename_upper(&ovlrd, &list);
-> >
-> > -       ovl_revert_creds(old_cred);
-> >         ovl_rename_end(&ovlrd);
-> >  out:
-> >         dput(ovlrd.new_upper);
+> A few callers want to lock for a rename and already have both dentries.
+> Also debugfs does want to perform a lookup but doesn't want permission
+> checking, so start_renaming_dentry() cannot be used.
 >
-> when it all could just be
+> This patch introduces start_renaming_two_dentries() which is given both
+> dentries.  debugfs performs one lookup itself.  As it will only continue
+> with a negative dentry and as those cannot be renamed or unlinked, it is
+> safe to do the lookup before getting the rename locks.
 >
->         if (!err) {
->                 with_ovl_creds(old->d_sb)
->                         err =3D ovl_rename_upper(&ovlrd, &list);
->                 ovl_rename_end(&ovlrd);
->         }
+> overlayfs uses start_renaming_two_dentries() in three places and  selinux
+> uses it twice in sel_make_policy_nodes().
 >
-> and no "goto out" any more?
+> In sel_make_policy_nodes() we now lock for rename twice instead of just
+> once so the combined operation is no longer atomic w.r.t the parent
+> directory locks.  As selinux_state.policy_mutex is held across the whole
+> operation this does not open up any interesting races.
 >
-> In fact, I think that "goto out" could possibly have already been done
-> as part of the previous patch ("refactor ovl_rename"), but after this
-> one the thing it jumps over is just _really_ trivial.
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Reviewed-by: Jeff Layton <jlayton@kernel.org>
+> Signed-off-by: NeilBrown <neil@brown.name>
 >
-> Hmm?
+> ---
+> changes since v5:
+>  - sel_make_policy_nodes now uses "goto out" on error from start_renaming=
+_two_dentries()
+>
+> changes since v3:
+>  added missing assignment to rd.mnt_idmap in ovl_cleanup_and_whiteout
+> ---
+>  fs/debugfs/inode.c           | 48 ++++++++++++--------------
+>  fs/namei.c                   | 65 ++++++++++++++++++++++++++++++++++++
+>  fs/overlayfs/dir.c           | 43 ++++++++++++++++--------
+>  include/linux/namei.h        |  2 ++
+>  security/selinux/selinuxfs.c | 15 +++++++--
+>  5 files changed, 131 insertions(+), 42 deletions(-)
 
-I agree. We just did not notice how trivial the end result became...
+...
 
-Thanks,
-Amir.
+> diff --git a/fs/namei.c b/fs/namei.c
+> index 4b740048df97..7f0384ceb976 100644
+> --- a/fs/namei.c
+> +++ b/fs/namei.c
+> @@ -3877,6 +3877,71 @@ int start_renaming_dentry(struct renamedata *rd, i=
+nt lookup_flags,
+>  }
+>  EXPORT_SYMBOL(start_renaming_dentry);
 >
->               Linus
->
->                 Linus
+> +/**
+> + * start_renaming_two_dentries - Lock to dentries in given parents for r=
+ename
+
+I'm guessing you meant this to read "Lock *two* dentries ...".
+
+Otherwise the SELinux changes look fine to me.
+
+Acked-by: Paul Moore <paul@paul-moore.com> (SELinux)
+
+> + * @rd:           rename data containing parent
+> + * @old_dentry:   dentry of name to move
+> + * @new_dentry:   dentry to move to
+> + *
+> + * Ensure locks are in place for rename and check parentage is still cor=
+rect.
+> + *
+> + * On success the two dentries are stored in @rd.old_dentry and
+> + * @rd.new_dentry and @rd.old_parent and @rd.new_parent are confirmed to
+> + * be the parents of the dentries.
+> + *
+> + * References and the lock can be dropped with end_renaming()
+> + *
+> + * Returns: zero or an error.
+> + */
+
+--=20
+paul-moore.com
