@@ -1,78 +1,122 @@
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D152122422A;
-	Tue, 18 Nov 2025 02:48:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86D7B29D29C
+	for <linux-unionfs@vger.kernel.org>; Tue, 18 Nov 2025 09:38:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763434125; cv=none; b=BOrwEnS03EhZUancdgIakYRs0c05ODcPK8ckl/rK5OVZMTG/XcqQFvmvRnKOHm8OzEp6HIN0Ok6McnAVyMnjkYgs0yA6ehPiPaMcDON8lPwAsfT75ua7K+FJLxuiewiBeZg/CJOWW9vfG4R5Dx2kGBMgw/ooXAACxfZ17a+pdtA=
+	t=1763458736; cv=none; b=YqT73wEYy3otwXAo32a/DLr7y3RxsCFc4HODkafrayHBMkCuxq+s8P4FtWGWmBrc7qMnrfvl58VZnLIWQPwUenvtZgkP/b8wRRA0ZSP2ozLMc53SjWD62z0FkwmP9qpgFJKYsCO/r3soBWmvS3rqY0H9dZFbH3rD3Ni1XRt/I/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763434125; c=relaxed/simple;
-	bh=IF7tXxjfJnJ7UP8snUq6Fu9sE62VSH0RBbQy7nJpU/E=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cA07+6U/0jUZ+GBWcHuTvTBLQpDiizCMP+aEXjTAvOXgH8ipdzed9aZKh3faHa389wfdTLBQqmusAlnqFpzKUU7K+d+Xi5O47XEc+yVgTVY23T0FkrNNTAxbyVNX+igbrZp1awnMtcQMSu4guXoUKYBsTDb0WPZg5La25pSf8f8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost (unknown [124.16.138.129])
-	by APP-01 (Coremail) with SMTP id qwCowABH3MuF3htpXYcdAQ--.19816S2;
-	Tue, 18 Nov 2025 10:48:37 +0800 (CST)
-From: Chen Ni <nichen@iscas.ac.cn>
-To: miklos@szeredi.hu,
-	amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Chen Ni <nichen@iscas.ac.cn>
-Subject: [PATCH] ovl: remove unneeded semicolon
-Date: Tue, 18 Nov 2025 10:48:00 +0800
-Message-Id: <20251118024800.701780-1-nichen@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1763458736; c=relaxed/simple;
+	bh=1WdA8cRFaIuoEPlnHUR3016BXYk4T2U3XrTC78YONno=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dFqqK5UqtK/wGyDci7aiL4hqLKzMGaJVUrLAIUH0gfQ7GhYeLi+1JrVZshcjDZA+tpt+pE0JBpGl6O2XS28NNCoNaIBXEgRVmqiOCOt943kAutqLyMHFd3FHvXufSrJfD6TbH2tFYTptu3P2udTeWyMlSD6+7AWJaUSJfv+foqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f17Iq1P+; arc=none smtp.client-ip=209.85.208.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f17Iq1P+"
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-64074f01a6eso8885146a12.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Nov 2025 01:38:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763458729; x=1764063529; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fzLfKX0ktZQacVfDl6RZ8y84bhKFdeZTSQQaNU4vUcY=;
+        b=f17Iq1P+x66CDLfSYgeQJbfVYd8+P0TI8wocLwawZrPQCKqZFGkH2l7e8Io5qOMaV3
+         U27J0IU1nE2D7TXSAlsXi88rk9s0UyB9XA1D7cYNa30Q3Du/lIbqoDQiASQElXry73QM
+         cfCGljf/DdTIshtEYMFI2J9fKhUHPk9dwCs7CjWgCZEYvOoiLAQk9NHZfjAJWndSLeMX
+         odtkl3+skxJbAnVtDmtiLVfASqOCiVhs+IrJqndu3qQaP8IyUFC7CLHNwVeHFyZBj5IY
+         e/nXDAo2J5EB0DGvPDGWKHNXQTX+0YeZ8xC7vV94+bSC4h6UUdPjZ8EbxEw3evRCBz1y
+         5/Ng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763458729; x=1764063529;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=fzLfKX0ktZQacVfDl6RZ8y84bhKFdeZTSQQaNU4vUcY=;
+        b=aXdu6zRBvdrcdqgeP4cDzs7dZsmABA+ZKOPB7Sf9xtIE2sZgne1IuYUGGSo9CYQ0Ac
+         nqKSX+QuzTU0H8QQ9oypWOWirR78TIsGwwikzp+grBDCNXIyFO4In7bWSIKxWxaZ9aTP
+         MEGViqf6hl9UzQDmkoX0xFMPjJvrt0OX4eCaWXMtY0LtWkY6di1E/MP5w9BdqQXtQHsC
+         V0N2Mj8eRV+/KQKUQvH/ECasH6QClgBfbIiNJ0qNJ6B/LtzBIVXmbajSl6EAc/Lscc8C
+         4aIoKbA46P+9Q/kbbynlYw0TnMczR+zbZ+6vV4lsPTK9+Wo8mevovAj/7NG8eGSCJ+Nr
+         VhOQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX9+mqcNxymem36jLwu0wsQtdvMmmflgqOpIw6ZmmqPS1EglhFFBiqClg+Q2zQbN++ZnGFgi4htJGh9mPc9@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw3NKCh6iwTWtUQceADGN+VwlZNtY7vzdcAtfv8uFATtKNd5+gS
+	Bu9vlZG0cdOSTS3XqDbvtBo5vScgD4vE4vtit/JCfqZ9q5QpxJkQDmw4yx2WELUd5/Is26vPBhv
+	yOvhUibohNTxvZybUDzK6w0O6nsaBS3w=
+X-Gm-Gg: ASbGncsMdZKjce7a0nWy4x8OPheqrJTaoy6IkCsfLFQUMNz3nbXfBz909DjMlli4zmr
+	uKYkYJ2hnK1O6Ngt5DJf9o8bEtS46XVXlURrGykT3RH/mOR+/5C1MGZoWhvhYQvkD1d2zI5RO/r
+	B9u/vxsr3rL8hvu7NLcjXF69UaXODk+rTo5qCUYFxHn7b9G96JQ5C87JCvqKKZMyK+AV9MWanUC
+	MH5HdsF4Xf+qKah+TLTP+VMSyYaqYQthU96PaydGluJRdCMkRxX9BirGqrbGDbV/Bfxj4BGMTgN
+	QLqIX6dUHjWmIsxODFm7wNCpP2dr
+X-Google-Smtp-Source: AGHT+IF6g7Hqf1IybPPkfVPKQWf8Eq0sqxAnBFBu/i/nks4Yhse26o/DP7Sv9bYAQHayndw14GP2/kTWOMe1ySx4cTY=
+X-Received: by 2002:a05:6402:1d49:b0:640:a7a9:289f with SMTP id
+ 4fb4d7f45d1cf-64350e04fb0mr13197503a12.2.1763458729087; Tue, 18 Nov 2025
+ 01:38:49 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowABH3MuF3htpXYcdAQ--.19816S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrZFWDuF4rXw43GFyUtF45Awb_yoW3JFc_Cr
-	1vy3yvkFZ8JFs8Kr13AFsYvrnak348CF4S9w4xta1UA390g345Z3WvvFsxXr9FvryFqF9x
-	u3s7Kry2934YgjkaLaAFLSUrUUUUbb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbsAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxVWxJr
-	0_GcWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
-	2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJV
-	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_
-	JF0_Jw1lc2xSY4AK67AK6r4UMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r
-	4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF
-	67AKxVWUAVWUtwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2I
-	x0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2
-	z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnU
-	UI43ZEXa7VUjAwIDUUUUU==
-X-CM-SenderInfo: xqlfxv3q6l2u1dvotugofq/
+References: <20251118024800.701780-1-nichen@iscas.ac.cn>
+In-Reply-To: <20251118024800.701780-1-nichen@iscas.ac.cn>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 18 Nov 2025 10:38:37 +0100
+X-Gm-Features: AWmQ_bkiqSeu8BdbWNpu78_b9Ee2qfsNRycQJsAxp7Qqi7b2XZvICcBJ0t-c02M
+Message-ID: <CAOQ4uxh3YU-Ksx8gMA37YBXY-J=NnLDfTjfrdDYUU-1q3=SE7Q@mail.gmail.com>
+Subject: Re: [PATCH] ovl: remove unneeded semicolon
+To: Chen Ni <nichen@iscas.ac.cn>, Christian Brauner <brauner@kernel.org>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, NeilBrown <neil@brown.name>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Remove unnecessary semicolons reported by Coccinelle/coccicheck and the
-semantic patch at scripts/coccinelle/misc/semicolon.cocci.
+On Tue, Nov 18, 2025 at 3:48=E2=80=AFAM Chen Ni <nichen@iscas.ac.cn> wrote:
+>
+> Remove unnecessary semicolons reported by Coccinelle/coccicheck and the
+> semantic patch at scripts/coccinelle/misc/semicolon.cocci.
+>
+> Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
+> ---
+>  fs/overlayfs/dir.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index d21f81a524f6..7c2407b8c3a4 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -105,7 +105,7 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs=
+)
+>                         whiteout =3D dget(link);
+>                 end_creating(link);
+>                 if (!err)
+> -                       return whiteout;;
+> +                       return whiteout;
+>
+>                 if (err !=3D -EMLINK) {
+>                         pr_warn("Failed to link whiteout - disabling whit=
+eout inode sharing(nlink=3D%u, err=3D%u)\n",
+> --
+> 2.25.1
+>
 
-Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
----
- fs/overlayfs/dir.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Chen,
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index d21f81a524f6..7c2407b8c3a4 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -105,7 +105,7 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
- 			whiteout = dget(link);
- 		end_creating(link);
- 		if (!err)
--			return whiteout;;
-+			return whiteout;
- 
- 		if (err != -EMLINK) {
- 			pr_warn("Failed to link whiteout - disabling whiteout inode sharing(nlink=%u, err=%u)\n",
--- 
-2.25.1
+Thank you for the report!
 
+Which branch is this patch against? linux-next?
+
+It fixes a typo that got in with this patch
+https://lore.kernel.org/linux-fsdevel/20251113002050.676694-5-neilb@ownmail=
+.net/
+
+Currently staged on branch vfs-6.19.directory.locking in Christian's vfs tr=
+ee.
+
+Christian, do you want to squash this fix?
+
+Thanks,
+Amir.
