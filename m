@@ -1,172 +1,78 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0FBF30F95C
-	for <linux-unionfs@vger.kernel.org>; Mon, 17 Nov 2025 23:04:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D152122422A;
+	Tue, 18 Nov 2025 02:48:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763420682; cv=none; b=oRMIdbIoAmj6YCOXyWgTSHIoTlrFu71jKrTRiEc/uRRw4fVJ1/qR2jH6+OWZ+OnKccBvGLbhTPXcfeC+P7cEU04VZzeXwfJIGJJPADUk3gKhIpgOpBmEDH4j2CknGDsCIDExzcAmCXlSGnwFO4GulnxnmuVo9oxgVDHx4xNda4M=
+	t=1763434125; cv=none; b=BOrwEnS03EhZUancdgIakYRs0c05ODcPK8ckl/rK5OVZMTG/XcqQFvmvRnKOHm8OzEp6HIN0Ok6McnAVyMnjkYgs0yA6ehPiPaMcDON8lPwAsfT75ua7K+FJLxuiewiBeZg/CJOWW9vfG4R5Dx2kGBMgw/ooXAACxfZ17a+pdtA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763420682; c=relaxed/simple;
-	bh=i7DdhnG71ftd4i2m2G21HgRfKhN3UzNnHz1O3MhLXC4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=avoEZ2zTayzRuWXZiy/Ed2uqVtgfXO/ZjNMC3Cx4zah7LWrQgZB54Q5BrgG3sC3F42ZM78BRPScSwQbXt5uBwlp2zLl0a95v8R5/AX0S0Uz80oyqmtShg3rQ1cbt0dL1VbEV53C2lo7MT3yE/qFUxcI7lRvKnoZA1sHzlDnXJ2Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=YmjZq2vE; arc=none smtp.client-ip=209.85.216.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="YmjZq2vE"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-3436d6bdce8so6002826a91.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Nov 2025 15:04:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1763420676; x=1764025476; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=67DqjyCI/JhVTsF1ULoiPuOUOphLY2mp3g5O7RzL6g8=;
-        b=YmjZq2vEP3RrKkuynMuBECfzV/qmuCZcW2k5SrDDwNLrBwCjhC9leZeksspqC9Reg5
-         7m1qs16aYUYUzMy31VgnfaRfQ925KDC/Wf0JDl3vg/7PHxxunMH/Nn6A8qpdHIeOgmKF
-         SSalfOtnM6+aKcPi/R1diKoX6mzhOZoLeEgbC5txiQiK8mFtldLoRKhJhxkJw2YYx59r
-         W0OtXAGkR5gvdztwjWl9g4n1k7D8tVL8dwrwiXVcU0tTMTY3u4bltrQMVL5eUp5spcvr
-         GNGswPZEV3ZLiPG9FXx0fVQEcWAztc4A7KBMY/KmU8D+TNzUS8SypFep3kDas3TIZnAY
-         J+LA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763420676; x=1764025476;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=67DqjyCI/JhVTsF1ULoiPuOUOphLY2mp3g5O7RzL6g8=;
-        b=OBN8kGOl4rp/3QigL9kWN5rugWsejh02zEXJRnMny/xED21YurzRcDF8kUeAy2fSeP
-         Yl72L/H+mwbz2AgzzZXi33/k4byYrOuGxYvszfYG0puLNTult04O+toGVZs2Oi9cJ8WH
-         ARNvT/RVWE1Swaqi8S/O0VwijrsrpSqg0JeiQ+3Za6VrwoohbXghOj4EvAlw4vL9fyG7
-         39n/MOMa/y7sQxS8frmyfSXlif6FgmWGIwgfch/UPasSRml7ffolkN0ruLVJMlTEx6h2
-         5DKMMIYrVsSreKvqPsjT7BbeqxNlxD9/NlZ6yF7XtESWcJmJ7wWKFUvOtVPSgP3TZMAd
-         GJ5A==
-X-Forwarded-Encrypted: i=1; AJvYcCUNZjLEo7lo2tDQ1DoXtbGgihQ8BwWqJVmcD7/WaJqjNrWNo3KuYyYNbKxpJtn90KbuWMWi3tvEh90JxP3X@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy9SeUcZm4FrB19drPqaPX50p7zTGY26eSjqByWF9HmFKT/bS+h
-	BaCbcdzwKF5jaTZVOGY+91Rinyv+Wn4jhFLvNlsYBU7ov9s/yfO3xr7M9G7tUECX1dbtf80hzk9
-	qM2tuptdo2EERREMwYTWAQ2hSXlIhOxglPI8khYGH
-X-Gm-Gg: ASbGncsCB+B1++NIN5tIm5qhSUO7xjMXOGj5Ro5i/N2D1Jg76KqL1zFE6D8hT8kFqze
-	FUm/G+oYbJbJRbIkGbWIDUt8eNvBMWiuNYNKDjLjcngvRdBjwZxZ4C8kDzNLW6UQNINOYNxmF2d
-	7IN/cCXfg7m1g02FTQExcB2SiBom19AcmSAihOmaZdgTLszvTsnGeidFlsw905yQrFc0SQhOJXB
-	ySntvq43iIOl/S162mluTph5IGIwVsMcLwh/EASWNC9VF0fLq/pOeyVDZVANxS92s+fqOxLENEQ
-	+QVQEw==
-X-Google-Smtp-Source: AGHT+IEvNsvH0S9IPXXRMbbmgzHTccG9PPI2nYN0bRiYDZkjLr7eZa3zFcl2Aq+G2oZCl+9tdbOi4J//UzL45yvj1Lw=
-X-Received: by 2002:a17:90b:3a45:b0:341:2141:d809 with SMTP id
- 98e67ed59e1d1-343fa74b235mr16121302a91.26.1763420676475; Mon, 17 Nov 2025
- 15:04:36 -0800 (PST)
+	s=arc-20240116; t=1763434125; c=relaxed/simple;
+	bh=IF7tXxjfJnJ7UP8snUq6Fu9sE62VSH0RBbQy7nJpU/E=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cA07+6U/0jUZ+GBWcHuTvTBLQpDiizCMP+aEXjTAvOXgH8ipdzed9aZKh3faHa389wfdTLBQqmusAlnqFpzKUU7K+d+Xi5O47XEc+yVgTVY23T0FkrNNTAxbyVNX+igbrZp1awnMtcQMSu4guXoUKYBsTDb0WPZg5La25pSf8f8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from localhost (unknown [124.16.138.129])
+	by APP-01 (Coremail) with SMTP id qwCowABH3MuF3htpXYcdAQ--.19816S2;
+	Tue, 18 Nov 2025 10:48:37 +0800 (CST)
+From: Chen Ni <nichen@iscas.ac.cn>
+To: miklos@szeredi.hu,
+	amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Chen Ni <nichen@iscas.ac.cn>
+Subject: [PATCH] ovl: remove unneeded semicolon
+Date: Tue, 18 Nov 2025 10:48:00 +0800
+Message-Id: <20251118024800.701780-1-nichen@iscas.ac.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113002050.676694-1-neilb@ownmail.net> <20251113002050.676694-13-neilb@ownmail.net>
-In-Reply-To: <20251113002050.676694-13-neilb@ownmail.net>
-From: Paul Moore <paul@paul-moore.com>
-Date: Mon, 17 Nov 2025 18:04:25 -0500
-X-Gm-Features: AWmQ_blmwKtGFLQfMeJ-bOJqBB1-xlrqHYzasnjIoux8218WIXniQF0qawaCUpA
-Message-ID: <CAHC9VhQERRrabQhMUd3DHRg+TqV6Ztoo0kqwK_tn5u--in-f4Q@mail.gmail.com>
-Subject: Re: [PATCH v6 12/15] Add start_renaming_two_dentries()
-To: NeilBrown <neil@brown.name>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, 
-	Jeff Layton <jlayton@kernel.org>, Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>, 
-	David Howells <dhowells@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Tyler Hicks <code@tyhicks.com>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Chuck Lever <chuck.lever@oracle.com>, 
-	Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
-	Namjae Jeon <linkinjeon@kernel.org>, Steve French <smfrench@gmail.com>, 
-	Sergey Senozhatsky <senozhatsky@chromium.org>, Carlos Maiolino <cem@kernel.org>, 
-	John Johansen <john.johansen@canonical.com>, James Morris <jmorris@namei.org>, 
-	"Serge E. Hallyn" <serge@hallyn.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Ondrej Mosnacek <omosnace@redhat.com>, Mateusz Guzik <mjguzik@gmail.com>, 
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Stefan Berger <stefanb@linux.ibm.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>, linux-kernel@vger.kernel.org, netfs@lists.linux.dev, 
-	ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	selinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:qwCowABH3MuF3htpXYcdAQ--.19816S2
+X-Coremail-Antispam: 1UD129KBjvdXoWrZFWDuF4rXw43GFyUtF45Awb_yoW3JFc_Cr
+	1vy3yvkFZ8JFs8Kr13AFsYvrnak348CF4S9w4xta1UA390g345Z3WvvFsxXr9FvryFqF9x
+	u3s7Kry2934YgjkaLaAFLSUrUUUUbb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUbsAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2IYs7xG
+	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
+	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
+	Cr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxVWxJr
+	0_GcWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJV
+	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_
+	JF0_Jw1lc2xSY4AK67AK6r4UMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r
+	4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF
+	67AKxVWUAVWUtwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2I
+	x0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2
+	z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnU
+	UI43ZEXa7VUjAwIDUUUUU==
+X-CM-SenderInfo: xqlfxv3q6l2u1dvotugofq/
 
-On Wed, Nov 12, 2025 at 7:42=E2=80=AFPM NeilBrown <neilb@ownmail.net> wrote=
-:
->
-> From: NeilBrown <neil@brown.name>
->
-> A few callers want to lock for a rename and already have both dentries.
-> Also debugfs does want to perform a lookup but doesn't want permission
-> checking, so start_renaming_dentry() cannot be used.
->
-> This patch introduces start_renaming_two_dentries() which is given both
-> dentries.  debugfs performs one lookup itself.  As it will only continue
-> with a negative dentry and as those cannot be renamed or unlinked, it is
-> safe to do the lookup before getting the rename locks.
->
-> overlayfs uses start_renaming_two_dentries() in three places and  selinux
-> uses it twice in sel_make_policy_nodes().
->
-> In sel_make_policy_nodes() we now lock for rename twice instead of just
-> once so the combined operation is no longer atomic w.r.t the parent
-> directory locks.  As selinux_state.policy_mutex is held across the whole
-> operation this does not open up any interesting races.
->
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> Reviewed-by: Jeff Layton <jlayton@kernel.org>
-> Signed-off-by: NeilBrown <neil@brown.name>
->
-> ---
-> changes since v5:
->  - sel_make_policy_nodes now uses "goto out" on error from start_renaming=
-_two_dentries()
->
-> changes since v3:
->  added missing assignment to rd.mnt_idmap in ovl_cleanup_and_whiteout
-> ---
->  fs/debugfs/inode.c           | 48 ++++++++++++--------------
->  fs/namei.c                   | 65 ++++++++++++++++++++++++++++++++++++
->  fs/overlayfs/dir.c           | 43 ++++++++++++++++--------
->  include/linux/namei.h        |  2 ++
->  security/selinux/selinuxfs.c | 15 +++++++--
->  5 files changed, 131 insertions(+), 42 deletions(-)
+Remove unnecessary semicolons reported by Coccinelle/coccicheck and the
+semantic patch at scripts/coccinelle/misc/semicolon.cocci.
 
-...
+Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
+---
+ fs/overlayfs/dir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> diff --git a/fs/namei.c b/fs/namei.c
-> index 4b740048df97..7f0384ceb976 100644
-> --- a/fs/namei.c
-> +++ b/fs/namei.c
-> @@ -3877,6 +3877,71 @@ int start_renaming_dentry(struct renamedata *rd, i=
-nt lookup_flags,
->  }
->  EXPORT_SYMBOL(start_renaming_dentry);
->
-> +/**
-> + * start_renaming_two_dentries - Lock to dentries in given parents for r=
-ename
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index d21f81a524f6..7c2407b8c3a4 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -105,7 +105,7 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
+ 			whiteout = dget(link);
+ 		end_creating(link);
+ 		if (!err)
+-			return whiteout;;
++			return whiteout;
+ 
+ 		if (err != -EMLINK) {
+ 			pr_warn("Failed to link whiteout - disabling whiteout inode sharing(nlink=%u, err=%u)\n",
+-- 
+2.25.1
 
-I'm guessing you meant this to read "Lock *two* dentries ...".
-
-Otherwise the SELinux changes look fine to me.
-
-Acked-by: Paul Moore <paul@paul-moore.com> (SELinux)
-
-> + * @rd:           rename data containing parent
-> + * @old_dentry:   dentry of name to move
-> + * @new_dentry:   dentry to move to
-> + *
-> + * Ensure locks are in place for rename and check parentage is still cor=
-rect.
-> + *
-> + * On success the two dentries are stored in @rd.old_dentry and
-> + * @rd.new_dentry and @rd.old_parent and @rd.new_parent are confirmed to
-> + * be the parents of the dentries.
-> + *
-> + * References and the lock can be dropped with end_renaming()
-> + *
-> + * Returns: zero or an error.
-> + */
-
---=20
-paul-moore.com
