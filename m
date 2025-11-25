@@ -1,153 +1,77 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EE8D2749D9
-	for <linux-unionfs@vger.kernel.org>; Mon, 24 Nov 2025 17:36:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAB9A263F54;
+	Tue, 25 Nov 2025 09:18:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764005799; cv=none; b=Ajyo5A2wt/3ful/pemkXj/3+bLkg4n6CPR5gMTOoaC71BT3DohgcrS5m/d4kOs/01M7V4WhJKnNynKLyDlIKS5QiZzH40pyrVzfiRxa9+FWI9iHbYIUp3E3Q/7t/2OR26BU29LHPXXG+gMVvP3PAGQJ6fyJ90SDZPf98FPgKQL4=
+	t=1764062319; cv=none; b=o3d70eGqDmJ/qspVfoSiqOrMneSs6LqGGyIAhRoK5NV1GvEVbT9r/qX8s8Ju8bt/WmriUFOgshE53gQH1PufGvQGq2NJhHkfOQtHsmyE+ktpjlsYfOLliFocm7oyfQXXqc85toCHL91A8g3ybVSUppzHuWZGqFlipbpS/XDRJ8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764005799; c=relaxed/simple;
-	bh=G0LQ82Mldli948S1XVknyxbrkZD+BoCECMs/OrXffn4=;
+	s=arc-20240116; t=1764062319; c=relaxed/simple;
+	bh=U9iYrYsglLkG8TnBDbI9yrwUWiI8plUWD8Oh3w7r1lw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hjjZzgHYnsUGT6osXTYCTn1BWurYhmHwnWLkqNKqGmiwttceZqI+F4W+riZJzTgahOl9pRYp95xvII8zR+RpaCaQmrdudnoZH4Z3p3wUXurkFMzmdjWFvaAUXMxgMfQH46sDgDMkZSD5MYtdd9SN7Kir4r64/Abw+yc8rGO0u7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=pAANx02d; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=4c/b4Sor; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=pAANx02d; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=4c/b4Sor; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	 Content-Type:Content-Disposition:In-Reply-To; b=Pug8qhPlHqLSY3p2qkdJb/rZI/H3zF1g2ZKKsdS++5sflR683fnaXiQ+5Z8mcpD1+7QO94sTfFlrY+bdFBLzsctoiciHztP0csErL/NUcQxKibqkJL4I3XH9V6ZxaO87wMGVRT9Ci3Mt+bTPhkaLNN5lMVTsa78YPQzsJiImAeI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sctjiYa/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="pAANx02d";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="4c/b4Sor";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="pAANx02d";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="4c/b4Sor"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id B46B75BCC2;
-	Mon, 24 Nov 2025 17:36:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1764005795; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=b2IZs/iJywacdojXMvk6M27OfFIstOkeVS4WvVUZksU=;
-	b=pAANx02dXtFmVRv/b9/4fjYVaw9bU37MXsjfLUgb9Cm1odeC+dn7vCZi8K1qqa4bAB6Pl+
-	PqBFI/lIRYgRfEawFwH+UMghvcc/L7DAPq9DWBLx6yzeut/8sx8X1cpY1I9UXgigltupUu
-	JnReC0hSGKvh/HAxZhite2NOXbb5sSg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1764005795;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=b2IZs/iJywacdojXMvk6M27OfFIstOkeVS4WvVUZksU=;
-	b=4c/b4Sor5YE0OMWOxhE09AyRQJZAtjf+C7NRbXkGiEImIBGvtmrqI9n3KIFLTNyYlFmvYX
-	CoxaZK82MJuNcOBg==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=pAANx02d;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b="4c/b4Sor"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1764005795; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=b2IZs/iJywacdojXMvk6M27OfFIstOkeVS4WvVUZksU=;
-	b=pAANx02dXtFmVRv/b9/4fjYVaw9bU37MXsjfLUgb9Cm1odeC+dn7vCZi8K1qqa4bAB6Pl+
-	PqBFI/lIRYgRfEawFwH+UMghvcc/L7DAPq9DWBLx6yzeut/8sx8X1cpY1I9UXgigltupUu
-	JnReC0hSGKvh/HAxZhite2NOXbb5sSg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1764005795;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=b2IZs/iJywacdojXMvk6M27OfFIstOkeVS4WvVUZksU=;
-	b=4c/b4Sor5YE0OMWOxhE09AyRQJZAtjf+C7NRbXkGiEImIBGvtmrqI9n3KIFLTNyYlFmvYX
-	CoxaZK82MJuNcOBg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 943783EA66;
-	Mon, 24 Nov 2025 17:36:35 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id VZwpJKOXJGmzRQAAD6G6ig
-	(envelope-from <jack@suse.cz>); Mon, 24 Nov 2025 17:36:35 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 0CB0CA0A04; Mon, 24 Nov 2025 18:36:31 +0100 (CET)
-Date: Mon, 24 Nov 2025 18:36:31 +0100
-From: Jan Kara <jack@suse.cz>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sctjiYa/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62470C4CEF1;
+	Tue, 25 Nov 2025 09:18:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1764062318;
+	bh=U9iYrYsglLkG8TnBDbI9yrwUWiI8plUWD8Oh3w7r1lw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=sctjiYa/DATKoaFc3hWyAe155qdsmeZ0LOX1jyiLgNBS5DiZw+4snbDy8w3moMIlw
+	 qD25hlXOxRpAQw7ks/SOJcVlNOSn2alp+vSe+skncJ9fnv47blkRv/OO1HEnfaLieL
+	 Pdfx8nRHNYcPX7bTnyTH+HvgbdCM1/yJVva5Dr3pvCvteXBjjd4kwFh15WUdPqWtXT
+	 KDE5JgmgqxTmE7mMVxru75iVNEw+PlMkuj4dLF4KAWCHoOTXoPZcis8CK0XFDtFgFD
+	 fKp2aeOAxiijY6s+DoOEPPdvCjJNOF89n2osZI1BVl6VydJ00KKVQTPicDc0+hBj82
+	 /u0YfbHQEuJ6g==
+Date: Tue, 25 Nov 2025 10:18:32 +0100
+From: Christian Brauner <brauner@kernel.org>
 To: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>, 
-	Al Viro <viro@zeniv.linux.org.uk>, David Sterba <dsterba@suse.com>, 
-	Mike Marshall <hubcap@omnibond.com>, Martin Brandenburg <martin@omnibond.com>, 
-	Carlos Maiolino <cem@kernel.org>, Stefan Roesch <shr@fb.com>, Jeff Layton <jlayton@kernel.org>, 
-	linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org, gfs2@lists.linux.dev, 
-	io-uring@vger.kernel.org, devel@lists.orangefs.org, linux-unionfs@vger.kernel.org, 
-	linux-mtd@lists.infradead.org, linux-xfs@vger.kernel.org, linux-nfs@vger.kernel.org
-Subject: Re: [PATCH 10/14] fs: factor out a sync_lazytime helper
-Message-ID: <zxcwflyr4gjglqmpjnr6vgcb6iv3zu5iub4yf35i2kdhn37ox5@rudbrvydeev5>
-References: <20251114062642.1524837-1-hch@lst.de>
- <20251114062642.1524837-11-hch@lst.de>
- <vkobnnw3ij2n47bhhooawbw546dgwzii32nfqcx4bduoga5d7r@vdo5ryq4mffz>
- <20251124140924.GB14417@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, David Sterba <dsterba@suse.com>, 
+	Jan Kara <jack@suse.cz>, Mike Marshall <hubcap@omnibond.com>, 
+	Martin Brandenburg <martin@omnibond.com>, Carlos Maiolino <cem@kernel.org>, Stefan Roesch <shr@fb.com>, 
+	Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, gfs2@lists.linux.dev, io-uring@vger.kernel.org, 
+	devel@lists.orangefs.org, linux-unionfs@vger.kernel.org, linux-mtd@lists.infradead.org, 
+	linux-xfs@vger.kernel.org, linux-nfs@vger.kernel.org
+Subject: Re: re-enable IOCB_NOWAIT writes to files v2
+Message-ID: <20251125-loten-fabuliert-c0fb6b195b53@brauner>
+References: <20251120064859.2911749-1-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20251124140924.GB14417@lst.de>
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Rspamd-Queue-Id: B46B75BCC2
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.01 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_COUNT_THREE(0.00)[3];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[19];
-	MIME_TRACE(0.00)[0:+];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_TLS_LAST(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MISSING_XM_UA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DKIM_TRACE(0.00)[suse.cz:+];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,suse.cz:dkim,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Score: -4.01
+In-Reply-To: <20251120064859.2911749-1-hch@lst.de>
 
-On Mon 24-11-25 15:09:24, Christoph Hellwig wrote:
-> On Mon, Nov 24, 2025 at 02:31:02PM +0100, Jan Kara wrote:
-> > > +	if (wbc->sync_mode == WB_SYNC_ALL ||
-> > > +	    time_after(jiffies, inode->dirtied_time_when +
-> > > +			dirtytime_expire_interval * HZ))
-> > > +		sync_lazytime(inode);
-> > 
-> > The checking of inode->dirtied_time_when for inode potentially without
-> > I_DIRTY_TIME set (and thus with unclear value of dirtied_time_when) is kind
-> > of odd. It is harmless but IMO still not a good practice. Can't we keep
-> > this condition as is and just call sync_lazytime()?
+On Thu, Nov 20, 2025 at 07:47:21AM +0100, Christoph Hellwig wrote:
+> Hi all,
 > 
-> As in keeping the I_DIRTY_TIME in the caller?  Sure, I could do that.
+> commit 66fa3cedf16a ("fs: Add async write file modification handling.")
+> effectively disabled IOCB_NOWAIT writes as timestamp updates currently
+> always require blocking, and the modern timestamp resolution means we
+> always update timestamps.  This leads to a lot of context switches from
+> applications using io_uring to submit file writes, making it often worse
+> than using the legacy aio code that is not using IOCB_NOWAIT.
+> 
+> This series allows non-blocking updates for lazytime if the file system
+> supports it, and adds that support for XFS.
+> 
+> It also fixes the layering bypass in btrfs when updating timestamps on
+> device files for devices removed from btrfs usage, and FMODE_NOCMTIME
+> handling in the VFS now that nfsd started using it.  Note that I'm still
+> not sure that nfsd usage is fully correct for all file systems, as only
+> XFS explicitly supports FMODE_NOCMTIME, but at least the generic code
+> does the right thing now.
 
-Yes, keeping I_DIRTY_TIME check at this call site.
+It's a bit too close to the merge window for my taste and we have about
+17 pull request topics for this cycle already.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+So I'll take this for vfs-6.20.iomap. As usual I'll create that branch
+now so that the patches don't get lost and will rebase once v6.19-rc1 is
+out.
