@@ -1,78 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED232299A81;
-	Fri, 28 Nov 2025 09:40:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AC03074BB
+	for <linux-unionfs@vger.kernel.org>; Fri, 28 Nov 2025 09:54:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764322801; cv=none; b=Z7poCTUa7fbBklYWZpfv5Q0X7tw4Xb2VQF+9Jd8Xvot+GUIr90FVW88d+LzJ/Kk5HCAB557XYzuPQCoDuMliDmIh8ibg+CQHGp9qBCZMoIkAJUnnaX53nnn7vavbMubuDdLId+D6jlDrne3qcHe6GK8BEt3zHnx4hPRVV212sJ4=
+	t=1764323669; cv=none; b=KCTeUA4CtFYo90psBpGmiqOA4/+CE/szGuprvELEWHqg/k3SeF7D/LdyiR7itD/e29N7vxUbSq2oquFXJ/g4sh0dbZy44jjb+MC9+a+IqzWxVnnS6b9qVPqpBk7lvZQB/Iy+K7cp002aGNeDSdnNC1R1VFHKuBeCi54r8hnDguI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764322801; c=relaxed/simple;
-	bh=beEgj0f3pMl7gjZZVgLFNSykO/huICYpSWEO7Bx71yI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GT8DlMhcjeQiDaQHNWwPl6CQGs8ZTutZtY9ymK0V9GgAJKPzdoaYG1kZ7bjkvtRePxTjnD/mlt/gqzWAyNJtkiUMDv9Hk8gaMYd1gv2YnZLfHHy8YsWL7C59A/CFIZr+QxW+C/wV0znUwDYM07Xgt446wVkNOq2RbI4lI+ZCSn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VHqEoHKV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764323669; c=relaxed/simple;
+	bh=p6xDVMfR9gkE+eSbU52VNKLajdPqM6XNLluxYwkRXGA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=STHdCElSJqFdExuRiUjk3/7ZtvUkXVad1tpFsU6Sk4CJJglb8qU0pdCpgjWRbkF1+fvDhnv2QuktgPxGBxYW3whsCm3MiODDEtBsimvSHJC9HmAvi+BJ6RQXmkcXm6ErvhvCp4IvH12NtxsbKZCOF6vs98AJOASLRH0VYMknJrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a+S2qF0I; arc=none smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VHqEoHKV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 980A7C113D0;
-	Fri, 28 Nov 2025 09:39:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1764322800;
-	bh=beEgj0f3pMl7gjZZVgLFNSykO/huICYpSWEO7Bx71yI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=VHqEoHKVQcRAuHAcVqxzdBDbUb3xXhDbh5x+irmqJLHXagL7WrxsG0wy7kna8fLmJ
-	 A+CLX4YuWIXvw6qheW7dOGIEtAxZ495o8ySCESq3Ma9WlVG3YNOOPDq9jjjI8YPdqw
-	 sW8IYmyCTm3ZaRvNAwyxoRGneOG1rsKc/n/zvUWPyAu46WjoLYSS4M4fWAwK54bIVs
-	 MCT+wOHZ1NsiQnJ8G/jGPz5itRkgRzRSg78Ay6Ce8+joMSj98hs6nonAK+LoQn8r6p
-	 OlRh1AMfWcEdBnmQsqw6S9zteNAZL0k2DTDF/N4hKgAS1zA8nu28rOBJJbMf3W66oC
-	 m2qAK+l2Z0zcw==
-From: Christian Brauner <brauner@kernel.org>
-To: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>,
-	NeilBrown <neilb@ownmail.net>
-Cc: Christian Brauner <brauner@kernel.org>,
-	amir73il@gmail.com,
-	linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	miklos@szeredi.hu,
-	syzkaller-bugs@googlegroups.com
-Subject: Re: [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
-Date: Fri, 28 Nov 2025 10:39:54 +0100
-Message-ID: <20251128-pirat-miteinander-cdfad90de5f4@brauner>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
-References: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a+S2qF0I"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-64162c04f90so3054462a12.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 28 Nov 2025 01:54:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1764323666; x=1764928466; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zVfM55XZctsuDlf5IL66Ry0szMohdC5D1xC0dGz1E+k=;
+        b=a+S2qF0IIlXT6G9QzePxP/aZm3lItH9g+oQHnzHFZS7CBL9JVZ6lPDWKi5CFFe9GGF
+         GHduVgU0/rItyWnbA+3JgJjEk7UtrHjQsH2xbBogKqQUAtOa8M9tzGZ9LacGUM4jKTwQ
+         kgK/GjCmb8WnoaRwLJ9rKQGf+9iCq52KGYTQThxk45A6an5rgImhYYEQC6tuH6/sZQBe
+         Q9Bhdb+KIiPfbVnF4gWQju7yGSYx6i07PstFL8H2+Gs2Bg0tVCJLD+42ZUKy2tTyYCr6
+         Z6kr/4UIU2nQX0iTZvqLeq3AbV5kOsbz8b31R4eCYI2yepv6N3cfiEbWnz0aknXQfb3E
+         bRlw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764323666; x=1764928466;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=zVfM55XZctsuDlf5IL66Ry0szMohdC5D1xC0dGz1E+k=;
+        b=rDS7gj/kt2fzrouIaEbHmOrkTewxp0K8KbJAuV6+sqF8ixUeGMpRJB0aYBkfyhGGQI
+         yi+b3DxSBb0RY9igFrKQ/ae3QHbWXmPjDUl/Dmy59+b7/bzeSTPKx0AbKy+uzugVh9v6
+         IW+9BfjwffWGhVxHxG7Two8bqoZ9d5kfL0NobeZ4jHhciYWLwUdr1mmQRnDguqf8i/h5
+         GhO1ZkVHsJNnWBnF07DfqlINVDmlhXNJ68S4uFP6+9cx5AR+PmJN9aLfmwJwmHy1H907
+         M/pPxVTLSPzJn9x3LNPum4QY/d4CBT6RHXEgVAXWDekMq6qoj0dxXEh8xv+T6XQOSyBN
+         81ow==
+X-Forwarded-Encrypted: i=1; AJvYcCWeG8Dbe/4LkhwvT4hRrqZgeHiD4P8g1AJ/agCc1pvbeffcRgY9rBNDbey51jdAfLFT6QjgHEqe6NDJNYFx@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx9woRJZcwJE4J/nqxjY0ucI/TRfUQ4Sz3oLqoLHqIhp8zh+pP3
+	grif5x5rKxoo4fIM2izf/LDSowAbxWV15i6MXdTiF5vDHUCnlc04tCBEiZYcL5XfgjoUv3Rl8Q+
+	bLR0sQDN2MwVUfqEoiDW5U7IVUIkvHgw=
+X-Gm-Gg: ASbGnctlTScTAL+e3haVGyEvBHpYbNlAW13emPYFEy3KzqXM0hgNOvCad/ZixQ0whXo
+	DS2uw18iGflV9ToumzBTKnIsh+QKY1dMNhmRFuD3Yvs0gOQ/An4vUAgRiqSdc948qyu88i3XE09
+	6LrodcGfMtAmIbZKE7XPGXLb3hUuSf3OSGgVJPSUyqrpySsOXdIL7bKgmyrFjkADPcjrEaIROqY
+	hpU21L1ErQgAuynhaVXqokSz4QE1pJZwV4alyOLTVmbPCHEjxYUl/PxwYwrW8WgCHi3gUkJloFf
+	HNvqlcz/GoYFT8SKqeKtzFxUKOItKA==
+X-Google-Smtp-Source: AGHT+IF5P3YRfwANyJHOmuLIBZMAq6H4+HrvavYuwv3NP0XJiw4KDaKijJxfhWW8MxX57x0t0KI6hXgkg2dnjhOLfJo=
+X-Received: by 2002:a05:6402:534e:10b0:645:ccf0:379 with SMTP id
+ 4fb4d7f45d1cf-645ccf003f2mr12431894a12.21.1764323666084; Fri, 28 Nov 2025
+ 01:54:26 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1045; i=brauner@kernel.org; h=from:subject:message-id; bh=beEgj0f3pMl7gjZZVgLFNSykO/huICYpSWEO7Bx71yI=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWRq5r6e5LWpPNf/VJz/Q9nsadmKM+rtT5y7Wvj5K++B5 QbKnCxJHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPhi2D473n/uK36pD/pb89u FTG40fSYpfV1wu85HSpGu1du2JuasYyRYTrjwuBCHe/8C+pi/l6fbO7v1i5OTt3LUfT/ivnXW3U XuQA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+References: <6928b64f.a70a0220.d98e3.0115.GAE@google.com> <176429295510.634289.1552337113663461690@noble.neil.brown.name>
+In-Reply-To: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 28 Nov 2025 10:54:14 +0100
+X-Gm-Features: AWmQ_bkftWXUsBYHw1wIf92KT52rHsS2rxfdZVGB8XMHZt8r8EGcHke-TyxMKZ0
+Message-ID: <CAOQ4uxiO9GJVK9wtjSMoajUMRVOAdriiygDf4NqrKZna5f5zTA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
+To: NeilBrown <neil@brown.name>
+Cc: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>, 
+	brauner@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 28 Nov 2025 12:22:35 +1100, NeilBrown wrote:
+On Fri, Nov 28, 2025 at 2:22=E2=80=AFAM NeilBrown <neilb@ownmail.net> wrote=
+:
+>
+>
+> From: NeilBrown <neil@brown.name>
+>
 > As well as checking that the parent hasn't changed after getting the
 > lock we need to check that the dentry hasn't been unhashed.
 > Otherwise we might try to rename something that has been removed.
-> 
-> 
+>
+> Reported-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
+> Fixes: d2c995581c7c ("ovl: Call ovl_create_temp() without lock held.")
+> Signed-off-by: NeilBrown <neil@brown.name>
 
-Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
-
-[1/1] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
-      https://git.kernel.org/vfs/vfs/c/4ef470912f91
+> ---
+>  fs/overlayfs/util.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index f76672f2e686..82373dd1ce6e 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -1234,9 +1234,9 @@ int ovl_lock_rename_workdir(struct dentry *workdir,=
+ struct dentry *work,
+>                 goto err;
+>         if (trap)
+>                 goto err_unlock;
+> -       if (work && work->d_parent !=3D workdir)
+> +       if (work && (work->d_parent !=3D workdir || d_unhashed(work)))
+>                 goto err_unlock;
+> -       if (upper && upper->d_parent !=3D upperdir)
+> +       if (upper && (upper->d_parent !=3D upperdir || d_unhashed(upper))=
+)
+>                 goto err_unlock;
+>
+>         return 0;
+> --
+> 2.50.0.107.gf914562f5916.dirty
+>
