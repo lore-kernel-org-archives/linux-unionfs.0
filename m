@@ -1,99 +1,63 @@
-Received: from fout-b5-smtp.messagingengine.com (fout-b5-smtp.messagingengine.com [202.12.124.148])
+Received: from mail3-164.sinamail.sina.com.cn (mail3-164.sinamail.sina.com.cn [202.108.3.164])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A81A11713;
-	Fri, 28 Nov 2025 01:22:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CACC2144C7
+	for <linux-unionfs@vger.kernel.org>; Fri, 28 Nov 2025 06:56:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.108.3.164
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764292962; cv=none; b=SMYcm/h7ed5nG3KFJPeMwTa4Ye/ww/zwSDjiwfumoz7xrZaXOpWsfBcpBchXzg6B/g6YzP3NTwzuWaIqVlrB/XwtqDXQd77iy7tH4+KdCKqDG5rFQyWVHHv00oHqpo/bDF0f4ZzRrfoNxf1+Cmf1oEsNjs9LscHFnFSo0La7G4s=
+	t=1764312975; cv=none; b=avlHZaF/AxNhwlLX2yjI+xmf5yu/aiRpKoopD/Q2r8hOsFwMuQsnQEYEYPvuC23BKDQqR4N/rKc1Rcc+KdhMWbtALKbzE7JXCxN6nh33ROuBOr+r87q1/GrEMJqbA+ziQQa99bXAEwMyNivA1UPJ6zaCuWOJQZRTlUGqWdJB6LA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764292962; c=relaxed/simple;
-	bh=1I5kyWrVIakjmzRG1kXRgR//GZVDuJ3pJyzHmzKMZXk=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=tdQIEyO+4lnq2Kud5llQPwcxXRkQDnW8ayDTnNGd/4pPw6s5l81/aOlh6YYRfFdXji7nTE7zQ+Y/qSOLIh3FU+6rLQ0EZkFBryphL7hMJakahEkRWZvmN1uR9cALCmqlYR3MQIUobxBEgOm12w2KFwyjuDsPspQHFDaqcwax2I0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=RRM0lgsX; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=IfuOP2Pf; arc=none smtp.client-ip=202.12.124.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+	s=arc-20240116; t=1764312975; c=relaxed/simple;
+	bh=1ZG3147rzKf/MpmiMkOLNGaKIOpnFPvwpQP4dmLhM10=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TJkmCQeU4Ffw/GmpVvw/n5xppUjLp+5Ro5iq0GBnQNbqIrphXRJysBJBS3v2c117jvfgRdotfJYtFcphLscIJuq6VM/Z/OPo1GSi0OJxvamGO6lSh+rgOCW+6PJlopoBcxOx2rBBjxpKgV+jKi5OuBsHRWEuXxgU7mkyra9oIps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sina.com; spf=pass smtp.mailfrom=sina.com; dkim=pass (1024-bit key) header.d=sina.com header.i=@sina.com header.b=WrKWBNCG; arc=none smtp.client-ip=202.108.3.164
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sina.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sina.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="RRM0lgsX";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="IfuOP2Pf"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfout.stl.internal (Postfix) with ESMTP id 7B4601D0015F;
-	Thu, 27 Nov 2025 20:22:39 -0500 (EST)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-05.internal (MEProxy); Thu, 27 Nov 2025 20:22:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to; s=fm1; t=
-	1764292959; x=1764379359; bh=0hXuU98pHfAGKrjUJaKkAbnfA87uhTKTNkP
-	4XlfTkvA=; b=RRM0lgsXr+CQ7ek7sl/p0aheuO4FP3+ffJQNHoHgIAV7gKfvNf3
-	yY8TR6SKGuXytAJWokfQ2u1SNPRLrtn+dZj1aNUy637cEjfqR70IiZGjObSGxO+W
-	uwZbsUfjcviPZNPPnxlnmOnIfdyq78JaJ63LUVs/8YG5/alEwBkkQ6lXInjbGvt3
-	Q1Ycw2SWYzQMSiVMQEPsdqU36QgXc91Yd4gHGVz6S3Y23izV7l7Yd0J759SP2Puj
-	ih30/Qd/U65yOJ5TUHkZd5Z4ZNcXXeZQjjmZdbts4MZQk9TKDvDpqJSTY3b1JMPV
-	TRWeebi97HufOYtVtzO+br7bsI83lTKXdDA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1764292959; x=
-	1764379359; bh=0hXuU98pHfAGKrjUJaKkAbnfA87uhTKTNkP4XlfTkvA=; b=I
-	fuOP2PfIiKAW7W2emiFFQkcOobhpdJCaK0GoL1J83cIpT0keKzXWbPA3Yw4KGujY
-	ZgMd7V56v/+CEHIH4CY3gVKzNwUDimPYFkN/7qU0mdIrmucaRnmZq8RIdISn/17b
-	kQt31ehKIR40QFRog1A9eTdTynptloIlQhj4J4RYuqJMWUPT0JnLdPC8m/0AFeqq
-	5Xm4EtZPNqnDIuDNaInVCZzFZbmPdRResRzUU3yMjOrHR4xH0dXxIRvP89I3bfAw
-	4ijN+IQ9ficEExxaFnegew/IPDzZjp7bBkZKxlRrLbFO4o0Fxfh/8UJjgquKJodu
-	OoWXlyaFgup/05uGJeKSA==
-X-ME-Sender: <xms:XvkoaaBSxHq-I5gEjNJ6h0jT7_U4--PBp1DGZDnEmFfmSUu7vO4bxA>
-    <xme:XvkoaelNoOVdDWjdCuLr2Qlo7bRUjVDS7Upuwh7Gka218Q8J0Hq7ePCUY8xFYH_mG
-    qCCHAg5V_9vBCOSvKmdggU_G39-0-hhZX8JQJ-vvvBRxamU>
-X-ME-Received: <xmr:Xvkoadfd5h_EFdb72FNN8d_7Ev7ecn2kpEjLy6xc_vjKJriLzfo5kGwtxr7RDfc5m0yFYPWeZM34XM4yBhpBmtxGkaAUcOO6bMawkqGam7vE>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggddvgeekieefucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucenucfjughrpegtgfgghffvvefujghffffkrhesthhqre
-    dttddtjeenucfhrhhomheppfgvihhluehrohifnhcuoehnvghilhgssehofihnmhgrihhl
-    rdhnvghtqeenucggtffrrghtthgvrhhnpeeljedtfeegueekieetudevheduveefffevud
-    etgfetudfhgedvgfdtieeguedujeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgr
-    mhepmhgrihhlfhhrohhmpehnvghilhgssehofihnmhgrihhlrdhnvghtpdhnsggprhgtph
-    htthhopeejpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehlihhnuhigqdhunhhi
-    ohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkh
-    gvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepmhhikhhlohhs
-    sehsiigvrhgvughirdhhuhdprhgtphhtthhopehshiiisghothdosghftgelrgdttggtfh
-    dtuggvgeejugdtgegvkegtsehshiiikhgrlhhlvghrrdgrphhpshhpohhtmhgrihhlrdgt
-    ohhmpdhrtghpthhtohepsghrrghunhgvrheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoh
-    epshihiihkrghllhgvrhdqsghughhssehgohhoghhlvghgrhhouhhpshdrtghomhdprhgt
-    phhtthhopegrmhhirhejfehilhesghhmrghilhdrtghomh
-X-ME-Proxy: <xmx:XvkoaaSZOIOz1zQ903jHtBXWqoYCTw9cAP8mCJkZcnJHdOddqroKcA>
-    <xmx:XvkoacuA3yfLrFz_im8W7-9GFR7A9nN2x6g3TP50YSbnYdZTEHeUag>
-    <xmx:XvkoaTdW7QFeD8XUEykuoNDUYGh1SqMfht1zv1lGfei9K8-23ZnuDQ>
-    <xmx:XvkoaeatdWKAskDPkEbxmel6Rgh-Qnx28gJRkWVrib49lDbZBZ8Buw>
-    <xmx:X_koaeaaRKkTqnR9bStF2snLY9EyZbGnm5wQkyrn9PLWWw1as-HNngyk>
-Feedback-ID: iab3e480c:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 27 Nov 2025 20:22:36 -0500 (EST)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (1024-bit key) header.d=sina.com header.i=@sina.com header.b="WrKWBNCG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sina.com; s=201208; t=1764312969;
+	bh=9hqMFboRXThJm8RmmDwySWiFPZsFFrgKHkWER5012bY=;
+	h=From:Subject:Date:Message-ID;
+	b=WrKWBNCGPG7tI5lCrmWPLIgWTmbJj0uI/dk4exEYxSEalB05+5tdej3CO7K4zfzi/
+	 SNvy8NqeNXDd2+fokyJpMwHJQfuvgvP114xve0TwxJaevVwD189VeZhlo6Eh1mhW9N
+	 2KSyJ3TZUgCyWIwyW2iTEMhHyHAKDIde6GSm56P8=
+X-SMAIL-HELO: localhost.localdomain
+Received: from unknown (HELO localhost.localdomain)([114.249.57.85])
+	by sina.com (10.54.253.32) with ESMTP
+	id 69294761000074FA; Fri, 28 Nov 2025 14:55:31 +0800 (CST)
+X-Sender: hdanton@sina.com
+X-Auth-ID: hdanton@sina.com
+Authentication-Results: sina.com;
+	 spf=none smtp.mailfrom=hdanton@sina.com;
+	 dkim=none header.i=none;
+	 dmarc=none action=none header.from=hdanton@sina.com
+X-SMAIL-MID: 3487464456635
+X-SMAIL-UIID: 4A29E4F5F0A0487581C45017AD83C0D7-20251128-145531-1
+From: Hillf Danton <hdanton@sina.com>
+To: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>
+Cc: NeilBrown <neilb@ownmail.net>,
+	amir73il@gmail.com,
+	brauner@kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	miklos@szeredi.hu,
+	syzkaller-bugs@googlegroups.com,
+	NeilBrown <neil@brown.name>
+Subject: Re: [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
+Date: Fri, 28 Nov 2025 14:55:20 +0800
+Message-ID: <20251128065521.9509-1-hdanton@sina.com>
+In-Reply-To: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
+References: <6928b64f.a70a0220.d98e3.0115.GAE@google.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: NeilBrown <neilb@ownmail.net>
-To: "syzbot" <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>
-Cc: amir73il@gmail.com, brauner@kernel.org, linux-kernel@vger.kernel.org,
- linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
- syzkaller-bugs@googlegroups.com
-Subject:
- [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
-In-reply-to: <6928b64f.a70a0220.d98e3.0115.GAE@google.com>
-References: <6928b64f.a70a0220.d98e3.0115.GAE@google.com>
-Date: Fri, 28 Nov 2025 12:22:35 +1100
-Message-id: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
-Reply-To: NeilBrown <neil@brown.name>
+Content-Transfer-Encoding: 8bit
 
+#syz test upstream master
 
 From: NeilBrown <neil@brown.name>
 
@@ -112,19 +76,17 @@ diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
 index f76672f2e686..82373dd1ce6e 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -1234,9 +1234,9 @@ int ovl_lock_rename_workdir(struct dentry *workdir, str=
-uct dentry *work,
+@@ -1234,9 +1234,9 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *work,
  		goto err;
  	if (trap)
  		goto err_unlock;
--	if (work && work->d_parent !=3D workdir)
-+	if (work && (work->d_parent !=3D workdir || d_unhashed(work)))
+-	if (work && work->d_parent != workdir)
++	if (work && (work->d_parent != workdir || d_unhashed(work)))
  		goto err_unlock;
--	if (upper && upper->d_parent !=3D upperdir)
-+	if (upper && (upper->d_parent !=3D upperdir || d_unhashed(upper)))
+-	if (upper && upper->d_parent != upperdir)
++	if (upper && (upper->d_parent != upperdir || d_unhashed(upper)))
  		goto err_unlock;
-=20
- 	return 0;
---=20
-2.50.0.107.gf914562f5916.dirty
 
+ 	return 0;
+--
+2.50.0.107.gf914562f5916.dirty
