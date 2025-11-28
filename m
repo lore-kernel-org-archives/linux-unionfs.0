@@ -1,74 +1,78 @@
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC7142D5C92
-	for <linux-unionfs@vger.kernel.org>; Fri, 28 Nov 2025 07:28:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED232299A81;
+	Fri, 28 Nov 2025 09:40:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764314885; cv=none; b=HLgjLgL2sWQ8mflC0cnVaa06/k/NZJgZK+vmiutZ0h3rOd7B/zTlKxru048XqzF7N0mzJS35ziPIzpzEuu2P01sEE0m2FxT/9+GwZQaSAtSr3M3/BocmmIIM6Ad13ZjY1b1hzrfVEYBf2mE/6Rvc8f4VbXRlAlj7DFejDbu6vQw=
+	t=1764322801; cv=none; b=Z7poCTUa7fbBklYWZpfv5Q0X7tw4Xb2VQF+9Jd8Xvot+GUIr90FVW88d+LzJ/Kk5HCAB557XYzuPQCoDuMliDmIh8ibg+CQHGp9qBCZMoIkAJUnnaX53nnn7vavbMubuDdLId+D6jlDrne3qcHe6GK8BEt3zHnx4hPRVV212sJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764314885; c=relaxed/simple;
-	bh=h+VFGf2qMqWM1tpOmMrrI0z9cHsGUXXoVQvx3t0+sTw=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=GuZ0L/PHIKk9hJm5S+Qka2akA7b55cbw9nP3A4N1bzHPfBKqgBjyKZIuXkdcn0PPleqCbuIjMc9YpRDE8GDq2lQ6eF+lt407nICS2NQZFt1/A1n89jHoo2/g4vvDywUhc28exuUu39Sy49ZnWGlmB07s+yb9D7TnEfYgr+kLUzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-948ffd40eefso89786339f.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Nov 2025 23:28:03 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764314883; x=1764919683;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BWRxmXXesnllpc9IcCeFcNiS0kh5h9neGhzedXrtLNQ=;
-        b=gssaTGRHNlzBcKOfhcNn98Zh/yqZIUYOZ200ApPCH1VoldKFEKdRSaRQFzC9sv7gmB
-         31/JTC42suU0Yn1K9aJVkzc1dPJacOq7H9C/JfnBCE6MhkMxsn8SqvSemlwMSih07kzU
-         MEjOOiBaL7Rj3xC96mll1BXUhjYLtIGnwghtejwxzxwQGbP4Yytz3fFPuJPSpYCeDdEX
-         EW6Ye6nTwCITs4Ed+1AnQCSErytnk1uVp3RTAxu8UbDSBeOaaI+sQKOuMcrNEc5pFa7s
-         UBdrClQLSmr77VZwOm614izvVlIqVnpXIeoyN3EyRGpXXdAaK713AiLY/IFNLyFma2EI
-         Nvkg==
-X-Forwarded-Encrypted: i=1; AJvYcCVQh+V3QCkoQ5nQRGae/g43V+0sAkQ8k9SFb8gSUQYrmxsy2bOsPbAKYVesmxeRTrIidnOm503Ei5a3/v7T@vger.kernel.org
-X-Gm-Message-State: AOJu0YzTWDedgcUyDzkelwtKkYVcnQvS+zPxb4YS0akMvGeLSCaKpoOl
-	9BBuxoR8VGWKvCJLMAmaCpOF9zAbLPdDwhGwHaJFQfeWxUNuCevW6urGz4M6QcjI1/H1N29dxLb
-	qIZsLIZ+b/sZWCCCfgzPOfQFXimL6L+/3oufqMbahJkGu/FAV4poOqvqA6NU=
-X-Google-Smtp-Source: AGHT+IFwAoNZGqDMP0finGsqreKqmCsP6fnyJR3K4MN32BL2q0YRvJGlWuBByAyQfFoguEpwUHLFsKDJJLZl/ttXQFc+T3ViXyZx
+	s=arc-20240116; t=1764322801; c=relaxed/simple;
+	bh=beEgj0f3pMl7gjZZVgLFNSykO/huICYpSWEO7Bx71yI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=GT8DlMhcjeQiDaQHNWwPl6CQGs8ZTutZtY9ymK0V9GgAJKPzdoaYG1kZ7bjkvtRePxTjnD/mlt/gqzWAyNJtkiUMDv9Hk8gaMYd1gv2YnZLfHHy8YsWL7C59A/CFIZr+QxW+C/wV0znUwDYM07Xgt446wVkNOq2RbI4lI+ZCSn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VHqEoHKV; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VHqEoHKV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 980A7C113D0;
+	Fri, 28 Nov 2025 09:39:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1764322800;
+	bh=beEgj0f3pMl7gjZZVgLFNSykO/huICYpSWEO7Bx71yI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=VHqEoHKVQcRAuHAcVqxzdBDbUb3xXhDbh5x+irmqJLHXagL7WrxsG0wy7kna8fLmJ
+	 A+CLX4YuWIXvw6qheW7dOGIEtAxZ495o8ySCESq3Ma9WlVG3YNOOPDq9jjjI8YPdqw
+	 sW8IYmyCTm3ZaRvNAwyxoRGneOG1rsKc/n/zvUWPyAu46WjoLYSS4M4fWAwK54bIVs
+	 MCT+wOHZ1NsiQnJ8G/jGPz5itRkgRzRSg78Ay6Ce8+joMSj98hs6nonAK+LoQn8r6p
+	 OlRh1AMfWcEdBnmQsqw6S9zteNAZL0k2DTDF/N4hKgAS1zA8nu28rOBJJbMf3W66oC
+	 m2qAK+l2Z0zcw==
+From: Christian Brauner <brauner@kernel.org>
+To: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>,
+	NeilBrown <neilb@ownmail.net>
+Cc: Christian Brauner <brauner@kernel.org>,
+	amir73il@gmail.com,
+	linux-kernel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	miklos@szeredi.hu,
+	syzkaller-bugs@googlegroups.com
+Subject: Re: [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
+Date: Fri, 28 Nov 2025 10:39:54 +0100
+Message-ID: <20251128-pirat-miteinander-cdfad90de5f4@brauner>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
+References: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1749:b0:433:7cf7:14ce with SMTP id
- e9e14a558f8ab-435b986a858mr210249135ab.11.1764314883012; Thu, 27 Nov 2025
- 23:28:03 -0800 (PST)
-Date: Thu, 27 Nov 2025 23:28:03 -0800
-In-Reply-To: <20251128065521.9509-1-hdanton@sina.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <69294f03.a70a0220.d98e3.0132.GAE@google.com>
-Subject: Re: [syzbot] [overlayfs?] WARNING in shmem_unlink (2)
-From: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, brauner@kernel.org, hdanton@sina.com, 
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, neil@brown.name, neilb@ownmail.net, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1045; i=brauner@kernel.org; h=from:subject:message-id; bh=beEgj0f3pMl7gjZZVgLFNSykO/huICYpSWEO7Bx71yI=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWRq5r6e5LWpPNf/VJz/Q9nsadmKM+rtT5y7Wvj5K++B5 QbKnCxJHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPhi2D473n/uK36pD/pb89u FTG40fSYpfV1wu85HSpGu1du2JuasYyRYTrjwuBCHe/8C+pi/l6fbO7v1i5OTt3LUfT/ivnXW3U XuQA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-Hello,
+On Fri, 28 Nov 2025 12:22:35 +1100, NeilBrown wrote:
+> As well as checking that the parent hasn't changed after getting the
+> lock we need to check that the dentry hasn't been unhashed.
+> Otherwise we might try to rename something that has been removed.
+> 
+> 
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+Applied to the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
-Reported-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
-Tested-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-Tested on:
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
-commit:         e538109a Merge tag 'drm-fixes-2025-11-28' of https://g..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=17bc7e12580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=38a0c4cddc846161
-dashboard link: https://syzkaller.appspot.com/bug?extid=bfc9a0ccf0de47d04e8c
-compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=17af2e12580000
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
 
-Note: testing is done by a robot and is best-effort only.
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.fixes
+
+[1/1] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
+      https://git.kernel.org/vfs/vfs/c/4ef470912f91
