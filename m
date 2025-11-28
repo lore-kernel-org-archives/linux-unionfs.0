@@ -1,92 +1,74 @@
-Received: from mail3-164.sinamail.sina.com.cn (mail3-164.sinamail.sina.com.cn [202.108.3.164])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CACC2144C7
-	for <linux-unionfs@vger.kernel.org>; Fri, 28 Nov 2025 06:56:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.108.3.164
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC7142D5C92
+	for <linux-unionfs@vger.kernel.org>; Fri, 28 Nov 2025 07:28:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764312975; cv=none; b=avlHZaF/AxNhwlLX2yjI+xmf5yu/aiRpKoopD/Q2r8hOsFwMuQsnQEYEYPvuC23BKDQqR4N/rKc1Rcc+KdhMWbtALKbzE7JXCxN6nh33ROuBOr+r87q1/GrEMJqbA+ziQQa99bXAEwMyNivA1UPJ6zaCuWOJQZRTlUGqWdJB6LA=
+	t=1764314885; cv=none; b=HLgjLgL2sWQ8mflC0cnVaa06/k/NZJgZK+vmiutZ0h3rOd7B/zTlKxru048XqzF7N0mzJS35ziPIzpzEuu2P01sEE0m2FxT/9+GwZQaSAtSr3M3/BocmmIIM6Ad13ZjY1b1hzrfVEYBf2mE/6Rvc8f4VbXRlAlj7DFejDbu6vQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764312975; c=relaxed/simple;
-	bh=1ZG3147rzKf/MpmiMkOLNGaKIOpnFPvwpQP4dmLhM10=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TJkmCQeU4Ffw/GmpVvw/n5xppUjLp+5Ro5iq0GBnQNbqIrphXRJysBJBS3v2c117jvfgRdotfJYtFcphLscIJuq6VM/Z/OPo1GSi0OJxvamGO6lSh+rgOCW+6PJlopoBcxOx2rBBjxpKgV+jKi5OuBsHRWEuXxgU7mkyra9oIps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sina.com; spf=pass smtp.mailfrom=sina.com; dkim=pass (1024-bit key) header.d=sina.com header.i=@sina.com header.b=WrKWBNCG; arc=none smtp.client-ip=202.108.3.164
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sina.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sina.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=sina.com header.i=@sina.com header.b="WrKWBNCG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sina.com; s=201208; t=1764312969;
-	bh=9hqMFboRXThJm8RmmDwySWiFPZsFFrgKHkWER5012bY=;
-	h=From:Subject:Date:Message-ID;
-	b=WrKWBNCGPG7tI5lCrmWPLIgWTmbJj0uI/dk4exEYxSEalB05+5tdej3CO7K4zfzi/
-	 SNvy8NqeNXDd2+fokyJpMwHJQfuvgvP114xve0TwxJaevVwD189VeZhlo6Eh1mhW9N
-	 2KSyJ3TZUgCyWIwyW2iTEMhHyHAKDIde6GSm56P8=
-X-SMAIL-HELO: localhost.localdomain
-Received: from unknown (HELO localhost.localdomain)([114.249.57.85])
-	by sina.com (10.54.253.32) with ESMTP
-	id 69294761000074FA; Fri, 28 Nov 2025 14:55:31 +0800 (CST)
-X-Sender: hdanton@sina.com
-X-Auth-ID: hdanton@sina.com
-Authentication-Results: sina.com;
-	 spf=none smtp.mailfrom=hdanton@sina.com;
-	 dkim=none header.i=none;
-	 dmarc=none action=none header.from=hdanton@sina.com
-X-SMAIL-MID: 3487464456635
-X-SMAIL-UIID: 4A29E4F5F0A0487581C45017AD83C0D7-20251128-145531-1
-From: Hillf Danton <hdanton@sina.com>
-To: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>
-Cc: NeilBrown <neilb@ownmail.net>,
-	amir73il@gmail.com,
-	brauner@kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	miklos@szeredi.hu,
-	syzkaller-bugs@googlegroups.com,
-	NeilBrown <neil@brown.name>
-Subject: Re: [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
-Date: Fri, 28 Nov 2025 14:55:20 +0800
-Message-ID: <20251128065521.9509-1-hdanton@sina.com>
-In-Reply-To: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
-References: <6928b64f.a70a0220.d98e3.0115.GAE@google.com>
+	s=arc-20240116; t=1764314885; c=relaxed/simple;
+	bh=h+VFGf2qMqWM1tpOmMrrI0z9cHsGUXXoVQvx3t0+sTw=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=GuZ0L/PHIKk9hJm5S+Qka2akA7b55cbw9nP3A4N1bzHPfBKqgBjyKZIuXkdcn0PPleqCbuIjMc9YpRDE8GDq2lQ6eF+lt407nICS2NQZFt1/A1n89jHoo2/g4vvDywUhc28exuUu39Sy49ZnWGlmB07s+yb9D7TnEfYgr+kLUzM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-948ffd40eefso89786339f.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Nov 2025 23:28:03 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764314883; x=1764919683;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=BWRxmXXesnllpc9IcCeFcNiS0kh5h9neGhzedXrtLNQ=;
+        b=gssaTGRHNlzBcKOfhcNn98Zh/yqZIUYOZ200ApPCH1VoldKFEKdRSaRQFzC9sv7gmB
+         31/JTC42suU0Yn1K9aJVkzc1dPJacOq7H9C/JfnBCE6MhkMxsn8SqvSemlwMSih07kzU
+         MEjOOiBaL7Rj3xC96mll1BXUhjYLtIGnwghtejwxzxwQGbP4Yytz3fFPuJPSpYCeDdEX
+         EW6Ye6nTwCITs4Ed+1AnQCSErytnk1uVp3RTAxu8UbDSBeOaaI+sQKOuMcrNEc5pFa7s
+         UBdrClQLSmr77VZwOm614izvVlIqVnpXIeoyN3EyRGpXXdAaK713AiLY/IFNLyFma2EI
+         Nvkg==
+X-Forwarded-Encrypted: i=1; AJvYcCVQh+V3QCkoQ5nQRGae/g43V+0sAkQ8k9SFb8gSUQYrmxsy2bOsPbAKYVesmxeRTrIidnOm503Ei5a3/v7T@vger.kernel.org
+X-Gm-Message-State: AOJu0YzTWDedgcUyDzkelwtKkYVcnQvS+zPxb4YS0akMvGeLSCaKpoOl
+	9BBuxoR8VGWKvCJLMAmaCpOF9zAbLPdDwhGwHaJFQfeWxUNuCevW6urGz4M6QcjI1/H1N29dxLb
+	qIZsLIZ+b/sZWCCCfgzPOfQFXimL6L+/3oufqMbahJkGu/FAV4poOqvqA6NU=
+X-Google-Smtp-Source: AGHT+IFwAoNZGqDMP0finGsqreKqmCsP6fnyJR3K4MN32BL2q0YRvJGlWuBByAyQfFoguEpwUHLFsKDJJLZl/ttXQFc+T3ViXyZx
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:1749:b0:433:7cf7:14ce with SMTP id
+ e9e14a558f8ab-435b986a858mr210249135ab.11.1764314883012; Thu, 27 Nov 2025
+ 23:28:03 -0800 (PST)
+Date: Thu, 27 Nov 2025 23:28:03 -0800
+In-Reply-To: <20251128065521.9509-1-hdanton@sina.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <69294f03.a70a0220.d98e3.0132.GAE@google.com>
+Subject: Re: [syzbot] [overlayfs?] WARNING in shmem_unlink (2)
+From: syzbot <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, brauner@kernel.org, hdanton@sina.com, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, neil@brown.name, neilb@ownmail.net, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-#syz test upstream master
+Hello,
 
-From: NeilBrown <neil@brown.name>
-
-As well as checking that the parent hasn't changed after getting the
-lock we need to check that the dentry hasn't been unhashed.
-Otherwise we might try to rename something that has been removed.
+syzbot has tested the proposed patch and the reproducer did not trigger any issue:
 
 Reported-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
-Fixes: d2c995581c7c ("ovl: Call ovl_create_temp() without lock held.")
-Signed-off-by: NeilBrown <neil@brown.name>
----
- fs/overlayfs/util.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Tested-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index f76672f2e686..82373dd1ce6e 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1234,9 +1234,9 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *work,
- 		goto err;
- 	if (trap)
- 		goto err_unlock;
--	if (work && work->d_parent != workdir)
-+	if (work && (work->d_parent != workdir || d_unhashed(work)))
- 		goto err_unlock;
--	if (upper && upper->d_parent != upperdir)
-+	if (upper && (upper->d_parent != upperdir || d_unhashed(upper)))
- 		goto err_unlock;
+Tested on:
 
- 	return 0;
---
-2.50.0.107.gf914562f5916.dirty
+commit:         e538109a Merge tag 'drm-fixes-2025-11-28' of https://g..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=17bc7e12580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=38a0c4cddc846161
+dashboard link: https://syzkaller.appspot.com/bug?extid=bfc9a0ccf0de47d04e8c
+compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+patch:          https://syzkaller.appspot.com/x/patch.diff?x=17af2e12580000
+
+Note: testing is done by a robot and is best-effort only.
