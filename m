@@ -1,81 +1,78 @@
-Received: from fhigh-b5-smtp.messagingengine.com (fhigh-b5-smtp.messagingengine.com [202.12.124.156])
+Received: from fout-b5-smtp.messagingengine.com (fout-b5-smtp.messagingengine.com [202.12.124.148])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C0A26A33B;
-	Fri, 28 Nov 2025 01:17:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.156
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A81A11713;
+	Fri, 28 Nov 2025 01:22:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.148
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764292623; cv=none; b=DG5WbS1gQD8K8vee7jP3CMPI8f2Kx4P4/roD+jG9ZWUyd/UhxxQA75wbAdLdOPbXiflorHKZP3q8G0J2bMh+Qhm0rg6kQoNgcxlS6QbrFLAtUJsKFW9bASlFDTG5LbFVD4miGozGRaItbrW7jaMq2oCx/kiNU1gs9k66OTT3hLk=
+	t=1764292962; cv=none; b=SMYcm/h7ed5nG3KFJPeMwTa4Ye/ww/zwSDjiwfumoz7xrZaXOpWsfBcpBchXzg6B/g6YzP3NTwzuWaIqVlrB/XwtqDXQd77iy7tH4+KdCKqDG5rFQyWVHHv00oHqpo/bDF0f4ZzRrfoNxf1+Cmf1oEsNjs9LscHFnFSo0La7G4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764292623; c=relaxed/simple;
-	bh=1U8RF7VO9d886SHokBV025o4N6iwQXRgD1gNhN4xtBc=;
+	s=arc-20240116; t=1764292962; c=relaxed/simple;
+	bh=1I5kyWrVIakjmzRG1kXRgR//GZVDuJ3pJyzHmzKMZXk=;
 	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=W0KxpkxRkX7Pixjf30Fx0G+MBJFbcSDYAiEL/ktwHE6AItuOcHIvYzm24ZkLU6OStHmRlDcDG2reZo9MiM4bVsbVgrqSuWXXHz915QbTWOwVz6gbpZoVzWkQdgPmHu90Kk3yzPTPaUZvP3Go2NER47ja2lASA4f0odUG3UKu5U0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=n22jfwYb; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=JsTSjVdH; arc=none smtp.client-ip=202.12.124.156
+	 References:Date:Message-id; b=tdQIEyO+4lnq2Kud5llQPwcxXRkQDnW8ayDTnNGd/4pPw6s5l81/aOlh6YYRfFdXji7nTE7zQ+Y/qSOLIh3FU+6rLQ0EZkFBryphL7hMJakahEkRWZvmN1uR9cALCmqlYR3MQIUobxBEgOm12w2KFwyjuDsPspQHFDaqcwax2I0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=RRM0lgsX; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=IfuOP2Pf; arc=none smtp.client-ip=202.12.124.148
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="n22jfwYb";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="JsTSjVdH"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 5FD717A0635;
-	Thu, 27 Nov 2025 20:17:00 -0500 (EST)
-Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-04.internal (MEProxy); Thu, 27 Nov 2025 20:17:00 -0500
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="RRM0lgsX";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="IfuOP2Pf"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.stl.internal (Postfix) with ESMTP id 7B4601D0015F;
+	Thu, 27 Nov 2025 20:22:39 -0500 (EST)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-05.internal (MEProxy); Thu, 27 Nov 2025 20:22:39 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
 	cc:cc:content-transfer-encoding:content-type:content-type:date
 	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
 	:references:reply-to:reply-to:subject:subject:to:to; s=fm1; t=
-	1764292620; x=1764379020; bh=GtBa7xiQq254Bt/qjmxxgVNt1RdXsDFmgNP
-	SqqqK8Bk=; b=n22jfwYbXyDywzzBuRBkgB/MrsK9GZFj8sDyofPzVYO1we8rzSF
-	kFvyF31SQyGIQSIIpdX+MvU95u2wH+qfaH6t2efaAuTJTDYZ0dfX39GNC5R9Jmei
-	+jiD7lNurWtEBEfsh4iVR+4aWtyUfluPYQZjQy4ZPe/YJeWnIlekQk8BY7Gz/A4U
-	/oZoJBU2FjPNgkOanVpbbxmWm9HFHlNX2/yx1ATD/dlAuyl/RQWTVKlJNRRa0dmt
-	y+wSFajDk3VaUSfj+ZoAIminS3o8g3SDf6jr5woBMcSGE6svkVfmGMAIoox+L/4E
-	7K/VcdMlOTIIuoS9hbRpQyGY5Y9wKPGbscw==
+	1764292959; x=1764379359; bh=0hXuU98pHfAGKrjUJaKkAbnfA87uhTKTNkP
+	4XlfTkvA=; b=RRM0lgsXr+CQ7ek7sl/p0aheuO4FP3+ffJQNHoHgIAV7gKfvNf3
+	yY8TR6SKGuXytAJWokfQ2u1SNPRLrtn+dZj1aNUy637cEjfqR70IiZGjObSGxO+W
+	uwZbsUfjcviPZNPPnxlnmOnIfdyq78JaJ63LUVs/8YG5/alEwBkkQ6lXInjbGvt3
+	Q1Ycw2SWYzQMSiVMQEPsdqU36QgXc91Yd4gHGVz6S3Y23izV7l7Yd0J759SP2Puj
+	ih30/Qd/U65yOJ5TUHkZd5Z4ZNcXXeZQjjmZdbts4MZQk9TKDvDpqJSTY3b1JMPV
+	TRWeebi97HufOYtVtzO+br7bsI83lTKXdDA==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:content-type:date:date:feedback-id:feedback-id
 	:from:from:in-reply-to:in-reply-to:message-id:mime-version
 	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1764292620; x=
-	1764379020; bh=GtBa7xiQq254Bt/qjmxxgVNt1RdXsDFmgNPSqqqK8Bk=; b=J
-	sTSjVdHRx76ud3r5Cse45GaylI4+UhM3QjUWQVOl49QXkMdHOVTX1+SGcjX4+Ico
-	Ar6nOVMHWa8WOwlADCTILYbsH46SEnWo4YNeR05yEOtRPy395JBddhpMygLWrkqR
-	aB/rGPdD6bgthlXvsikIK7udcodur5xlqSLlZFCGmLkJoRZLQnfEWef2s2a8vtLN
-	V7QJp+DXvzysUIUG+kvJvmmasCyW8SFLc0tnVqwxMzFXq+SmFs/8ChA3DolXYENk
-	XnAz2r3uGj16fBd8X4wA24E+PQY9iMLYK5At9CwPddrnbHZLhQgAhRoIMVRIIY8S
-	l6mHr8dSwSwWvQTNOBc4g==
-X-ME-Sender: <xms:C_goaQYmzh7KiZCe1rp3geoK2ZsdMDxWX_tg60-RgCcTnfIKPLkOxA>
-    <xme:C_goaXaSL3bafbY_ubNU0mvCTIcktJhFC-cQPTu0JTFsNkjCVZ1YiF3RJDhZH6QZy
-    aNHna_njz2qPOa7e-qNVMdp8f_X2eebneZ1VsGHayK0hGzI>
-X-ME-Received: <xmr:C_goadKwYuuJPYSjBPQp0sWcUK4wBsqmPGetbgidtXW4VT-v0ofy8aImXzJW2j_f7Hpwwpr7dk2nwMeOo1XasxTsySAd0cYpNbEop7Vx7Ewh>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggddvgeekiedvucetufdoteggodetrf
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1764292959; x=
+	1764379359; bh=0hXuU98pHfAGKrjUJaKkAbnfA87uhTKTNkP4XlfTkvA=; b=I
+	fuOP2PfIiKAW7W2emiFFQkcOobhpdJCaK0GoL1J83cIpT0keKzXWbPA3Yw4KGujY
+	ZgMd7V56v/+CEHIH4CY3gVKzNwUDimPYFkN/7qU0mdIrmucaRnmZq8RIdISn/17b
+	kQt31ehKIR40QFRog1A9eTdTynptloIlQhj4J4RYuqJMWUPT0JnLdPC8m/0AFeqq
+	5Xm4EtZPNqnDIuDNaInVCZzFZbmPdRResRzUU3yMjOrHR4xH0dXxIRvP89I3bfAw
+	4ijN+IQ9ficEExxaFnegew/IPDzZjp7bBkZKxlRrLbFO4o0Fxfh/8UJjgquKJodu
+	OoWXlyaFgup/05uGJeKSA==
+X-ME-Sender: <xms:XvkoaaBSxHq-I5gEjNJ6h0jT7_U4--PBp1DGZDnEmFfmSUu7vO4bxA>
+    <xme:XvkoaelNoOVdDWjdCuLr2Qlo7bRUjVDS7Upuwh7Gka218Q8J0Hq7ePCUY8xFYH_mG
+    qCCHAg5V_9vBCOSvKmdggU_G39-0-hhZX8JQJ-vvvBRxamU>
+X-ME-Received: <xmr:Xvkoadfd5h_EFdb72FNN8d_7Ev7ecn2kpEjLy6xc_vjKJriLzfo5kGwtxr7RDfc5m0yFYPWeZM34XM4yBhpBmtxGkaAUcOO6bMawkqGam7vE>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggddvgeekieefucetufdoteggodetrf
     dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnegouf
-    hushhpvggtthffohhmrghinhculdegledmnecujfgurheptgfgggfhvfevufgjfhffkfhr
-    sehtqhertddttdejnecuhfhrohhmpefpvghilheurhhofihnuceonhgvihhlsgesohifnh
-    hmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffhfffkeegjeejtdffueekjeff
-    feeljedtvdekveduuddtudeiieeuhefhheehnecuffhomhgrihhnpehshiiikhgrlhhlvg
-    hrrdgrphhpshhpohhtrdgtohhmpdhgohhoghhlvggrphhishdrtghomhenucevlhhushht
-    vghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehnvghilhgssehofihnmh
-    grihhlrdhnvghtpdhnsggprhgtphhtthhopeekpdhmohguvgepshhmthhpohhuthdprhgt
-    phhtthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpd
-    hrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-    pdhrtghpthhtohepmhhikhhlohhssehsiigvrhgvughirdhhuhdprhgtphhtthhopehshi
-    iisghothdosghftgelrgdttggtfhdtuggvgeejugdtgegvkegtsehshiiikhgrlhhlvghr
-    rdgrphhpshhpohhtmhgrihhlrdgtohhmpdhrtghpthhtohephhgurghnthhonhesshhinh
-    grrdgtohhmpdhrtghpthhtohepsghrrghunhgvrheskhgvrhhnvghlrdhorhhgpdhrtghp
-    thhtohepshihiihkrghllhgvrhdqsghughhssehgohhoghhlvghgrhhouhhpshdrtghomh
-    dprhgtphhtthhopegrmhhirhejfehilhesghhmrghilhdrtghomh
-X-ME-Proxy: <xmx:C_goabvVLTTLBAxVhm7WVMkTAdS3ufCbzAKHr60H7dvm_GXdyUdy1A>
-    <xmx:C_goaZXXCx8XT2XFxCWggEpCyUGY41qonKaleFK1rv-dlM4tXkEzGA>
-    <xmx:C_goaehdo9yT8hhlMZPPS6w1EP0B_IsmgRjm0-KTcF05phBiWZI0PQ>
-    <xmx:C_goaZqbTftcfeVuLvIdz21r76oqElQM7MhQK1ufjxcB7fV_5vxmAA>
-    <xmx:DPgoabKZNaidP_K5gcGtO6CBxKQ7_HQG5tVAk88_yIuwZRrgLq_ooYO7>
+    rghilhhouhhtmecufedttdenucenucfjughrpegtgfgghffvvefujghffffkrhesthhqre
+    dttddtjeenucfhrhhomheppfgvihhluehrohifnhcuoehnvghilhgssehofihnmhgrihhl
+    rdhnvghtqeenucggtffrrghtthgvrhhnpeeljedtfeegueekieetudevheduveefffevud
+    etgfetudfhgedvgfdtieeguedujeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgr
+    mhepmhgrihhlfhhrohhmpehnvghilhgssehofihnmhgrihhlrdhnvghtpdhnsggprhgtph
+    htthhopeejpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehlihhnuhigqdhunhhi
+    ohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkh
+    gvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepmhhikhhlohhs
+    sehsiigvrhgvughirdhhuhdprhgtphhtthhopehshiiisghothdosghftgelrgdttggtfh
+    dtuggvgeejugdtgegvkegtsehshiiikhgrlhhlvghrrdgrphhpshhpohhtmhgrihhlrdgt
+    ohhmpdhrtghpthhtohepsghrrghunhgvrheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoh
+    epshihiihkrghllhgvrhdqsghughhssehgohhoghhlvghgrhhouhhpshdrtghomhdprhgt
+    phhtthhopegrmhhirhejfehilhesghhmrghilhdrtghomh
+X-ME-Proxy: <xmx:XvkoaaSZOIOz1zQ903jHtBXWqoYCTw9cAP8mCJkZcnJHdOddqroKcA>
+    <xmx:XvkoacuA3yfLrFz_im8W7-9GFR7A9nN2x6g3TP50YSbnYdZTEHeUag>
+    <xmx:XvkoaTdW7QFeD8XUEykuoNDUYGh1SqMfht1zv1lGfei9K8-23ZnuDQ>
+    <xmx:XvkoaeatdWKAskDPkEbxmel6Rgh-Qnx28gJRkWVrib49lDbZBZ8Buw>
+    <xmx:X_koaeaaRKkTqnR9bStF2snLY9EyZbGnm5wQkyrn9PLWWw1as-HNngyk>
 Feedback-ID: iab3e480c:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 27 Nov 2025 20:16:56 -0500 (EST)
+ 27 Nov 2025 20:22:36 -0500 (EST)
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
@@ -85,91 +82,49 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 From: NeilBrown <neilb@ownmail.net>
-To: "Hillf Danton" <hdanton@sina.com>
-Cc: "syzbot" <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>,
- amir73il@gmail.com, brauner@kernel.org, linux-kernel@vger.kernel.org,
+To: "syzbot" <syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com>
+Cc: amir73il@gmail.com, brauner@kernel.org, linux-kernel@vger.kernel.org,
  linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
  syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [overlayfs?] WARNING in shmem_unlink (2)
-In-reply-to: <20251127234129.9487-1-hdanton@sina.com>
-References: <>, <20251127234129.9487-1-hdanton@sina.com>
-Date: Fri, 28 Nov 2025 12:16:55 +1100
-Message-id: <176429261525.634289.6503002057772274922@noble.neil.brown.name>
+Subject:
+ [PATCH] ovl: fail ovl_lock_rename_workdir() if either target is unhashed
+In-reply-to: <6928b64f.a70a0220.d98e3.0115.GAE@google.com>
+References: <6928b64f.a70a0220.d98e3.0115.GAE@google.com>
+Date: Fri, 28 Nov 2025 12:22:35 +1100
+Message-id: <176429295510.634289.1552337113663461690@noble.neil.brown.name>
 Reply-To: NeilBrown <neil@brown.name>
 
-On Fri, 28 Nov 2025, Hillf Danton wrote:
-> On Fri, 28 Nov 2025 08:42:08 +1100 NeilBrown wrote:
-> > On Fri, 28 Nov 2025, syzbot wrote:
-> > > Hello,
-> > >=20
-> > > syzbot found the following issue on:
-> > >=20
-> > > HEAD commit:    30f09200cc4a Merge tag 'arm64-fixes' of git://git.kerne=
-l.o..
-> > > git tree:       upstream
-> > > console output: https://syzkaller.appspot.com/x/log.txt?x=3D1047ee92580=
-000
-> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=3D38a0c4cddc8=
-46161
-> > > dashboard link: https://syzkaller.appspot.com/bug?extid=3Dbfc9a0ccf0de4=
-7d04e8c
-> > > compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7=
-976-1~exp1~20250708183702.136), Debian LLD 20.1.8
-> > > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D1626ae125=
-80000
-> > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D1126ae12580=
-000
-> > >=20
-> > > Downloadable assets:
-> > > disk image: https://storage.googleapis.com/syzbot-assets/a5630d1ab1eb/d=
-isk-30f09200.raw.xz
-> > > vmlinux: https://storage.googleapis.com/syzbot-assets/584408ed3fcf/vmli=
-nux-30f09200.xz
-> > > kernel image: https://storage.googleapis.com/syzbot-assets/69749e493b1e=
-/bzImage-30f09200.xz
-> > >=20
-> > > The issue was bisected to:
-> > >=20
-> > > commit d2c995581c7c5d0ff623b2700e76bf22499c66df
-> > > Author: NeilBrown <neil@brown.name>
-> > > Date:   Wed Jul 16 00:44:14 2025 +0000
-> > >=20
-> > >     ovl: Call ovl_create_temp() without lock held.
-> > >=20
-> > > bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=3D13db1e92=
-580000
-> > > final oops:     https://syzkaller.appspot.com/x/report.txt?x=3D103b1e92=
-580000
-> > > console output: https://syzkaller.appspot.com/x/log.txt?x=3D17db1e92580=
-000
-> > >=20
-> > > IMPORTANT: if you fix the issue, please add the following tag to the co=
-mmit:
-> > > Reported-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
-> > > Fixes: d2c995581c7c ("ovl: Call ovl_create_temp() without lock held.")
-> >=20
-> > I think this was probably fixed by=20
-> > Commit 1f480a181137 ("Add start_renaming_two_dentries()")
-> >=20
-> > That patch replaced the call to ovl_lock_rename_workdir()
-> > with start_renaming_two_dentries()
-> > The new function checks that the two dentries are still hashed.
-> >=20
-> > ovl_lock_rename_workdir() should have been changed to check
-> > that the dentries were still hashed before that patch that
-> > the bisect found which changed the locking in ovl_cleanup_and_whiteout.
-> >=20
-> > Can you please confirm the bug no longer exists after that patch?
-> >
-> #syz test upstream master
->=20
 
-Sorry, I should have said "will be fixed" as the patch isn't upstream
-yet.  It is in vfs.all, and doesn't even have the hash I nominated.
+From: NeilBrown <neil@brown.name>
 
-Commit 833d2b3a072f ("Add start_renaming_two_dentries()")
+As well as checking that the parent hasn't changed after getting the
+lock we need to check that the dentry hasn't been unhashed.
+Otherwise we might try to rename something that has been removed.
 
-I'll send a patch against upstream master.
+Reported-by: syzbot+bfc9a0ccf0de47d04e8c@syzkaller.appspotmail.com
+Fixes: d2c995581c7c ("ovl: Call ovl_create_temp() without lock held.")
+Signed-off-by: NeilBrown <neil@brown.name>
+---
+ fs/overlayfs/util.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-NeilBrown
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index f76672f2e686..82373dd1ce6e 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -1234,9 +1234,9 @@ int ovl_lock_rename_workdir(struct dentry *workdir, str=
+uct dentry *work,
+ 		goto err;
+ 	if (trap)
+ 		goto err_unlock;
+-	if (work && work->d_parent !=3D workdir)
++	if (work && (work->d_parent !=3D workdir || d_unhashed(work)))
+ 		goto err_unlock;
+-	if (upper && upper->d_parent !=3D upperdir)
++	if (upper && (upper->d_parent !=3D upperdir || d_unhashed(upper)))
+ 		goto err_unlock;
+=20
+ 	return 0;
+--=20
+2.50.0.107.gf914562f5916.dirty
 
