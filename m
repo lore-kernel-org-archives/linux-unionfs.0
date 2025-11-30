@@ -1,140 +1,145 @@
-Received: from mail-il1-f206.google.com (mail-il1-f206.google.com [209.85.166.206])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-179.mta1.migadu.com (out-179.mta1.migadu.com [95.215.58.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A682139CE
-	for <linux-unionfs@vger.kernel.org>; Sat, 29 Nov 2025 13:05:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.206
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 903B354758;
+	Sun, 30 Nov 2025 00:01:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764421526; cv=none; b=fBX19v8/+pNO4CxXWeoFfLyUF4VY72qAXpUxzAZX5zDkuXdX9aN/VPwHRHW3lseyuA6IVjlBs1OrFCFsU1jgtTu7sC50fiLECXSW4tM9bow/pUMAOkcuElnDrUbDSn1GxnVKLjWdom88GFMlYKXxV3T2Eb/opqyO1PzhLu1o2GE=
+	t=1764460896; cv=none; b=VI0EcZkzQk84by3ieo8UBNtdg/t/Gopt7fZOaV0obwDbzqS3g0rlCeuEQo8w9wNsgqyhqCGsGh0+Bq4zTgd1zU3hNai8z1Q2qtPFQswoU8QG7Eo0zyZI+IYYiU7kRLRD1Nm/HE9E+OrhBPCImF19jQy9nyCWehRdJy+IX4A5Hvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764421526; c=relaxed/simple;
-	bh=5H4v58CFvKdhVBv1n7Kicc3UFongoWfkwaOYHH0HT6E=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=cYc1CwMJ9i8apBXl+wAJRklC0tTJBWw7sdVmkGM2KSyd4V+mqmuH7hGaQ/I8zzoArts0qcugrIPl1PtixLXKr5he3iMQ/jlXSGPbDrW3CUO0rtkMc8SHhHc+C3DaQIw/o90fg0SDacQYCMkNhGj78Mnje4IyIuGqiKCCoQqZNLg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.206
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f206.google.com with SMTP id e9e14a558f8ab-433795a17c1so21079215ab.2
-        for <linux-unionfs@vger.kernel.org>; Sat, 29 Nov 2025 05:05:24 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764421524; x=1765026324;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=p/AjsLSw3aZ/hJvRaRsmMwJng9RMGyhyWJt6uETCibQ=;
-        b=MVNOCfqH1F/tx42fNaU1V+2utGFXHyEuvypj6a07TLteeFQoGvypKMpFsuNZrGPXCA
-         60SMKAmf+RHDQAjqe1vMrgd0DdN04zZ0DiKW9Nb8vJytIJ7ekiJOVtrpUdNcKXdm7DSi
-         Oo8uRcbNhJkgycNHBVuThgJPg0VQMJtRjk13VQ5+lFkNu54SsxW/RBvi4Ocds4MQxppO
-         TlKezHEUOOmtrQTU7asUOoo4838GPcSa+yBqZqw3Uf+4CMX9+ikVUPI86GLlNHJHa6K7
-         R5ZUBkxTkk3xz49zG+Gn1s5Xf9acZJTrWgv14mAtqHbdhyYl4RV1vi5DOdGBLDXDlcJh
-         1xWg==
-X-Forwarded-Encrypted: i=1; AJvYcCXZd17IVnOSS2PIzvW0m7E08qyOw86eApsVa67vneIIO7zv4xhQgmB7XYY2mR7wOc2DP5iSyej9owYrnfL+@vger.kernel.org
-X-Gm-Message-State: AOJu0YyVNMn0xiv9k3oPDgS5ud5QtkU6y4/G4r1v4l04zhmkyLx0P4pC
-	UdEAZiLj1TTIs2engI+O16U9N54+uWTQ0dn040xwhXbJ/tmYrjNpk0dtP25O4KP3kuwFgQlcToh
-	StCr4utjQHtK/3aa3kz/6NZ1cJY7SX6rVYACIRtwNaJDXlNot6uNgplItJx4=
-X-Google-Smtp-Source: AGHT+IFByml6kwKuEIpQl6nNAhFNnDTZqBEAngdpOCN6AS9dK/ei40xzv92OXTKBzHdMCvzMOH0j9/F/X7Yt5TQXQY+qBCBrF3WX
+	s=arc-20240116; t=1764460896; c=relaxed/simple;
+	bh=LSJ70a7sqpVfPbtWx1NwHyhEjI0E0jggLRDHw6XUKNY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=AmlODYUYqYTWAVwfDQ1GHMLHaCf4tRWXoYRPwWPfGlvDVUl4Vc4bE8xXAUQhw2EmCr9lnd9v95RPqxX65GvOg868jiLbYoSlhyFcHfpNljrSJk/bgFqQVQSo5I2lsWwuwuoyTZ0ppiJEpzcI4pBHkZhPeHKI3NWXYB6Ub5TIbCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=packett.cool; spf=pass smtp.mailfrom=packett.cool; dkim=pass (2048-bit key) header.d=packett.cool header.i=@packett.cool header.b=cTTUT3M1; arc=none smtp.client-ip=95.215.58.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=packett.cool
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=packett.cool
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=packett.cool header.i=@packett.cool header.b="cTTUT3M1"
+Message-ID: <6713ea38-b583-4c86-b74a-bea55652851d@packett.cool>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=packett.cool;
+	s=key1; t=1764460882;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=srEr3LoKq1Czaq8I5z3/A4FoFBjqxOV0LMrfiR1/IRI=;
+	b=cTTUT3M1OgZOXf9KsjND5eMtqvOa5Da+1AeeP4jR0sw0vC4IDg5Xa7CSv88SWqP6ld8c4U
+	feLTIFGjsHi46wUcXcnZnBNFYyUA+k4gt6/btlcqIgvR4xvfo97KEbgbLW8O6jDXdJrKlx
+	N47LnE5fWNIgP4vLf6QeSzk7h8hxo+Mf0b3ed+iyBgZDt5MyHgOMDd1kv+b3MkRIf/97oF
+	Xk4+Fm9asGPOO/UHvFRyAPJkp7+BxqbSkXxGSQ7XQCxe3dquat/XoNWuSDCvFSrDBacD6P
+	XPihqavrhekC6KevGwsdpq2omOGhg4neyyNLaEyfIuqzGpoqSCNpP7XeImwedA==
+Date: Sat, 29 Nov 2025 21:01:05 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:2146:b0:433:7a5f:9439 with SMTP id
- e9e14a558f8ab-435b98c6abbmr251866885ab.24.1764421523738; Sat, 29 Nov 2025
- 05:05:23 -0800 (PST)
-Date: Sat, 29 Nov 2025 05:05:23 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <692aef93.a70a0220.d98e3.015b.GAE@google.com>
-Subject: [syzbot] [overlayfs?] WARNING in fast_dput
-From: syzbot <syzbot+b74150fd2ef40e716ca2@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, brauner@kernel.org, jack@suse.cz, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v6 06/15] VFS: introduce start_creating_noperm() and
+ start_removing_noperm()
+To: NeilBrown <neil@brown.name>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Amir Goldstein <amir73il@gmail.com>
+Cc: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org,
+ Jeff Layton <jlayton@kernel.org>, Chris Mason <clm@fb.com>,
+ David Sterba <dsterba@suse.com>, David Howells <dhowells@redhat.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ Tyler Hicks <code@tyhicks.com>, Miklos Szeredi <miklos@szeredi.hu>,
+ Chuck Lever <chuck.lever@oracle.com>, Olga Kornievskaia
+ <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+ Namjae Jeon <linkinjeon@kernel.org>, Steve French <smfrench@gmail.com>,
+ Sergey Senozhatsky <senozhatsky@chromium.org>,
+ Carlos Maiolino <cem@kernel.org>, John Johansen
+ <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>,
+ James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>,
+ Stephen Smalley <stephen.smalley.work@gmail.com>,
+ Ondrej Mosnacek <omosnace@redhat.com>, Mateusz Guzik <mjguzik@gmail.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Stefan Berger <stefanb@linux.ibm.com>, "Darrick J. Wong"
+ <djwong@kernel.org>, linux-kernel@vger.kernel.org, netfs@lists.linux.dev,
+ ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+ linux-xfs@vger.kernel.org, linux-security-module@vger.kernel.org,
+ selinux@vger.kernel.org
+References: <20251113002050.676694-1-neilb@ownmail.net>
+ <20251113002050.676694-7-neilb@ownmail.net>
+Content-Language: en-US
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Val Packett <val@packett.cool>
+In-Reply-To: <20251113002050.676694-7-neilb@ownmail.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-Hello,
+Hi,
 
-syzbot found the following issue on:
+On 11/12/25 9:18 PM, NeilBrown wrote:
+> From: NeilBrown <neil@brown.name>
+>
+> xfs, fuse, ipc/mqueue need variants of start_creating or start_removing
+> which do not check permissions.
+> This patch adds _noperm versions of these functions.
+> [..]
+> diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+> index 316922d5dd13..a0d5b302bcc2 100644
+> --- a/fs/fuse/dir.c
+> +++ b/fs/fuse/dir.c
+> @@ -1397,27 +1397,25 @@ int fuse_reverse_inval_entry(struct fuse_conn *fc, u64 parent_nodeid,
+>   	if (!parent)
+>   		return -ENOENT;
+>   
+> -	inode_lock_nested(parent, I_MUTEX_PARENT);
+>   	if (!S_ISDIR(parent->i_mode))
+> -		goto unlock;
+> +		goto put_parent;
+>   
+>   	err = -ENOENT;
+>   	dir = d_find_alias(parent);
+>   	if (!dir)
+> -		goto unlock;
+> +		goto put_parent;
+>   
+> -	name->hash = full_name_hash(dir, name->name, name->len);
+> -	entry = d_lookup(dir, name);
+> +	entry = start_removing_noperm(dir, name);
+>   	dput(dir);
+> -	if (!entry)
+> -		goto unlock;
+> +	if (IS_ERR(entry))
+> +		goto put_parent;
 
-HEAD commit:    7d31f578f323 Add linux-next specific files for 20251128
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=14db5f42580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=6336d8e94a7c517d
-dashboard link: https://syzkaller.appspot.com/bug?extid=b74150fd2ef40e716ca2
-compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1780a112580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10f6be92580000
+This broke xdg-document-portal (and potentially other FUSE filesystems) 
+by introducing a massive deadlock.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/6b49d8ad90de/disk-7d31f578.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/dbe2d4988ca7/vmlinux-7d31f578.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/fc0448ab2411/bzImage-7d31f578.xz
+❯ doas cat /proc/40751/stack # main thread
+[<0>] __fuse_simple_request+0x37c/0x5c0 [fuse]
+[<0>] fuse_lookup_name+0x12c/0x2a0 [fuse]
+[<0>] fuse_lookup+0x9c/0x1e8 [fuse]
+[<0>] lookup_one_qstr_excl+0xd4/0x160
+[<0>] start_removing_noperm+0x5c/0x90
+[<0>] fuse_reverse_inval_entry+0x64/0x1e0 [fuse]
+[<0>] fuse_dev_do_write+0x13a8/0x16a8 [fuse]
+[<0>] fuse_dev_write+0x64/0xa8 [fuse]
+[<0>] do_iter_readv_writev+0x170/0x1d0
+[<0>] vfs_writev+0x100/0x2d0
+[<0>] do_writev+0x88/0x130
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+b74150fd2ef40e716ca2@syzkaller.appspotmail.com
+d_lookup which was previously used here —from what I could understand by 
+reading it— is cache-only and does not call into the FS's lookup at all.
 
-------------[ cut here ]------------
-WARNING: fs/dcache.c:829 at fast_dput+0x334/0x430 fs/dcache.c:829, CPU#1: syz.0.17/6053
-Modules linked in:
-CPU: 1 UID: 0 PID: 6053 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/25/2025
-RIP: 0010:fast_dput+0x334/0x430 fs/dcache.c:829
-Code: e3 81 ff 48 b8 00 00 00 00 00 fc ff df 41 0f b6 44 05 00 84 c0 0f 85 e2 00 00 00 41 80 0e 40 e9 fd fe ff ff e8 4d e3 81 ff 90 <0f> 0b 90 e9 ef fe ff ff 44 89 e6 81 e6 00 00 04 00 31 ff e8 74 e7
-RSP: 0018:ffffc90003407cd8 EFLAGS: 00010293
-RAX: ffffffff823fcfe3 RBX: ffff88806c44ac78 RCX: ffff88802e41bd00
-RDX: 0000000000000000 RSI: 00000000ffffff80 RDI: 0000000000000001
-RBP: 00000000ffffff80 R08: 0000000000000003 R09: 0000000000000004
-R10: dffffc0000000000 R11: fffff52000680f8c R12: dffffc0000000000
-R13: 1ffff1100d889597 R14: ffff88806c44abc0 R15: ffff88806c44acb8
-FS:  00005555820e4500(0000) GS:ffff888125f4f000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000001b31b63fff CR3: 0000000072c78000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- dput+0xe8/0x1a0 fs/dcache.c:924
- __fput+0x68e/0xa70 fs/file_table.c:476
- task_work_run+0x1d4/0x260 kernel/task_work.c:233
- resume_user_mode_work include/linux/resume_user_mode.h:50 [inline]
- __exit_to_user_mode_loop kernel/entry/common.c:44 [inline]
- exit_to_user_mode_loop+0xff/0x4f0 kernel/entry/common.c:75
- __exit_to_user_mode_prepare include/linux/irq-entry-common.h:226 [inline]
- syscall_exit_to_user_mode_prepare include/linux/irq-entry-common.h:256 [inline]
- syscall_exit_to_user_mode_work include/linux/entry-common.h:159 [inline]
- syscall_exit_to_user_mode include/linux/entry-common.h:194 [inline]
- do_syscall_64+0x2e3/0xf80 arch/x86/entry/syscall_64.c:100
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f4966f8f749
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffc01c51258 EFLAGS: 00000246 ORIG_RAX: 00000000000001b4
-RAX: 0000000000000000 RBX: 000000000001a7a1 RCX: 00007f4966f8f749
-RDX: 0000000000000000 RSI: 000000000000001e RDI: 0000000000000003
-RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000201c5154f
-R10: 0000001b30f20000 R11: 0000000000000246 R12: 00007f49671e5fac
-R13: 00007f49671e5fa0 R14: ffffffffffffffff R15: 0000000000000004
- </TASK>
+This new start_removing_noperm calls start_dirop which calls 
+lookup_one_qstr_excl which according to its own comment is the "one and 
+only case when ->lookup() gets called on non in-lookup dentries". Well, 
+->lookup() is the request back to the userspace FUSE server.. but the 
+FUSE server is waiting for the write() to the FUSE device that invokes 
+this operation to return! We cannot reenter the FUSE server 
+from fuse_reverse_inval_entry.
 
+x-d-p issue link: https://github.com/flatpak/xdg-desktop-portal/issues/1871
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Reverting the fuse/dir.c changes has fixed that for me.
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Thanks,
+~val
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
