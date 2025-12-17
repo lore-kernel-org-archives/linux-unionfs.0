@@ -1,117 +1,111 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA65B3451D9;
-	Mon, 15 Dec 2025 14:20:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DCD42D3A69;
+	Wed, 17 Dec 2025 06:10:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765808401; cv=none; b=Uz/ULNkROUSRhpVbfpWDpmGr7rc+aSqYkuhZUQpXW2ca5s5v5GaCVfYrEHsTV21OrRLyo9H5EpnPv6NYtiV8WnaaNUYPk2w8VhG+NJCq8ji1GqJCOBp+mEhJrNq/q+LXzfX4xw7wjogdm0Ols8d/MTQzcgr/XqW2gPqaqketfJU=
+	t=1765951828; cv=none; b=MJG4CCd+LeaKu9R5tLVE98GiP7hrzTpoeOCx+wO//kdfim9L3/kTJSQz5Z8IPQfD20/k1ovZqLhydIB469BsWow3gkJckOeAdNV15EQxbVaioiiaxdgmEtC/v4QtGXevotTLxFYFYUHOCRRvvpfE0Fq1B1qrycoJkH//qwJROj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765808401; c=relaxed/simple;
-	bh=SOKNAp3KlXqmQkYAHiY1KnI5hmWZlwxQAhzfS0nZwp0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kIoEB+n1sPAcQgcbWZrUiLBH+jZQZY3o6jxGUMLFjiuxGX500ACkKSve6XLqihOQw8EGfPHDOGNnKS8OpLkaOFF+tBdZQb1xKhsgLoTGcgp1JuPnzZ7c67KaxgVeZHXxsXIsLIC2cP2eGx2RBcmLvjW8qVe5gMficrmvqbPcgfI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DFCKKO8Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765951828; c=relaxed/simple;
+	bh=n/ts86dlJHFC1dtjkqgZ3MJH7gMwJ/qoS8cXeqwI98o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fvPL1o0PhGvfeH3/Z2kSnpM9CD471QWJ19O78fMPPvAdysF0KjqNgbV3Cw0Sz9CdAErb0MkflPPS6W22V6TSgcVOqiPH03d41yCrmWCQLM+aSLAvP1WQooF6LbdA20HxnI/LzoyY6rrhK91XqyLhYy0A7w+ok+jq3RdN3vVzCSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=RWaIE1XN; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DFCKKO8Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0605C4CEF5;
-	Mon, 15 Dec 2025 14:19:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765808400;
-	bh=SOKNAp3KlXqmQkYAHiY1KnI5hmWZlwxQAhzfS0nZwp0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DFCKKO8Y56kGcvgU39JK+toyUpk4jGwiPG6HyglacSq1MKmKkenC3jKNS9/HS5ipp
-	 B6NSOx8wBgq7Am6EMfMeh1PNOzsczwCgxkrjC6/z42Hk9J8i+SuYZOm6VUp9ou3SV9
-	 dgItcJM7Pf5rvLbJn9iHf33BlNlYry5yy3lCZ7IwJ+0MJKNGUTfNv5fUXEn1llrPl4
-	 EdZzX8EDySvcR9aLsG+tR4I+BaJYILYt8x/3OPDwPDyv8kLUOno34+gcWfYODinh1u
-	 qnMHAYCJBYMihFLwg4WxBl6Nw3qxa68g95/milv0l5zl+UvAMcycihLDuAxNErOEg+
-	 Xu0/K5zP9ANjw==
-Date: Mon, 15 Dec 2025 15:19:49 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Amir Goldstein <amir73il@gmail.com>, 
-	NeilBrown <neil@brown.name>, Val Packett <val@packett.cool>, Jan Kara <jack@suse.cz>, 
-	linux-fsdevel@vger.kernel.org, Jeff Layton <jlayton@kernel.org>, Chris Mason <clm@fb.com>, 
-	David Sterba <dsterba@suse.com>, David Howells <dhowells@redhat.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Tyler Hicks <code@tyhicks.com>, 
-	Chuck Lever <chuck.lever@oracle.com>, Olga Kornievskaia <okorniev@redhat.com>, 
-	Dai Ngo <Dai.Ngo@oracle.com>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Steve French <smfrench@gmail.com>, Sergey Senozhatsky <senozhatsky@chromium.org>, 
-	Carlos Maiolino <cem@kernel.org>, John Johansen <john.johansen@canonical.com>, 
-	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>, 
-	"Serge E. Hallyn" <serge@hallyn.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Ondrej Mosnacek <omosnace@redhat.com>, Mateusz Guzik <mjguzik@gmail.com>, 
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Stefan Berger <stefanb@linux.ibm.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>, linux-kernel@vger.kernel.org, netfs@lists.linux.dev, 
-	ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-cifs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	selinux@vger.kernel.org
-Subject: Re: [PATCH] fuse: fix conversion of fuse_reverse_inval_entry() to
- start_removing()
-Message-ID: <20251215-immens-hurtig-1f0b23aa4bf3@brauner>
-References: <20251113002050.676694-1-neilb@ownmail.net>
- <20251113002050.676694-7-neilb@ownmail.net>
- <6713ea38-b583-4c86-b74a-bea55652851d@packett.cool>
- <176454037897.634289.3566631742434963788@noble.neil.brown.name>
- <CAOQ4uxjihcBxJzckbJis8hGcWO61QKhiqeGH+hDkTUkDhu23Ww@mail.gmail.com>
- <20251201083324.GA3538@ZenIV>
- <CAJfpegs+o01jgY76WsGnk9j41LS5V0JQSk--d6xsJJp4VjTh8Q@mail.gmail.com>
- <20251205-unmoralisch-jahrtausend-cca02ad0e4fa@brauner>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="RWaIE1XN"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=Hg/tESeGWqFXyE6OY/4FD3HnRJ5gNtQ9rs6sVZ/sm/I=; b=RWaIE1XNo2xqIf3v0pGEty3Vki
+	i+XyIgwgRWHpSRL5IOdxnnbugZImmEzMyU9gjru4003sHk0x1z1h5Q+sR+1QYMYD+zBAX48bDlSkv
+	/eY5BUfdn0Roh8veto2Y5ZTRz+JO9BdfXAEGHbqg89WiF9fNB7ILVgKSVlt61wPTxW8LajYjdh4s3
+	Vapn/ah77rbNgBkL1F6/I1ldQx6KpEy2cCc9qkJ4qVeH/McHKj//6iOUJFRaTkPXa8uVckHnDKis0
+	QEn0e7jOdiGQ5noV1sixi4BZUMf7H0rIvn4F6x7YyBVftkCq4jInersDaT8mfv8JcCU0EDxPMkMpc
+	dIe+M5hw==;
+Received: from 2a02-8389-2341-5b80-d601-7564-c2e0-491c.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:d601:7564:c2e0:491c] helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vVkjt-00000006DOb-2Y4Q;
+	Wed, 17 Dec 2025 06:10:24 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	David Sterba <dsterba@suse.com>,
+	Jan Kara <jack@suse.cz>,
+	Mike Marshall <hubcap@omnibond.com>,
+	Martin Brandenburg <martin@omnibond.com>,
+	Carlos Maiolino <cem@kernel.org>,
+	Stefan Roesch <shr@fb.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-btrfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	gfs2@lists.linux.dev,
+	io-uring@vger.kernel.org,
+	devel@lists.orangefs.org,
+	linux-unionfs@vger.kernel.org,
+	linux-mtd@lists.infradead.org,
+	linux-xfs@vger.kernel.org,
+	linux-nfs@vger.kernel.org
+Subject: re-enable IOCB_NOWAIT writes to files v3
+Date: Wed, 17 Dec 2025 07:09:33 +0100
+Message-ID: <20251217061015.923954-1-hch@lst.de>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20251205-unmoralisch-jahrtausend-cca02ad0e4fa@brauner>
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Fri, Dec 05, 2025 at 02:09:41PM +0100, Christian Brauner wrote:
-> On Mon, Dec 01, 2025 at 03:03:08PM +0100, Miklos Szeredi wrote:
-> > On Mon, 1 Dec 2025 at 09:33, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> > >
-> > > On Mon, Dec 01, 2025 at 09:22:54AM +0100, Amir Goldstein wrote:
-> > >
-> > > > I don't think there is a point in optimizing parallel dir operations
-> > > > with FUSE server cache invalidation, but maybe I am missing
-> > > > something.
-> > >
-> > > The interesting part is the expected semantics of operation;
-> > > d_invalidate() side definitely doesn't need any of that cruft,
-> > > but I would really like to understand what that function
-> > > is supposed to do.
-> > >
-> > > Miklos, could you post a brain dump on that?
-> > 
-> > This function is supposed to invalidate a dentry due to remote changes
-> > (FUSE_NOTIFY_INVAL_ENTRY).  Originally it was supplied a parent ID and
-> > a name and called d_invalidate() on the looked up dentry.
-> > 
-> > Then it grew a variant (FUSE_NOTIFY_DELETE) that was also supplied a
-> > child ID, which was matched against the looked up inode.  This was
-> > commit 451d0f599934 ("FUSE: Notifying the kernel of deletion."),
-> > Apparently this worked around the fact that at that time
-> > d_invalidate() returned -EBUSY if the target was still in use and
-> > didn't unhash the dentry in that case.
-> > 
-> > That was later changed by commit bafc9b754f75 ("vfs: More precise
-> > tests in d_invalidate") to unconditionally unhash the target, which
-> > effectively made FUSE_NOTIFY_INVAL_ENTRY and FUSE_NOTIFY_DELETE
-> > equivalent and the code in question unnecessary.
-> > 
-> > For the future, we could also introduce FUSE_NOTIFY_MOVE, that would
-> > differentiate between a delete and a move, while
-> > FUSE_NOTIFY_INVAL_ENTRY would continue to be the common (deleted or
-> > moved) notification.
-> > 
-> > Attaching untested patch to remove this cruft.
-> 
-> Should we revert the fuse specific bits of c9ba789dad15 ("VFS: introduce
-> start_creating_noperm() and start_removing_noperm()") and then apply
-> your changes afterwards?
+Hi all,
 
-I think we shouldn't have this sitting around indefinitely so it would
-be good if we'd get a nod that this is ok or someone sending revert +
-fix that I can pick up. :)
+commit 66fa3cedf16a ("fs: Add async write file modification handling.")
+effectively disabled IOCB_NOWAIT writes as timestamp updates currently
+always require blocking, and the modern timestamp resolution means we
+always update timestamps.  This leads to a lot of context switches from
+applications using io_uring to submit file writes, making it often worse
+than using the legacy aio code that is not using IOCB_NOWAIT.
+
+This series allows non-blocking updates for lazytime if the file system
+supports it, and adds that support for XFS.
+
+Changes since v2:
+ - drop patches merged upstream
+ - adjust for the inode state accesors
+ - keep a check in __writeback_single_inode instead of exercising
+   potentially undefined behavior
+ - more spelling fixes
+
+Changes since v1:
+ - more regular numbering of the S_* flags
+ - fix XFS to actually not block
+ - don't ignore the generic_update_time return value in
+   file_update_time_flags
+ - fix the sync_lazytime return value
+ - fix an out of data comment in btrfs
+ - fix a race that would update i_version before returning -EAGAIN in XFS
+
+Diffstat:
+ Documentation/filesystems/locking.rst |    2 
+ Documentation/filesystems/vfs.rst     |    6 ++
+ fs/btrfs/inode.c                      |   11 +++-
+ fs/fat/misc.c                         |    3 +
+ fs/fs-writeback.c                     |   52 ++++++++++++++++---
+ fs/gfs2/inode.c                       |    6 +-
+ fs/inode.c                            |   89 +++++++++++++++++++---------------
+ fs/internal.h                         |    3 -
+ fs/nfs/inode.c                        |    4 -
+ fs/orangefs/inode.c                   |    8 ++-
+ fs/overlayfs/inode.c                  |    3 +
+ fs/sync.c                             |    4 -
+ fs/ubifs/file.c                       |   11 ++--
+ fs/xfs/xfs_iops.c                     |   35 ++++++++++++-
+ fs/xfs/xfs_super.c                    |   29 -----------
+ include/linux/fs.h                    |   19 ++++---
+ include/trace/events/writeback.h      |    6 --
+ 17 files changed, 182 insertions(+), 109 deletions(-)
