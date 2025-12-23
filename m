@@ -1,166 +1,193 @@
-Received: from mail-ot1-f80.google.com (mail-ot1-f80.google.com [209.85.210.80])
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10A0A33CEA0
-	for <linux-unionfs@vger.kernel.org>; Tue, 23 Dec 2025 14:44:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.80
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66E2325B311
+	for <linux-unionfs@vger.kernel.org>; Tue, 23 Dec 2025 14:49:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766501061; cv=none; b=htdc7BoYMldAjVFrKBb/GetmTDBYT1AO5n9l5pA1Z78BelRg5K7mwRLW1ZFawdMMAhjfkiEaEP0KFOHASVao6EDZPcHzFwcMzsosrYf6QnU6kBai9vU5bpbEEFnSX4gaE/qrW6NH2jWHT+4asDgalbU90xs+jkUVYPkQS8ik8HA=
+	t=1766501345; cv=none; b=uWeXifLKgu6zdtkASTlTLA8+7jVmmMKbftjqkuIzvWVvM9W1rttMEQ2RFzHAWdIFkmPiiBfCLkzz7WuqQiy/dJP0np0AjBR/19uJWcqmhKf9e4JWu5l5L8rmgjyMfA8P5NlV0c3Fk+Je51f39excZaEcLJiuPmTFRwb6nfsHM98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766501061; c=relaxed/simple;
-	bh=1ssTRcCl/VsrATu6rqeNqg1wdeP2BUS5TiYJj0nJa0g=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=DGzn4NZ3Enxxst4C6HNCv2G4w8gWfh7W5BF0TjwhwtE/F7wTBffmZH3NAqGNipeCb2+Ok94J5MF2lvaXTU2NnfRNpdsS3rOQm6ThMze1dDhlDCqDuCuqZ8vTSPA1LeXSTdc/AV/cEugZmtzByYMVpHSLNHPX/h09ByaX8W0j/yc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.80
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-ot1-f80.google.com with SMTP id 46e09a7af769-7cb133bc2d0so6709568a34.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 23 Dec 2025 06:44:19 -0800 (PST)
+	s=arc-20240116; t=1766501345; c=relaxed/simple;
+	bh=ufSnxcyP8EQ3M5HUHlTgXBfSdwRRBuJgHdT4xDWQ/W0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hXn56RhQJJIuMZ1e2FBR2fqwjDAnyimVny0+hf/tY3qDYcueqULHgPkRIcvTETzylEsor0VwCrwORMhjGnWf1gRm2WSSMt3rllp7R/c7bRx5/ivQKey6oo0ZWQBVE/iY674rrASZx8BeSVmRa3dra/9RV8c4OfIhdTDJctgXybk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YtcTCvEJ; arc=none smtp.client-ip=209.85.208.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YtcTCvEJ"
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-64d4d8b3ad7so3295575a12.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 Dec 2025 06:49:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1766501342; x=1767106142; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=JFfROU2c7Qq+368iXNodvvI4Bi1Q7qmgRcOhzYiDkmE=;
+        b=YtcTCvEJkrCE8TYS+tQS2AeHaz3/GxJzL+jeCaqsMgZ3WBlA1g6bIM1BpTQ6POzQJs
+         /iqp3teHvI6KDdDixBhKSgW9b9O+H0Lu/rAci6fLa4SWWrY8KUIRnlIX4mdfX8UXUXuY
+         J+GpimC21/7KVD6mJZO61C9AOsoZ7hOpb2Q9d+f80v28yHtVJmLuhag0ysubs0fK7tw5
+         86jR+IzeUHShh+xV54MjEvzVasplY4PzqNDI59GGAwuBXkmbdJED5eDFWaO0UpphzP39
+         XgdJISJudS7tWlV2VJS5szsoKHoQmMaRO8minL3fPBFj/eJ0Yo3pZAKMm0lBJcvbCkBt
+         D8tw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766501059; x=1767105859;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Xs89H/miBrEzJ1qIpByNnZFgqDkkZlY5WmPEw5QJqV4=;
-        b=fw4sB/o235HU+yE61V83L+2J96mUA4gGTrC+aF9Ff4/3BCz8fMHGNJSplbKrPjHvOq
-         N4+x/WrxqkH5Rl/IUROcZwXgm+jFU60cqZ+0Vgu85U/1EbEndifSCkNIq5lXOnWrb11r
-         1n10BeKQVi1ryyoTcZIegX7jrB3gMSjz04i4xqvKu0JNnfemjLrxTIQZbyhnoL/Fcfyz
-         HdrG8zwSsPLKE6uWEUHMiD89UVfCcj/jLohqsK0uXicGhY5Jrx1BSC5U/XAe2NbFOIT5
-         SnExxZJiYc5P1pE5jkI+tjUtAlCw8O4pIlyrgPSWhI7q5z6e0Alg1Tfsu7ZzXVU2Kirv
-         8RWQ==
-X-Forwarded-Encrypted: i=1; AJvYcCV7O1jn8NbyWUmVGnQSjBSRT34odEB+7sjSN1GNgMcCmVTpr3YUc+DYUtjXOMY3N8hqL7DQWG6aXKXgIIDO@vger.kernel.org
-X-Gm-Message-State: AOJu0YypwjSXwkZjN78KEEJ7iUhkgsAXQJfM9A38/2Kuwb4Tvar7+lOR
-	Q11NHsopLlSEiDuKh4V4c7hPyLfrDuot4yyfdRPScwiCKiBNO1gMQuekwp2FlKxjam022XmiMQD
-	EL6gBN2EikJkFFoxQAkdxgrzcD+D1FxLQmWL5FlXYOTM1hy+8KCUM9KwjmJA=
-X-Google-Smtp-Source: AGHT+IHG9Mvcl2ExBLN6BzuYJvxF8GsU8T+hw1YJLY0h3CsACcHHWWqMLtGJftKLWrpVLQOG4XCP+rMOfWnCu6mTLjp7TMvAgzCX
+        d=1e100.net; s=20230601; t=1766501342; x=1767106142;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=JFfROU2c7Qq+368iXNodvvI4Bi1Q7qmgRcOhzYiDkmE=;
+        b=SbXc+bsoAeiBo5s/6KAhojECbLjvoS27fOll5g9y890EFZoiGFhsIY4Y29ySyfW2DM
+         iTMZ0Olhb6NVhDuhvInaiHsaImtScM9pI4WOQejtImWOiO6slfz5sOOpeX4A6686Oeye
+         JgNG9NIiBcRtqgV3riFVNLEmOCMwkoG9IxUWkCASmS6fh09kENbp+UOQ8rM+/+Rq97Yi
+         ctz9UscdQQYh0CCCx5rCzyW2vlxSfGaxKNSz1EsTDo8EWGk4cVkKyB8TwKZkNwwpTSWs
+         bMUV3XAc3e9jQk523p7AYhseKNRYR8xeHnyxHZusr2cgxBMaMWDv/iJdyH1razj6bkvG
+         q2Iw==
+X-Gm-Message-State: AOJu0YxaIavF5ZmKMQDYPrcVM+prrUGkrpwEmbmyc4iUtiE9TPSORo73
+	etSm1wJhDue0mpS7x+9mhAD+jHcVMO6gg6ldnXmqDvIDncxUyTpEGrHib1IWqcR5PpYJYYOyB4r
+	+CZCCG67ebbhs20caGbyEQyCV2m5U6GI=
+X-Gm-Gg: AY/fxX5dj2vosczeP9bm2iXIgsJMFKls5H8Wt2s2i5iZX55EfASubyoCzkvY/ssg3lH
+	CwQnQ14bJ0GGTw6nSrr/neuptBLZeOeJPAb0Mg137YmGblgobT5ruiKbxfbx2qB+eZMBSZycK23
+	v47sKGlsEkQxhlHAwftk7gVZl5/vqtkbuipczFPW1qvx3ZeC2qHGCIElcTcYtVq+Vh6FpQo7MoC
+	moPOPairYlg5vp8QTMMGKn1Q+A1oOo7dmkcbcc4vVV3Gab88qPNjQgH9u51zq84p4WRwsWCQ23Y
+	M0f5YKTZ/07JVTJTZn4Ve4oCcy5wOzMVWGVNiZvE
+X-Google-Smtp-Source: AGHT+IHuG4Zlty0EBY8cSlYcxfsFprBgXJUV1JABoiLxrZSBt9aqmgn78+Moy6YnKpfKdeTiIVEtCIBURTefrpkDT6c=
+X-Received: by 2002:a05:6402:350e:b0:64b:6271:4e1e with SMTP id
+ 4fb4d7f45d1cf-64b8ec6a5abmr14975028a12.17.1766501341335; Tue, 23 Dec 2025
+ 06:49:01 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:510e:b0:659:9a49:90a6 with SMTP id
- 006d021491bc7-65d0e9c257emr3976410eaf.37.1766501058699; Tue, 23 Dec 2025
- 06:44:18 -0800 (PST)
-Date: Tue, 23 Dec 2025 06:44:18 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <694aaac2.050a0220.19928e.002b.GAE@google.com>
-Subject: [syzbot] [overlayfs?] general protection fault in ovl_iterate
-From: syzbot <syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
+References: <CAGzaKqnw+218VAa_L-XfzcrzivV31R-OdAO1xjAT1p_Boi94dg@mail.gmail.com>
+In-Reply-To: <CAGzaKqnw+218VAa_L-XfzcrzivV31R-OdAO1xjAT1p_Boi94dg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 23 Dec 2025 15:48:50 +0100
+X-Gm-Features: AQt7F2rgYvQriINDbMIOLXV5v6UkW93ByYRMm5lGx4qb6_3NEkWXdvCpPojfviY
+Message-ID: <CAOQ4uxi505WQB1E1dSYXcVGf9b5=HT-Cz55FMNw5RxnE=ww2yA@mail.gmail.com>
+Subject: Re: overlay unionmount failed when a long path is set
+To: Kun Wang <kunwan@redhat.com>, Christian Brauner <brauner@kernel.org>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Zirong Lang <zlang@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Tue, Dec 23, 2025 at 3:25=E2=80=AFPM Kun Wang <kunwan@redhat.com> wrote:
+>
+> Hi,
+>
+> This issue was found when I was doing overlayfs test on RHEL10 using unio=
+nmount-test-suite. Confirmed upstream kernel got the same problem after doi=
+ng the same test on the latest version with latest xfstests and unionmount-=
+testsuite.
+> [root@dell-per660-12-vm-01 xfstests]# uname -r
+> 6.19.0-rc2+
+>
+> This issue only occurs when new mount API is on, some test cases in union=
+mount test-suite start to fail like below after I set a long-name(longer th=
+an 12 characters)  test dir:
+>
+> [root@dell-per660 xfstests]# ./check -overlay overlay/103
+> FSTYP         -- overlay
+> PLATFORM      -- Linux/x86_64 dell-per660-12-vm-01 6.19.0-rc2+ #1 SMP PRE=
+EMPT_DYNAMIC Tue Dec 23 03:56:43 EST 2025
+> MKFS_OPTIONS  -- /123456789abc
+> MOUNT_OPTIONS -- -o context=3Dsystem_u:object_r:root_t:s0 /123456789abc /=
+123456789abc/ovl-mnt
+>
+> overlay/103        - output mismatch (see /root/xfstests/results//overlay=
+/103.out.bad)
+>     --- tests/overlay/103.out   2025-12-23 05:30:37.467387962 -0500
+>     +++ /root/xfstests/results//overlay/103.out.bad     2025-12-23 05:44:=
+53.414195538 -0500
+>     @@ -1,2 +1,17 @@
+>      QA output created by 103
+>     +mount: /123456789abc/union/m: wrong fs type, bad option, bad superbl=
+ock on overlay, missing codepage or helper program, or other error.
+>     +       dmesg(1) may have more information after failed mount system =
+call.
+>     +Traceback (most recent call last):
+>     +  File "/root/unionmount-testsuite/./run", line 362, in <module>
+>     +    func(ctx)
+>     +  File "/root/unionmount-testsuite/tests/rename-file.py", line 96, i=
+n subtest_7
+>     ...
+>     (Run 'diff -u /root/xfstests/tests/overlay/103.out /root/xfstests/res=
+ults//overlay/103.out.bad'  to see the entire diff)
+> Ran: overlay/103
+> Failures: overlay/103
+> Failed 1 of 1 tests
+>
+> So I looked into unionmount-testsuite, and picked out the cmdline reprodu=
+cer for this issue:
+>
+> //make a long name test dir and multiple lower later dir init//
+> [root@dell-per660 xfstests]# mkdir -p /123456789abcdefgh/l{0..11}
+> [root@dell-per660 xfstests]# mkdir /123456789abcdefgh/u /123456789abcdefg=
+h/m /123456789abcdefgh/w
+> [root@dell-per660 xfstests]# ls /123456789abcdefgh/
+> l0  l1  l10  l11   l2  l3  l4  l5  l6  l7  l8  l9  m  u  w
+>
+> //do overlay unionmount with below cmd will tigger the issue://
+> [root@dell-per660 xfstests]# mount -t overlay overlay /123456789abcdefgh/=
+m -orw,index=3Don,redirect_dir=3Don -olowerdir=3D/123456789abcdefgh/l1:/123=
+456789abcdefgh/l2:/123456789abcdefgh/l3:/123456789abcdefgh/l4:/123456789abc=
+defgh/l5:/123456789abcdefgh/l6:/123456789abcdefgh/l7:/123456789abcdefgh/l8:=
+/123456789abcdefgh/l9:/123456789abcdefgh/l10:/123456789abcdefgh/l11:/123456=
+789abcdefgh/l0,upperdir=3D/123456789abcdefgh/u,workdir=3D/123456789abcdefgh=
+/w
+>
+> mount: /123456789abcdefgh/m: wrong fs type, bad option, bad superblock on=
+ overlay, missing codepage or helper program, or other error.
+>        dmesg(1) may have more information after failed mount system call.
+>
+> //If I reduce the length of test dir name by 1 character, the mount will =
+success://
+> [root@dell-per660 xfstests]# cp /123456789abcdefgh /123456789abcdefg -r
+> [root@dell-per660 xfstests]# mount -t overlay overlay /123456789abcdefg/m=
+ -orw,index=3Don,redirect_dir=3Don -olowerdir=3D/123456789abcdefg/l1:/12345=
+6789abcdefg/l2:/123456789abcdefg/l3:/123456789abcdefg/l4:/123456789abcdefg/=
+l5:/123456789abcdefg/l6:/123456789abcdefg/l7:/123456789abcdefg/l8:/12345678=
+9abcdefg/l9:/123456789abcdefg/l10:/123456789abcdefg/l11:/123456789abcdefg/l=
+0,upperdir=3D/123456789abcdefg/u,workdir=3D/123456789abcdefg/w
+> [root@dell-per660 xfstests]# df -h | grep overlay
+> overlay          57G   29G   28G  52% /123456789abcdefg/m
+>
+>  //If force using mount2 api, the mount will be good too://
+> [root@dell-per660 xfstests]# export LIBMOUNT_FORCE_MOUNT2=3Dalways
+> [root@dell-per660 xfstests]# mount -t overlay overlay /123456789abcdefgh/=
+m -orw,index=3Don,redirect_dir=3Don -olowerdir=3D/123456789abcdefgh/l1:/123=
+456789abcdefgh/l2:/123456789abcdefgh/l3:/123456789abcdefgh/l4:/123456789abc=
+defgh/l5:/123456789abcdefgh/l6:/123456789abcdefgh/l7:/123456789abcdefgh/l8:=
+/123456789abcdefgh/l9:/123456789abcdefgh/l10:/123456789abcdefgh/l11:/123456=
+789abcdefgh/l0,upperdir=3D/123456789abcdefgh/u,workdir=3D/123456789abcdefgh=
+/w
+> [root@dell-per660 xfstests]# df -h | grep overlay
+> overlay          57G   29G   28G  52% /123456789abcdefg/m
+> overlay          57G   29G   28G  52% /123456789abcdefgh/m
+>
+> So I don't think this unionmount cmd had reached the limit of param lengt=
+h, since it's working with the old mount API.
+> Then maybe a kernel bug needs to be fixed..
 
-syzbot found the following issue on:
+Hi Kun,
 
-HEAD commit:    8f0b4cce4481 Linux 6.19-rc1
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=128d7b0a580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=5888b6002e661229
-dashboard link: https://syzkaller.appspot.com/bug?extid=a16fb0cce329a320661c
-compiler:       gcc (Debian 12.2.0-14+deb12u1) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+Thanks for reporting this issue.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+We've had several issues with systems that are upgraded to linmount
+that uses new mount API by default.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/551afd5ea893/disk-8f0b4cce.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/1f52c6204286/vmlinux-8f0b4cce.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/e55fced475b1/bzImage-8f0b4cce.xz
+FYI, the lowerdir+ mount option was added exactly to avoid these sorts
+of limits, but that will require changing applications (like unionmount
+testsuite) to use this more scalable mount options or require libmount
+to automatically parse and convert a long lowerdir=3D mount option to
+smaller lowerdir+=3D mount options.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
+Christian,
 
-Oops: general protection fault, probably for non-canonical address 0xdffffc9110a1fb76: 0000 [#1] SMP KASAN NOPTI
-KASAN: probably user-memory-access in range [0x00000488850fdbb0-0x00000488850fdbb7]
-CPU: 0 UID: 0 PID: 25741 Comm: syz.3.5509 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/25/2025
-RIP: 0010:ovl_iterate_merged fs/overlayfs/readdir.c:856 [inline]
-RIP: 0010:ovl_iterate+0x645/0x1120 fs/overlayfs/readdir.c:906
-Code: 07 00 00 49 8b 46 08 48 83 c0 10 48 39 c3 0f 84 b0 fd ff ff e8 bc 94 77 fe 4c 8d 63 31 4c 89 e0 4c 89 e2 48 c1 e8 03 83 e2 07 <0f> b6 04 28 38 d0 7f 08 84 c0 0f 85 01 07 00 00 44 0f b6 6b 31 31
-RSP: 0018:ffffc90003367d20 EFLAGS: 00010206
-RAX: 0000009110a1fb76 RBX: 00000488850fdb85 RCX: ffffc90019118000
-RDX: 0000000000000006 RSI: ffffffff83473ee4 RDI: 0000000000000007
-RBP: dffffc0000000000 R08: 0000000000000007 R09: 0000000000000000
-R10: 0000000000000000 R11: ffff888026ca66b0 R12: 00000488850fdbb6
-R13: ffff888056ed2598 R14: ffff888033b4e900 R15: ffffc90003367e70
-FS:  00007f78892aa6c0(0000) GS:ffff8881248f6000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f0c09f72100 CR3: 000000001270e000 CR4: 0000000000350ef0
-Call Trace:
- <TASK>
- wrap_directory_iterator+0xa2/0xe0 fs/readdir.c:65
- iterate_dir+0x296/0xaf0 fs/readdir.c:108
- __do_sys_getdents fs/readdir.c:326 [inline]
- __se_sys_getdents fs/readdir.c:312 [inline]
- __x64_sys_getdents+0x13c/0x2b0 fs/readdir.c:312
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xcd/0xf80 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f788838f749
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f78892aa038 EFLAGS: 00000246 ORIG_RAX: 000000000000004e
-RAX: ffffffffffffffda RBX: 00007f78885e5fa0 RCX: 00007f788838f749
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000007
-RBP: 00007f7888413f91 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007f78885e6038 R14: 00007f78885e5fa0 R15: 00007ffe66aedea8
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-RIP: 0010:ovl_iterate_merged fs/overlayfs/readdir.c:856 [inline]
-RIP: 0010:ovl_iterate+0x645/0x1120 fs/overlayfs/readdir.c:906
-Code: 07 00 00 49 8b 46 08 48 83 c0 10 48 39 c3 0f 84 b0 fd ff ff e8 bc 94 77 fe 4c 8d 63 31 4c 89 e0 4c 89 e2 48 c1 e8 03 83 e2 07 <0f> b6 04 28 38 d0 7f 08 84 c0 0f 85 01 07 00 00 44 0f b6 6b 31 31
-RSP: 0018:ffffc90003367d20 EFLAGS: 00010206
-RAX: 0000009110a1fb76 RBX: 00000488850fdb85 RCX: ffffc90019118000
-RDX: 0000000000000006 RSI: ffffffff83473ee4 RDI: 0000000000000007
-RBP: dffffc0000000000 R08: 0000000000000007 R09: 0000000000000000
-R10: 0000000000000000 R11: ffff888026ca66b0 R12: 00000488850fdbb6
-R13: ffff888056ed2598 R14: ffff888033b4e900 R15: ffffc90003367e70
-FS:  00007f78892aa6c0(0000) GS:ffff8881249f6000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 000055e2adb4d000 CR3: 000000001270e000 CR4: 0000000000350ef0
-----------------
-Code disassembly (best guess), 1 bytes skipped:
-   0:	00 00                	add    %al,(%rax)
-   2:	49 8b 46 08          	mov    0x8(%r14),%rax
-   6:	48 83 c0 10          	add    $0x10,%rax
-   a:	48 39 c3             	cmp    %rax,%rbx
-   d:	0f 84 b0 fd ff ff    	je     0xfffffdc3
-  13:	e8 bc 94 77 fe       	call   0xfe7794d4
-  18:	4c 8d 63 31          	lea    0x31(%rbx),%r12
-  1c:	4c 89 e0             	mov    %r12,%rax
-  1f:	4c 89 e2             	mov    %r12,%rdx
-  22:	48 c1 e8 03          	shr    $0x3,%rax
-  26:	83 e2 07             	and    $0x7,%edx
-* 29:	0f b6 04 28          	movzbl (%rax,%rbp,1),%eax <-- trapping instruction
-  2d:	38 d0                	cmp    %dl,%al
-  2f:	7f 08                	jg     0x39
-  31:	84 c0                	test   %al,%al
-  33:	0f 85 01 07 00 00    	jne    0x73a
-  39:	44 0f b6 6b 31       	movzbl 0x31(%rbx),%r13d
-  3e:	31                   	.byte 0x31
+Do you remember seeing this phenomenon when working on the new mount API?
+I might have known about it and forgot...
 
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+Thanks,
+Amir.
