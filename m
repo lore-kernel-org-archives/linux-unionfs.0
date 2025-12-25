@@ -1,263 +1,165 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+Received: from mail-oo1-f78.google.com (mail-oo1-f78.google.com [209.85.161.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D905C20C023
-	for <linux-unionfs@vger.kernel.org>; Wed, 24 Dec 2025 19:31:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B2E41A8F
+	for <linux-unionfs@vger.kernel.org>; Thu, 25 Dec 2025 00:23:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766604708; cv=none; b=TLkCp+6NTrM2GOA+O15DhbgTymKvUGJ4LenTpApGejipMOcCsSW29R7cViypBg0tFxamKH69pEHuTfWTj47FLWxD/XbSGKWxR5ovznBqPK1Shi9NM85jPth92Ai9hpwbFg+HucshiSMjgoHPqk2AYG5BdNmXt664JoKhMCgxU8M=
+	t=1766622202; cv=none; b=ROSAUSofDBfNTwY5NlLwyqgD9XkrFRQ2+0jycAVRXTgIf6A/5L4CdElg6UOFRXieE5SaSKeGsMKC5NWgKjavSVkj0yGswQZJGWld2aOxXbdBHfZnKkCQyRZN00gu4tajDExjLjBGaSHUFU/0RTepRXs3YQ4Qv8Q486EOug5d5BY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766604708; c=relaxed/simple;
-	bh=Wa+o9QfTuABiKy5mYr5Zu0zQqJLVXPCI7YA0XZAm0Lw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fuhaMEp6oAIVjvtSpMqC2llAEqsLo3dXhA3aBsUFPhhGBU0mhgw66t5qkl4xo7kU1/AT/0GXvLWyxih5XGasEokrLAXTSL+HjipyzWSM9F1n45PgkHsEBnUmeF6N+lvcZg6SaLp4J5IeJEX53b0SZbTjWDwRb6cTzic/tSVfT/k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IJyEgqQs; arc=none smtp.client-ip=209.85.218.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IJyEgqQs"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-b79ea617f55so1134396266b.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 24 Dec 2025 11:31:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1766604704; x=1767209504; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4qtoZmKrTSJ4SaC0g5HiORq0DaDrNEnjZKlUxSF9t24=;
-        b=IJyEgqQsMZG8mTgqJ3dmRh75G44iJOmPEG+apx74BR3FU2LTr67I8MgMK057gPpJMn
-         UF5eQ7eeMHNBtXJengpCScaOK+GzFF9jQq6riyJzAxPHqSP92D1KTEETEeSVPjL82Wmn
-         OyWKEbV+R54pR1UHUXky3OUjofbQxIz3ZyvHRTOmeQgto3D8PCBZgGlvKNyrGIX988ev
-         7MrpHh2RcQXOaxUrp2XZaBTsQ8Xve471R+raNzsp8URqSupwg80D/OT62eH+12iMbJMh
-         VpAyGx8duy0qq8bk0jZ7Wyec6XksKhQ0A8Rm0ET7igyjaax3CRFhgH9UtKDKHpNjTMWp
-         MxrA==
+	s=arc-20240116; t=1766622202; c=relaxed/simple;
+	bh=5HqmG0XxPxIdIz54ebXDeZ4wOIX6qL08vC58F38YQL0=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=KwhueVsbmNQtK1npkkZN+UEkFUCaZwP+Htv06LQwQ/Q/xpR6w2nnS9rKA4UCutnRFs9K7/9W1sVN3EhwFuNpJnwjH86dNKBoA8o1YEXqDoGJew630Lj2gpg0J3vjy4NzsDlJJmqwmWSaD5q89shqsMSz1TtUNJ15OoUD5/agDCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f78.google.com with SMTP id 006d021491bc7-65703b66ebfso10524126eaf.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 24 Dec 2025 16:23:20 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766604704; x=1767209504;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=4qtoZmKrTSJ4SaC0g5HiORq0DaDrNEnjZKlUxSF9t24=;
-        b=VD5UB+ZwBrqOa9FWVp4AUPdwnv/qgJ4860Pmp3GaRdhUEuzez+UfLK2mIbebe1BjkD
-         TtA/2KmNdSAYtx3QcQ3hOa13g67jumL3UYlKTkkie0GF4aF3iV0T2abXjHWyENvCUxN1
-         8TUNaTSgpA5D4zYeI5lIkfU8b8C3DvwyC9Oe3VwOMldWO9sgZtAdMurHAeJt3hlb4Ixv
-         O9zIun+l77WeFQ3Xe2XN2t4lHYY8scaOGIBdaQFWGpLtKLTncLJ3VqVdui4hftdrdUPB
-         xOMCu2fhXDVbGeqzbwrRmRoEZ5TBWl4bWQiEaCM8pfOxR5QofSse9vPxeOXdxNyLlpft
-         gaew==
-X-Forwarded-Encrypted: i=1; AJvYcCU9A39kUg5/XVVQgZR2J3X9xVwg47SzbBOsix5cXquWMaeI6sfrgzi3AxagjNINU9i1kObTKstjzA9X8Gnd@vger.kernel.org
-X-Gm-Message-State: AOJu0YzJDR7mAzbhPeddSqh8+r07B69C3UCuUe6b2eEsHQY9FAAyj3Ms
-	jpCqlIz3tsscdWJdRIPiV8zbDJhXm+OGtWOdPkd5wB2NKk+kZPF5lCRS7aQOmG1MDpimsDGVObW
-	tF+6Gsgx/u3XNvY1reHc2Pr4rVI/93Rg=
-X-Gm-Gg: AY/fxX645Fr4XGPJscfz15Tlsahl2d45eYDeIIcNahyJ7JEXc32Fj5yeTQAs91E00UP
-	vuZtcM5UMDF+GQUdPPezAzfD4QPpLcN4r8xmam72R0+WBOlGiuZT2CJbfnNMpaQCN/ssYR689ZD
-	x33nZamq2t7bEqpIKYaNgxJYCWdlx+QUgsXBt5MfEx6t/q6VzSe2nVTzxqzriDsJCpFlL2kw03N
-	0Hh6qpBov6CWTYWviK3cqBWA2Q4zz7vZ+zTFaLOrZxTpk+qblH6xWs/H3p9s5KNrOamGNkiVJXn
-	9seOUe+0EQleKo4G/c0jJN0adbG6ng==
-X-Google-Smtp-Source: AGHT+IGclczWZWiIHmDkEJZ8h3iWTeWPwTWPm5Zia78TtLZOcZBF+SHnhduIOwK6oqqKXco4NusHyyR+EN27gDIdgyw=
-X-Received: by 2002:a17:907:3fa2:b0:b72:5fac:d05a with SMTP id
- a640c23a62f3a-b80371790a3mr1945165966b.37.1766604703738; Wed, 24 Dec 2025
- 11:31:43 -0800 (PST)
+        d=1e100.net; s=20230601; t=1766622199; x=1767226999;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=0Uxcgsamk0+6RrM/8nKWQY8I7xSlkQ8o5HmeILS8TAU=;
+        b=bNG0g/JpkDWUC34x6a4mRdHA9hwkKJvRiv3+/ANDIPUJQ2fcdavLQChPB4QMI+064N
+         JPTXEvjVCAmpQAc35SeBa5QAlxxqqILBxKGQTLnPcL1MghwI+VnIbtK7QcV9sxcCymqB
+         g1pAONvT8y/2OFJedAYqXUJX3uWWMirPYpKey2EfES7xP8sLkY6XHb5PMLS/qxijNiCA
+         OuejWB9dx/VGmnYUZMdTdwAaJxnCW/4+40Ilq2JvC5cWY2s+W286sAf/8YjBA2y7tExG
+         nJnMTKTSUtVU34aSGJkhAME2AF/H0Vliaw6UM+rDo06nYlXKNZmI/eV4W3UEWC0sblk8
+         54Hg==
+X-Forwarded-Encrypted: i=1; AJvYcCVrc8xxLsE6fN3EYzek7OmgoLgqsBBAQR/JKlaXaf+T04VqqGC4vq+CCSzuF4/PJqKZ12KlRa3YadCdxahE@vger.kernel.org
+X-Gm-Message-State: AOJu0YyOBho8P55jIZd3IWxLnIrkBipWi0909BRJVsB/ZNgsHabMGHsd
+	8tN/IS7BTl9DU2yuvffyyXmbP+Jm1XE+ovcPZOn41PyVLolqFhY6wXdnwPdN0S41y2UwEQLOFlI
+	VllaceNMB2XVJnCiFMmxuPKaIonmxgDIbCXf+O/GqX6mc0c+9SoJjr6zS9KE=
+X-Google-Smtp-Source: AGHT+IEkH3TVcB/G4XDMU9UQ3GoiEgHCR4icBvg9G14svsZZfWDNOTLZ2VZNLFXlo/81D1Al8ENe6pZMHcEKkTZRqZEJZigXktyO
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAGzaKqnw+218VAa_L-XfzcrzivV31R-OdAO1xjAT1p_Boi94dg@mail.gmail.com>
- <CAOQ4uxi505WQB1E1dSYXcVGf9b5=HT-Cz55FMNw5RxnE=ww2yA@mail.gmail.com> <20251224070613.hfhhlnz4uq2nf47f@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20251224070613.hfhhlnz4uq2nf47f@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 24 Dec 2025 20:31:32 +0100
-X-Gm-Features: AQt7F2rXEVDaDlLpoxnyy3ThljDgB7n1w178B6MFWgtvwBccJZaEj2k85YPFWHs
-Message-ID: <CAOQ4uxgCVatK56o+q1JRY3K3dO69OEu6-WMA+LwuPFjcLtuP-w@mail.gmail.com>
-Subject: Re: overlay unionmount failed when a long path is set
-To: Zorro Lang <zlang@redhat.com>
-Cc: Kun Wang <kunwan@redhat.com>, Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
-	Karel Zak <kzak@redhat.com>
+X-Received: by 2002:a05:6820:2c0a:b0:659:a8f3:e10f with SMTP id
+ 006d021491bc7-65cfe770b7cmr7820080eaf.31.1766622199341; Wed, 24 Dec 2025
+ 16:23:19 -0800 (PST)
+Date: Wed, 24 Dec 2025 16:23:19 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <694c83f7.050a0220.35954c.002d.GAE@google.com>
+Subject: [syzbot] [overlayfs?] WARNING in end_dirop
+From: syzbot <syzbot+19b2d871b77d222db434@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 24, 2025 at 9:06=E2=80=AFAM Zorro Lang <zlang@redhat.com> wrote=
-:
->
-> On Tue, Dec 23, 2025 at 03:48:50PM +0100, Amir Goldstein wrote:
-> > On Tue, Dec 23, 2025 at 3:25=E2=80=AFPM Kun Wang <kunwan@redhat.com> wr=
-ote:
-> > >
-> > > Hi,
-> > >
-> > > This issue was found when I was doing overlayfs test on RHEL10 using =
-unionmount-test-suite. Confirmed upstream kernel got the same problem after=
- doing the same test on the latest version with latest xfstests and unionmo=
-unt-testsuite.
-> > > [root@dell-per660-12-vm-01 xfstests]# uname -r
-> > > 6.19.0-rc2+
-> > >
-> > > This issue only occurs when new mount API is on, some test cases in u=
-nionmount test-suite start to fail like below after I set a long-name(longe=
-r than 12 characters)  test dir:
-> > >
-> > > [root@dell-per660 xfstests]# ./check -overlay overlay/103
-> > > FSTYP         -- overlay
-> > > PLATFORM      -- Linux/x86_64 dell-per660-12-vm-01 6.19.0-rc2+ #1 SMP=
- PREEMPT_DYNAMIC Tue Dec 23 03:56:43 EST 2025
-> > > MKFS_OPTIONS  -- /123456789abc
-> > > MOUNT_OPTIONS -- -o context=3Dsystem_u:object_r:root_t:s0 /123456789a=
-bc /123456789abc/ovl-mnt
-> > >
-> > > overlay/103        - output mismatch (see /root/xfstests/results//ove=
-rlay/103.out.bad)
-> > >     --- tests/overlay/103.out   2025-12-23 05:30:37.467387962 -0500
-> > >     +++ /root/xfstests/results//overlay/103.out.bad     2025-12-23 05=
-:44:53.414195538 -0500
-> > >     @@ -1,2 +1,17 @@
-> > >      QA output created by 103
-> > >     +mount: /123456789abc/union/m: wrong fs type, bad option, bad sup=
-erblock on overlay, missing codepage or helper program, or other error.
-> > >     +       dmesg(1) may have more information after failed mount sys=
-tem call.
-> > >     +Traceback (most recent call last):
-> > >     +  File "/root/unionmount-testsuite/./run", line 362, in <module>
-> > >     +    func(ctx)
-> > >     +  File "/root/unionmount-testsuite/tests/rename-file.py", line 9=
-6, in subtest_7
-> > >     ...
-> > >     (Run 'diff -u /root/xfstests/tests/overlay/103.out /root/xfstests=
-/results//overlay/103.out.bad'  to see the entire diff)
-> > > Ran: overlay/103
-> > > Failures: overlay/103
-> > > Failed 1 of 1 tests
-> > >
-> > > So I looked into unionmount-testsuite, and picked out the cmdline rep=
-roducer for this issue:
-> > >
-> > > //make a long name test dir and multiple lower later dir init//
-> > > [root@dell-per660 xfstests]# mkdir -p /123456789abcdefgh/l{0..11}
-> > > [root@dell-per660 xfstests]# mkdir /123456789abcdefgh/u /123456789abc=
-defgh/m /123456789abcdefgh/w
-> > > [root@dell-per660 xfstests]# ls /123456789abcdefgh/
-> > > l0  l1  l10  l11   l2  l3  l4  l5  l6  l7  l8  l9  m  u  w
-> > >
-> > > //do overlay unionmount with below cmd will tigger the issue://
-> > > [root@dell-per660 xfstests]# mount -t overlay overlay /123456789abcde=
-fgh/m -orw,index=3Don,redirect_dir=3Don -olowerdir=3D/123456789abcdefgh/l1:=
-/123456789abcdefgh/l2:/123456789abcdefgh/l3:/123456789abcdefgh/l4:/12345678=
-9abcdefgh/l5:/123456789abcdefgh/l6:/123456789abcdefgh/l7:/123456789abcdefgh=
-/l8:/123456789abcdefgh/l9:/123456789abcdefgh/l10:/123456789abcdefgh/l11:/12=
-3456789abcdefgh/l0,upperdir=3D/123456789abcdefgh/u,workdir=3D/123456789abcd=
-efgh/w
-> > >
-> > > mount: /123456789abcdefgh/m: wrong fs type, bad option, bad superbloc=
-k on overlay, missing codepage or helper program, or other error.
-> > >        dmesg(1) may have more information after failed mount system c=
-all.
+Hello,
 
-fsconfig(3, FSCONFIG_SET_STRING, "lowerdir",
-"/123456789abcdefgh/l1:/123456789"..., 0) =3D -1 EINVAL (Invalid
-argument)
+syzbot found the following issue on:
 
-the value of lowerdir mount opt is larger than the 256 limit for
-FSCONFIG_SET_STRING
+HEAD commit:    d8ba32c5a460 Merge tag 'block-6.19-20251218' of git://git...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=15b11392580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=1f2b6fe1fdf1a00b
+dashboard link: https://syzkaller.appspot.com/bug?extid=19b2d871b77d222db434
+compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
 
-> > >
-> > > //If I reduce the length of test dir name by 1 character, the mount w=
-ill success://
-> > > [root@dell-per660 xfstests]# cp /123456789abcdefgh /123456789abcdefg =
--r
-> > > [root@dell-per660 xfstests]# mount -t overlay overlay /123456789abcde=
-fg/m -orw,index=3Don,redirect_dir=3Don -olowerdir=3D/123456789abcdefg/l1:/1=
-23456789abcdefg/l2:/123456789abcdefg/l3:/123456789abcdefg/l4:/123456789abcd=
-efg/l5:/123456789abcdefg/l6:/123456789abcdefg/l7:/123456789abcdefg/l8:/1234=
-56789abcdefg/l9:/123456789abcdefg/l10:/123456789abcdefg/l11:/123456789abcde=
-fg/l0,upperdir=3D/123456789abcdefg/u,workdir=3D/123456789abcdefg/w
-> > > [root@dell-per660 xfstests]# df -h | grep overlay
-> > > overlay          57G   29G   28G  52% /123456789abcdefg/m
-> > >
-> > >  //If force using mount2 api, the mount will be good too://
-> > > [root@dell-per660 xfstests]# export LIBMOUNT_FORCE_MOUNT2=3Dalways
-> > > [root@dell-per660 xfstests]# mount -t overlay overlay /123456789abcde=
-fgh/m -orw,index=3Don,redirect_dir=3Don -olowerdir=3D/123456789abcdefgh/l1:=
-/123456789abcdefgh/l2:/123456789abcdefgh/l3:/123456789abcdefgh/l4:/12345678=
-9abcdefgh/l5:/123456789abcdefgh/l6:/123456789abcdefgh/l7:/123456789abcdefgh=
-/l8:/123456789abcdefgh/l9:/123456789abcdefgh/l10:/123456789abcdefgh/l11:/12=
-3456789abcdefgh/l0,upperdir=3D/123456789abcdefgh/u,workdir=3D/123456789abcd=
-efgh/w
+Unfortunately, I don't have any reproducer for this issue yet.
 
-mount("overlay", "/123456789abcdefgh/m", "overlay", 0,
-"index=3Don,redirect_dir=3Don,lowerdi"...) =3D 0
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/aea104204e52/disk-d8ba32c5.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/84e31eb35609/vmlinux-d8ba32c5.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/8598104810a4/bzImage-d8ba32c5.xz
 
-> > > [root@dell-per660 xfstests]# df -h | grep overlay
-> > > overlay          57G   29G   28G  52% /123456789abcdefg/m
-> > > overlay          57G   29G   28G  52% /123456789abcdefgh/m
-> > >
-> > > So I don't think this unionmount cmd had reached the limit of param l=
-ength, since it's working with the old mount API.
-> > > Then maybe a kernel bug needs to be fixed..
-> >
-> > Hi Kun,
-> >
-> > Thanks for reporting this issue.
-> >
-> > We've had several issues with systems that are upgraded to linmount
-> > that uses new mount API by default.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+19b2d871b77d222db434@syzkaller.appspotmail.com
 
-Indeed, when libmount is upgraded and the default is changed to new mount A=
-PI
-users with the long lowerdir string get a regression, because the limits on
-the monolith mount options with old mount API are different than the limits
-on the individual mount options with the new mount API.
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(rt_mutex_owner(lock) != current)
+WARNING: kernel/locking/rtmutex_common.h:182 at debug_rt_mutex_unlock kernel/locking/rtmutex_common.h:182 [inline], CPU#1: syz.4.151/6765
+WARNING: kernel/locking/rtmutex_common.h:182 at rt_mutex_slowunlock+0x6c0/0x8a0 kernel/locking/rtmutex.c:1419, CPU#1: syz.4.151/6765
+Modules linked in:
+CPU: 1 UID: 0 PID: 6765 Comm: syz.4.151 Not tainted syzkaller #0 PREEMPT_{RT,(full)} 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/25/2025
+RIP: 0010:debug_rt_mutex_unlock kernel/locking/rtmutex_common.h:182 [inline]
+RIP: 0010:rt_mutex_slowunlock+0x6c7/0x8a0 kernel/locking/rtmutex.c:1419
+Code: db 8e 48 c1 e8 03 42 0f b6 04 20 84 c0 0f 85 c0 01 00 00 83 3d 7d ea 05 04 00 75 13 48 8d 3d 00 ea 08 04 48 c7 c6 60 1e eb 8a <67> 48 0f b9 3a 90 e9 35 fa ff ff 90 0f 0b 90 e9 59 fe ff ff be 02
+RSP: 0018:ffffc9000f52f4c0 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff88805ddef6f0 RCX: ffff88801df5bc80
+RDX: 0000000000000000 RSI: ffffffff8aeb1e60 RDI: ffffffff8ede4300
+RBP: ffffc9000f52f5b0 R08: 0000000000000000 R09: 0000000000000000
+R10: dffffc0000000000 R11: fffffbfff1db686f R12: dffffc0000000000
+R13: ffff88805ddef6a0 R14: 0000000000000a06 R15: 1ffff92001ea5ea0
+FS:  00007f64ba31e6c0(0000) GS:ffff888126e01000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000005c8c0000 CR4: 00000000003526f0
+Call Trace:
+ <TASK>
+ inode_unlock include/linux/fs.h:1037 [inline]
+ end_dirop+0x7d/0x90 fs/namei.c:2888
+ end_creating_keep include/linux/namei.h:147 [inline]
+ ovl_workdir_create+0x4c7/0x900 fs/overlayfs/super.c:346
+ ovl_make_workdir fs/overlayfs/super.c:682 [inline]
+ ovl_get_workdir fs/overlayfs/super.c:840 [inline]
+ ovl_fill_super_creds fs/overlayfs/super.c:1453 [inline]
+ ovl_fill_super+0x188f/0x5a90 fs/overlayfs/super.c:1567
+ vfs_get_super fs/super.c:1324 [inline]
+ get_tree_nodev+0xbb/0x150 fs/super.c:1343
+ vfs_get_tree+0x92/0x2a0 fs/super.c:1751
+ fc_mount fs/namespace.c:1199 [inline]
+ do_new_mount_fc fs/namespace.c:3636 [inline]
+ do_new_mount+0x302/0xa10 fs/namespace.c:3712
+ do_mount fs/namespace.c:4035 [inline]
+ __do_sys_mount fs/namespace.c:4224 [inline]
+ __se_sys_mount+0x313/0x410 fs/namespace.c:4201
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f64bc0bf749
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f64ba31e038 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007f64bc315fa0 RCX: 00007f64bc0bf749
+RDX: 0000200000000b80 RSI: 0000200000000100 RDI: 0000000000000000
+RBP: 00007f64bc143f91 R08: 0000200000000240 R09: 0000000000000000
+R10: 0000000000000008 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f64bc316038 R14: 00007f64bc315fa0 R15: 00007ffc96aee038
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	db 8e 48 c1 e8 03    	fisttpl 0x3e8c148(%rsi)
+   6:	42 0f b6 04 20       	movzbl (%rax,%r12,1),%eax
+   b:	84 c0                	test   %al,%al
+   d:	0f 85 c0 01 00 00    	jne    0x1d3
+  13:	83 3d 7d ea 05 04 00 	cmpl   $0x0,0x405ea7d(%rip)        # 0x405ea97
+  1a:	75 13                	jne    0x2f
+  1c:	48 8d 3d 00 ea 08 04 	lea    0x408ea00(%rip),%rdi        # 0x408ea23
+  23:	48 c7 c6 60 1e eb 8a 	mov    $0xffffffff8aeb1e60,%rsi
+* 2a:	67 48 0f b9 3a       	ud1    (%edx),%rdi <-- trapping instruction
+  2f:	90                   	nop
+  30:	e9 35 fa ff ff       	jmp    0xfffffa6a
+  35:	90                   	nop
+  36:	0f 0b                	ud2
+  38:	90                   	nop
+  39:	e9 59 fe ff ff       	jmp    0xfffffe97
+  3e:	be                   	.byte 0xbe
+  3f:	02                   	.byte 0x2
 
-> >
-> > FYI, the lowerdir+ mount option was added exactly to avoid these sorts
-> > of limits, but that will require changing applications (like unionmount
-> > testsuite) to use this more scalable mount options or require libmount
-> > to automatically parse and convert a long lowerdir=3D mount option to
-> > smaller lowerdir+=3D mount options.
 
-I am not sure it is reasonable to allow very long strings in the new mount =
-API?
-I am not sure if it makes sense for libmount to break the long
-lowerdir=3Dxx:yy::zz
-to multiple lowerdir+=3D,datadir+ fsconfig calls?
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
->
-> Hi Amir,
->
-> Thanks for your quick reply :) Maybe you remember we talked in an email
-> "fstests overlay/103~109, 114~119 always fail". You said these tests alwa=
-ys
-> passed for you after your commit:
->
->   commit e6fc42f16c77ea40090b7168a7195ea12967b012
->   Author: Amir Goldstein <amir73il@gmail.com>
->   Date:   Tue Jun 3 12:07:40 2025 +0200
->
->     overlay: workaround libmount failure to remount,ro
->
-> But they're still failed on my side. Our discussion was interrupted due t=
-o I got
-> other busy things. Recently I asked Kun to go to track this issue again, =
-so this
-> is a follow-up of that. We've excluded some conditions, now the only one =
-difference
-> between your test(passed) and mine (failed) might be the name (or name le=
-ngth) of
-> SCRATCH_MNT.
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
-Now I remember :)
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
-I don't know how to deal with this issue of automatic upgrade to new mount =
-API.
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
 
-The easiest thing for me to say is that unionmount can be fixed to use
-lowerdir+ instead of lowerdir mount args and until we hear of another produ=
-ction
-workload which is affected we leave it at that.
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
 
-I have to wonder why we haven't heard about this problem from
-container runtimes?
-Maybe because they already had a problem with reaching the limits of
-old mount API
-so they already made use of the new scalable lowerdir+ mount args?
-
-Thanks,
-Amir.
+If you want to undo deduplication, reply with:
+#syz undup
