@@ -1,114 +1,64 @@
-Received: from mail.parknet.co.jp (mail.parknet.co.jp [210.171.160.6])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0309136A016;
-	Tue,  6 Jan 2026 17:55:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.171.160.6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2667E280CE5;
+	Tue,  6 Jan 2026 21:43:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767722114; cv=none; b=lSuQDNp3K7k46fBEbP8bobZJK6X0O7bKjcWOu4k5IaMeze7VXqLgajn68bLxINUT6dkFY8BEC/FkfuaDM3dy4THDj+onYN7bgvxEAb5VjRmYufk3IlFMBLhpobRBy9KB6iEF2x8XvRXKNjmC738NnZrKR9pUBoRenK8PxhjzcEY=
+	t=1767735836; cv=none; b=qltDaDFyREiZ9xF3VGqLoAedLYc0tiAk45VUlsTRMVwtHT+Q/YstYSK5a41Qw8D0piAoNA/LdBmIiWy5+9HbBZrI1Cq1Cn78L1799BprZVKPa/WQN9b5McyeyDIZ0HSNITec3DIc/trxdNlPo7jTkGUGeQzI831kmm4OQycgKTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767722114; c=relaxed/simple;
-	bh=/RKmnJVAgf9DEnLf0VDPfSnHGuDA98Ne/+QXtIcqxPg=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=Zilk+VIuuJ9dXOKVpQfLHkxnUte/aTaMej3y9hqciw5fqdRkfqqofL961DHxGRKY+izXZFfWnmz+6eKSglEU0PVW042gZcxzUBxlHvcnCvygKUHG0eZnLF2+XbShEaVoJQjRfrdTNkEdGFdh82zdZ8CwuXtaulOfv/837f2LveM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.parknet.co.jp; spf=pass smtp.mailfrom=parknet.co.jp; dkim=pass (2048-bit key) header.d=parknet.co.jp header.i=@parknet.co.jp header.b=DMDcHKE8; dkim=permerror (0-bit key) header.d=parknet.co.jp header.i=@parknet.co.jp header.b=dngp0wuD; arc=none smtp.client-ip=210.171.160.6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.parknet.co.jp
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=parknet.co.jp
+	s=arc-20240116; t=1767735836; c=relaxed/simple;
+	bh=oy0nq2zmkLlQ8H2hYCSqLD1m9F9tLj75bp9TRPzk9nM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=o36bnFxdAIupFG7fafTi0tRe88jo5oYCrGHtC7AWb7pEN4zAeiY9mbon+VrxQ6vrcRv+b6K7QUSJnsJ1Ls2+jIOhDxxwMzIl2qkcmBWp6G3TUluROFHAHH3zL22bsqHsRkbEmQTUCijXxTmx/g0Ttj6yMJJhcO0nRgq/ECKGR+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sxvm20hE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=parknet.co.jp header.i=@parknet.co.jp header.b="DMDcHKE8";
-	dkim=permerror (0-bit key) header.d=parknet.co.jp header.i=@parknet.co.jp header.b="dngp0wuD"
-Received: from ibmpc.myhome.or.jp (server.parknet.ne.jp [210.171.168.39])
-	by mail.parknet.co.jp (Postfix) with ESMTPSA id C17DB209655A;
-	Wed,  7 Jan 2026 02:55:08 +0900 (JST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=parknet.co.jp;
-	s=20250114; t=1767722109;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XLoEpn8SbUq3M2bDjtG0l+ipy2NNHSDPPhecVpaZDKI=;
-	b=DMDcHKE8vaT2nF69Dzn4q+ho0MObOvhdMIutxH4dRXqQs6X87wOOdePiyxIeGejkYbMQW1
-	agTnNi+nGCJqANPlGmcyL4Y83s7mCcIe2QfhTiADX2/XrHwMssPp2gWrF/WkEcks48ltAl
-	Nd746sbKtao8pfysbRLLut8tmEcN9HEo2Kot7rslLBqgtCaUIT4DaEjqXk4tynEH7tL4Vq
-	7eJH9x/Zbr9gBFZ3Cm7BKNg1bMki91oudMaw+DblGX7Qn2GFrNEdkZ8Og0gQNTa8q0yW57
-	CPQJzMRQqVls91Pawc8VvRVlwgfL3kYre0P2qPk5KBJWys+tnBTEPovCNZqtnA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=parknet.co.jp;
-	s=20250114-ed25519; t=1767722109;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XLoEpn8SbUq3M2bDjtG0l+ipy2NNHSDPPhecVpaZDKI=;
-	b=dngp0wuDXWPBjKoTj+/Ya8vAvMGFu8eZAaXjdaBi/UhOklp9rQ98ohqhfi3hRRmWaQyEzW
-	Wl3vPwJbxIX/wfAA==
-Received: from devron.myhome.or.jp (foobar@devron.myhome.or.jp [192.168.0.3])
-	by ibmpc.myhome.or.jp (8.18.1/8.18.1/Debian-7) with ESMTPS id 606Ht7F5232027
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Wed, 7 Jan 2026 02:55:08 +0900
-Received: from devron.myhome.or.jp (foobar@localhost [127.0.0.1])
-	by devron.myhome.or.jp (8.18.1/8.18.1/Debian-7) with ESMTPS id 606Ht7Mw551463
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Wed, 7 Jan 2026 02:55:07 +0900
-Received: (from hirofumi@localhost)
-	by devron.myhome.or.jp (8.18.1/8.18.1/Submit) id 606Ht6aI551461;
-	Wed, 7 Jan 2026 02:55:06 +0900
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sxvm20hE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1127C116C6;
+	Tue,  6 Jan 2026 21:43:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1767735835;
+	bh=oy0nq2zmkLlQ8H2hYCSqLD1m9F9tLj75bp9TRPzk9nM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=sxvm20hE+Y7hNroZuQmjk2Hk3ZkHX6MDfP9oEcQv2V8VwA6ijnWVVjdCIUkpvBFm8
+	 GDImaxG+L4xFILzUiX5hvqWw+uQSanWkyG4HZLd6jLk+FbSbAsUtzi6I/+PyE4HMLU
+	 rcuCeMAqaqP73xT9SNOxAUIeaBr+I1iLvMFBIHhkrdKyW3ZsKbQF51b1RsuHqoMa9L
+	 3Ybt9gkFk4x2VPZ9ZpZWF2XzVkjTqmobY6LBgjg33uYVWLB0M4T82oejV3ON7Y9PiR
+	 8al5v9sdVf6qKwJRzzRzNQNHsrCJIKkf6wlcNffIiwlbTPk/2ww0YF4quW5B4zpuZ7
+	 x5Kf4szM/lVMw==
+Date: Tue, 6 Jan 2026 22:43:49 +0100
+From: Christian Brauner <brauner@kernel.org>
 To: Christoph Hellwig <hch@lst.de>
-Cc: Christian Brauner <brauner@kernel.org>, Al Viro
- <viro@zeniv.linux.org.uk>,
-        David Sterba <dsterba@suse.com>, Jan Kara
- <jack@suse.cz>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg
- <martin@omnibond.com>,
-        Carlos Maiolino <cem@kernel.org>, Stefan Roesch
- <shr@fb.com>,
-        Jeff Layton <jlayton@kernel.org>,
-        Trond Myklebust
- <trondmy@kernel.org>,
-        Anna Schumaker <anna@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        gfs2@lists.linux.dev, io-uring@vger.kernel.org,
-        devel@lists.orangefs.org, linux-unionfs@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-xfs@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: Re: [PATCH 04/11] fat: cleanup the flags for fat_truncate_time
-In-Reply-To: <87cy3nrpdu.fsf@mail.parknet.co.jp>
-References: <20260106075008.1610195-1-hch@lst.de>
-	<20260106075008.1610195-5-hch@lst.de>
-	<87cy3nrpdu.fsf@mail.parknet.co.jp>
-Date: Wed, 07 Jan 2026 02:55:06 +0900
-Message-ID: <878qeask1x.fsf@mail.parknet.co.jp>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+Cc: Al Viro <viro@zeniv.linux.org.uk>, David Sterba <dsterba@suse.com>, 
+	Jan Kara <jack@suse.cz>, Mike Marshall <hubcap@omnibond.com>, 
+	Martin Brandenburg <martin@omnibond.com>, Carlos Maiolino <cem@kernel.org>, Stefan Roesch <shr@fb.com>, 
+	Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, gfs2@lists.linux.dev, io-uring@vger.kernel.org, 
+	devel@lists.orangefs.org, linux-unionfs@vger.kernel.org, linux-mtd@lists.infradead.org, 
+	linux-xfs@vger.kernel.org, linux-nfs@vger.kernel.org
+Subject: Re: re-enable IOCB_NOWAIT writes to files v4
+Message-ID: <20260106-bequem-albatros-3c747261974f@brauner>
+References: <20251223003756.409543-1-hch@lst.de>
+ <20251224-zusah-emporsteigen-764a9185a0a1@brauner>
+ <20260106062409.GA16998@lst.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260106062409.GA16998@lst.de>
 
-OGAWA Hirofumi <hirofumi@mail.parknet.co.jp> writes:
+On Tue, Jan 06, 2026 at 07:24:09AM +0100, Christoph Hellwig wrote:
+> > Applied to the vfs-7.0.nonblocking_timestamps branch of the vfs/vfs.git tree.
+> > Patches in the vfs-7.0.nonblocking_timestamps branch should appear in linux-next soon.
+> 
+> Umm, as in my self reply just before heading out for vacation, Julia
+> found issues in it using static type checking tools.  I have a new
+> version that fixes that and sorts out the S_* mess.  So please drop
+> it again for now, I'll resend the fixed version ASAP.
 
-> Christoph Hellwig <hch@lst.de> writes:
->
->> Fat only has a single on-disk timestamp covering ctime and mtime.  Add
->> fat-specific flags that indicate which timestamp fat_truncate_time should
->> update to make this more clear.  This allows removing no-op
->> fat_truncate_time calls with the S_CTIME flag and prepares for removing
->> the S_* flags.
->>
->> Signed-off-by: Christoph Hellwig <hch@lst.de>
->
-> This breaks fat_update_time() by calling fat_truncate_time() with old
-> S_* flags (later patch looks like fixing though). Please add the commit
-> comment about it, or fix it in this patch.
->
-> Thanks.
-
-Ah, I was overlooking that new value is using same value with S_*.
-So
-
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-
-Thanks.
--- 
-OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+It has never been pushed nor applied as I saw your mail right before all
+of that.
