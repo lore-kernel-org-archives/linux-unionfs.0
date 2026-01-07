@@ -1,62 +1,247 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E722275AFD;
-	Wed,  7 Jan 2026 07:43:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C5EA250BEC
+	for <linux-unionfs@vger.kernel.org>; Wed,  7 Jan 2026 20:43:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767771832; cv=none; b=ng8yAqkn6PdDsRKiPXCZJu47y4mpnYddH2yWyvXreNh3kVj+SBEdFM0HBFDVqUwY+YVpzPRisRpIspi0rVUSKALNV6AdrUzkj6OCiDfU+EJEJoHFLm18GMa8UV7YJdoQp+GcQUt4cfZa7U2pRbTp2aqeE1cwtyGEbHYg10hmvDw=
+	t=1767818622; cv=none; b=fPTNeZBQyfnQGfMmk7zdc+okoTSwCG5iaveR+J678V0kLS9YuUkLDxNAOgwBFEUQi2Iz04q+jJnq/u7T9955MZrB6RduwmNgf7xPz/vgt0A4O9Cqu2VzeAqXisIKprSKs4WCTspCUbPCslPAW2yyRyfNcWq8+Kd0udhn/N/FpSA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767771832; c=relaxed/simple;
-	bh=VTimgj/MzK6aQnK9Xw5c5SKi0aFWlJKWsBW7pxOxiQU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E3ph/71Ss0eq0+nRfO3yLXe8Ki+S7KfpEN9RrKMFu1Nn5jErdo8K1bgT8SwRA9V4smkXKY5raZGXcHm+FzXtXQpH+6IvV9MNIcJnOuZCTbxt0F7hJlbW3ZbKRDv8Sjm1T685gumCWeAVJ8lZVj+h5O87haYjS/vqxX99ykrtwmg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 7108E227A87; Wed,  7 Jan 2026 08:43:46 +0100 (CET)
-Date: Wed, 7 Jan 2026 08:43:46 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Christoph Hellwig <hch@lst.de>, Christian Brauner <brauner@kernel.org>,
-	Al Viro <viro@zeniv.linux.org.uk>, David Sterba <dsterba@suse.com>,
-	Jan Kara <jack@suse.cz>, Mike Marshall <hubcap@omnibond.com>,
-	Martin Brandenburg <martin@omnibond.com>,
-	Carlos Maiolino <cem@kernel.org>, Stefan Roesch <shr@fb.com>,
-	Jeff Layton <jlayton@kernel.org>,
-	Trond Myklebust <trondmy@kernel.org>,
-	Anna Schumaker <anna@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	gfs2@lists.linux.dev, io-uring@vger.kernel.org,
-	devel@lists.orangefs.org, linux-unionfs@vger.kernel.org,
-	linux-mtd@lists.infradead.org, linux-xfs@vger.kernel.org,
-	linux-nfs@vger.kernel.org
-Subject: Re: [PATCH 04/11] fat: cleanup the flags for fat_truncate_time
-Message-ID: <20260107074346.GA18258@lst.de>
-References: <20260106075008.1610195-1-hch@lst.de> <20260106075008.1610195-5-hch@lst.de> <87cy3nrpdu.fsf@mail.parknet.co.jp> <878qeask1x.fsf@mail.parknet.co.jp>
+	s=arc-20240116; t=1767818622; c=relaxed/simple;
+	bh=aKG2D9pm/jId626C7hRmlYzE75SV/rH0qzDUEbuGvNA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=eXYXv7b/5ap3YRSlP509vgGojSlDZ5S5L1K2sD78rxaIg/KQkdo7kPAXze4mDuZ6wnIJC1vIewdZDuSqeraUbFvhPjVPD1Jvv3TAkE4W7L2HT+Mx4X4qHJ/YGHPkisMNmnpG+7/HXZFawteS7Bf0/5mhsx3tz1ZpNywYFNHvQ5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NNHtG8Gi; arc=none smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NNHtG8Gi"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-64b5ed53d0aso3549174a12.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 07 Jan 2026 12:43:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1767818617; x=1768423417; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=9gG0jBoyVrgrYrbFKrdKRMzXYkz7vinBG5CCz66E0q4=;
+        b=NNHtG8GiUvgRSof15LAxhyPGpmp2RJzY7CNJDXJkHN/KihDNI9XRKwFTm2DHLRESLL
+         uunTKsHWqDNoHybRDYG4GHBiXqkSkdt9+lXKYioYbi5efTSOHbUWo4fCrhNnMEz9/mfY
+         z2UmofIRr2B2rjhJ46cEAdpikDGqXRk040bp2KRAec+IkdjDhUXSk/abq5UezHmLFdee
+         GUSlYpC5SWgLV4XaFT97hMJHk6sRIjgXae1SnFAW2oVMtt9FgVWpk7bUeypf8XbaAhpv
+         D3m9SF8Wy8vxk3yUGEHg5WwUymRdP2q3CwY8S5xK/hCZ0Rjyw1j+rYcyv+hyWJzYDrVL
+         x0yA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767818617; x=1768423417;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9gG0jBoyVrgrYrbFKrdKRMzXYkz7vinBG5CCz66E0q4=;
+        b=OT30Phfi7uKZRkH1snmAHrazSyjrDekGLkmwwMfnLBhkYOxgMj3ywEOVVZH/G/F2CQ
+         oAGqq5g+33ldsaMznq8QZQETc/8o3dy9LLnYUPmtRwx8H7sxIw3MV3KIa/uYqs0ddzqE
+         IEO80TeCwF354gjhZN8/J9AqnDMP59UkBcWDZXbBjQzxXaQdAlj0kFF5ZjoBhI0oNzed
+         BulN5DFzL6upgjrbAniAeRYKfDvUtImY89FYQdGQRyK6YpeBVxTMMzEBN/DTgwZ46X2s
+         R/cIsuBI6u/KDcC+KKcBVmm65DWdkd7Q/vcEgmZ4Sz2JUjcBdcE+zcjJkBwgct5I62Ze
+         xmJA==
+X-Forwarded-Encrypted: i=1; AJvYcCX2tZKKX2P1QzwDOXV6l2462EucuaSF953/GDjRoVfecR+eBcOHlzAHFEd3X5e+M7GVXGaDlRhum0qCa2CW@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy4R3Yhf75veLH9xk3YDLFTP/DHOCbECsH+hvK3P53n2Uwu+cdH
+	k8dggF00sRkp1sCpoeMSXHlyoTkOp2c1zxSHyn3W8py8qoK+UMSXPHeK6cqwc6GIePHi3MEbVA9
+	ixplK/eVfLkGsimBijgc56kRqyzlDLrs=
+X-Gm-Gg: AY/fxX71BRjF15ELq9iYkmNFDsdNhGC+pua+l1Zo0hr7uz7MEbitjmCrpegEjywa0Pc
+	S6mNCskIkw4LJxsknJ6JMfMxpLLzDRN9IrgJm6FWWRaHQSwTur/kD+2hXpvaOsML2eBjjr3IIcG
+	/NJLJb81SH//01lwfAvTtHEfFMT4VfHcXiRQbh3b1+TJvV1CgQuqwT+j0zLBPgYcWC0aJXEyLIK
+	bflfjPcTrpBgXl/a16WEDopElJsUCAR1MmyAxHYFntJvY3cFv3rA5SHMMT4uIw5RaMDPv9h+D5D
+	yqM5EMhDVrl5/V9MBoVsisy6ieiwhw==
+X-Google-Smtp-Source: AGHT+IG2Jv5W7UO/DLsiKVqSOaV8dYU+c43B75QWLq4coJkxffIjeUIWijqIob2TT3tXJ58tpJBQ4NmCRvy5sU84Whk=
+X-Received: by 2002:aa7:c4e7:0:b0:64c:69e6:ad3a with SMTP id
+ 4fb4d7f45d1cf-65097e6107amr2505709a12.27.1767818616531; Wed, 07 Jan 2026
+ 12:43:36 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <878qeask1x.fsf@mail.parknet.co.jp>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+References: <20260107034551.439-1-luochunsheng@ustc.edu>
+In-Reply-To: <20260107034551.439-1-luochunsheng@ustc.edu>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 7 Jan 2026 21:43:25 +0100
+X-Gm-Features: AQt7F2o6V8AjZdD_r_x9Kwi_5hcKpibUG5THE2aXE9UuA1aZVEK6F26Nak4WtR0
+Message-ID: <CAOQ4uxhjWwTdENS2GqmOxtx4hdbv=N4f90iLVuxHNgH=NLem9w@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs: mask d_type high bits before whiteout check
+To: Chunsheng Luo <luochunsheng@ustc.edu>
+Cc: miklos@szeredi.hu, bschubert@ddn.com, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="000000000000aaa72b0647d2589b"
 
-On Wed, Jan 07, 2026 at 02:55:06AM +0900, OGAWA Hirofumi wrote:
-> > Thanks.
-> 
-> Ah, I was overlooking that new value is using same value with S_*.
+--000000000000aaa72b0647d2589b
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Still not a good idea to not create a bisection hazard.  I've added
-a local fat_flags variable and a translation for this patch, even
-if that will go away in the next patch to be 100% sane.
+On Wed, Jan 7, 2026 at 4:46=E2=80=AFAM Chunsheng Luo <luochunsheng@ustc.edu=
+> wrote:
+>
+> Commit c31f91c6af96 ("fuse: don't allow signals to interrupt getdents
+> copying") introduced the use of high bits in d_type as flags. However,
+> overlayfs was not adapted to handle this change.
+>
+> In ovl_cache_entry_new(), the code checks if d_type =3D=3D DT_CHR to
+> determine if an entry might be a whiteout. When fuse is used as the
+> lower layer and sets high bits in d_type, this comparison fails,
+> causing whiteout files to not be recognized properly and resulting in
+> incorrect overlayfs behavior.
+>
+> Fix this by masking out the high bits with S_DT_MASK before checking.
+>
+> Fixes: c31f91c6af96 ("fuse: don't allow signals to interrupt getdents cop=
+ying")
+> Link: https://github.com/containerd/stargz-snapshotter/issues/2214
+> Signed-off-by: Chunsheng Luo <luochunsheng@ustc.edu>
 
-> Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Hi Chunsheng,
 
-But I've kept the ACK.  Let me know if I should drop it for now with
-the change instead.
+Thanks for the report and the suggested fix.
 
+This time overlayfs was surprised by unexpected d_type flags and next
+time it could be another user.
+
+I prefer to fix this in a more profound way -
+Instead of making overlafys aware of d_type flags, require the users that
+use the d_type flags to opt-in for them.
+
+Please test/review the attached patch.
+
+Thanks,
+Amir.
+
+
+> ---
+>  fs/overlayfs/readdir.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+>
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 160960bb0ad0..a2ac47458bf9 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -246,6 +246,9 @@ static int ovl_fill_lowest(struct ovl_readdir_data *r=
+dd,
+>  {
+>         struct ovl_cache_entry *p;
+>
+> +       /* Mask out high bits that may be used (e.g., fuse) */
+> +       d_type &=3D S_DT_MASK;
+> +
+>         p =3D ovl_cache_entry_find(rdd->root, c_name, c_len);
+>         if (p) {
+>                 list_move_tail(&p->l_node, &rdd->middle);
+> @@ -316,6 +319,9 @@ static bool ovl_fill_merge(struct dir_context *ctx, c=
+onst char *name,
+>         char *cf_name =3D NULL;
+>         int c_len =3D 0, ret;
+>
+> +       /* Mask out high bits that may be used (e.g., fuse) */
+> +       d_type &=3D S_DT_MASK;
+> +
+>         if (ofs->casefold)
+>                 c_len =3D ovl_casefold(rdd, name, namelen, &cf_name);
+>
+> @@ -632,6 +638,9 @@ static bool ovl_fill_plain(struct dir_context *ctx, c=
+onst char *name,
+>         struct ovl_readdir_data *rdd =3D
+>                 container_of(ctx, struct ovl_readdir_data, ctx);
+>
+> +       /* Mask out high bits that may be used (e.g., fuse) */
+> +       d_type &=3D S_DT_MASK;
+> +
+>         rdd->count++;
+>         p =3D ovl_cache_entry_new(rdd, name, namelen, NULL, 0, ino, d_typ=
+e);
+>         if (p =3D=3D NULL) {
+> @@ -755,6 +764,9 @@ static bool ovl_fill_real(struct dir_context *ctx, co=
+nst char *name,
+>         struct dir_context *orig_ctx =3D rdt->orig_ctx;
+>         bool res;
+>
+> +       /* Mask out high bits that may be used (e.g., fuse) */
+> +       d_type &=3D S_DT_MASK;
+> +
+>         if (rdt->parent_ino && strcmp(name, "..") =3D=3D 0) {
+>                 ino =3D rdt->parent_ino;
+>         } else if (rdt->cache) {
+> @@ -1144,6 +1156,9 @@ static bool ovl_check_d_type(struct dir_context *ct=
+x, const char *name,
+>         struct ovl_readdir_data *rdd =3D
+>                 container_of(ctx, struct ovl_readdir_data, ctx);
+>
+> +       /* Mask out high bits that may be used (e.g., fuse) */
+> +       d_type &=3D S_DT_MASK;
+> +
+>         /* Even if d_type is not supported, DT_DIR is returned for . and =
+.. */
+>         if (!strncmp(name, ".", namelen) || !strncmp(name, "..", namelen)=
+)
+>                 return true;
+> --
+> 2.43.0
+>
+
+--000000000000aaa72b0647d2589b
+Content-Type: text/x-patch; charset="US-ASCII"; 
+	name="0001-readdir-require-opt-in-for-d_type-flags.patch"
+Content-Disposition: attachment; 
+	filename="0001-readdir-require-opt-in-for-d_type-flags.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mk4hg36a0>
+X-Attachment-Id: f_mk4hg36a0
+
+RnJvbSAyODNmYWE5NjRiMmZiMjgyMWVhNjRlYjQ1MTQwN2U4YTUwOTVmZTBiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBXZWQsIDcgSmFuIDIwMjYgMTA6MDA6NTcgKzAxMDAKU3ViamVjdDogW1BBVENIXSByZWFk
+ZGlyOiByZXF1aXJlIG9wdC1pbiBmb3IgZF90eXBlIGZsYWdzCgpDb21taXQgYzMxZjkxYzZhZjk2
+ICgiZnVzZTogZG9uJ3QgYWxsb3cgc2lnbmFscyB0byBpbnRlcnJ1cHQgZ2V0ZGVudHMKY29weWlu
+ZyIpIGludHJvZHVjZWQgdGhlIHVzZSBvZiBoaWdoIGJpdHMgaW4gZF90eXBlIGFzIGZsYWdzLiBI
+b3dldmVyLApvdmVybGF5ZnMgd2FzIG5vdCBhZGFwdGVkIHRvIGhhbmRsZSB0aGlzIGNoYW5nZS4K
+CkluIG92bF9jYWNoZV9lbnRyeV9uZXcoKSwgdGhlIGNvZGUgY2hlY2tzIGlmIGRfdHlwZSA9PSBE
+VF9DSFIgdG8KZGV0ZXJtaW5lIGlmIGFuIGVudHJ5IG1pZ2h0IGJlIGEgd2hpdGVvdXQuIFdoZW4g
+ZnVzZSBpcyB1c2VkIGFzIHRoZQpsb3dlciBsYXllciBhbmQgc2V0cyBoaWdoIGJpdHMgaW4gZF90
+eXBlLCB0aGlzIGNvbXBhcmlzb24gZmFpbHMsCmNhdXNpbmcgd2hpdGVvdXQgZmlsZXMgdG8gbm90
+IGJlIHJlY29nbml6ZWQgcHJvcGVybHkgYW5kIHJlc3VsdGluZyBpbgppbmNvcnJlY3Qgb3Zlcmxh
+eWZzIGJlaGF2aW9yLgoKRml4IHRoaXMgYnkgcmVxdWlyaW5nIGNhbGxlcnMgb2YgaXRlcmF0ZV9k
+aXIoKSB0byBvcHQtaW4gZm9yIGdldHRpbmcKZmxhZyBiaXRzIGluIGRfdHlwZSBvdXRzaWRlIG9m
+IFNfRFRfTUFTSy4KCkZpeGVzOiBjMzFmOTFjNmFmOTYgKCJmdXNlOiBkb24ndCBhbGxvdyBzaWdu
+YWxzIHRvIGludGVycnVwdCBnZXRkZW50cyBjb3B5aW5nIikKTGluazogaHR0cHM6Ly9sb3JlLmtl
+cm5lbC5vcmcvYWxsLzIwMjYwMTA3MDM0NTUxLjQzOS0xLWx1b2NodW5zaGVuZ0B1c3RjLmVkdS8K
+TGluazogaHR0cHM6Ly9naXRodWIuY29tL2NvbnRhaW5lcmQvc3Rhcmd6LXNuYXBzaG90dGVyL2lz
+c3Vlcy8yMjE0ClJlcG9ydGVkLWJ5OiBDaHVuc2hlbmcgTHVvIDxsdW9jaHVuc2hlbmdAdXN0Yy5l
+ZHU+ClNpZ25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0t
+LQogZnMvcmVhZGRpci5jICAgICAgIHwgMyArKysKIGluY2x1ZGUvbGludXgvZnMuaCB8IDYgKysr
+KystCiAyIGZpbGVzIGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKZGlm
+ZiAtLWdpdCBhL2ZzL3JlYWRkaXIuYyBiL2ZzL3JlYWRkaXIuYwppbmRleCA3NzY0Yjg2Mzg5Nzg4
+Li43N2U0YWE3NzIzMTVkIDEwMDY0NAotLS0gYS9mcy9yZWFkZGlyLmMKKysrIGIvZnMvcmVhZGRp
+ci5jCkBAIC0zMTYsNiArMzE2LDcgQEAgU1lTQ0FMTF9ERUZJTkUzKGdldGRlbnRzLCB1bnNpZ25l
+ZCBpbnQsIGZkLAogCXN0cnVjdCBnZXRkZW50c19jYWxsYmFjayBidWYgPSB7CiAJCS5jdHguYWN0
+b3IgPSBmaWxsZGlyLAogCQkuY3R4LmNvdW50ID0gY291bnQsCisJCS5jdHguZHRfZmxhZ19tYXNr
+ID0gRklMTERJUl9GTEFHX05PSU5UUiwKIAkJLmN1cnJlbnRfZGlyID0gZGlyZW50CiAJfTsKIAlp
+bnQgZXJyb3I7CkBAIC00MDAsNiArNDAxLDcgQEAgU1lTQ0FMTF9ERUZJTkUzKGdldGRlbnRzNjQs
+IHVuc2lnbmVkIGludCwgZmQsCiAJc3RydWN0IGdldGRlbnRzX2NhbGxiYWNrNjQgYnVmID0gewog
+CQkuY3R4LmFjdG9yID0gZmlsbGRpcjY0LAogCQkuY3R4LmNvdW50ID0gY291bnQsCisJCS5jdHgu
+ZHRfZmxhZ19tYXNrID0gRklMTERJUl9GTEFHX05PSU5UUiwKIAkJLmN1cnJlbnRfZGlyID0gZGly
+ZW50CiAJfTsKIAlpbnQgZXJyb3I7CkBAIC01NjksNiArNTcxLDcgQEAgQ09NUEFUX1NZU0NBTExf
+REVGSU5FMyhnZXRkZW50cywgdW5zaWduZWQgaW50LCBmZCwKIAlzdHJ1Y3QgY29tcGF0X2dldGRl
+bnRzX2NhbGxiYWNrIGJ1ZiA9IHsKIAkJLmN0eC5hY3RvciA9IGNvbXBhdF9maWxsZGlyLAogCQku
+Y3R4LmNvdW50ID0gY291bnQsCisJCS5jdHguZHRfZmxhZ19tYXNrID0gRklMTERJUl9GTEFHX05P
+SU5UUiwKIAkJLmN1cnJlbnRfZGlyID0gZGlyZW50LAogCX07CiAJaW50IGVycm9yOwpkaWZmIC0t
+Z2l0IGEvaW5jbHVkZS9saW51eC9mcy5oIGIvaW5jbHVkZS9saW51eC9mcy5oCmluZGV4IGY1Yzlj
+ZjI4YzRkY2YuLmMzNjk5MjgzMmZiMmIgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvZnMuaAor
+KysgYi9pbmNsdWRlL2xpbnV4L2ZzLmgKQEAgLTE4NTUsNiArMTg1NSw4IEBAIHN0cnVjdCBkaXJf
+Y29udGV4dCB7CiAJICogSU5UX01BWCAgdW5saW1pdGVkCiAJICovCiAJaW50IGNvdW50OworCS8q
+IEBhY3RvciBzdXBwb3J0cyB0aGVzZSBmbGFncyBpbiBkX3R5cGUgaGlnaCBiaXRzICovCisJdW5z
+aWduZWQgaW50IGR0X2ZsYWdfbWFzazsKIH07CiAKIC8qIElmIE9SLWVkIHdpdGggZF90eXBlLCBw
+ZW5kaW5nIHNpZ25hbHMgYXJlIG5vdCBjaGVja2VkICovCkBAIC0zNTI0LDcgKzM1MjYsOSBAQCBz
+dGF0aWMgaW5saW5lIGJvb2wgZGlyX2VtaXQoc3RydWN0IGRpcl9jb250ZXh0ICpjdHgsCiAJCQkg
+ICAgY29uc3QgY2hhciAqbmFtZSwgaW50IG5hbWVsZW4sCiAJCQkgICAgdTY0IGlubywgdW5zaWdu
+ZWQgdHlwZSkKIHsKLQlyZXR1cm4gY3R4LT5hY3RvcihjdHgsIG5hbWUsIG5hbWVsZW4sIGN0eC0+
+cG9zLCBpbm8sIHR5cGUpOworCXVuc2lnbmVkIGludCBkdF9tYXNrID0gU19EVF9NQVNLIHwgY3R4
+LT5kdF9mbGFnX21hc2s7CisKKwlyZXR1cm4gY3R4LT5hY3RvcihjdHgsIG5hbWUsIG5hbWVsZW4s
+IGN0eC0+cG9zLCBpbm8sIHR5cGUgJiBkdF9tYXNrKTsKIH0KIHN0YXRpYyBpbmxpbmUgYm9vbCBk
+aXJfZW1pdF9kb3Qoc3RydWN0IGZpbGUgKmZpbGUsIHN0cnVjdCBkaXJfY29udGV4dCAqY3R4KQog
+ewotLSAKMi41Mi4wCgo=
+--000000000000aaa72b0647d2589b--
