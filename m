@@ -1,74 +1,61 @@
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAAEC366DD8
-	for <linux-unionfs@vger.kernel.org>; Thu,  8 Jan 2026 07:45:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 710EB4E819E;
+	Thu,  8 Jan 2026 14:19:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767858340; cv=none; b=n111ulcfATJVkQ8lvTGeX8uF97Dsap7dQMQbxy6cQDmWsklOLNOct0TrX0GyqRW44dCNvpQYr1u+h7weyQ0X8Zda4bUeelyszYRT2Cp2M5BhW8Si3BKrwAw8Gu5yxBsH6qUM8AX23ua/BmS7uYOH3ezuehvxaPhJk2n7rAM/g5w=
+	t=1767881992; cv=none; b=l5H8rRNRi+njebvKGF7CKkaB+cve0IuIFc9xF7LIalOuvHI9FP3zVCeWKAz3d5eMlPm0YmT9qf+sZHUokGApyd92XecdwSd4WFM/676JEgTG016hYnbGfr2OxP3LiIfw3q50LVex3X9fTlqHBK+75IbDGXZhzjwARkppG05zBrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767858340; c=relaxed/simple;
-	bh=gMGuT6wpY3KH0qZCDvYc1iI0nMcmWwwOLl2QVVoaGtQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=G63ZdFJUOnWAQktgSd3BGVLwGfnyibjtIlQ08Xe4NfdRkGxHxLBP86BQpzHiEyh+DKvrs3yCaNGFNdTVc7Cl4lvmmPquHvl6bwaAfXEjqAMWlwDTh8tGK/0AgM+EqiFxPRg6bEbYHykzTPpNJhYsLThonV7+FfzvZbngrC3vCBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jATdcr4p; arc=none smtp.client-ip=209.85.218.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1767881992; c=relaxed/simple;
+	bh=pgFo/tGly54ijlfTPPtxx0Ky8wb8MMinxNhrt4wuMLg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cC4rPmZYLTBSvaaEzOfToN0yXD0xWt7jPEwERbQkDphYs6t5NgjD4mbBKltJ1Fe4Nis4dox3F619ugrna98wB66uf3WqsHFqy0C0SaEUi6BAlREAbXUr3kpLKDjXu6EERS+YRST0Hqu42FuFLUOcd3HAeMxdUySeUMPZhNserVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=HCkUV5Sg; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jATdcr4p"
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-b7277324054so507480866b.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 07 Jan 2026 23:45:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767858325; x=1768463125; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=StWXzjpXasA9DQnd17llnrn/T9P7sI+jQ/zm5/N+GEc=;
-        b=jATdcr4peSZgubir+/F+WnNdHnaouOhqQM5h7YNy+sB+BM7Vy5HXdKORTye09CSLIN
-         z5VO3tJNvQQdGw56kbddhWb0/cSZcJDwPHjirxxgvwZ6wq1hqyeASkJmJA3Rzb8kBj2i
-         To/B3tkxZpmE2tgFnFHIxOdk8S17/gB1UXj5+EoKV49fGy2LbSe1SzYXOnzbI9vqsrwz
-         3YnSQlwad8ZV7NPvZ/1nHgJbUt9byq1Xwg69SycWP9UwT/M4KOlz6bzI3bT4LNx9Zl//
-         Zir5KtizzR7xpIPs0sIcekf48dVQUyl/nzGvyGLtyteBZ8hawXIHMIj+WR/4dvTxLdXW
-         MFtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767858325; x=1768463125;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=StWXzjpXasA9DQnd17llnrn/T9P7sI+jQ/zm5/N+GEc=;
-        b=ogJHNHuMeIVSvXCxvqVubA/KuSHQLzRdEkveomJba0mHm6FrQVmpeteqx/+lbbFVso
-         YWeyY3iF44SYx1+xfXRU1Ja1bmXFTcB2GCydcZpRHLsM0yZaalqQ12N9KrLtvuXtsSV1
-         4spQ6I+Ed7tSPkNlBE+dJ3hfNkbIzkoDbZJSlE075mrSh1XEDYy1dR6fGIuGLWm8hjay
-         pMmZFylEpryPQOPogzmMD7YuThxLVa2kkYJZvf5v/xYcAWyq1vowyJTQbTZDr72KLmsm
-         alAtc8RjwVwIjl/LbSBRbaE4rWr9RQTAJTGWsQhZdmMjHAadeKswuIO/VZqY2w5yqmoC
-         7mew==
-X-Forwarded-Encrypted: i=1; AJvYcCWxLARmzXR2YdtNk6+DEsw6REAv/auRynBmTQCuUkAgnYccdH/Whl82BPx3UL720YQPrSIpVxfwTpT/yx6V@vger.kernel.org
-X-Gm-Message-State: AOJu0YxNAhELrBTrqatl0WXHzSHToec1/XEVRb+R5xUHXOxe5dMZmim8
-	z3CB/YiAsc0vJNEyA1jOzZFgL/KZl6gs8qLJPhsLNkD24pHnaOPfziFd
-X-Gm-Gg: AY/fxX5mp/MDf2xHyB0JU8n4rOf7msQm2uyPTQ0rq9bzPRXG5ab+BDdIEKOmIqDiVey
-	07Zv0bxtKt/VHg9XXcuV2mYbJjGiE2QokWwZfjH7TQAJSvpyWHiwGp9p9GrM7jx8+JJcRCi/YP8
-	i06yfMUdT0bcxxgYlS9FAMJXipPLoaqgGWjv3+u6rgeHEHgD8YccIUWMnUEPmekcH2YeepQIVf/
-	4I20FjQe9eyhJULEbMVmA+ddIOUGKaHL/JJJtmjM4vdziAd8Owgxsw33QKjAPEsm2y5HZ0olAEV
-	YmUVvqIiCzjJazEn3LJl6oA+Z287HxZ1gindtt9bi5uhbLx/eYgrYBoyeL9vwwEExK1K41jy5e0
-	OhYdY7XXaaUlSTocGS0MK5TKl+EPcLKwKd+mFPGTTb3WNGeSKB2xyjinwcIh5he2mBhAZ9izn0T
-	LY3e9euW5GX2A/2X8TT9zLjg/gjr0R8sVAe16xtaAP4ylraVkmj2wl8V43d59o72WJBKJUYNp2n
-	l8WavnXNLGmyJ+F
-X-Google-Smtp-Source: AGHT+IERS1xFkAq/nYuP+1oDkyH0YrhXJdeACbE7g2N++vJ6d4MHCQnRiyuC8Adedrr53/iadevUdA==
-X-Received: by 2002:a17:907:3e13:b0:b79:c460:39a4 with SMTP id a640c23a62f3a-b84453acb55mr507527266b.56.1767858324712;
-        Wed, 07 Jan 2026 23:45:24 -0800 (PST)
-Received: from localhost (2001-1c00-570d-ee00-69e4-e864-578d-bdb1.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:69e4:e864:578d:bdb1])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b842a22ff58sm732503866b.6.2026.01.07.23.45.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Jan 2026 23:45:24 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="HCkUV5Sg"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=47j3Vb5ECJCThNE4hZUuOAtfhlxTrOYUcu9LaYfkCP0=; b=HCkUV5Sg9RjiYn4vXDrQU9X8X2
+	QN7lpU67efTqRh1BaVJtEpKYMQAxG7T0N5995XKnZJk7w2W6cfF7OalQFG+1xpn4iCS1mLCF8LFZU
+	gI2xKmgSvoXaJnySBF9YEhWtKLaWW7n6Y8WsCHdLazXAFwFVgQFsrhIxgACJfaKplPExgcdHw01Kq
+	Ke4GwPEVve9HwaXeITYANFM+28/9dKysmfdekPnByN9rEJlzWGQfqqhw/sYk5H/myvcdC4/dP73NO
+	EnAdF+bwO9giTfj+kY8VlOmqBYEyM2N4eNeUEjVZQAm6jkNPHOIPZEmQEn0ZAp410vM3yx9JmCZ62
+	jjcnpyIg==;
+Received: from 2a02-8389-2341-5b80-d601-7564-c2e0-491c.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:d601:7564:c2e0:491c] helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vdqrX-0000000HJ7f-3drf;
+	Thu, 08 Jan 2026 14:19:44 +0000
+From: Christoph Hellwig <hch@lst.de>
 To: Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Al Viro <viro@zeniv.linux.org.uk>,
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	David Sterba <dsterba@suse.com>,
+	Jan Kara <jack@suse.cz>,
+	Mike Marshall <hubcap@omnibond.com>,
+	Martin Brandenburg <martin@omnibond.com>,
+	Carlos Maiolino <cem@kernel.org>,
+	Stefan Roesch <shr@fb.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+	Trond Myklebust <trondmy@kernel.org>,
+	Anna Schumaker <anna@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-btrfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org,
+	gfs2@lists.linux.dev,
+	io-uring@vger.kernel.org,
+	devel@lists.orangefs.org,
 	linux-unionfs@vger.kernel.org,
-	Chunsheng Luo <luochunsheng@ustc.edu>
-Subject: [PATCH v2] readdir: require opt-in for d_type flags
-Date: Thu,  8 Jan 2026 08:45:22 +0100
-Message-ID: <20260108074522.3400998-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.52.0
+	linux-mtd@lists.infradead.org,
+	linux-xfs@vger.kernel.org,
+	linux-nfs@vger.kernel.org
+Subject: re-enable IOCB_NOWAIT writes to files v6
+Date: Thu,  8 Jan 2026 15:19:00 +0100
+Message-ID: <20260108141934.2052404-1-hch@lst.de>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -76,106 +63,67 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Commit c31f91c6af96 ("fuse: don't allow signals to interrupt getdents
-copying") introduced the use of high bits in d_type as flags. However,
-overlayfs was not adapted to handle this change.
+Hi all,
 
-In ovl_cache_entry_new(), the code checks if d_type == DT_CHR to
-determine if an entry might be a whiteout. When fuse is used as the
-lower layer and sets high bits in d_type, this comparison fails,
-causing whiteout files to not be recognized properly and resulting in
-incorrect overlayfs behavior.
+commit 66fa3cedf16a ("fs: Add async write file modification handling.")
+effectively disabled IOCB_NOWAIT writes as timestamp updates currently
+always require blocking, and the modern timestamp resolution means we
+always update timestamps.  This leads to a lot of context switches from
+applications using io_uring to submit file writes, making it often worse
+than using the legacy aio code that is not using IOCB_NOWAIT.
 
-Fix this by requiring callers of iterate_dir() to opt-in for getting
-flag bits in d_type outside of S_DT_MASK.
+This series allows non-blocking updates for lazytime if the file system
+supports it, and adds that support for XFS.
 
-Fixes: c31f91c6af96 ("fuse: don't allow signals to interrupt getdents copying")
-Link: https://lore.kernel.org/all/20260107034551.439-1-luochunsheng@ustc.edu/
-Link: https://github.com/containerd/stargz-snapshotter/issues/2214
-Reported-by: Chunsheng Luo <luochunsheng@ustc.edu>
-Reviewed-by: Chunsheng Luo <luochunsheng@ustc.edu>
-Tested-by: Chunsheng Luo <luochunsheng@ustc.edu>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+Changes since v5:
+ - sample ctime before calling inode_set_ctime_current
+ - fix a mild bisection hazard in fat
 
-Christian,
+Changes since v4:
+ - replace the S_* flags with an enum indicating either access or
+   modification time updates to make the logic less fragile and to
+   fix a bug in the previous version
 
-"Not pretty, but fine." [0]
-This is what you had to say on the Fixes commit ;)
-Maybe this will be finer...
+Changes since v3:
+ - fix was_dirty_time handling in __mark_inode_dirty for the racy flag
+   update case
+ - refactor inode_update_timestamps to make the lazytime vs blocking
+   logical more clear
+ - allow non-blocking timestamp updates for fat
 
-I was considering whether or not a mention in porting.rst is due.
+Changes since v2:
+ - drop patches merged upstream
+ - adjust for the inode state accesors
+ - keep a check in __writeback_single_inode instead of exercising
+   potentially undefined behavior
+ - more spelling fixes
 
-My conclusion was that the regressing commit might have needed to
-mention a change of vfs API, but this fix brings the vfs API back to
-conform to pre v6.16 semantics, so no porting instructions apply.
+Changes since v1:
+ - more regular numbering of the S_* flags
+ - fix XFS to actually not block
+ - don't ignore the generic_update_time return value in
+   file_update_time_flags
+ - fix the sync_lazytime return value
+ - fix an out of data comment in btrfs
+ - fix a race that would update i_version before returning -EAGAIN in XFS
 
-Thanks,
-Amir.
-
-Chages sinse v1:
-- Rename s/dt_flag_mask/dt_flags_mask/
-- Add Test/Reviewd-by
-
-[0] https://lore.kernel.org/linux-fsdevel/20250515-antlitz-aufzwingen-cdba155ce864@brauner/
-
- fs/readdir.c       | 3 +++
- include/linux/fs.h | 6 +++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/fs/readdir.c b/fs/readdir.c
-index 7764b86389788..73707b6816e9a 100644
---- a/fs/readdir.c
-+++ b/fs/readdir.c
-@@ -316,6 +316,7 @@ SYSCALL_DEFINE3(getdents, unsigned int, fd,
- 	struct getdents_callback buf = {
- 		.ctx.actor = filldir,
- 		.ctx.count = count,
-+		.ctx.dt_flags_mask = FILLDIR_FLAG_NOINTR,
- 		.current_dir = dirent
- 	};
- 	int error;
-@@ -400,6 +401,7 @@ SYSCALL_DEFINE3(getdents64, unsigned int, fd,
- 	struct getdents_callback64 buf = {
- 		.ctx.actor = filldir64,
- 		.ctx.count = count,
-+		.ctx.dt_flags_mask = FILLDIR_FLAG_NOINTR,
- 		.current_dir = dirent
- 	};
- 	int error;
-@@ -569,6 +571,7 @@ COMPAT_SYSCALL_DEFINE3(getdents, unsigned int, fd,
- 	struct compat_getdents_callback buf = {
- 		.ctx.actor = compat_filldir,
- 		.ctx.count = count,
-+		.ctx.dt_flags_mask = FILLDIR_FLAG_NOINTR,
- 		.current_dir = dirent,
- 	};
- 	int error;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index f5c9cf28c4dcf..a01621fa636a6 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1855,6 +1855,8 @@ struct dir_context {
- 	 * INT_MAX  unlimited
- 	 */
- 	int count;
-+	/* @actor supports these flags in d_type high bits */
-+	unsigned int dt_flags_mask;
- };
- 
- /* If OR-ed with d_type, pending signals are not checked */
-@@ -3524,7 +3526,9 @@ static inline bool dir_emit(struct dir_context *ctx,
- 			    const char *name, int namelen,
- 			    u64 ino, unsigned type)
- {
--	return ctx->actor(ctx, name, namelen, ctx->pos, ino, type);
-+	unsigned int dt_mask = S_DT_MASK | ctx->dt_flags_mask;
-+
-+	return ctx->actor(ctx, name, namelen, ctx->pos, ino, type & dt_mask);
- }
- static inline bool dir_emit_dot(struct file *file, struct dir_context *ctx)
- {
--- 
-2.52.0
-
+Diffstat:
+ Documentation/filesystems/locking.rst |    2 
+ Documentation/filesystems/vfs.rst     |    6 +
+ fs/btrfs/inode.c                      |    8 +-
+ fs/fs-writeback.c                     |   33 +++++++---
+ fs/gfs2/inode.c                       |    6 +
+ fs/inode.c                            |  111 +++++++++++++++++++++-------------
+ fs/internal.h                         |    3 
+ fs/nfs/inode.c                        |    4 -
+ fs/orangefs/inode.c                   |    5 +
+ fs/overlayfs/inode.c                  |    2 
+ fs/sync.c                             |    4 -
+ fs/ubifs/file.c                       |   13 ++-
+ fs/xfs/xfs_iops.c                     |   34 +++++++++-
+ fs/xfs/xfs_super.c                    |   29 --------
+ include/linux/fs.h                    |   27 ++++++--
+ include/trace/events/writeback.h      |    6 -
+ 16 files changed, 182 insertions(+), 111 deletions(-)
