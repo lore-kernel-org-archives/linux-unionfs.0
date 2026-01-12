@@ -1,108 +1,119 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FCA772631;
-	Sat, 10 Jan 2026 01:48:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC4FF26FDBF;
+	Mon, 12 Jan 2026 09:45:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768009682; cv=none; b=D9Ifb0c9YE66ew5iw22SH7pm+9s4ziw5G2zIxebtJTz+pF9P5L4fJhkPNTCqlTKKlU27R9v2Z0sU1AfkgsTMQvmXXiomFXRzS9bW9yvKIQj586tDhr9uqxLLqD2iQ6q4jwmo+LcgqbpSC0VRkb0EEziaeOLyxXb6g1UBZ20v1iY=
+	t=1768211146; cv=none; b=Zpu7aumk7FrxXDUkusCAL/axkiNItv9nqcLPB8t4GW0Q3XzwKZ0SnJ4G0QdNPFA8x8SSwuQFAmLcNXMuxASAuxI4q5sSMzvPye9+Y7LZe06KvoxocWT14itzbYRu/YjaGfwpKnASrlHYQUHUthtF1uP3Kc4R91heqCtc/Tm8cMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768009682; c=relaxed/simple;
-	bh=cdF01HTymcjwXfQS8AcBirvW01pDXmvEycM3L47DM38=;
-	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=bVuoIFYlMVuj6r0yi+KDK2lQZstzkeEN4R1VTTRmgoIZcZV68c9X5+pi34E5XhhECBI+fC274l6WI7GfjU1twL+DRR/Fk9MpoTxgw9A+gmuLwKw4WDoxm+q4QYfQl/udu/L9Fl7oE7bmbd2SF8jLnjWTnOGrkrGtNiYjbFy/z/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fu7FxrUR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768211146; c=relaxed/simple;
+	bh=DxZZGzK74wIR5W3ofx2JM6E8wyCgaH8nZoYwWgX+eR8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KK1tySqf/RA2cpWWpA/AZWNYS5ClU0Ec5mWt++mHODuOMLxjX150D8O8RPeSzenEA3mDr25wXGT98Mz3Punj9E8NZrutLYCB4QaYvBDQFqMtGTzSAh/JmQvaCe59tVU3pCWs0ojhjAD/gTsyGSeRSd8RNGueyT+4+HRKfGBtk24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qUeEQbxO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fu7FxrUR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AAB1C16AAE;
-	Sat, 10 Jan 2026 01:47:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qUeEQbxO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05681C19422;
+	Mon, 12 Jan 2026 09:45:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768009682;
-	bh=cdF01HTymcjwXfQS8AcBirvW01pDXmvEycM3L47DM38=;
-	h=Date:Cc:Subject:To:References:From:In-Reply-To:From;
-	b=Fu7FxrURqv63o/6rCcdW5OUCW4q5tJDwdMX16lkstwj96Y3ue96Q6p+PXYcAkBSTE
-	 UuBIQcMoCb8UBhZ3VgYGY9Hs+mposZy8O/TAd1t9B2FHXb83g+J13cZy/S+COvLI7A
-	 AVzdxtl+7sZ+ARe92YM2Pq5SJrqPzbyS3fbZcI0XyVKr6eLq08Q3Rx/Lu5Az1QejVf
-	 c5L1AD5mIN6/tM9/vPJ6O4DOb+2koTVlkEeccrf23n1J/Asfg2W7yZt4cZtExuiJ/F
-	 dREajCpoYlb46NKuspiGJYA2YFWhQ/LnSHS5B/M4V94u/4Hn/t/pnkaQiawh8m0Fnu
-	 nh/QGL+jmgSBA==
-Message-ID: <772e9b7d-6d83-4495-864d-f506211a9d62@kernel.org>
-Date: Sat, 10 Jan 2026 09:47:58 +0800
+	s=k20201202; t=1768211146;
+	bh=DxZZGzK74wIR5W3ofx2JM6E8wyCgaH8nZoYwWgX+eR8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=qUeEQbxO/1bJOSJmWeCdO+VjleNy8B0ViluvHBno5gr59qB8VEEYWEF1rbAie3EAq
+	 0lBRAdHEvYyqkAHaFwEQSYJO7qICSgJMwVU+ZEnKnom6kmsD+MVv/kP2W50TNqRina
+	 kmDueNMdchfAb950mTM+K2bF8wYvPkz2bL6iZxf1vIrUkGWdBvVMPGbx9pJEtEUBfV
+	 IM3Dxy7GJeSsVnoP849ryUv7V8KBbcs5OYRuU/u3ZZJmvVfKYLY9RHyEOjm2pR6/Iw
+	 silI5tXIpzTrN8O2PvgT967TZ9iXPpt9mOUwWRmfeNSwvLi1wbJ+xb2XzRmSgGte9Z
+	 9hI9tmM6jxdEA==
+From: Christian Brauner <brauner@kernel.org>
+To: NeilBrown <neilb@ownmail.net>
+Cc: Christian Brauner <brauner@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org,
+	Jeff Layton <jlayton@kernel.org>,
+	Chris Mason <clm@fb.com>,
+	David Sterba <dsterba@suse.com>,
+	David Howells <dhowells@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Tyler Hicks <code@tyhicks.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Olga Kornievskaia <okorniev@redhat.com>,
+	Dai Ngo <Dai.Ngo@oracle.com>,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Steve French <smfrench@gmail.com>,
+	Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Carlos Maiolino <cem@kernel.org>,
+	John Johansen <john.johansen@canonical.com>,
+	Paul Moore <paul@paul-moore.com>,
+	James Morris <jmorris@namei.org>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Stephen Smalley <stephen.smalley.work@gmail.com>,
+	Ondrej Mosnacek <omosnace@redhat.com>,
+	Mateusz Guzik <mjguzik@gmail.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Stefan Berger <stefanb@linux.ibm.com>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	netfs@lists.linux.dev,
+	ecryptfs@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-cifs@vger.kernel.org,
+	linux-xfs@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	selinux@vger.kernel.org,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Val Packett <val@packett.cool>
+Subject: Re: [PATCH] fuse: fix conversion of fuse_reverse_inval_entry() to start_removing()
+Date: Mon, 12 Jan 2026 10:45:29 +0100
+Message-ID: <20260112-sonnen-diagramm-ae37279f315f@brauner>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <176454037897.634289.3566631742434963788@noble.neil.brown.name>
+References: <176454037897.634289.3566631742434963788@noble.neil.brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Cc: chao@kernel.org, linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
- linux-f2fs-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org,
- jfs-discussion@lists.sourceforge.net, linux-nilfs@vger.kernel.org,
- ntfs3@lists.linux.dev, ocfs2-devel@lists.linux.dev,
- devel@lists.orangefs.org, linux-unionfs@vger.kernel.org,
- linux-xfs@vger.kernel.org, linux-mm@kvack.org, gfs2@lists.linux.dev,
- linux-doc@vger.kernel.org, v9fs@lists.linux.dev, ceph-devel@vger.kernel.org,
- linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org,
- samba-technical@lists.samba.org
-Subject: Re: [PATCH 08/24] f2fs: add setlease file operation
-To: Jeff Layton <jlayton@kernel.org>, Luis de Bethencourt
- <luisbg@kernel.org>, Salah Triki <salah.triki@gmail.com>,
- Nicolas Pitre <nico@fluxnic.net>, Christoph Hellwig <hch@infradead.org>,
- Jan Kara <jack@suse.cz>, Anders Larsen <al@alarsen.net>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, David Sterba <dsterba@suse.com>,
- Chris Mason <clm@fb.com>, Gao Xiang <xiang@kernel.org>,
- Yue Hu <zbestahu@gmail.com>, Jeffle Xu <jefflexu@linux.alibaba.com>,
- Sandeep Dhavale <dhavale@google.com>, Hongbo Li <lihongbo22@huawei.com>,
- Chunhai Guo <guochunhai@vivo.com>, Jan Kara <jack@suse.com>,
- Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>,
- Jaegeuk Kim <jaegeuk@kernel.org>,
- OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
- David Woodhouse <dwmw2@infradead.org>, Richard Weinberger <richard@nod.at>,
- Dave Kleikamp <shaggy@kernel.org>,
- Ryusuke Konishi <konishi.ryusuke@gmail.com>,
- Viacheslav Dubeyko <slava@dubeyko.com>,
- Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
- Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
- Joseph Qi <joseph.qi@linux.alibaba.com>, Mike Marshall
- <hubcap@omnibond.com>, Martin Brandenburg <martin@omnibond.com>,
- Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
- Phillip Lougher <phillip@squashfs.org.uk>, Carlos Maiolino <cem@kernel.org>,
- Hugh Dickins <hughd@google.com>, Baolin Wang
- <baolin.wang@linux.alibaba.com>, Andrew Morton <akpm@linux-foundation.org>,
- Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>,
- Yuezhang Mo <yuezhang.mo@sony.com>, Chuck Lever <chuck.lever@oracle.com>,
- Alexander Aring <alex.aring@gmail.com>,
- Andreas Gruenbacher <agruenba@redhat.com>, Jonathan Corbet <corbet@lwn.net>,
- "Matthew Wilcox (Oracle)" <willy@infradead.org>,
- Eric Van Hensbergen <ericvh@kernel.org>, Latchesar Ionkov
- <lucho@ionkov.net>, Dominique Martinet <asmadeus@codewreck.org>,
- Christian Schoenebeck <linux_oss@crudebyte.com>, Xiubo Li
- <xiubli@redhat.com>, Ilya Dryomov <idryomov@gmail.com>,
- Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
- Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.org>,
- Ronnie Sahlberg <ronniesahlberg@gmail.com>,
- Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>,
- Bharath SM <bharathsm@microsoft.com>, Hans de Goede <hansg@kernel.org>
-References: <20260108-setlease-6-20-v1-0-ea4dec9b67fa@kernel.org>
- <20260108-setlease-6-20-v1-8-ea4dec9b67fa@kernel.org>
-Content-Language: en-US
-From: Chao Yu <chao@kernel.org>
-In-Reply-To: <20260108-setlease-6-20-v1-8-ea4dec9b67fa@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1363; i=brauner@kernel.org; h=from:subject:message-id; bh=DxZZGzK74wIR5W3ofx2JM6E8wyCgaH8nZoYwWgX+eR8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSmHNp3YLliou6j/3Ff/idODOBi2hrnHJFm6HLce0lit usnvUPLO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACbStoDhf+ApldVTH+9ump0Q 4sQyPVufZcfFQim/qg0H5pYcsWTsvsPIsItlrpnjleU7v1yNkzy16KEws3jZzJDTbjWb3t+wXH5 wHicA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-On 1/9/2026 1:13 AM, Jeff Layton wrote:
-> Add the setlease file_operation to f2fs_file_operations and
-> f2fs_dir_operations, pointing to generic_setlease.  A future patch will
-> change the default behavior to reject lease attempts with -EINVAL when
-> there is no setlease file operation defined. Add generic_setlease to
-> retain the ability to set leases on this filesystem.
+On Mon, 01 Dec 2025 09:06:18 +1100, NeilBrown wrote:
+> The recent conversion of fuse_reverse_inval_entry() to use
+> start_removing() was wrong.
+> As Val Packett points out the original code did not call ->lookup
+> while the new code does.  This can lead to a deadlock.
 > 
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> Rather than using full_name_hash() and d_lookup() as the old code
+> did, we can use try_lookup_noperm() which combines these.  Then
+> the result can be given to start_removing_dentry() to get the required
+> locks for removal.  We then double check that the name hasn't
+> changed.
+> 
+> [...]
 
-Reviewed-by: Chao Yu <chao@kernel.org>
+Applied to the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
-Thanks,
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
+
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.fixes
+
+[1/1] fuse: fix conversion of fuse_reverse_inval_entry() to start_removing()
+      https://git.kernel.org/vfs/vfs/c/cab012375122
