@@ -1,94 +1,72 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 629FA2D7D30
-	for <linux-unionfs@vger.kernel.org>; Thu, 15 Jan 2026 18:17:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768501070; cv=pass; b=rRYv5I0m+UPQdZ+ZZLKrm0+tTpqo5v+XtohBFczK1XWyu4c07MFtozVLS1D4UYqdPqpFEvTvWgj6+OEpu/p5O1wtDRi73QMkvqryQQZ3kwnP4xBNmwGwBu5kWa3VLRsVgINHWiFBy2lwbJmt8vX+HYwlTTpEuk3BRpOpqYxSbEo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768501070; c=relaxed/simple;
-	bh=lrPbqnzgCOvE5NgsFSOuHcaOEuIUQeGDqGbHFIodw8A=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFDF73BC4F0
+	for <linux-unionfs@vger.kernel.org>; Thu, 15 Jan 2026 18:22:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.43
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1768501332; cv=none; b=TJlUX90zt0a53X2EfO2EEu0NwMjCGPOmBfSO1ZL7X+MgsGMoRpDL4L0EQBvKUPqnOorvTN0U8v6R3GF28Tq4urgJqoURb76p2qBV74nBuDbZTV1IEUJSTi3h+EyxXwHAWEPowEFzDo+S7QAaavjaxyC7j8eLhWNG0UO2OueF+/M=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1768501332; c=relaxed/simple;
+	bh=1cnJvM86J6ZtD0hbHWYgXyV/1EjumZkd5A95it/praY=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=n2lwoU82V071XbC7vbtit8lye8o4ELPpNcWxh1CBkvSZO75elLWZ3qRMfwqSFCvgAFxj9Uan1TByqewt8VlAUFTdK99SaE9nD/iXLslg+t0UMLixNMOi9wL6kFURI3fQziVqmdgBBAxXDaOCeP02JKM+PPWKGaErvAKRm9hPU44=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JRqy9Oiq; arc=pass smtp.client-ip=209.85.208.48
+	 To:Cc:Content-Type; b=PgdkFcoiKq6bhCYY62hEVdApOpG5tvMKQzCze1OP0VZzntOpN/NaiejngoN0yrQ66xBZ3ypmzcufX1nFf0e2EXafgi1mEsDU7xU6mz9linuyXOxPETYI5QEBgZPHrfS6r/abX6kZuDjhlUkLjjXZoDKyLcz0RNK9dDGSdWbY6bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QTkqxTTn; arc=none smtp.client-ip=209.85.208.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JRqy9Oiq"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-64b7a38f07eso1739013a12.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 15 Jan 2026 10:17:48 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1768501067; cv=none;
-        d=google.com; s=arc-20240605;
-        b=BvvMh40NVn8lMbvMgcLuw+UVL5TfXx4htPo2/zKJWiv3G7WY3/g21GNNXw513/kmyq
-         RiBfaa18Q0K7aS/TbbuWTs2sxog3yadsDQlkRwd5VmJfhuKKxtbcF61jbHUfw6u2EHm6
-         gS6A28xl4SnpGYTl2kZlVT1tQH/bEGWPnVMBZoxymcaBUIGaeP8bnddT8baGb0gt1wv+
-         YLJgl/qoQmp8U76sRJq9jkwstEVZGoCzo135uNk7eQOVnGL7/Yi9tECStf7JMGuqkHNf
-         RYVimLYs5KDeKWwgW16MplPWW3Qe4BXfE6RGcxd41oUSy35uo+vYbsEN5VXVKPmZnIEC
-         E74Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=lrPbqnzgCOvE5NgsFSOuHcaOEuIUQeGDqGbHFIodw8A=;
-        fh=HPCqdIeazbZFCDN0HbEWwCwrr7w9px+t7qPcs+0vHsw=;
-        b=OSS4WEBaaDNXTCfnH1YqTWcw3sKld+TUGUlFIaOgzYgaPXJFg/JRmx+BcDA84oF+gE
-         EKNVSeCmMBvqZjnlnoEpF3qkKV2x4m1M2iLcvHhnXhKxjVWb6hpIpjhDhanvYfVE15aY
-         JG2aUS6EPriebE7SPNCf6KkUfYqzVKVqqaLnGKW6P6srpRNKZhSLOpsLyfQn4gx8R43A
-         TK/+2f+Jn9bzE1jzxGutjvdSm9IPWqdc4ZN71rb16UA4CKzX37Bqw6OmEv1zUkMJayx1
-         zvFOmXOVtRmCQYH9qLYr6CiYOZ3IM4KZd+gV6UqqA9ewUoQfZBZ9L76fiVk0aEgf7tV+
-         ewOw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QTkqxTTn"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-653781de668so1818670a12.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 Jan 2026 10:22:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768501067; x=1769105867; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1768501328; x=1769106128; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=lrPbqnzgCOvE5NgsFSOuHcaOEuIUQeGDqGbHFIodw8A=;
-        b=JRqy9OiqbHt3NQq3XCkGStTAlcxglCMEMq+vkPdztBR4c+MkrffxyXlppZJ7bL4sv3
-         +FXHo4WCeS6ifCEJXW+UdjZqdayxLi0mNMYJfj32IOulawR+3uE9C6Ut2x3X5eVTlY8+
-         6iRo29sMNevgrrtfjtiRzEF0k4plHYlK2kgxZb4KZPdGjfbpVgT/wXn6hxIwTOtPADbq
-         2v6VOk25RJEEoHnf4r5a+RfNediJCsI/4TTnPiMJgJQLHdyofqjBzPnr34u+fCoLT989
-         FV5CVbIQ4AFknrnsxqTVaClS78Bq+9klbvidUC90tZ/EK9JmXeohHKVG3ipODkA8GlnY
-         LSvg==
+        bh=d7IY8l2+i1WeuEXvkGd5lYKI5+uHV9G4YufUEOTseco=;
+        b=QTkqxTTnzvBGx4dAggYvCIz9QKtD+mn9WdF+/1UHfRc4XCYx4DoMQjWMLmlXGPAnjN
+         Dui67cs9p6RchjoT0BPMpncL4SdZJDJhoUJVAwND1teh2hjE1gCaYyAKfsk2bZJzykdQ
+         L6uCN6Rg2rcRh3nMIwNe70A+QLQXP7yab/UPzxRFWqiQD4aYIOsD9+OT5oPW3ivMarE6
+         XKDmVma2RYUKogkbJqhCmLLLgqkoAg/T6ZBkhjvezg7DgHhQ65OCiO8UtoczEsgALaXy
+         KlKdAWINUFksbES/YE55UdY6vScaYcwKVvzv/Yl7J0d4wXr1PT0RX8gE4+l55V6+LYk/
+         wmig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768501067; x=1769105867;
+        d=1e100.net; s=20230601; t=1768501328; x=1769106128;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=lrPbqnzgCOvE5NgsFSOuHcaOEuIUQeGDqGbHFIodw8A=;
-        b=Lcny+9FZlq06AJAcy0xLXhVIuZ254MWnu7/78ZXB8eaJeQIKj+k3/kipmJOVjLR3BX
-         aocOWOnPYVx0KuJePuNu8RuY+mOzHgm+3qyyFymztaDknRbZK0sNXCVwiQRpoirmSAOv
-         kykVBcITukRoJXyvp3I9GKyIdn+7vTeuPdZZpS6C+6ZAnliCUwhWBDvwRZ3h6UHaRjXV
-         s12u280KMjhysse5PR+4Xf13U9pOtE+lWm39UX6XhcR6sU2A0ZAVnpHbR7Vbi2NJQ/xh
-         kg/rSu4F+lRdtTKI2sKh9kflTB5G9gPVqbDtq453oSPq4SeJw3PT1/u2gVY2hfz+Vczj
-         tmyg==
-X-Forwarded-Encrypted: i=1; AJvYcCXi6l+QFkh/yZsboRILpbfdNfHkl/n9SAf69VsKjaqBg3Oy4K45weSB0bNDCmcGVqi7SZk7gaRw63l7BIR9@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx3wFDmseOGmwzvksdWw+SuHLMWwTiRTILtN9AqWKBFpUxFmAG1
-	AEt4HRtlvSfVR/Z38omcXK+vQhE5URGWWpf4COireYhF+GY8vQ4Ghf/boTXH7stfngnV78BJ+OW
-	Z33QO8HmkXNW7AENv3Mb+NPFmMhHjSCY=
-X-Gm-Gg: AY/fxX5Vv2Rad1py3Pry7Jb+Eq6BkQ35ZpQr9kawM0u1BVUpxD5VntwLUgjXja9/4Op
-	ynATVGSXRDyZqFZhSgLLTQtcmUy4I3EuoymRxb9G5Pr4I1i4C+fMf5/hGMk51FrXhTSni9MdqWN
-	LJfUgj31IQgkOEzmZuDvtX166JRHOrga9YHzNGGPVk0Cuwdl8k2URtMusJPZG1TvMlHLe4Fxr60
-	5yUxQ44Skezo70Kzp+I8EVThsqBMJ8tGLMw9WnWcvzacdcusdM+JG1Bq8csmmaxAvNSR8+AzQJj
-	ebkb3aVhh+Xw7hbg2M8hDuU6uLdeIw==
-X-Received: by 2002:a05:6402:510f:b0:64b:7eba:39ed with SMTP id
- 4fb4d7f45d1cf-654525ccad4mr346097a12.13.1768501066374; Thu, 15 Jan 2026
- 10:17:46 -0800 (PST)
+        bh=d7IY8l2+i1WeuEXvkGd5lYKI5+uHV9G4YufUEOTseco=;
+        b=kGRbupDmCFohygzop8zwodsgJzWXn+7MI15E7D0C3CcoR9630ugB/2cWChoNOsDWnZ
+         4KvRE4MApGTiMdCVHvkzC7AU0kjYRs7YlZ0ffAK+TNnQA4s+Sf0G8VfNCTesnPVwzGl1
+         8xYi3y2UpDwA1cG7ZeRU3hBLD1M+XhU/ofvsIATIj0AJY8mK9H66lNp1Pf9BG5nzck7M
+         aemRIq4YF/6iou6bAhHs6jzvn/IKBVC0Oumw4vbhnD2dsUw1WhuQ6haZq9ilei8Kstij
+         0hai+cGNF3/oCdOOOBpRGGMfN9YjYFIgbf+QT40elk5X2TJ0Y7JKA+Py0vlE+OKOyLPD
+         BhZg==
+X-Forwarded-Encrypted: i=1; AJvYcCUygHNlmHrJDjVxry8aG9YYl7GCB2nFoTsXdsHm3CFs1+oq/eleLx6MExQfZorGNRTiH+TGjYCLvcmFSlT2@vger.kernel.org
+X-Gm-Message-State: AOJu0YzOeiP/mOxhQ/pFl3h+1izALzAScPcRGHnSNO1GGCPrtudcxzZR
+	zFW79RZd505ZdlPADflYFK54yNOKAi3/kODnZY0H/DeyCrM1D0tpAHs0XgFESCfe8J8RxmR3FBs
+	i5JlEubShDOP4UG/4o6nko+sSYkqobi8=
+X-Gm-Gg: AY/fxX5JNVo+b5/I3QpC9IDrEIIuq2dwgf2RUERnBFvTW4+Xc79TbG3GjUzG7wrlpvP
+	ANJEzSSqd+4YcI3L4qOedwlBn8HLwKGXPtD1SAx7vcBFVZPPS/fMpQxn8mTtU5NKYaXbnB38Iz0
+	JBlRnpqoCSIk2MeXPt8Rfd8QX6WCz9VOWaWB5gsqyXdxmPiri5YS17dudgUtoqTteP76kIBp4yA
+	m+8lO6VqILslz0HREN5fGbqDpUBToYRAkkGnewkoYQugYcHXd+8KKIefffCNGHe28DHi3xwkVwf
+	PzJHzKcfMPMcO7zfRPTXBnB4q+Fp8w==
+X-Received: by 2002:a05:6402:2812:b0:64b:3f56:55c9 with SMTP id
+ 4fb4d7f45d1cf-65452cca336mr319308a12.26.1768501327990; Thu, 15 Jan 2026
+ 10:22:07 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org>
-In-Reply-To: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org>
+References: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org> <20260115-exportfs-nfsd-v1-16-8e80160e3c0c@kernel.org>
+In-Reply-To: <20260115-exportfs-nfsd-v1-16-8e80160e3c0c@kernel.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 15 Jan 2026 19:17:35 +0100
-X-Gm-Features: AZwV_QjhT3ZtgvkbHJB7796GEklGCbcNDL5CeRwrn_YYeN3X8FqPO-3_iRnRORw
-Message-ID: <CAOQ4uxjOJMwv_hRVTn3tJHDLMQHbeaCGsdLupiZYcwm7M2rm3g@mail.gmail.com>
-Subject: Re: [PATCH 00/29] fs: require filesystems to explicitly opt-in to
- nfsd export support
+Date: Thu, 15 Jan 2026 19:21:56 +0100
+X-Gm-Features: AZwV_Qjyapjv6JnFBHXmI5sSMthIqKsr1O8J34VK_oMMrDctP8UVkm6G-xvI8HQ
+Message-ID: <CAOQ4uxhnxipJcjznEoa_D2R91NDZRgT_TTouGA4PGJO-7R9spw@mail.gmail.com>
+Subject: Re: [PATCH 16/29] ovl: add EXPORT_OP_STABLE_HANDLES flag to export operations
 To: Jeff Layton <jlayton@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
 	Chuck Lever <chuck.lever@oracle.com>, NeilBrown <neil@brown.name>, 
@@ -126,26 +104,44 @@ Cc: Christian Brauner <brauner@kernel.org>, Alexander Viro <viro@zeniv.linux.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 15, 2026 at 6:48=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
+On Thu, Jan 15, 2026 at 6:49=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
 ote:
 >
-> In recent years, a number of filesystems that can't present stable
-> filehandles have grown struct export_operations. They've mostly done
-> this for local use-cases (enabling open_by_handle_at() and the like).
-> Unfortunately, having export_operations is generally sufficient to make
-> a filesystem be considered exportable via nfsd, but that requires that
-> the server present stable filehandles.
+> Add the EXPORT_OP_STABLE_HANDLES flag to overlayfs export operations to i=
+ndicate
+> that this filesystem can be exported via NFS.
+>
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> ---
+>  fs/overlayfs/export.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+> index 83f80fdb156749e65a4ea0ab708cbff338dacdad..17c92a228120e1803135cc2b4=
+fe4180f5e343f88 100644
+> --- a/fs/overlayfs/export.c
+> +++ b/fs/overlayfs/export.c
+> @@ -865,9 +865,11 @@ const struct export_operations ovl_export_operations=
+ =3D {
+>         .fh_to_parent   =3D ovl_fh_to_parent,
+>         .get_name       =3D ovl_get_name,
+>         .get_parent     =3D ovl_get_parent,
+> +       .flags          =3D EXPORT_OP_STABLE_HANDLES,
+>  };
+>
+>  /* encode_fh() encodes non-decodable file handles with nfs_export=3Doff =
+*/
+>  const struct export_operations ovl_export_fid_operations =3D {
+>         .encode_fh      =3D ovl_encode_fh,
+> +       .flags          =3D EXPORT_OP_STABLE_HANDLES,
+>  };
+>
 
-Where does the term "stable file handles" come from? and what does it mean?
-Why not "persistent handles", which is described in NFS and SMB specs?
+Actually, see comment above:
+/* encode_fh() encodes non-decodable file handles with nfs_export=3Doff */
 
-Not to mention that EXPORT_OP_PERSISTENT_HANDLES was Acked
-by both Christoph and Christian:
-
-https://lore.kernel.org/linux-fsdevel/20260115-rundgang-leihgabe-12018e93c0=
-0c@brauner/
-
-Am I missing anything?
+That's the variant of export_ops when overlayfs cannot be nfs exported
+because its encoded file handles can change after copyup+reboot.
 
 Thanks,
 Amir.
