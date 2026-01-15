@@ -1,162 +1,114 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8488B330B2E;
-	Thu, 15 Jan 2026 08:33:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8B6537E2EB;
+	Thu, 15 Jan 2026 15:43:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768466014; cv=none; b=OaGmKuIAjiVDhBoB/6KdUISjBgoA44eWGG4YJyZ85MsznRlZ7DOCvO44CuWn9Gqv9srYoTvvdBZ1zZ54JB0uBtMG7qAciwt73DAL3dXFhu7AaQXNo86ykAYuu+OQvrtbe4ZNHEZQESrwjT4ae+2mMSIOLtz9vQs7MPeZ2qTWw0U=
+	t=1768491787; cv=none; b=t4045dLLoOBEwvkXuMJy+7O2IUqOfzUZLXh0athxUIbqjcMtItmRWGeFej4WSN7N9+g0BIz4isj0Tih6b2nfL7zz3xXmnKq1eDn70lLWnixLKaiT5kMQM63CNplQYm/Qe1z/O/zKxgl/dC6GrKvE+Pd2GRK4d0WWLiWW9LwAsJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768466014; c=relaxed/simple;
-	bh=oLbUH2DPO45fSX51Lz273E+gwrE4TYXAmwzWRgKxagE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oE4DcCVvskeMkzzPMqouUqsG7F50mRMZRdYSp0FgQ+S/9+6gHE89h+oIs2lWuRLh/fSeIgfPIdu+t1NTPU0ci++IdZQVkyadHTC9LsxrJWblCv0jC1vvNFPtQpehQYnNwxW50c1b4+HsVnvGihsC8593hZljqm9xv2pFM1KEvvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=c+60rQr7; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1768491787; c=relaxed/simple;
+	bh=rUEcB7TOUQxUA2rPuRw81Bl6Sk+qHwI2NjU4Pq9USqE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=cYW2yEQTChx6DyixLbAj6jyUJacufPPn1lvvuBiyEJAK3vI5Rds/PHbkdu8WrBxmHmFoBq5XqPK6YH/LfEmwACltGrLcrRpenxsRna5PzWtXDXtnOMAU9vdbZQbJZmEob3VPKnxx/9dxqQNFucdeeR3UBrNfSzfoqZpyrwNiSEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=HguNlUr0; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="c+60rQr7"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=ggIby7ZJJhhdPb6y5rH3a2GAOEpyxb4btFDkRofMARo=; b=c+60rQr76h1PsKAd5LgZT9hsxs
-	aNKhr+6hZylxOZstJG/1DgKDn3jLBV6CLqh93j+WnurQG7htCVWPbVvx6tOOUVmORqsU2McpPOkHx
-	u9JemdngkpC4GOWQM49sG2cFmQXbWsrsABlaLCyNQvNPEl+M5kVweygSwI21MwVsu9pML78e/uHxP
-	vmIIVXx4fyMCNx3hPFAoWaY/UvrDQx3Aoog9gQ+mt7L4rBcvXKQQLFteJUrzRcG5+ThbjMMlIeFyn
-	n6rc9wHtWg+gNCftYd7qw5Q1lztuERemrK6iJ3CvqvoWgP9e6ucBOBNhWhZlZCMCcpDFLJa8qwA8J
-	WF22tmyA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vgImu-0000000C08y-0V2p;
-	Thu, 15 Jan 2026 08:33:04 +0000
-Date: Thu, 15 Jan 2026 00:33:04 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Jeff Layton <jlayton@kernel.org>,
-	Chuck Lever <chuck.lever@oracle.com>, Jan Kara <jack@suse.cz>,
-	Luis de Bethencourt <luisbg@kernel.org>,
-	Salah Triki <salah.triki@gmail.com>,
-	Nicolas Pitre <nico@fluxnic.net>, Anders Larsen <al@alarsen.net>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	David Sterba <dsterba@suse.com>, Chris Mason <clm@fb.com>,
-	Gao Xiang <xiang@kernel.org>, Chao Yu <chao@kernel.org>,
-	Yue Hu <zbestahu@gmail.com>, Jeffle Xu <jefflexu@linux.alibaba.com>,
-	Sandeep Dhavale <dhavale@google.com>,
-	Hongbo Li <lihongbo22@huawei.com>,
-	Chunhai Guo <guochunhai@vivo.com>, Jan Kara <jack@suse.com>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	Jaegeuk Kim <jaegeuk@kernel.org>,
-	OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Dave Kleikamp <shaggy@kernel.org>,
-	Ryusuke Konishi <konishi.ryusuke@gmail.com>,
-	Viacheslav Dubeyko <slava@dubeyko.com>,
-	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-	Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
-	Joseph Qi <joseph.qi@linux.alibaba.com>,
-	Mike Marshall <hubcap@omnibond.com>,
-	Martin Brandenburg <martin@omnibond.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Phillip Lougher <phillip@squashfs.org.uk>,
-	Carlos Maiolino <cem@kernel.org>, Hugh Dickins <hughd@google.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Namjae Jeon <linkinjeon@kernel.org>,
-	Sungjong Seo <sj1557.seo@samsung.com>,
-	Yuezhang Mo <yuezhang.mo@sony.com>,
-	Alexander Aring <alex.aring@gmail.com>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
-	Eric Van Hensbergen <ericvh@kernel.org>,
-	Latchesar Ionkov <lucho@ionkov.net>,
-	Dominique Martinet <asmadeus@codewreck.org>,
-	Christian Schoenebeck <linux_oss@crudebyte.com>,
-	Xiubo Li <xiubli@redhat.com>, Ilya Dryomov <idryomov@gmail.com>,
-	Trond Myklebust <trondmy@kernel.org>,
-	Anna Schumaker <anna@kernel.org>, Steve French <sfrench@samba.org>,
-	Paulo Alcantara <pc@manguebit.org>,
-	Ronnie Sahlberg <ronniesahlberg@gmail.com>,
-	Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>,
-	Bharath SM <bharathsm@microsoft.com>,
-	Hans de Goede <hansg@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-	linux-f2fs-devel@lists.sourceforge.net,
-	linux-mtd@lists.infradead.org, jfs-discussion@lists.sourceforge.net,
-	linux-nilfs@vger.kernel.org, ntfs3@lists.linux.dev,
-	ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
-	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org,
-	linux-mm@kvack.org, gfs2@lists.linux.dev, linux-doc@vger.kernel.org,
-	v9fs@lists.linux.dev, ceph-devel@vger.kernel.org,
-	linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org,
-	samba-technical@lists.samba.org
-Subject: Re: [PATCH 00/24] vfs: require filesystems to explicitly opt-in to
- lease support
-Message-ID: <aWimQEokuib7fXjY@infradead.org>
-References: <ce700ee20834631eceededc8cd15fc5d00fee28e.camel@kernel.org>
- <20260113-mondlicht-raven-82fc4eb70e9d@brauner>
- <aWZcoyQLvbJKUxDU@infradead.org>
- <ce418800f06aa61a7f47f0d19394988f87a3da07.camel@kernel.org>
- <aWc3mwBNs8LNFN4W@infradead.org>
- <CAOQ4uxhMjitW_DC9WK9eku51gE1Ft+ENhD=qq3uehwrHO=RByA@mail.gmail.com>
- <aWeUv2UUJ_NdgozS@infradead.org>
- <20260114-klarstellen-blamieren-0b7d40182800@brauner>
- <aWiMaMwI6nYGX9Bq@infradead.org>
- <20260115-inspektion-kochbuch-505d8f94829e@brauner>
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="HguNlUr0"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=cxcJJIvDm/hgUftodX3R1dDrr90bvmh2id0jz8mp7T4=; b=HguNlUr0JGNrv7hpUSfHspXJq4
+	mlYKL5oYPiG7yRQgwO0+ibsRK7Kt2sYlvhBjf4UULcPdCv0103Gru8r9ON5FIiVHy4XXOu+PJfP0P
+	2aSRz2jKp+ReL27N/HPTbpn7WF0VycCbQ+NMIur14gNveWXjV6oHEG9In5DCZaNBL5ewsNFSKW8Uo
+	YHhIgcPTdD5ni+5T9xXp1Gl0/a4VWADcu1kctpGjP1mfEN3lwE4JJOoSSFBUwABQOVRpdexXuH1IH
+	mdA79g/RvX47tKL9KGlUZjc0ZejZu4OYCGb9nWsa6QVY6kJa4xNWdGuf0k0x7IbM5+2ZTwhHuQJW/
+	uwge2iMA==;
+Received: from [177.139.22.247] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+	id 1vgPUd-005nio-C4; Thu, 15 Jan 2026 16:42:39 +0100
+Message-ID: <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
+Date: Thu, 15 Jan 2026 12:42:33 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260115-inspektion-kochbuch-505d8f94829e@brauner>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
+To: Christoph Hellwig <hch@lst.de>
+Cc: Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>,
+ Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+ Carlos Maiolino <cem@kernel.org>, Amir Goldstein <amir73il@gmail.com>,
+ Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>,
+ Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+ linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, kernel-dev@igalia.com
+References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
+ <20260114-tonyk-get_disk_uuid-v1-3-e6a319e25d57@igalia.com>
+ <20260114062608.GB10805@lst.de>
+ <5334ebc6-ceee-4262-b477-6b161c5ca704@igalia.com>
+ <20260115062944.GA9590@lst.de>
+ <633bb5f3-4582-416c-b8b9-fd1f3b3452ab@suse.com>
+ <20260115072311.GA10352@lst.de>
+Content-Language: en-US
+From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+In-Reply-To: <20260115072311.GA10352@lst.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jan 15, 2026 at 09:14:06AM +0100, Christian Brauner wrote:
-> On Wed, Jan 14, 2026 at 10:42:48PM -0800, Christoph Hellwig wrote:
-> > On Wed, Jan 14, 2026 at 04:20:13PM +0100, Christian Brauner wrote:
-> > > > You're still think of it the wrong way.  If we do have file systems
-> > > > that break the original exportfs semantics we need to fix that, and
-> > > > something like a "stable handles" flag will work well for that.  But
-> > > > a totally arbitrary "is exportable" flag is total nonsense.
-> > > 
-> > > File handles can legitimately be conceptualized independently of
-> > > exporting a filesystem. If we wanted to tear those concepts apart
-> > > implementation wise we could.
-> > > 
-> > > It is complete nonsense to expect the kernel to support exporting any
-> > > arbitrary internal filesystem or to not support file handles at all.
-> > 
-> > You are going even further down the path of entirely missing the point
-> > (or the two points by now).
+Em 15/01/2026 04:23, Christoph Hellwig escreveu:
+
+[...]
+
 > 
-> You're arguing for the sake of arguing imho. You're getting exactly what
-> we're all saying as evidenced by the last paragraph in your mail: it is
-> entirely what this whole thing is about.
-
-I can't even parse what you mean.  And no, I hate these stupid
-arguments, and I have much better things to do than dragging this on.
-
-> > If a file systems meets all technical requirements of being nfsd
-> > exportable and the users asks for it, it is not our job to make an
-> > arbitrary policy decision to say no.
+> I still wonder what the use case is here.  Looking at André's original
+> mail it states:
 > 
-> This is an entirely irrelevant point because we're talking about
-> cgroupfs, nsfs, and pidfs. And they don't meet this criteria. cgroupfs
-> is a _local resource management filesystem_ why would we ever want to
-> support exporting it over the network. It allows to break the local
-> delegation model as I've explained. cgroupfs shows _local processes_. So
-> a server will see completely nonsensical PID identifiers listed in
-> cgroup files and it can fsck around with processes in a remote system.
+> "However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
+> disk image with btrfs, a random UUID is assigned for the following disks each
+> time they are mounted, stored at temp_fsid and used across the kernel as the
+> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however
+> shows the original (and duplicated) UUID for all disks."
+> 
+> and this doesn't even talk about multiple mounts, but looking at
+> device_list_add it seems to only set the temp_fsid flag when set
+> same_fsid_diff_dev is set by find_fsid_by_device, which isn't documented
+> well, but does indeed seem to be done transparently when two file systems
+> with the same fsid are mounted.
+> 
+> So André, can you confirm this what you're worried about?  And btrfs
+> developers, I think the main problem is indeed that btrfs simply allows
+> mounting the same fsid twice.  Which is really fatal for anything using
+> the fsid/uuid, such NFS exports, mount by fs uuid or any sb->s_uuid user.
+> 
 
-None of that is a technical argument.  The lack of stable file handles
-would be one, and I think we came to the conclusion yesterday that
-this is the case.
+Yes, I'm would like to be able to mount two cloned btrfs images and to 
+use overlayfs with them. This is useful for SteamOS A/B partition scheme.
 
+>> If so, I think it's time to revert the behavior before it's too late.
+>> Currently the main usage of such duplicated fsids is for Steam deck to
+>> maintain A/B partitions, I think they can accept a new compat_ro flag for
+>> that.
+> 
+> What's an A/B partition?  And how are these safely used at the same time?
+> 
+
+The Steam Deck have two main partitions to install SteamOS updates 
+atomically. When you want to update the device, assuming that you are 
+using partition A, the updater will write the new image in partition B, 
+and vice versa. Then after the reboot, the system will mount the new 
+image on B.
+
+Android used to support A/B scheme as well: 
+https://source.android.com/docs/core/ota/ab
