@@ -1,215 +1,195 @@
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701BD21FF26
-	for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 10:30:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.47
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768559443; cv=pass; b=S7F4WaKBtTExW0O4OWTe2vK0n5aSJ5e5oTf83lisiUAlIt0tw6WcvAPFyhtfaYRsxb3LE64v5WBikPtwrTserDIxiVsXPRH7o9zRn/rxM+nZ7r93+PIhVtr8TX/iAwoXt1ag0KNLXQCP+ePuhWJkaiW9p3KPQBmuP+TTBVAz7rc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768559443; c=relaxed/simple;
-	bh=B4B79QmLv6TQD1z381uGCSUIW+aAL6+AKBabzlbdHlw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hMf7V1Jm04q+v06Kxvufi5lTmpIA9ljH4D96l4IVoqBGjTkiwO6UMpruIUAu2fWp0viURc/TE5gWotJ+f39mMTZtawSDaYmB+QKCjRL62/zaeaPeG1mYDCjA0LNYqMnS95h5U65a3RlCos/SFXCF2u9KQlCk90ayGGo4xTtSvk4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JAkknpoI; arc=pass smtp.client-ip=209.85.218.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CBBA362121
+	for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 10:46:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1768560366; cv=none; b=YUFhHtiblDWupTijFY9xMZFGJBSku6agGj5kL8Zl78U+85Go5nuCWmVeaUMGFpdLMAiznn0Mw7ORs6vSG8rwOYmPgAaeB/oQFnQH+5J3kFM+28RkV75En3sqVauBZgvMdgGTMQ5oe93x1GK6Br8GdwuthdkxaXo3z8J1qfkURgM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1768560366; c=relaxed/simple;
+	bh=17p1ZrtxsztVvdLWCHwyXXFJ63cAMErI0f0obnmhrLk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K8dMkzijyf/yQW6whZLlyUT4TQhvCmXcyOrM6scQqdxNNqV7KtG6LfneuXQEh3SCWJC5lmzHaU+2DyM155ErB2DBbSdc3iB3O0SsmH5Bd81t9DcBHhQ+u/0T8Mgjlo67oR4YU9+yY43xUl6tcknXG9AIKxxHSR2mBZyPWv8sN+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=NM/kSQUl; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=YPA70NjZ; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=NM/kSQUl; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=YPA70NjZ; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JAkknpoI"
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-b872b588774so284770566b.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 02:30:42 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1768559441; cv=none;
-        d=google.com; s=arc-20240605;
-        b=G2tXXeaVxC+xywzjzlqPIqB355Pw0FgUuaZHOt7eFL5aGsAegSTLoh4rdC7ICrbjCB
-         d4Pzvin1O7vsjdjFA6VoQvYH4B6tEwq7V9AuzFhbvYQObHQMjbkaD1H5f9NzZ/1KDe+B
-         yHVat12M1QgikBmw56Wk1Qjr9FXwjicrCnGjp9Kvd7/Yy/d3/2ciJk0uv8G84YzpMPz9
-         a1jVskNhD307KOgqN4Dev82mfR868/6OjlPjhRxQrGzd+lPNNk8J0TX7WW1aPgSEMH3F
-         KtVRMy+1SLukPKXOosot8QqhojQVZfBeRBegXpQSHrMJEZDE7X0klFmbRTIV2OgPmHor
-         X23A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=cf56CR+AIA+Ye3zO1l7mJcltomNJyiS/tY/yuhiDWzY=;
-        fh=qu+hwLlDj8x3rM7NRWI3srwPX0kgkr0yYUjG7+ZnbKc=;
-        b=cRJIx0be9fTiJUcY3aiICpfgn4CmBCRGuZ+gtLjZqTXTPSkAQh4I35T38x2eOWjtvb
-         EeHQo73TmQmE4QelQ00Nqb2ma5mcmwHcC118lVo3bUm5bU+TVK0P2g2bflqAOUDpqJjU
-         9Qchfhnzr+aPFV2p81Y/u0yS0fFuzb4gk8PbqASLI354wQ4UdiJ2yrEuAN7oWxR6t+BM
-         1i9wxqjWrcVttlwrsQmUK15IkY5asYd458Mm3GGPkTYFVZn3NwMhefYQuJorK8Br9+nu
-         bQXNPbFXaGUGBjzlhkx90RBmFdxlobiQxkGjo2ldNdxlMaRRGXYCVOWrPBEbJHh2EUAq
-         vfNw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768559441; x=1769164241; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cf56CR+AIA+Ye3zO1l7mJcltomNJyiS/tY/yuhiDWzY=;
-        b=JAkknpoIT4cmGniuo4Vo0GEIE14zEq70eqnl3EmyWSfzHHRFHw3fvndoMtjxEHg45M
-         j7G/K5fAujz9pCfuYRMs6n3zCYt9n8InszZ8IanOrDV1h8voM+1rPGcTgyv1Wz6ffnjW
-         +eI4cEiAmL/jJr6uhzC5sxDamL8qYcLXXyzQJRcbP0CeH77oGjhzmWyApFya45UQVi2j
-         ziv2fL1Ogxl8TLc8y/fmwVYtfr/BTuuycn6LYpxA0C221rzv94Pnyg2AMVn1z26aNi06
-         6y70P6ImvSD8l2C6keAcYJ6mbXFIyJdRlWwt5R6FJzMA25GN1g/inShMRsjlQpproWUM
-         GPNg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768559441; x=1769164241;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=cf56CR+AIA+Ye3zO1l7mJcltomNJyiS/tY/yuhiDWzY=;
-        b=nAlr6McfCjhFdABqDkDWGZqVIpGj8gpv/NXzOJ/QvIgwHiU2BytHwaWgnfvIkvyiDV
-         01gaab8l1pw2QT/9C5Btpbw1W00gWv1gwxNX8PAy2Cwe/93E5neyyVORkaQBAeLbvgW4
-         pm/yD6kQXMkYujrhDdxNJDPnqfVpCys97AJBmN3N5S4bMDVcDi/8Vi2tjon3GLw9Df2j
-         D3vtKk8jpoM6BOyVvHYIsSv92ex5E+qjqJ44YtYrBwTvnwzwlgZ8g24az+1qYcd3JY+x
-         mQMsbk8c8QXVUmolOj7U4+/te6DI0sTcijIYsCWzLr4KZHpQZc2z+b5X5g9/7aexxvhQ
-         1pdw==
-X-Forwarded-Encrypted: i=1; AJvYcCVFkE9Xg+pF65zSM/zu1V6caX2k2oz/gTqB786jwaL7W1DVlAEiQiyVgvdsq3vTxD9PoG4e7ousLWkEYQTR@vger.kernel.org
-X-Gm-Message-State: AOJu0YzIiAWNu/76igbjXkIRGxy7osLH5mKgJj5pz1s7RNDlyMZMd8PG
-	t9Tq8tN6jXMDk8G38FcYKC/WlhRqtNGQuIwqhSnOqlI6EHIgfv+F37jHgOeU/y/q6HKKCaNAaoi
-	Qo8LBWrgnSQFO0rKQJegxYeefvr6BNPE=
-X-Gm-Gg: AY/fxX6mbqy1Ji3sINGPVC44NK+7ujEVIO+hOSRxRdu/c600pnyDlPnRyXx9xBRbJ6M
-	xoKmuGtatgr6/VahOHDZK8YllhVEUt5BgkBH96m5NP+kSmTOaGz2lN2/JkkElRmz9tBbgDBsjIT
-	nCfEFycVCi1AAId81Fd3n/CVEnpkimt1xzAAJuaqhCavRT2vJBTuWm4n2v2rRbljYlZE4IDZUIK
-	rBHDp8k5nZMRf4HUbsCejXK87Zhp3LhPQ+GeUlLsO9B2TTvBa++oaSCwiBQp4VDQBmnYTX5o1lo
-	/R/qlMWIMZqDyssBuzbV0lPRhcgsOw==
-X-Received: by 2002:a17:907:d1d:b0:b87:28f7:d3b6 with SMTP id
- a640c23a62f3a-b8792d67d35mr233178766b.19.1768559440351; Fri, 16 Jan 2026
- 02:30:40 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="NM/kSQUl";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="YPA70NjZ";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="NM/kSQUl";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="YPA70NjZ"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 9645A3369C;
+	Fri, 16 Jan 2026 10:45:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1768560355; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WJuLQN1/VqCQ5MzAXUwztUOsWD7c/6Ri8BvtTGrLxeQ=;
+	b=NM/kSQUl/op+YKS2s6eKZXfE9Glh5kkfMDr9vCIJsC9FWe94PjEgFUboHs0ZKmqO49bUWq
+	GGnb+NiraWiGN0Yc7/GMi+PXcDAXYotsEPDcTaiNspuD+pdYjp5VDufc+cwlF6YloG+qs3
+	uSGr4retqv1mJn56UXxhwHQeZysiV4E=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1768560355;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WJuLQN1/VqCQ5MzAXUwztUOsWD7c/6Ri8BvtTGrLxeQ=;
+	b=YPA70NjZ53LaWpg1U5dSvh7NjJzYXWZLUEwmMsCnm1ykEpF60x4KxRv4KCQctMxjo+19kZ
+	QfNXpE3F5HGTWWBA==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b="NM/kSQUl";
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=YPA70NjZ
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1768560355; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WJuLQN1/VqCQ5MzAXUwztUOsWD7c/6Ri8BvtTGrLxeQ=;
+	b=NM/kSQUl/op+YKS2s6eKZXfE9Glh5kkfMDr9vCIJsC9FWe94PjEgFUboHs0ZKmqO49bUWq
+	GGnb+NiraWiGN0Yc7/GMi+PXcDAXYotsEPDcTaiNspuD+pdYjp5VDufc+cwlF6YloG+qs3
+	uSGr4retqv1mJn56UXxhwHQeZysiV4E=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1768560355;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WJuLQN1/VqCQ5MzAXUwztUOsWD7c/6Ri8BvtTGrLxeQ=;
+	b=YPA70NjZ53LaWpg1U5dSvh7NjJzYXWZLUEwmMsCnm1ykEpF60x4KxRv4KCQctMxjo+19kZ
+	QfNXpE3F5HGTWWBA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8A8E93EA63;
+	Fri, 16 Jan 2026 10:45:55 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id J4nLIeMWamkTCwAAD6G6ig
+	(envelope-from <jack@suse.cz>); Fri, 16 Jan 2026 10:45:55 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 30814A091D; Fri, 16 Jan 2026 11:45:55 +0100 (CET)
+Date: Fri, 16 Jan 2026 11:45:55 +0100
+From: Jan Kara <jack@suse.cz>
+To: Jeff Layton <jlayton@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Chuck Lever <chuck.lever@oracle.com>, 
+	NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, 
+	Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, Amir Goldstein <amir73il@gmail.com>, 
+	Hugh Dickins <hughd@google.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, Theodore Ts'o <tytso@mit.edu>, 
+	Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>, Gao Xiang <xiang@kernel.org>, 
+	Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>, 
+	Jeffle Xu <jefflexu@linux.alibaba.com>, Sandeep Dhavale <dhavale@google.com>, 
+	Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>, 
+	Carlos Maiolino <cem@kernel.org>, Ilya Dryomov <idryomov@gmail.com>, 
+	Alex Markuze <amarkuze@redhat.com>, Viacheslav Dubeyko <slava@dubeyko.com>, Chris Mason <clm@fb.com>, 
+	David Sterba <dsterba@suse.com>, Luis de Bethencourt <luisbg@kernel.org>, 
+	Salah Triki <salah.triki@gmail.com>, Phillip Lougher <phillip@squashfs.org.uk>, 
+	Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.org>, 
+	Ronnie Sahlberg <ronniesahlberg@gmail.com>, Shyam Prasad N <sprasad@microsoft.com>, 
+	Bharath SM <bharathsm@microsoft.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Mike Marshall <hubcap@omnibond.com>, Martin Brandenburg <martin@omnibond.com>, 
+	Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>, 
+	Joseph Qi <joseph.qi@linux.alibaba.com>, Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, 
+	Ryusuke Konishi <konishi.ryusuke@gmail.com>, Trond Myklebust <trondmy@kernel.org>, 
+	Anna Schumaker <anna@kernel.org>, Dave Kleikamp <shaggy@kernel.org>, 
+	David Woodhouse <dwmw2@infradead.org>, Richard Weinberger <richard@nod.at>, Jan Kara <jack@suse.cz>, 
+	Andreas Gruenbacher <agruenba@redhat.com>, OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>, 
+	Jaegeuk Kim <jaegeuk@kernel.org>, Christoph Hellwig <hch@infradead.org>, linux-nfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, 
+	linux-ext4@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-xfs@vger.kernel.org, 
+	ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
+	samba-technical@lists.samba.org, linux-unionfs@vger.kernel.org, devel@lists.orangefs.org, 
+	ocfs2-devel@lists.linux.dev, ntfs3@lists.linux.dev, linux-nilfs@vger.kernel.org, 
+	jfs-discussion@lists.sourceforge.net, linux-mtd@lists.infradead.org, gfs2@lists.linux.dev, 
+	linux-f2fs-devel@lists.sourceforge.net
+Subject: Re: [PATCH 01/29] exportfs: add new EXPORT_OP_STABLE_HANDLES flag
+Message-ID: <6bajjyslarqrjr2brzyy6bgrmqrdxyhc42q7pfmz42d4y4kjtn@fod6fi4uf6qv>
+References: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org>
+ <20260115-exportfs-nfsd-v1-1-8e80160e3c0c@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOdxtTZ=SuV2GMPuqQJe6h-h-CDiG5yBW+07f1QYEw+kTA4-2w@mail.gmail.com>
- <CAOQ4uxggQekxqavkt+RiJd9s9cdDgXZuVfQrL_qNciBNf=4Lww@mail.gmail.com> <CAOdxtTaz7=TzQizrdMEhjgt7LpuuHWzTO80783RLcB_GP3nPdw@mail.gmail.com>
-In-Reply-To: <CAOdxtTaz7=TzQizrdMEhjgt7LpuuHWzTO80783RLcB_GP3nPdw@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 16 Jan 2026 11:30:28 +0100
-X-Gm-Features: AZwV_QjcW5Vh904wqXhwxNbUWeWP8Fsaz10YPClirj1lN31yHbn3TZvsoNvN12E
-Message-ID: <CAOQ4uxjMSs7c0OQvexFA11r37=VzCHMjpPm+1EFteYWdJGw2Ug@mail.gmail.com>
-Subject: Re: [Regression 6.12] NULL pointer dereference in submit_bio_noacct
- via backing_file_read_iter
-To: Chenglong Tang <chenglongtang@google.com>
-Cc: viro@zeniv.linux.org.uk, brauner@kernel.org, Jan Kara <jack@suse.cz>, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	miklos@szeredi.hu, overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260115-exportfs-nfsd-v1-1-8e80160e3c0c@kernel.org>
+X-Spamd-Result: default: False [-2.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RCVD_TLS_LAST(0.00)[];
+	RCVD_COUNT_THREE(0.00)[3];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MIME_TRACE(0.00)[0:+];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	ARC_NA(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[kernel.org,zeniv.linux.org.uk,oracle.com,brown.name,redhat.com,talpey.com,gmail.com,google.com,linux.alibaba.com,linux-foundation.org,mit.edu,dilger.ca,suse.com,huawei.com,vivo.com,dubeyko.com,fb.com,squashfs.org.uk,samba.org,manguebit.org,microsoft.com,szeredi.hu,omnibond.com,fasheh.com,evilplan.org,paragon-software.com,infradead.org,nod.at,suse.cz,mail.parknet.co.jp,vger.kernel.org,kvack.org,lists.ozlabs.org,lists.samba.org,lists.orangefs.org,lists.linux.dev,lists.sourceforge.net,lists.infradead.org];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[74];
+	TAGGED_RCPT(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MISSING_XM_UA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.cz:dkim,suse.cz:email,suse.com:email]
+X-Spam-Flag: NO
+X-Spam-Score: -2.51
+X-Rspamd-Queue-Id: 9645A3369C
+X-Rspamd-Action: no action
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spam-Level: 
 
-On Fri, Jan 16, 2026 at 3:56=E2=80=AFAM Chenglong Tang <chenglongtang@googl=
-e.com> wrote:
->
-> Hi Amir,
->
-> Thanks for the guidance. Using the specific order of the 8 commits
-> (applying the ovl_real_fdget refactors before the fix consumers)
-> resolved the boot-time NULL pointer panic. The system now boots
-> successfully.
->
-> However, we are still hitting the original kernel panic during runtime
-> tests (specifically a CloudSQL workload).
->
-> Current Commit Chain (Applied to 6.12):
->
-> 76d83345a056 (HEAD -> main-R125-cos-6.12) ovl: convert
-> ovl_real_fdget() callers to ovl_real_file()
-> 740bdf920b15 ovl: convert ovl_real_fdget_path() callers to ovl_real_file_=
-path()
-> 100b71ecb237 fs/backing_file: fix wrong argument in callback
-> b877bca6858d ovl: store upper real file in ovl_file struct
-> 595aac630596 ovl: allocate a container struct ovl_file for ovl private co=
-ntext
-> 218ec543008d ovl: do not open non-data lower file for fsync
-> 6def078942e2 ovl: use wrapper ovl_revert_creds()
-> fe73aad71936 backing-file: clean up the API
->
-> So it means none of these 8 commits were able to fix the problem.
+On Thu 15-01-26 12:47:32, Jeff Layton wrote:
+> At one time, nfsd could take the presence of struct export_operations to
+> be an indicator that a filesystem was exportable via NFS. Since then, a
+> lot of filesystems have grown export operations in order to provide
+> filehandle support. Some of those (e.g. kernfs, pidfs, and nsfs) are not
+> suitable for export via NFS since they lack filehandles that are
+> stable across reboot.
+> 
+> Add a new EXPORT_OP_STABLE_HANDLES flag that indicates that the
+> filesystem supports perisistent filehandles, a requirement for nfs
+> export. While in there, switch to the BIT() macro for defining these
+> flags.
+> 
+> For now, the flag is not checked anywhere. That will come later after
+> we've added it to the existing filesystems that need to remain
+> exportable.
+> 
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
 
-That's actually a good thing, because as I said from the start,
-it does not look like storing the upper real file in ovl_file should have
-fixed the root cause.
+...
 
-> Let me explain what's going on here:
->
-> We are reporting a rare but persistent kernel panic (~0.02% failure
-> rate) occurring during container initialization on Linux 6.12.55+
-> (x86_64). The 6.6.x is good. The panic is a NULL pointer dereference
-> in submit_bio_noacct, triggered specifically when the Integrity
-> Measurement Architecture (IMA) calculates a file hash during a runc
-> create operation.
->
-> We have isolated the crash to a specific container (ncsa) starting up
-> during a high-concurrency boot sequence.
->
-> Environment
-> * Kernel: Linux 6.12.55+ (x86_64) / Container-Optimized OS
-> * Workload: Cloud SQL instance initialization (heavy concurrent runc
-> operations managed by systemd).
-> * Filesystem: Ext4 backed by NVMe.
-> * Security: AppArmor enabled, IMA (Integrity Measurement Architecture) ac=
-tive.
->
-> The Failure Pattern(In every crash instance, the sequence is identical):
-> * systemd initiates the startup of the ncsainit container.
-> * runc executes the create command:
-> `Bash
-> `runc --root /var/lib/cloudsql/runc/root create --bundle
-> /var/lib/cloudsql/runc/bundles/ncsa ...
->
-> Immediately after this command is logged, the kernel panics.
->
-> Stacktrace:
-> [  186.938290] BUG: kernel NULL pointer dereference, address: 00000000000=
-00156
-> [  186.952203] #PF: supervisor read access in kernel mode
-> [  186.995248] Oops: Oops: 0000 [#1] SMP PTI
-> [  187.035946] CPU: 1 UID: 0 PID: 6764 Comm: runc:[2:INIT] Tainted: G
->          O       6.12.55+ #1
-> [  187.081681] RIP: 0010:submit_bio_noacct+0x21d/0x470
-> [  187.412981] Call Trace:
-> [  187.415751]  <TASK>
-> [  187.418141]  ext4_mpage_readpages+0x75c/0x790
-> [  187.429011]  read_pages+0x9d/0x250
-> [  187.450963]  page_cache_ra_unbounded+0xa2/0x1c0
-> [  187.466083]  filemap_get_pages+0x231/0x7a0
-> [  187.474687]  filemap_read+0xf6/0x440
-> [  187.532345]  integrity_kernel_read+0x34/0x60
-> [  187.560740]  ima_calc_file_hash+0x1c1/0x9b0
-> [  187.608175]  ima_collect_measurement+0x1b6/0x310
-> [  187.613102]  process_measurement+0x4ea/0x850
-> [  187.617788]  ima_bprm_check+0x5b/0xc0
-> [  187.635403]  bprm_execve+0x203/0x560
-> [  187.645058]  do_execveat_common+0x2fb/0x360
-> [  187.649730]  __x64_sys_execve+0x3e/0x50
->
-> Panic Analysis: The stack trace indicates a race condition where
-> ima_bprm_check (triggered by executing the container binary) attempts
-> to verify the file. This calls ima_calc_file_hash ->
-> ext4_mpage_readpages, which submits a bio to the block layer.
->
-> The crash occurs in submit_bio_noacct when it attempts to dereference
-> a member of the bio structure (likely bio->bi_bdev or the request
-> queue), suggesting the underlying device or queue structure is either
-> uninitialized or has been torn down while the IMA check was still in
-> flight.
->
-> Context on Concurrency: This workload involves systemd starting
-> multiple sidecar containers (logging, monitoring, coroner, etc.)
-> simultaneously. We suspect this high-concurrency startup creates the
-> IO/CPU contention required to hit this race window. However, the crash
-> consistently happens only on the ncsa container, implying something
-> specific about its launch configuration or timing makes it the
-> reliable victim.
->
+> -#define EXPORT_OP_FLUSH_ON_CLOSE	(0x20) /* fs flushes file data on close */
+> -#define EXPORT_OP_NOLOCKS		(0x40) /* no file locking support */
+> +#define EXPORT_OP_FLUSH_ON_CLOSE	BIT(5) /* fs flushes file data on close */
+> +#define EXPORT_OP_NOLOCKS		BIT(6) /* no file locking support */
+> +#define EXPORT_OP_STABLE_HANDLES	BIT(7) /* required for nfsd export */
 
-Your followup email said that the same race can happen also without IMA.
-I wonder if it could happen without a backing file, but that is hard
-to find out.
+The comment "required for nfsd export" doesn't quite match the name. I'd
+change the comment to something like "file handles are stable across
+reboot". Otherwise feel free to add:
 
-My first thought is that it could be related to some black magic
-with the backing vm_file, but I have nothing smarter to suggest at
-this point.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Thanks,
-Amir.
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
