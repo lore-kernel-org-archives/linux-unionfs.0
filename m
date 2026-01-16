@@ -1,189 +1,215 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FFBB35CBAC
-	for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 09:55:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768557334; cv=none; b=WOJareo4F54j8JiJqCI53cWeJfTAGgvr00iGo4cuBmtRb88kZKH7F73j0r37jg+UCVCRHDr6gPU0xTo6pjilwsncHCok0K4ZTQM0lMXStvDgG4R4qE2AuChp/mqRlC1KtulDzLsznCsi0hEaVpJe8pxUI+DMDUrzH0LMeYBuxjM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768557334; c=relaxed/simple;
-	bh=K1IVhgLVP4tMWa4rCPNyc3P/DTHNpSOZNTFwb25LilA=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701BD21FF26
+	for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 10:30:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1768559443; cv=pass; b=S7F4WaKBtTExW0O4OWTe2vK0n5aSJ5e5oTf83lisiUAlIt0tw6WcvAPFyhtfaYRsxb3LE64v5WBikPtwrTserDIxiVsXPRH7o9zRn/rxM+nZ7r93+PIhVtr8TX/iAwoXt1ag0KNLXQCP+ePuhWJkaiW9p3KPQBmuP+TTBVAz7rc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1768559443; c=relaxed/simple;
+	bh=B4B79QmLv6TQD1z381uGCSUIW+aAL6+AKBabzlbdHlw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=bs9wqJuNdacYvERHf6aKUPvSoa1zQ95kBHyh2NXhfujpwFL9D+EiieWevCyrRwndQYMI+S7dH9ODlHMJjPEyILx2L/0w2pq0KlwG6A89+OeTawfTuD5ZGsnukHRHm+unKX4cJvx2sc3UWWwtKeGzSMRI6bm3SFkraLbmJxl5RV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Tu3uI3Ls; arc=none smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=hMf7V1Jm04q+v06Kxvufi5lTmpIA9ljH4D96l4IVoqBGjTkiwO6UMpruIUAu2fWp0viURc/TE5gWotJ+f39mMTZtawSDaYmB+QKCjRL62/zaeaPeG1mYDCjA0LNYqMnS95h5U65a3RlCos/SFXCF2u9KQlCk90ayGGo4xTtSvk4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JAkknpoI; arc=pass smtp.client-ip=209.85.218.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tu3uI3Ls"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6505d3b84bcso2830972a12.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 01:55:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JAkknpoI"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-b872b588774so284770566b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jan 2026 02:30:42 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1768559441; cv=none;
+        d=google.com; s=arc-20240605;
+        b=G2tXXeaVxC+xywzjzlqPIqB355Pw0FgUuaZHOt7eFL5aGsAegSTLoh4rdC7ICrbjCB
+         d4Pzvin1O7vsjdjFA6VoQvYH4B6tEwq7V9AuzFhbvYQObHQMjbkaD1H5f9NzZ/1KDe+B
+         yHVat12M1QgikBmw56Wk1Qjr9FXwjicrCnGjp9Kvd7/Yy/d3/2ciJk0uv8G84YzpMPz9
+         a1jVskNhD307KOgqN4Dev82mfR868/6OjlPjhRxQrGzd+lPNNk8J0TX7WW1aPgSEMH3F
+         KtVRMy+1SLukPKXOosot8QqhojQVZfBeRBegXpQSHrMJEZDE7X0klFmbRTIV2OgPmHor
+         X23A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=cf56CR+AIA+Ye3zO1l7mJcltomNJyiS/tY/yuhiDWzY=;
+        fh=qu+hwLlDj8x3rM7NRWI3srwPX0kgkr0yYUjG7+ZnbKc=;
+        b=cRJIx0be9fTiJUcY3aiICpfgn4CmBCRGuZ+gtLjZqTXTPSkAQh4I35T38x2eOWjtvb
+         EeHQo73TmQmE4QelQ00Nqb2ma5mcmwHcC118lVo3bUm5bU+TVK0P2g2bflqAOUDpqJjU
+         9Qchfhnzr+aPFV2p81Y/u0yS0fFuzb4gk8PbqASLI354wQ4UdiJ2yrEuAN7oWxR6t+BM
+         1i9wxqjWrcVttlwrsQmUK15IkY5asYd458Mm3GGPkTYFVZn3NwMhefYQuJorK8Br9+nu
+         bQXNPbFXaGUGBjzlhkx90RBmFdxlobiQxkGjo2ldNdxlMaRRGXYCVOWrPBEbJHh2EUAq
+         vfNw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768557328; x=1769162128; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1768559441; x=1769164241; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=J4xFyXf1g1QrEuF2V9wAvkuU4l5f69A6f1eeQe7d3g4=;
-        b=Tu3uI3LsJHfm6sNIcneQu2bYQa5YkZemeRhVLiWhyUpDatM1CaaXJ5Kqy9qakFPHU8
-         19Yz0tvzaUgaLz2XacmRn2m9dK5Wi6d4SkcGT/mAGUhc4O3CLIyWdzFyM7pZeMEVZL1c
-         zxJDSEym/iUbaM3nehfogYSXexEELdRnrBbDspaIjOQseheo0FQR1vDSOUR+aZsMv78P
-         gSniwcsF4KoxAijuRf8ykfpVSjBSgz/h5Wc45prDz7ym4N9qZp5PjkDorEu84ilphDfJ
-         AwyztpbmX22k0BqFS8dH13sn/yCuN2nYlYn7eUy2htkLJ8Lli8JGYeMoY5Gs7/rQT5Zz
-         m7Mw==
+        bh=cf56CR+AIA+Ye3zO1l7mJcltomNJyiS/tY/yuhiDWzY=;
+        b=JAkknpoIT4cmGniuo4Vo0GEIE14zEq70eqnl3EmyWSfzHHRFHw3fvndoMtjxEHg45M
+         j7G/K5fAujz9pCfuYRMs6n3zCYt9n8InszZ8IanOrDV1h8voM+1rPGcTgyv1Wz6ffnjW
+         +eI4cEiAmL/jJr6uhzC5sxDamL8qYcLXXyzQJRcbP0CeH77oGjhzmWyApFya45UQVi2j
+         ziv2fL1Ogxl8TLc8y/fmwVYtfr/BTuuycn6LYpxA0C221rzv94Pnyg2AMVn1z26aNi06
+         6y70P6ImvSD8l2C6keAcYJ6mbXFIyJdRlWwt5R6FJzMA25GN1g/inShMRsjlQpproWUM
+         GPNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768557328; x=1769162128;
+        d=1e100.net; s=20230601; t=1768559441; x=1769164241;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=J4xFyXf1g1QrEuF2V9wAvkuU4l5f69A6f1eeQe7d3g4=;
-        b=nIhjZAa/Xi0/K2LrD5gNsVSvbBatZr/xV7A8hOiauXBFoX2Upnhb03XumyeqKCIePz
-         DFzR3dRTbcD53gpSx3NGIJy+dETG+f4aocnox9FGJf07FVyCrUoQNwvaZJlP4u2ikna7
-         7vk0F23R/9QVqi7tQyLy1Wb0gKjt6KpscyF3L4AruYhpJiJGCFl8hT2g/EzckFJA8hoX
-         VIgq6UtPOYuhASuQlFiYqqSBl6dTyu28Uda+LT2CdFKphmcga9ZspbaNMtEhnd6X8zAY
-         /f2w49r3BcBagMQsnvaAFXh1V1fmCgJX5NnrJB3SfbErsb3zFYAZCY4Qq0W/RNwaoywM
-         w1yw==
-X-Forwarded-Encrypted: i=1; AJvYcCVCs/FDI9l7e04lmXemXKkzrIJ48BtTF+N8NciSnbiipFcC0G/A8qox9m8DS2YnoMVXcVud4dmXK5sT+oSx@vger.kernel.org
-X-Gm-Message-State: AOJu0YzHKiGsA4MNUOkSNSknemFCwIDpHxdRjyvQhquhhoAaR6USKbJN
-	6zQUGocIRAig3/dxkQjj8lpx+QjzM1bQPL+RU0NaF/ZNCvXiMP5BjaF5rsQcv7jSmZp37RY+7Fu
-	YLQrQMJfPQVXNWElwQP+XV5R1W+Tk04s=
-X-Gm-Gg: AY/fxX4tL7rZcl3VdU8FT1Ok51iW90yUWLy28doOVdLfZk3SDyfJrY0i9+ZpLx0r33i
-	JJkjX8P3r9rks9aCB9KoDAfEHnjn36ddMRwCTumu0QqTDT6V+bhJ8cADMI/r6S/cnTB+tn1d4MF
-	JaN08Bl/GwKu3RcMv5dUj/HKDWtT2cXyqHbCz084ITZDWKU/zjwUqfo28unZkarureVhc72ZUud
-	9vh8YRJM7FewMeXTWuAqHaHNFi81zhC9TTtiDKVq7FzQMyqNkELy1lKjlMBzwg+PyxnMITjKU4V
-	2qi7zE3QtS5bPp77cv4SzLsof2zXnQ==
-X-Received: by 2002:a05:6402:399a:b0:64b:6e20:c92e with SMTP id
- 4fb4d7f45d1cf-654526c9083mr1397349a12.10.1768557327690; Fri, 16 Jan 2026
- 01:55:27 -0800 (PST)
+        bh=cf56CR+AIA+Ye3zO1l7mJcltomNJyiS/tY/yuhiDWzY=;
+        b=nAlr6McfCjhFdABqDkDWGZqVIpGj8gpv/NXzOJ/QvIgwHiU2BytHwaWgnfvIkvyiDV
+         01gaab8l1pw2QT/9C5Btpbw1W00gWv1gwxNX8PAy2Cwe/93E5neyyVORkaQBAeLbvgW4
+         pm/yD6kQXMkYujrhDdxNJDPnqfVpCys97AJBmN3N5S4bMDVcDi/8Vi2tjon3GLw9Df2j
+         D3vtKk8jpoM6BOyVvHYIsSv92ex5E+qjqJ44YtYrBwTvnwzwlgZ8g24az+1qYcd3JY+x
+         mQMsbk8c8QXVUmolOj7U4+/te6DI0sTcijIYsCWzLr4KZHpQZc2z+b5X5g9/7aexxvhQ
+         1pdw==
+X-Forwarded-Encrypted: i=1; AJvYcCVFkE9Xg+pF65zSM/zu1V6caX2k2oz/gTqB786jwaL7W1DVlAEiQiyVgvdsq3vTxD9PoG4e7ousLWkEYQTR@vger.kernel.org
+X-Gm-Message-State: AOJu0YzIiAWNu/76igbjXkIRGxy7osLH5mKgJj5pz1s7RNDlyMZMd8PG
+	t9Tq8tN6jXMDk8G38FcYKC/WlhRqtNGQuIwqhSnOqlI6EHIgfv+F37jHgOeU/y/q6HKKCaNAaoi
+	Qo8LBWrgnSQFO0rKQJegxYeefvr6BNPE=
+X-Gm-Gg: AY/fxX6mbqy1Ji3sINGPVC44NK+7ujEVIO+hOSRxRdu/c600pnyDlPnRyXx9xBRbJ6M
+	xoKmuGtatgr6/VahOHDZK8YllhVEUt5BgkBH96m5NP+kSmTOaGz2lN2/JkkElRmz9tBbgDBsjIT
+	nCfEFycVCi1AAId81Fd3n/CVEnpkimt1xzAAJuaqhCavRT2vJBTuWm4n2v2rRbljYlZE4IDZUIK
+	rBHDp8k5nZMRf4HUbsCejXK87Zhp3LhPQ+GeUlLsO9B2TTvBa++oaSCwiBQp4VDQBmnYTX5o1lo
+	/R/qlMWIMZqDyssBuzbV0lPRhcgsOw==
+X-Received: by 2002:a17:907:d1d:b0:b87:28f7:d3b6 with SMTP id
+ a640c23a62f3a-b8792d67d35mr233178766b.19.1768559440351; Fri, 16 Jan 2026
+ 02:30:40 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
- <20260114-tonyk-get_disk_uuid-v1-3-e6a319e25d57@igalia.com>
- <20260114062608.GB10805@lst.de> <5334ebc6-ceee-4262-b477-6b161c5ca704@igalia.com>
- <20260115062944.GA9590@lst.de> <633bb5f3-4582-416c-b8b9-fd1f3b3452ab@suse.com>
- <20260115072311.GA10352@lst.de> <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
- <CAOQ4uxhbz7=XT=C3R8XqL0K_o7KwLKsoNwgk=qJGuw2375MTJw@mail.gmail.com> <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com>
-In-Reply-To: <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com>
+References: <CAOdxtTZ=SuV2GMPuqQJe6h-h-CDiG5yBW+07f1QYEw+kTA4-2w@mail.gmail.com>
+ <CAOQ4uxggQekxqavkt+RiJd9s9cdDgXZuVfQrL_qNciBNf=4Lww@mail.gmail.com> <CAOdxtTaz7=TzQizrdMEhjgt7LpuuHWzTO80783RLcB_GP3nPdw@mail.gmail.com>
+In-Reply-To: <CAOdxtTaz7=TzQizrdMEhjgt7LpuuHWzTO80783RLcB_GP3nPdw@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 16 Jan 2026 10:55:15 +0100
-X-Gm-Features: AZwV_Qi6NnVcLeZQhugqg4vwwjzqnBqiBj0Y0tKNZxo4ZfD1WtvuLTyqSS9dynY
-Message-ID: <CAOQ4uxi988PutUi=Owm5zf6NaCm90PUCJLu7dw8firH8305w-A@mail.gmail.com>
-Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, 
-	NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
-	Tom Talpey <tom@talpey.com>, Carlos Maiolino <cem@kernel.org>, Chris Mason <clm@fb.com>, 
-	David Sterba <dsterba@suse.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Christian Brauner <brauner@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
-	linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	kernel-dev@igalia.com
+Date: Fri, 16 Jan 2026 11:30:28 +0100
+X-Gm-Features: AZwV_QjcW5Vh904wqXhwxNbUWeWP8Fsaz10YPClirj1lN31yHbn3TZvsoNvN12E
+Message-ID: <CAOQ4uxjMSs7c0OQvexFA11r37=VzCHMjpPm+1EFteYWdJGw2Ug@mail.gmail.com>
+Subject: Re: [Regression 6.12] NULL pointer dereference in submit_bio_noacct
+ via backing_file_read_iter
+To: Chenglong Tang <chenglongtang@google.com>
+Cc: viro@zeniv.linux.org.uk, brauner@kernel.org, Jan Kara <jack@suse.cz>, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	miklos@szeredi.hu, overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 15, 2026 at 7:55=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@iga=
-lia.com> wrote:
+On Fri, Jan 16, 2026 at 3:56=E2=80=AFAM Chenglong Tang <chenglongtang@googl=
+e.com> wrote:
 >
-> Em 15/01/2026 13:07, Amir Goldstein escreveu:
-> > On Thu, Jan 15, 2026 at 4:42=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid=
-@igalia.com> wrote:
-> >>
-> >> Em 15/01/2026 04:23, Christoph Hellwig escreveu:
-> >>
-> >> [...]
-> >>
-> >>>
-> >>> I still wonder what the use case is here.  Looking at Andr=C3=A9's or=
-iginal
-> >>> mail it states:
-> >>>
-> >>> "However, btrfs mounts may have volatiles UUIDs. When mounting the ex=
-act same
-> >>> disk image with btrfs, a random UUID is assigned for the following di=
-sks each
-> >>> time they are mounted, stored at temp_fsid and used across the kernel=
- as the
-> >>> disk UUID. `btrfs filesystem show` presents that. Calling statfs() ho=
-wever
-> >>> shows the original (and duplicated) UUID for all disks."
-> >>>
-> >>> and this doesn't even talk about multiple mounts, but looking at
-> >>> device_list_add it seems to only set the temp_fsid flag when set
-> >>> same_fsid_diff_dev is set by find_fsid_by_device, which isn't documen=
-ted
-> >>> well, but does indeed seem to be done transparently when two file sys=
-tems
-> >>> with the same fsid are mounted.
-> >>>
-> >>> So Andr=C3=A9, can you confirm this what you're worried about?  And b=
-trfs
-> >>> developers, I think the main problem is indeed that btrfs simply allo=
-ws
-> >>> mounting the same fsid twice.  Which is really fatal for anything usi=
-ng
-> >>> the fsid/uuid, such NFS exports, mount by fs uuid or any sb->s_uuid u=
-ser.
-> >>>
-> >>
-> >> Yes, I'm would like to be able to mount two cloned btrfs images and to
-> >> use overlayfs with them. This is useful for SteamOS A/B partition sche=
-me.
-> >>
-> >>>> If so, I think it's time to revert the behavior before it's too late=
-.
-> >>>> Currently the main usage of such duplicated fsids is for Steam deck =
-to
-> >>>> maintain A/B partitions, I think they can accept a new compat_ro fla=
-g for
-> >>>> that.
-> >>>
-> >>> What's an A/B partition?  And how are these safely used at the same t=
-ime?
-> >>>
-> >>
-> >> The Steam Deck have two main partitions to install SteamOS updates
-> >> atomically. When you want to update the device, assuming that you are
-> >> using partition A, the updater will write the new image in partition B=
-,
-> >> and vice versa. Then after the reboot, the system will mount the new
-> >> image on B.
-> >>
-> >
-> > And what do you expect to happen wrt overlayfs when switching from
-> > image A to B?
-> >
-> > What are the origin file handles recorded in overlayfs index from image=
- A
-> > lower worth when the lower image is B?
-> >
-> > Is there any guarantee that file handles are relevant and point to the
-> > same objects?
-> >
-> > The whole point of the overlayfs index feature is that overlayfs inodes
-> > can have a unique id across copy-up.
-> >
-> > Please explain in more details exactly which overlayfs setup you are
-> > trying to do with index feature.
-> >
+> Hi Amir,
 >
-> The problem happens _before_ switching from A to B, it happens when
-> trying to install the same image from A on B.
+> Thanks for the guidance. Using the specific order of the 8 commits
+> (applying the ovl_real_fdget refactors before the fix consumers)
+> resolved the boot-time NULL pointer panic. The system now boots
+> successfully.
 >
-> During the image installation process, while running in A, the B image
-> will be mounted more than once for some setup steps, and overlayfs is
-> used for this. Because A have the same UUID, each time B is remouted
-> will get a new UUID and then the installation scripts fails mounting the
-> image.
+> However, we are still hitting the original kernel panic during runtime
+> tests (specifically a CloudSQL workload).
+>
+> Current Commit Chain (Applied to 6.12):
+>
+> 76d83345a056 (HEAD -> main-R125-cos-6.12) ovl: convert
+> ovl_real_fdget() callers to ovl_real_file()
+> 740bdf920b15 ovl: convert ovl_real_fdget_path() callers to ovl_real_file_=
+path()
+> 100b71ecb237 fs/backing_file: fix wrong argument in callback
+> b877bca6858d ovl: store upper real file in ovl_file struct
+> 595aac630596 ovl: allocate a container struct ovl_file for ovl private co=
+ntext
+> 218ec543008d ovl: do not open non-data lower file for fsync
+> 6def078942e2 ovl: use wrapper ovl_revert_creds()
+> fe73aad71936 backing-file: clean up the API
+>
+> So it means none of these 8 commits were able to fix the problem.
 
-Please describe the exact overlayfs setup and specifically,
-is it multi lower or single lower layer setup?
-What reason do you need the overlayfs index for?
-Can you mount with index=3Doff which should relax the hard
-requirement for match with the original lower layer uuid.
+That's actually a good thing, because as I said from the start,
+it does not look like storing the upper real file in ovl_file should have
+fixed the root cause.
+
+> Let me explain what's going on here:
+>
+> We are reporting a rare but persistent kernel panic (~0.02% failure
+> rate) occurring during container initialization on Linux 6.12.55+
+> (x86_64). The 6.6.x is good. The panic is a NULL pointer dereference
+> in submit_bio_noacct, triggered specifically when the Integrity
+> Measurement Architecture (IMA) calculates a file hash during a runc
+> create operation.
+>
+> We have isolated the crash to a specific container (ncsa) starting up
+> during a high-concurrency boot sequence.
+>
+> Environment
+> * Kernel: Linux 6.12.55+ (x86_64) / Container-Optimized OS
+> * Workload: Cloud SQL instance initialization (heavy concurrent runc
+> operations managed by systemd).
+> * Filesystem: Ext4 backed by NVMe.
+> * Security: AppArmor enabled, IMA (Integrity Measurement Architecture) ac=
+tive.
+>
+> The Failure Pattern(In every crash instance, the sequence is identical):
+> * systemd initiates the startup of the ncsainit container.
+> * runc executes the create command:
+> `Bash
+> `runc --root /var/lib/cloudsql/runc/root create --bundle
+> /var/lib/cloudsql/runc/bundles/ncsa ...
+>
+> Immediately after this command is logged, the kernel panics.
+>
+> Stacktrace:
+> [  186.938290] BUG: kernel NULL pointer dereference, address: 00000000000=
+00156
+> [  186.952203] #PF: supervisor read access in kernel mode
+> [  186.995248] Oops: Oops: 0000 [#1] SMP PTI
+> [  187.035946] CPU: 1 UID: 0 PID: 6764 Comm: runc:[2:INIT] Tainted: G
+>          O       6.12.55+ #1
+> [  187.081681] RIP: 0010:submit_bio_noacct+0x21d/0x470
+> [  187.412981] Call Trace:
+> [  187.415751]  <TASK>
+> [  187.418141]  ext4_mpage_readpages+0x75c/0x790
+> [  187.429011]  read_pages+0x9d/0x250
+> [  187.450963]  page_cache_ra_unbounded+0xa2/0x1c0
+> [  187.466083]  filemap_get_pages+0x231/0x7a0
+> [  187.474687]  filemap_read+0xf6/0x440
+> [  187.532345]  integrity_kernel_read+0x34/0x60
+> [  187.560740]  ima_calc_file_hash+0x1c1/0x9b0
+> [  187.608175]  ima_collect_measurement+0x1b6/0x310
+> [  187.613102]  process_measurement+0x4ea/0x850
+> [  187.617788]  ima_bprm_check+0x5b/0xc0
+> [  187.635403]  bprm_execve+0x203/0x560
+> [  187.645058]  do_execveat_common+0x2fb/0x360
+> [  187.649730]  __x64_sys_execve+0x3e/0x50
+>
+> Panic Analysis: The stack trace indicates a race condition where
+> ima_bprm_check (triggered by executing the container binary) attempts
+> to verify the file. This calls ima_calc_file_hash ->
+> ext4_mpage_readpages, which submits a bio to the block layer.
+>
+> The crash occurs in submit_bio_noacct when it attempts to dereference
+> a member of the bio structure (likely bio->bi_bdev or the request
+> queue), suggesting the underlying device or queue structure is either
+> uninitialized or has been torn down while the IMA check was still in
+> flight.
+>
+> Context on Concurrency: This workload involves systemd starting
+> multiple sidecar containers (logging, monitoring, coroner, etc.)
+> simultaneously. We suspect this high-concurrency startup creates the
+> IO/CPU contention required to hit this race window. However, the crash
+> consistently happens only on the ncsa container, implying something
+> specific about its launch configuration or timing makes it the
+> reliable victim.
+>
+
+Your followup email said that the same race can happen also without IMA.
+I wonder if it could happen without a backing file, but that is hard
+to find out.
+
+My first thought is that it could be related to some black magic
+with the backing vm_file, but I have nothing smarter to suggest at
+this point.
 
 Thanks,
 Amir.
