@@ -1,221 +1,227 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from flow-b3-smtp.messagingengine.com (flow-b3-smtp.messagingengine.com [202.12.124.138])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0148F2DFA40;
-	Mon, 19 Jan 2026 16:57:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890632E4257;
+	Mon, 19 Jan 2026 20:46:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.138
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768841829; cv=none; b=pyPKJ3WPohBMtEvSj90uazm0OT+gu1lGX9dIoulfLW/87QbNdmjeQQ8RMSHCgwHHiUu8sjgRECtt/K3oU/oKBg9XKh9tdRxMk4qKGAon9UTc8V3SSzR3+SymIQJUl7qSwrKg/FtM3FQwH9z4DR9uP8lY7m5LAPug2VvA3g26X5M=
+	t=1768855564; cv=none; b=l3H0vaOTNLgktKViwk6vLL8ktTyFrqQe6LHY9Ti/T6T3rafJuzqR/pDMn9Ts/2PQvhlpAK3mU7u10jJ9Jca6oakwbu7lmGxtfAPUl/kesbn1f5wA7mG5SPyj+qVodnJmJD699JvyKKCOmG6+thTICReoNHwPdeZg3VRSI6x126g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768841829; c=relaxed/simple;
-	bh=MGyFqH8L+YjLuBcfjOJFi3mIAQwqi18e46X6Vl525qA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=I0s+wt3O8/27oJz4m/UfsGpvKDSpkEDpi2aCNBGXRf0MfaDtAb5G9AlGK49dXu33YXwGyprBRjDzlBkav+ltBlVJfqBdldnyHelG4LQjpamkWMdid4yprDho8XnMQOmRLoooRZqU114GN7rcCoHN2JOmQZ7sPQ91+qNblDtVMMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=d85uxIci; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1768855564; c=relaxed/simple;
+	bh=Nu+u8xIi1n/SDoC4CO0WUQIjg6M4bP4ZH6PEVt+Ooxc=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=NTFmOJbkyPmsjQRAoNByD7E5r9X+BYShOEneXXvHDkfqEOsQDwpwZTEjqyZSkFhaLMNUlEx2voccNaO59YLPrJfER2GnHzcs1lBGrqAXmXd/RgiPbI27/h2L2XdOs74S51A8I/Ljdiq+uqMB7Hhln3nfu/w0yLgqhYioNgk0ZxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=Lc0EYW6i; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=ext14fYh; arc=none smtp.client-ip=202.12.124.138
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="d85uxIci"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=P88t41E8krgosvMB/MCVHfZybEjwTBXqed9m6H1WG6c=; b=d85uxIciOlWnBSKk0pPQaN2N6P
-	MDQYopqIeTRKkxj+QaVKJ9AoWIt4929zZgGSr+r1Md50skhrHSXPbg4RzJVXtFgU52jMjF0fIn2iD
-	BtdMGwR6JOLkm5hD7hGtOAQ/8e8lsqswQbIUh8DiVt9cMrsqbY+4nUAJPvxwf7R0UhECnAXie1aOH
-	ImYT9zQ4OdWAEjZXOnqzFusqQ4QuMF2QA0x4REGVZtB+DCuhVolLJvx9LLBZaBg+AlhJtY+i4+mKR
-	1rw0phHBec+pMUsx9iLLYUl3mGCNE1DNOb9KmexI0bmxgWRQaXDO6KAAMhSzurHXY0u2Jmw5bMpf1
-	y+EtolGg==;
-Received: from [177.139.22.247] (helo=[192.168.15.100])
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-	id 1vhsYP-007EXi-GW; Mon, 19 Jan 2026 17:56:37 +0100
-Message-ID: <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
-Date: Mon, 19 Jan 2026 13:56:30 -0300
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="Lc0EYW6i";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ext14fYh"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailflow.stl.internal (Postfix) with ESMTP id C9DA613010D8;
+	Mon, 19 Jan 2026 15:45:59 -0500 (EST)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-04.internal (MEProxy); Mon, 19 Jan 2026 15:46:01 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
+	1768855559; x=1768862759; bh=v4LtkcerTNcKdHBuxb989VhIuXJUmGOFYwT
+	3m9zCWpQ=; b=Lc0EYW6ibUUqVQJUKzaim23Euwd0BGgFRXe5DALzfEojg7VN6rT
+	B6DiPIhAD3IC7M+5XEsbPahQ32cVgcxSRShqrzfxc+w2dQttIp0GWIrdUpX55qw0
+	1YJfvLNEex4MDg629sJRt0DIagYZ7O2YgHGEWRwCbzJK6pewaTBy/LwbN/3UuIrH
+	D1X+l3ArslIHe9m6/MxEM+BHkwyONj/QBcgvUoddEjQn2rtqiXm8XIlcaUBBGYcG
+	L51CiT0gWDAG38s7mrfim3JvqvUewVVj4jdamfv/vGEC6XVs37En7pvh86V+RKx9
+	u1Btsigj5UNDPW1ltBPZUH8SSA1nKU+SOjA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1768855559; x=
+	1768862759; bh=v4LtkcerTNcKdHBuxb989VhIuXJUmGOFYwT3m9zCWpQ=; b=e
+	xt14fYhTflITcl6YnaiRNNIPiieIuY3T2ekw4mgpmY/v/o1D6Rm9og97ySUxlRr7
+	FuBeLtlEdjDnDlXWSfPcQ5AbZapLP6oLiXJHFrRkIH0gKfaYLMLYjIQO36N4L42d
+	r+sxyuyT+2Dw0f4nF6Lb5U2/7dD8/gO1shUXevXTcOuhLj1lVMOynN4dkejCogfQ
+	7OuzydzQDyp0GPeNwjKBxultpJ+adDUHRpRjZpvqCu+f30BBcE9P8TFFL51mFFSd
+	5nqf/ngi6HPQpjIzif8UMR8pgDgY3x6Ww4kDrS1yWA5BVy+Nd5cITHqHPkkjbEzT
+	FALc3wWKIrn/NhNHGyWNw==
+X-ME-Sender: <xms:BJhuaSbEzFcWy9Pk6146wE82fhYm_CxjTiFHqGZKgwA0vYGamqcSmg>
+    <xme:BJhuaSwoBnyfk0eKn4-Aohsxi2pWCriN6dRenPPaxnkZL7_MsdqbsQlFS_j1eycjJ
+    snQClQFRDDxmckQGHACK4fSLzS3RfNjJQu9JuQvNfYNBDMQpQ>
+X-ME-Received: <xmr:BJhuaSJdRJMi7-ZpoAEIl9nJ6TzUD9unJMV7r6q_QrUGstq03Bv3pQ2jFX3ElyETlEyXOOSz_dMOZCxbyCO3448TMs1hLaDXJLozABR1b4SI>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddufeekheehucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepjedvpdhmohguvgepshhmthhp
+    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
+    hrtghpthhtohepghhuohgthhhunhhhrghisehvihhvohdrtghomhdprhgtphhtthhopehl
+    ihhnuhigqdigfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinh
+    hugidquhhnihhonhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehl
+    ihhnuhigqdhnihhlfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplh
+    hinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhn
+    uhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlih
+    hnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohep
+    lhhinhhugidqvgigthegsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:BJhuaSBO9clKpBY1c8tqtIkxX8-Yutqel2bbB8TbvrqddamOXX7Ykg>
+    <xmx:BJhuaRhuOPQDyCA_KFYnfcdaAOzKUXr3io07nJfde0jw7wudsjV9Bg>
+    <xmx:BJhuade95jkbwLWPmv5m35H6i7zd7TYoRjmUJ2fQMpOWq-IJ6QyQ1w>
+    <xmx:BJhuaelSBffgMjviuHAjgSaIv0cuzLl42YuUELeDiPJYohFPRx_JkA>
+    <xmx:B5huacYgAtwv-dw4ucg_ORya8hJwBFrWvyIGFRHLnxavffYq8g3321NH>
+Feedback-ID: iab3e480c:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 19 Jan 2026 15:45:39 -0500 (EST)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>,
- Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
- Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>,
- Tom Talpey <tom@talpey.com>, Carlos Maiolino <cem@kernel.org>,
- Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>,
- Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
- linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, kernel-dev@igalia.com, vivek@collabora.com,
- Ludovico de Nittis <ludovico.denittis@collabora.com>
-References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
- <20260114-tonyk-get_disk_uuid-v1-3-e6a319e25d57@igalia.com>
- <20260114062608.GB10805@lst.de>
- <5334ebc6-ceee-4262-b477-6b161c5ca704@igalia.com>
- <20260115062944.GA9590@lst.de>
- <633bb5f3-4582-416c-b8b9-fd1f3b3452ab@suse.com>
- <20260115072311.GA10352@lst.de>
- <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
- <CAOQ4uxhbz7=XT=C3R8XqL0K_o7KwLKsoNwgk=qJGuw2375MTJw@mail.gmail.com>
- <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com>
- <CAOQ4uxi988PutUi=Owm5zf6NaCm90PUCJLu7dw8firH8305w-A@mail.gmail.com>
- <33c1ccbd-abbe-4278-8ab1-d7d645c8b6e8@igalia.com>
- <CAOQ4uxgCM=q29Vs+35y-2K9k7GP2A2NfPkuqCrUiMUHW+KhbWw@mail.gmail.com>
-Content-Language: en-US
-From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-In-Reply-To: <CAOQ4uxgCM=q29Vs+35y-2K9k7GP2A2NfPkuqCrUiMUHW+KhbWw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From: NeilBrown <neilb@ownmail.net>
+To: "Christian Brauner" <brauner@kernel.org>
+Cc: "Christoph Hellwig" <hch@infradead.org>,
+ "Jeff Layton" <jlayton@kernel.org>,
+ "Amir Goldstein" <amir73il@gmail.com>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Chuck Lever" <chuck.lever@oracle.com>,
+ "Olga Kornievskaia" <okorniev@redhat.com>,
+ "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
+ "Hugh Dickins" <hughd@google.com>,
+ "Baolin Wang" <baolin.wang@linux.alibaba.com>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "Theodore Ts'o" <tytso@mit.edu>,
+ "Andreas Dilger" <adilger.kernel@dilger.ca>, "Jan Kara" <jack@suse.com>,
+ "Gao Xiang" <xiang@kernel.org>, "Chao Yu" <chao@kernel.org>,
+ "Yue Hu" <zbestahu@gmail.com>, "Jeffle Xu" <jefflexu@linux.alibaba.com>,
+ "Sandeep Dhavale" <dhavale@google.com>,
+ "Hongbo Li" <lihongbo22@huawei.com>, "Chunhai Guo" <guochunhai@vivo.com>,
+ "Carlos Maiolino" <cem@kernel.org>, "Ilya Dryomov" <idryomov@gmail.com>,
+ "Alex Markuze" <amarkuze@redhat.com>,
+ "Viacheslav Dubeyko" <slava@dubeyko.com>, "Chris Mason" <clm@fb.com>,
+ "David Sterba" <dsterba@suse.com>,
+ "Luis de Bethencourt" <luisbg@kernel.org>,
+ "Salah Triki" <salah.triki@gmail.com>,
+ "Phillip Lougher" <phillip@squashfs.org.uk>,
+ "Steve French" <sfrench@samba.org>, "Paulo Alcantara" <pc@manguebit.org>,
+ "Ronnie Sahlberg" <ronniesahlberg@gmail.com>,
+ "Shyam Prasad N" <sprasad@microsoft.com>,
+ "Bharath SM" <bharathsm@microsoft.com>,
+ "Miklos Szeredi" <miklos@szeredi.hu>,
+ "Mike Marshall" <hubcap@omnibond.com>,
+ "Martin Brandenburg" <martin@omnibond.com>,
+ "Mark Fasheh" <mark@fasheh.com>, "Joel Becker" <jlbec@evilplan.org>,
+ "Joseph Qi" <joseph.qi@linux.alibaba.com>,
+ "Konstantin Komarov" <almaz.alexandrovich@paragon-software.com>,
+ "Ryusuke Konishi" <konishi.ryusuke@gmail.com>,
+ "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, "Dave Kleikamp" <shaggy@kernel.org>,
+ "David Woodhouse" <dwmw2@infradead.org>,
+ "Richard Weinberger" <richard@nod.at>, "Jan Kara" <jack@suse.cz>,
+ "Andreas Gruenbacher" <agruenba@redhat.com>,
+ "OGAWA Hirofumi" <hirofumi@mail.parknet.co.jp>,
+ "Jaegeuk Kim" <jaegeuk@kernel.org>, linux-nfs@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-mm@kvack.org, linux-ext4@vger.kernel.org,
+ linux-erofs@lists.ozlabs.org, linux-xfs@vger.kernel.org,
+ ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+ linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+ devel@lists.orangefs.org, ocfs2-devel@lists.linux.dev,
+ ntfs3@lists.linux.dev, linux-nilfs@vger.kernel.org,
+ jfs-discussion@lists.sourceforge.net, linux-mtd@lists.infradead.org,
+ gfs2@lists.linux.dev, linux-f2fs-devel@lists.sourceforge.net
+Subject: Re: [PATCH 00/29] fs: require filesystems to explicitly opt-in to
+ nfsd export support
+In-reply-to: <20260119-kanufahren-meerjungfrau-775048806544@brauner>
+References: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org>,
+ <CAOQ4uxjOJMwv_hRVTn3tJHDLMQHbeaCGsdLupiZYcwm7M2rm3g@mail.gmail.com>,
+ <9c99197dde2eafa55a1b55dce2f0d4d02c77340a.camel@kernel.org>,
+ <176877859306.16766.15009835437490907207@noble.neil.brown.name>,
+ <aW3SAKIr_QsnEE5Q@infradead.org>,
+ <176880736225.16766.4203157325432990313@noble.neil.brown.name>,
+ <20260119-kanufahren-meerjungfrau-775048806544@brauner>
+Date: Tue, 20 Jan 2026 07:45:35 +1100
+Message-id: <176885553525.16766.291581709413217562@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-Em 16/01/2026 14:06, Amir Goldstein escreveu:
-> On Fri, Jan 16, 2026 at 2:28 PM André Almeida <andrealmeid@igalia.com> wrote:
->>
->> [+CC SteamOS developers]
->>
->> Em 16/01/2026 06:55, Amir Goldstein escreveu:
->>> On Thu, Jan 15, 2026 at 7:55 PM André Almeida <andrealmeid@igalia.com> wrote:
->>>>
->>>> Em 15/01/2026 13:07, Amir Goldstein escreveu:
->>>>> On Thu, Jan 15, 2026 at 4:42 PM André Almeida <andrealmeid@igalia.com> wrote:
->>>>>>
->>>>>> Em 15/01/2026 04:23, Christoph Hellwig escreveu:
->>>>>>
->>>>>> [...]
->>>>>>
->>>>>>>
->>>>>>> I still wonder what the use case is here.  Looking at André's original
->>>>>>> mail it states:
->>>>>>>
->>>>>>> "However, btrfs mounts may have volatiles UUIDs. When mounting the exact same
->>>>>>> disk image with btrfs, a random UUID is assigned for the following disks each
->>>>>>> time they are mounted, stored at temp_fsid and used across the kernel as the
->>>>>>> disk UUID. `btrfs filesystem show` presents that. Calling statfs() however
->>>>>>> shows the original (and duplicated) UUID for all disks."
->>>>>>>
->>>>>>> and this doesn't even talk about multiple mounts, but looking at
->>>>>>> device_list_add it seems to only set the temp_fsid flag when set
->>>>>>> same_fsid_diff_dev is set by find_fsid_by_device, which isn't documented
->>>>>>> well, but does indeed seem to be done transparently when two file systems
->>>>>>> with the same fsid are mounted.
->>>>>>>
->>>>>>> So André, can you confirm this what you're worried about?  And btrfs
->>>>>>> developers, I think the main problem is indeed that btrfs simply allows
->>>>>>> mounting the same fsid twice.  Which is really fatal for anything using
->>>>>>> the fsid/uuid, such NFS exports, mount by fs uuid or any sb->s_uuid user.
->>>>>>>
->>>>>>
->>>>>> Yes, I'm would like to be able to mount two cloned btrfs images and to
->>>>>> use overlayfs with them. This is useful for SteamOS A/B partition scheme.
->>>>>>
->>>>>>>> If so, I think it's time to revert the behavior before it's too late.
->>>>>>>> Currently the main usage of such duplicated fsids is for Steam deck to
->>>>>>>> maintain A/B partitions, I think they can accept a new compat_ro flag for
->>>>>>>> that.
->>>>>>>
->>>>>>> What's an A/B partition?  And how are these safely used at the same time?
->>>>>>>
->>>>>>
->>>>>> The Steam Deck have two main partitions to install SteamOS updates
->>>>>> atomically. When you want to update the device, assuming that you are
->>>>>> using partition A, the updater will write the new image in partition B,
->>>>>> and vice versa. Then after the reboot, the system will mount the new
->>>>>> image on B.
->>>>>>
->>>>>
->>>>> And what do you expect to happen wrt overlayfs when switching from
->>>>> image A to B?
->>>>>
->>>>> What are the origin file handles recorded in overlayfs index from image A
->>>>> lower worth when the lower image is B?
->>>>>
->>>>> Is there any guarantee that file handles are relevant and point to the
->>>>> same objects?
->>>>>
->>>>> The whole point of the overlayfs index feature is that overlayfs inodes
->>>>> can have a unique id across copy-up.
->>>>>
->>>>> Please explain in more details exactly which overlayfs setup you are
->>>>> trying to do with index feature.
->>>>>
->>>>
->>>> The problem happens _before_ switching from A to B, it happens when
->>>> trying to install the same image from A on B.
->>>>
->>>> During the image installation process, while running in A, the B image
->>>> will be mounted more than once for some setup steps, and overlayfs is
->>>> used for this. Because A have the same UUID, each time B is remouted
->>>> will get a new UUID and then the installation scripts fails mounting the
->>>> image.
->>>
->>> Please describe the exact overlayfs setup and specifically,
->>> is it multi lower or single lower layer setup?
->>> What reason do you need the overlayfs index for?
->>> Can you mount with index=off which should relax the hard
->>> requirement for match with the original lower layer uuid.
->>>
->>
->> The setup has a single lower layer. This is how the mount command looks
->> like:
->>
->> mount -t overlay -o
->> "lowerdir=${DEV_DIR}/etc,upperdir=${DEV_DIR}/var/lib/overlays/etc/upper,workdir=${DEV_DIR}/var/lib/overlays/etc/work"
->> none "${DEV_DIR}/etc"
->>
->> They would rather not disable index, to avoid mounting the wrong layers
->> and to avoid corner cases with hardlinks.
-> 
-> IIUC you have all the layers on the same fs ($DEV_DIR)?
-> 
-> See mount option uuid=off, created for this exact use case:
-> 
-> Documentation/filesystems/overlayfs.rst:
-> Note: the mount option uuid=off can be used to replace UUID of the underlying
-> filesystem in file handles with null, and effectively disable UUID checks. This
-> can be useful in case the underlying disk is copied and the UUID of this copy
-> is changed. This is only applicable if all lower/upper/work directories are on
-> the same filesystem, otherwise it will fallback to normal behaviour.
-> 
-> commit 5830fb6b54f7167cc7c9d43612eb01c24312c7ca
-> Author: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-> Date:   Tue Oct 13 17:59:54 2020 +0300
-> 
->      ovl: introduce new "uuid=off" option for inodes index feature
-> 
->      This replaces uuid with null in overlayfs file handles and thus relaxes
->      uuid checks for overlay index feature. It is only possible in case there is
->      only one filesystem for all the work/upper/lower directories and bare file
->      handles from this backing filesystem are unique. In other case when we have
->      multiple filesystems lets just fallback to "uuid=on" which is and
->      equivalent of how it worked before with all uuid checks.
-> 
->      This is needed when overlayfs is/was mounted in a container with index
->      enabled ...
-> 
->      If you just change the uuid of the backing filesystem, overlay is not
->      mounting any more. In Virtuozzo we copy container disks (ploops) when
->      create the copy of container and we require fs uuid to be unique for a new
->      container.
-> 
-> TBH, I am trying to remember why we require upper/work to be on the
-> same fs as lower for uuid=off,index=on and I can't remember.
-> If this is important I can look into it.
-> 
+On Mon, 19 Jan 2026, Christian Brauner wrote:
+> On Mon, Jan 19, 2026 at 06:22:42PM +1100, NeilBrown wrote:
+> > On Mon, 19 Jan 2026, Christoph Hellwig wrote:
+> > > On Mon, Jan 19, 2026 at 10:23:13AM +1100, NeilBrown wrote:
+> > > > > This was Chuck's suggested name. His point was that STABLE means th=
+at
+> > > > > the FH's don't change during the lifetime of the file.
+> > > > >=20
+> > > > > I don't much care about the flag name, so if everyone likes PERSIST=
+ENT
+> > > > > better I'll roll with that.
+> > > >=20
+> > > > I don't like PERSISTENT.
+> > > > I'd rather call a spade a spade.
+> > > >=20
+> > > >   EXPORT_OP_SUPPORTS_NFS_EXPORT
+> > > > or
+> > > >   EXPORT_OP_NOT_NFS_COMPATIBLE
+> > > >=20
+> > > > The issue here is NFS export and indirection doesn't bring any benefi=
+ts.
+> > >=20
+> > > No, it absolutely is not.  And the whole concept of calling something
+> > > after the initial or main use is a recipe for a mess.
+> >=20
+> > We are calling it for it's only use.  If there was ever another use, we
+> > could change the name if that made sense.  It is not a public name, it
+> > is easy to change.
+> >=20
+> > >=20
+> > > Pick a name that conveys what the flag is about, and document those
+> > > semantics well.  This flag is about the fact that for a given file,
+> > > as long as that file exists in the file system the handle is stable.
+> > > Both stable and persistent are suitable for that, nfs is everything
+> > > but.
+> >=20
+> > My understanding is that kernfs would not get the flag.
+> > kernfs filehandles do not change as long as the file exist.
+> > But this is not sufficient for the files to be usefully exported.
+> >=20
+> > I suspect kernfs does re-use filehandles relatively soon after the
+> > file/object has been destroyed.  Maybe that is the real problem here:
+> > filehandle reuse, not filehandle stability.
+> >=20
+> > Jeff: could you please give details (and preserve them in future cover
+> > letters) of which filesystems are known to have problems and what
+> > exactly those problems are?
+> >=20
+> > >=20
+> > > Remember nfs also support volatile file handles, and other applications
+> > > might rely on this (I know of quite a few user space applications that
+> > > do, but they are kinda hardwired to xfs anyway).
+> >=20
+> > The NFS protocol supports volatile file handles.  knfsd does not.
+> > So maybe
+> >   EXPORT_OP_NOT_NFSD_COMPATIBLE
+> > might be better.  or EXPORT_OP_NOT_LINUX_NFSD_COMPATIBLE.
+> > (I prefer opt-out rather than opt-in because nfsd export was the
+> > original purpose of export_operations, but it isn't something
+> > I would fight for)
+>=20
+> I prefer one of the variants you proposed here but I don't particularly
+> care. It's not a hill worth dying on. So if Christoph insists on the
+> other name then I say let's just go with it.
+>=20
 
-Actually they are not in the same fs, upper and lower are coming from 
-different fs', so when trying to mount I get the fallback to 
-`uuid=null`. A quick hack circumventing this check makes the mount work.
+This sounds like you are recommending that we give in to bullying.
+I would rather the decision be made based on the facts of the case, not
+the opinions that are stated most bluntly.
 
-If you think this is the best way to solve this issue (rather than 
-following the VFS helper path for instance), please let me know how can 
-I safely lift this restriction, like maybe adding a new flag for this?
+I actually think that what Christoph wants is actually quite different
+from what Jeff wants, and maybe two flags are needed.  But I don't yet
+have a clear understanding of what Christoph wants, so I cannot be sure.
 
-> Thanks,
-> Amir.
+NeilBrown
 
