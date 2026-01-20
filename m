@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9F8D3D649F;
-	Tue, 20 Jan 2026 14:12:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6AEF41760;
+	Tue, 20 Jan 2026 14:35:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768918352; cv=none; b=Ox+SMhnrG1vzGANfC5j6jLGHvCe3NEdvm5emiwNBWNnweOEqN5dGH6W9Zy1c8IMDYhqR9FqtVSa7+LWV8egkMc4uCmu9YjZ1UNcmtqRkfwlVP60tXr/+QWfkP69do1LdfYheyBXRA0ZKYtTJCqGQtSyg3WuzrK1oQ0zC6YntW/M=
+	t=1768919757; cv=none; b=KWNo29C9PgCkXpJxVEbtUHgb+CDZGdA+v52sTnvNBDlCLbB3E6qELfY6rFmCWsoCOIupnly+sRL5AZZovAcQNGmDtOKY+DSGv427PswciCnbWcOXADwmDM3HpxAOwbEdLdyIjxcnB2DntZgOqBEx5CxX9t2c3KbI6ErHYj0vQho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768918352; c=relaxed/simple;
-	bh=L3E8HhvX87nmou45QKTRtBfQlfrNc6JUH9rmuLWAoZs=;
+	s=arc-20240116; t=1768919757; c=relaxed/simple;
+	bh=dpS+PxEHDbPvZHdk4rsi82HgYDznM+Ad7e2Y2GUOqM0=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=HuydjLXf4XpCOtO7kKWKze00c1SWp7s5pZV2Rkn1WHNrolLSSjuTsAmjlV8G52Qe5GwK1OfKSAKVqFNln2Mhled7OePJevqj1w7pXXR4pEGAKoaGtMYwJ9sj1Q88xuKMMix5nV8hKnOxGTKGTJGEg0a1QK8aq7acKjdIT3Il5TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fs1qjXLd; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:MIME-Version; b=l3ROzX5hO9aVu9HYfQFvjpY+usvZpRiH73716KcAt19Wl1LROIOiP09lrpGHAvXMBmba40XMwQ3tcedHWV2Js8s7BjpOQTaLV/jVQPTEH6anyJ3srIWIupeCRMgX7tlzzVgtQpx8gDc2GFzzuGD5HOed0fuyQXG7/n2ydfeM8X8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c0Yb6Fai; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fs1qjXLd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8828BC19423;
-	Tue, 20 Jan 2026 14:12:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c0Yb6Fai"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1E02C16AAE;
+	Tue, 20 Jan 2026 14:35:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768918352;
-	bh=L3E8HhvX87nmou45QKTRtBfQlfrNc6JUH9rmuLWAoZs=;
+	s=k20201202; t=1768919756;
+	bh=dpS+PxEHDbPvZHdk4rsi82HgYDznM+Ad7e2Y2GUOqM0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-	b=fs1qjXLdXmYtCaveOISFME6KjBkKjb93SreqPvM/VXpZtTME7TbUDB7pUY5qsJkw5
-	 6fuwZGlF1NrNjUlEizRekYSqjMOnShYqpAOqWfJeliIvBrtsjTVxHaNyG+pZCZQ4e2
-	 PlodS/y5xq+O9DKI2i6VKaSJh8YCqvmmXitGD1ToLYIRPwjB1OGytE3TKa6A7LbuzD
-	 +5fhNRH0iB3jJX4TstKRcDUCIflQg2FmOVfqdnQaKtnh7Pj2nNfi+rahiAmH5n7j6Y
-	 Wc5bt8uWgo78VkXwAi0MoR7eV4eRdIq8Ss/wjOXSmrZlF1nZmPlWL1481755bZUcy3
-	 ytNjAkJhyTlvA==
-Message-ID: <707f08e114bf603caf7de020bb630d5477e86bca.camel@kernel.org>
+	b=c0Yb6FaiYwLqlqQz3OwDA/IDqUxyfXBp9KbKpjmBBfSeVXvxXUbg9q9NdfGgmZWgW
+	 LBb/OzfIa5D1/ur6fI8X1Vk7TdmXZKRMcEbjf9JlXnfEB9MYhrugESVBOALo3dfsJN
+	 c3kyXsUItLSCJTQSL1vvZL/3HJKK84XphEQiwTOn6YtKVhBnj9QBGOT4f0CwrcGO8u
+	 yGALNKq6Knah/9QOmKYxcHJkuuYwydE3ayRFjpzgUGf4tYVBIXe6uQ3AjWXvBoJsWL
+	 PgAgzCMENAMM68Vji4VPbqanPmS2G1JSuw16TDRDByd2ZHk+IW8jbpd/hMVDkrbbE8
+	 vt/1AfPD2XjbQ==
+Message-ID: <2ed97731c54ef130ea58861a91c80dacd785de9a.camel@kernel.org>
 Subject: Re: [PATCH v2 01/31] Documentation: document EXPORT_OP_NOLOCKS
 From: Jeff Layton <jlayton@kernel.org>
 To: Christoph Hellwig <hch@infradead.org>
@@ -71,12 +71,13 @@ Cc: Christian Brauner <brauner@kernel.org>, Alexander Viro
 	jfs-discussion@lists.sourceforge.net, linux-mtd@lists.infradead.org, 
 	gfs2@lists.linux.dev, linux-f2fs-devel@lists.sourceforge.net, 
 	linux-doc@vger.kernel.org
-Date: Tue, 20 Jan 2026 09:12:24 -0500
-In-Reply-To: <9b64bed72e43d0bf24e9b1e3bc770c4a87082762.camel@kernel.org>
+Date: Tue, 20 Jan 2026 09:35:48 -0500
+In-Reply-To: <707f08e114bf603caf7de020bb630d5477e86bca.camel@kernel.org>
 References: <20260119-exportfs-nfsd-v2-0-d93368f903bd@kernel.org>
-		 <20260119-exportfs-nfsd-v2-1-d93368f903bd@kernel.org>
-		 <aW8yV6v8ZDiynOUm@infradead.org>
-	 <9b64bed72e43d0bf24e9b1e3bc770c4a87082762.camel@kernel.org>
+			 <20260119-exportfs-nfsd-v2-1-d93368f903bd@kernel.org>
+			 <aW8yV6v8ZDiynOUm@infradead.org>
+		 <9b64bed72e43d0bf24e9b1e3bc770c4a87082762.camel@kernel.org>
+	 <707f08e114bf603caf7de020bb630d5477e86bca.camel@kernel.org>
 Autocrypt: addr=jlayton@kernel.org; prefer-encrypt=mutual;
  keydata=mQINBE6V0TwBEADXhJg7s8wFDwBMEvn0qyhAnzFLTOCHooMZyx7XO7dAiIhDSi7G1NPxw
  n8jdFUQMCR/GlpozMFlSFiZXiObE7sef9rTtM68ukUyZM4pJ9l0KjQNgDJ6Fr342Htkjxu/kFV1Wv
@@ -161,36 +162,58 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-On Tue, 2026-01-20 at 08:20 -0500, Jeff Layton wrote:
-> On Mon, 2026-01-19 at 23:44 -0800, Christoph Hellwig wrote:
-> > On Mon, Jan 19, 2026 at 11:26:18AM -0500, Jeff Layton wrote:
-> > > +  EXPORT_OP_NOLOCKS - Disable file locking on this filesystem. Some
-> > > +    filesystems cannot properly support file locking as implemented =
-by
-> > > +    nfsd. A case in point is reexport of NFS itself, which can't be =
-done
-> > > +    safely without coordinating the grace period handling. Other clu=
-stered
-> > > +    and networked filesystems can be problematic here as well.
+On Tue, 2026-01-20 at 09:12 -0500, Jeff Layton wrote:
+> On Tue, 2026-01-20 at 08:20 -0500, Jeff Layton wrote:
+> > On Mon, 2026-01-19 at 23:44 -0800, Christoph Hellwig wrote:
+> > > On Mon, Jan 19, 2026 at 11:26:18AM -0500, Jeff Layton wrote:
+> > > > +  EXPORT_OP_NOLOCKS - Disable file locking on this filesystem. Som=
+e
+> > > > +    filesystems cannot properly support file locking as implemente=
+d by
+> > > > +    nfsd. A case in point is reexport of NFS itself, which can't b=
+e done
+> > > > +    safely without coordinating the grace period handling. Other c=
+lustered
+> > > > +    and networked filesystems can be problematic here as well.
+> > >=20
+> > > I'm not sure this is very useful.  It really needs to document what
+> > > locking semantics nfs expects, because otherwise no reader will know
+> > > if they set this or not.
 > >=20
-> > I'm not sure this is very useful.  It really needs to document what
-> > locking semantics nfs expects, because otherwise no reader will know
-> > if they set this or not.
+> > Fair point. I'll see if I can draft something better. Suggestions
+> > welcome.
 >=20
-> Fair point. I'll see if I can draft something better. Suggestions
-> welcome.
+> How about this?
+>=20
+> +  EXPORT_OP_NOLOCKS - Disable file locking on this filesystem. Filesyste=
+ms
+> +    that want to support locking over NFS must support POSIX file lockin=
+g
+> +    semantics and must handle lock recovery requests from clients after =
+a
+> +    reboot. Most local disk, RAM, or pseudo-filesystems use the generic =
+POSIX
+> +    locking support in the kernel and naturally provide this capability.=
+ Network
+> +    or clustered filesystems usually need special handling to do this pr=
+operly.
 
-How about this?
+Even better, I think?
 
++
 +  EXPORT_OP_NOLOCKS - Disable file locking on this filesystem. Filesystems
 +    that want to support locking over NFS must support POSIX file locking
-+    semantics and must handle lock recovery requests from clients after a
-+    reboot. Most local disk, RAM, or pseudo-filesystems use the generic PO=
-SIX
-+    locking support in the kernel and naturally provide this capability. N=
-etwork
-+    or clustered filesystems usually need special handling to do this prop=
-erly.
++    semantics. When the server reboots, the clients will issue requests to
++    recover their locks, which nfsd will issue to the filesystem as new lo=
+ck
++    requests. Those must succeed in order for lock recovery to work. Most
++    local disk, RAM, or pseudo-filesystems use the generic POSIX locking
++    support in the kernel and naturally provide this capability. Network o=
+r
++    clustered filesystems usually need special handling to do this properl=
+y.
++    Set this flag on filesystems that can't guarantee the proper semantics
++    (e.g. reexported NFS).
 
 --=20
 Jeff Layton <jlayton@kernel.org>
