@@ -1,227 +1,143 @@
-Received: from flow-b3-smtp.messagingengine.com (flow-b3-smtp.messagingengine.com [202.12.124.138])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f79.google.com (mail-oo1-f79.google.com [209.85.161.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890632E4257;
-	Mon, 19 Jan 2026 20:46:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.138
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3B931F0E25
+	for <linux-unionfs@vger.kernel.org>; Tue, 20 Jan 2026 01:13:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.79
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768855564; cv=none; b=l3H0vaOTNLgktKViwk6vLL8ktTyFrqQe6LHY9Ti/T6T3rafJuzqR/pDMn9Ts/2PQvhlpAK3mU7u10jJ9Jca6oakwbu7lmGxtfAPUl/kesbn1f5wA7mG5SPyj+qVodnJmJD699JvyKKCOmG6+thTICReoNHwPdeZg3VRSI6x126g=
+	t=1768871612; cv=none; b=pN9j5rlrR9In3byVLuKWCmvX+idFrrRG90K2xBIOzbiT7x5kn67nWEPLowFKReymmxfZ55EDgJlB+v9zqOz6UUlM11e2hvtwFJxQKttguMWtz1+JJdMHGaOxaBWwmDvOXFsdAlPV40v+Fi6an3y/lit5sKxWEcrC0rmTBKpLcr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768855564; c=relaxed/simple;
-	bh=Nu+u8xIi1n/SDoC4CO0WUQIjg6M4bP4ZH6PEVt+Ooxc=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=NTFmOJbkyPmsjQRAoNByD7E5r9X+BYShOEneXXvHDkfqEOsQDwpwZTEjqyZSkFhaLMNUlEx2voccNaO59YLPrJfER2GnHzcs1lBGrqAXmXd/RgiPbI27/h2L2XdOs74S51A8I/Ljdiq+uqMB7Hhln3nfu/w0yLgqhYioNgk0ZxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=Lc0EYW6i; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=ext14fYh; arc=none smtp.client-ip=202.12.124.138
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="Lc0EYW6i";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ext14fYh"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailflow.stl.internal (Postfix) with ESMTP id C9DA613010D8;
-	Mon, 19 Jan 2026 15:45:59 -0500 (EST)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-04.internal (MEProxy); Mon, 19 Jan 2026 15:46:01 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
-	1768855559; x=1768862759; bh=v4LtkcerTNcKdHBuxb989VhIuXJUmGOFYwT
-	3m9zCWpQ=; b=Lc0EYW6ibUUqVQJUKzaim23Euwd0BGgFRXe5DALzfEojg7VN6rT
-	B6DiPIhAD3IC7M+5XEsbPahQ32cVgcxSRShqrzfxc+w2dQttIp0GWIrdUpX55qw0
-	1YJfvLNEex4MDg629sJRt0DIagYZ7O2YgHGEWRwCbzJK6pewaTBy/LwbN/3UuIrH
-	D1X+l3ArslIHe9m6/MxEM+BHkwyONj/QBcgvUoddEjQn2rtqiXm8XIlcaUBBGYcG
-	L51CiT0gWDAG38s7mrfim3JvqvUewVVj4jdamfv/vGEC6XVs37En7pvh86V+RKx9
-	u1Btsigj5UNDPW1ltBPZUH8SSA1nKU+SOjA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1768855559; x=
-	1768862759; bh=v4LtkcerTNcKdHBuxb989VhIuXJUmGOFYwT3m9zCWpQ=; b=e
-	xt14fYhTflITcl6YnaiRNNIPiieIuY3T2ekw4mgpmY/v/o1D6Rm9og97ySUxlRr7
-	FuBeLtlEdjDnDlXWSfPcQ5AbZapLP6oLiXJHFrRkIH0gKfaYLMLYjIQO36N4L42d
-	r+sxyuyT+2Dw0f4nF6Lb5U2/7dD8/gO1shUXevXTcOuhLj1lVMOynN4dkejCogfQ
-	7OuzydzQDyp0GPeNwjKBxultpJ+adDUHRpRjZpvqCu+f30BBcE9P8TFFL51mFFSd
-	5nqf/ngi6HPQpjIzif8UMR8pgDgY3x6Ww4kDrS1yWA5BVy+Nd5cITHqHPkkjbEzT
-	FALc3wWKIrn/NhNHGyWNw==
-X-ME-Sender: <xms:BJhuaSbEzFcWy9Pk6146wE82fhYm_CxjTiFHqGZKgwA0vYGamqcSmg>
-    <xme:BJhuaSwoBnyfk0eKn4-Aohsxi2pWCriN6dRenPPaxnkZL7_MsdqbsQlFS_j1eycjJ
-    snQClQFRDDxmckQGHACK4fSLzS3RfNjJQu9JuQvNfYNBDMQpQ>
-X-ME-Received: <xmr:BJhuaSJdRJMi7-ZpoAEIl9nJ6TzUD9unJMV7r6q_QrUGstq03Bv3pQ2jFX3ElyETlEyXOOSz_dMOZCxbyCO3448TMs1hLaDXJLozABR1b4SI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddufeekheehucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
-    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
-    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
-    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
-    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepjedvpdhmohguvgepshhmthhp
-    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
-    hrtghpthhtohepghhuohgthhhunhhhrghisehvihhvohdrtghomhdprhgtphhtthhopehl
-    ihhnuhigqdigfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinh
-    hugidquhhnihhonhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehl
-    ihhnuhigqdhnihhlfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplh
-    hinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhn
-    uhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlih
-    hnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohep
-    lhhinhhugidqvgigthegsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:BJhuaSBO9clKpBY1c8tqtIkxX8-Yutqel2bbB8TbvrqddamOXX7Ykg>
-    <xmx:BJhuaRhuOPQDyCA_KFYnfcdaAOzKUXr3io07nJfde0jw7wudsjV9Bg>
-    <xmx:BJhuade95jkbwLWPmv5m35H6i7zd7TYoRjmUJ2fQMpOWq-IJ6QyQ1w>
-    <xmx:BJhuaelSBffgMjviuHAjgSaIv0cuzLl42YuUELeDiPJYohFPRx_JkA>
-    <xmx:B5huacYgAtwv-dw4ucg_ORya8hJwBFrWvyIGFRHLnxavffYq8g3321NH>
-Feedback-ID: iab3e480c:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 19 Jan 2026 15:45:39 -0500 (EST)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1768871612; c=relaxed/simple;
+	bh=Y14vDKD49LDciXUVtCE3b0WBpRwLTNiS7LhbkI/TzaA=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=I22/Lk2oEYIUed9/mnQX6dB9FfUKJB5SabswDd5nceHKr0LvX64HqiAwD+/2CSodYiuHx3/3s9lFQhhnNJPkTaRwnceOIlrW0KtimF/W9zDvKpzhnxT+SvnJpLekQqBX/0Vbnv6heO2jDNJ+pJa7/Tir//OM8M0gAtF6EAo3FQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.79
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f79.google.com with SMTP id 006d021491bc7-6610632db4dso12705298eaf.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 19 Jan 2026 17:13:30 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768871610; x=1769476410;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=iMZ0SB80UsvlLl0TAHlXKp/7xzXwkZovkGIyQE9iOYo=;
+        b=XtI/vto+W5BKgxyAXsSr/FxQX5K850p5Bry74nMCtHOcgbpMdC2rH7Xd2Jmimh/X9Z
+         xmM8kN+k2BF8EV9wq8pTPiCZuHuVC33qThfa3A5wx4DlpQXQHkxYInCKwA+ytrpCph8W
+         PfS3Cqop+g6C3DJgf/9NoZXtfI07IBh45RRx7Zhs60/INkpWpgIrRsj9S0UKzm2mK2b5
+         4xqrhyvKxl0exYUFhVzSiwESSq98SXiHjcwXWYsLJrQPRMZl3p5jE9pQzQzPJjO8vN5j
+         OjYLLeCXxDAKC3cvenruTfz7DaBWLty9fEuKzG8ipQnSRi1JXO/QNcAgDbLGe1u+UQz3
+         uNvg==
+X-Forwarded-Encrypted: i=1; AJvYcCWF4wdWl4hePhmImApEJwYPS7scAQ4cVMjXuws6HduoYaDu3r6KrqJbTCluCAufHyRxWeaCSeOPqyHjlDhX@vger.kernel.org
+X-Gm-Message-State: AOJu0YyU/mI2Js+7a/7zbilL6lg3Yy22lSi+CeQKCDDOeVW8myYrT0vz
+	+JmozlUMXYDkt58G9yaWmB4haSSNsi+T4GBy/OlPZ4nzU1kxOKxMgZyoEYyjCkVdd25uxeR4uYN
+	EKJqmXHKQXuwhwJ8KvaSOZokjOdT2yH9i+DJesg1X8gTWnKc4w2YGIYBr3hk=
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: NeilBrown <neilb@ownmail.net>
-To: "Christian Brauner" <brauner@kernel.org>
-Cc: "Christoph Hellwig" <hch@infradead.org>,
- "Jeff Layton" <jlayton@kernel.org>,
- "Amir Goldstein" <amir73il@gmail.com>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Chuck Lever" <chuck.lever@oracle.com>,
- "Olga Kornievskaia" <okorniev@redhat.com>,
- "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
- "Hugh Dickins" <hughd@google.com>,
- "Baolin Wang" <baolin.wang@linux.alibaba.com>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "Theodore Ts'o" <tytso@mit.edu>,
- "Andreas Dilger" <adilger.kernel@dilger.ca>, "Jan Kara" <jack@suse.com>,
- "Gao Xiang" <xiang@kernel.org>, "Chao Yu" <chao@kernel.org>,
- "Yue Hu" <zbestahu@gmail.com>, "Jeffle Xu" <jefflexu@linux.alibaba.com>,
- "Sandeep Dhavale" <dhavale@google.com>,
- "Hongbo Li" <lihongbo22@huawei.com>, "Chunhai Guo" <guochunhai@vivo.com>,
- "Carlos Maiolino" <cem@kernel.org>, "Ilya Dryomov" <idryomov@gmail.com>,
- "Alex Markuze" <amarkuze@redhat.com>,
- "Viacheslav Dubeyko" <slava@dubeyko.com>, "Chris Mason" <clm@fb.com>,
- "David Sterba" <dsterba@suse.com>,
- "Luis de Bethencourt" <luisbg@kernel.org>,
- "Salah Triki" <salah.triki@gmail.com>,
- "Phillip Lougher" <phillip@squashfs.org.uk>,
- "Steve French" <sfrench@samba.org>, "Paulo Alcantara" <pc@manguebit.org>,
- "Ronnie Sahlberg" <ronniesahlberg@gmail.com>,
- "Shyam Prasad N" <sprasad@microsoft.com>,
- "Bharath SM" <bharathsm@microsoft.com>,
- "Miklos Szeredi" <miklos@szeredi.hu>,
- "Mike Marshall" <hubcap@omnibond.com>,
- "Martin Brandenburg" <martin@omnibond.com>,
- "Mark Fasheh" <mark@fasheh.com>, "Joel Becker" <jlbec@evilplan.org>,
- "Joseph Qi" <joseph.qi@linux.alibaba.com>,
- "Konstantin Komarov" <almaz.alexandrovich@paragon-software.com>,
- "Ryusuke Konishi" <konishi.ryusuke@gmail.com>,
- "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Dave Kleikamp" <shaggy@kernel.org>,
- "David Woodhouse" <dwmw2@infradead.org>,
- "Richard Weinberger" <richard@nod.at>, "Jan Kara" <jack@suse.cz>,
- "Andreas Gruenbacher" <agruenba@redhat.com>,
- "OGAWA Hirofumi" <hirofumi@mail.parknet.co.jp>,
- "Jaegeuk Kim" <jaegeuk@kernel.org>, linux-nfs@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-mm@kvack.org, linux-ext4@vger.kernel.org,
- linux-erofs@lists.ozlabs.org, linux-xfs@vger.kernel.org,
- ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org,
- linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org,
- devel@lists.orangefs.org, ocfs2-devel@lists.linux.dev,
- ntfs3@lists.linux.dev, linux-nilfs@vger.kernel.org,
- jfs-discussion@lists.sourceforge.net, linux-mtd@lists.infradead.org,
- gfs2@lists.linux.dev, linux-f2fs-devel@lists.sourceforge.net
-Subject: Re: [PATCH 00/29] fs: require filesystems to explicitly opt-in to
- nfsd export support
-In-reply-to: <20260119-kanufahren-meerjungfrau-775048806544@brauner>
-References: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org>,
- <CAOQ4uxjOJMwv_hRVTn3tJHDLMQHbeaCGsdLupiZYcwm7M2rm3g@mail.gmail.com>,
- <9c99197dde2eafa55a1b55dce2f0d4d02c77340a.camel@kernel.org>,
- <176877859306.16766.15009835437490907207@noble.neil.brown.name>,
- <aW3SAKIr_QsnEE5Q@infradead.org>,
- <176880736225.16766.4203157325432990313@noble.neil.brown.name>,
- <20260119-kanufahren-meerjungfrau-775048806544@brauner>
-Date: Tue, 20 Jan 2026 07:45:35 +1100
-Message-id: <176885553525.16766.291581709413217562@noble.neil.brown.name>
-Reply-To: NeilBrown <neil@brown.name>
+X-Received: by 2002:a05:6820:3081:b0:65f:6794:9e76 with SMTP id
+ 006d021491bc7-66118913f36mr5838273eaf.36.1768871609809; Mon, 19 Jan 2026
+ 17:13:29 -0800 (PST)
+Date: Mon, 19 Jan 2026 17:13:29 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <696ed6b9.a00a0220.203946.0000.GAE@google.com>
+Subject: [syzbot] [overlayfs?] WARNING in ovl_create_real (4)
+From: syzbot <syzbot+2214f6a425ea963a605b@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 19 Jan 2026, Christian Brauner wrote:
-> On Mon, Jan 19, 2026 at 06:22:42PM +1100, NeilBrown wrote:
-> > On Mon, 19 Jan 2026, Christoph Hellwig wrote:
-> > > On Mon, Jan 19, 2026 at 10:23:13AM +1100, NeilBrown wrote:
-> > > > > This was Chuck's suggested name. His point was that STABLE means th=
-at
-> > > > > the FH's don't change during the lifetime of the file.
-> > > > >=20
-> > > > > I don't much care about the flag name, so if everyone likes PERSIST=
-ENT
-> > > > > better I'll roll with that.
-> > > >=20
-> > > > I don't like PERSISTENT.
-> > > > I'd rather call a spade a spade.
-> > > >=20
-> > > >   EXPORT_OP_SUPPORTS_NFS_EXPORT
-> > > > or
-> > > >   EXPORT_OP_NOT_NFS_COMPATIBLE
-> > > >=20
-> > > > The issue here is NFS export and indirection doesn't bring any benefi=
-ts.
-> > >=20
-> > > No, it absolutely is not.  And the whole concept of calling something
-> > > after the initial or main use is a recipe for a mess.
-> >=20
-> > We are calling it for it's only use.  If there was ever another use, we
-> > could change the name if that made sense.  It is not a public name, it
-> > is easy to change.
-> >=20
-> > >=20
-> > > Pick a name that conveys what the flag is about, and document those
-> > > semantics well.  This flag is about the fact that for a given file,
-> > > as long as that file exists in the file system the handle is stable.
-> > > Both stable and persistent are suitable for that, nfs is everything
-> > > but.
-> >=20
-> > My understanding is that kernfs would not get the flag.
-> > kernfs filehandles do not change as long as the file exist.
-> > But this is not sufficient for the files to be usefully exported.
-> >=20
-> > I suspect kernfs does re-use filehandles relatively soon after the
-> > file/object has been destroyed.  Maybe that is the real problem here:
-> > filehandle reuse, not filehandle stability.
-> >=20
-> > Jeff: could you please give details (and preserve them in future cover
-> > letters) of which filesystems are known to have problems and what
-> > exactly those problems are?
-> >=20
-> > >=20
-> > > Remember nfs also support volatile file handles, and other applications
-> > > might rely on this (I know of quite a few user space applications that
-> > > do, but they are kinda hardwired to xfs anyway).
-> >=20
-> > The NFS protocol supports volatile file handles.  knfsd does not.
-> > So maybe
-> >   EXPORT_OP_NOT_NFSD_COMPATIBLE
-> > might be better.  or EXPORT_OP_NOT_LINUX_NFSD_COMPATIBLE.
-> > (I prefer opt-out rather than opt-in because nfsd export was the
-> > original purpose of export_operations, but it isn't something
-> > I would fight for)
->=20
-> I prefer one of the variants you proposed here but I don't particularly
-> care. It's not a hill worth dying on. So if Christoph insists on the
-> other name then I say let's just go with it.
->=20
+Hello,
 
-This sounds like you are recommending that we give in to bullying.
-I would rather the decision be made based on the facts of the case, not
-the opinions that are stated most bluntly.
+syzbot found the following issue on:
 
-I actually think that what Christoph wants is actually quite different
-from what Jeff wants, and maybe two flags are needed.  But I don't yet
-have a clear understanding of what Christoph wants, so I cannot be sure.
+HEAD commit:    603c05a1639f Merge tag 'nfs-for-6.19-2' of git://git.linux..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=17b8339a580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=1859476832863c41
+dashboard link: https://syzkaller.appspot.com/bug?extid=2214f6a425ea963a605b
+compiler:       gcc (Debian 12.2.0-14+deb12u1) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
 
-NeilBrown
+Unfortunately, I don't have any reproducer for this issue yet.
 
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-603c05a1.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/0fd1a1c47d69/vmlinux-603c05a1.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/152f657b1f0a/bzImage-603c05a1.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+2214f6a425ea963a605b@syzkaller.appspotmail.com
+
+overlayfs: ...falling back to redirect_dir=nofollow.
+overlayfs: ...falling back to index=off.
+overlayfs: ...falling back to uuid=null.
+------------[ cut here ]------------
+WARNING: fs/overlayfs/dir.c:214 at ovl_create_real+0x9af/0xbd0 fs/overlayfs/dir.c:214, CPU#2: syz.2.9540/3063
+Modules linked in:
+CPU: 2 UID: 0 PID: 3063 Comm: syz.2.9540 Tainted: G             L      syzkaller #0 PREEMPT(full) 
+Tainted: [L]=SOFTLOCKUP
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:ovl_create_real+0x9af/0xbd0 fs/overlayfs/dir.c:214
+Code: 8b 48 c7 c7 c8 2b 79 90 e8 1e 42 98 01 44 0f b6 3d 41 5a 31 0d e9 dc fa ff ff e8 fc 05 e1 fe e9 67 f8 ff ff e8 12 2a 77 fe 90 <0f> 0b 90 49 c7 c4 fb ff ff ff e9 ac f8 ff ff 49 c7 c4 fe ff ff ff
+RSP: 0018:ffffc9000518f4b0 EFLAGS: 00010283
+RAX: 000000000001eb61 RBX: ffff88802d846758 RCX: ffffc9002830b000
+RDX: 0000000000080000 RSI: ffffffff8347d1be RDI: 0000000000000005
+RBP: ffff88803bd2f490 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: ffff888033102ff0 R12: 0000000000000000
+R13: ffff888034d2a800 R14: ffff88802d8467c0 R15: ffff888035c6e2e0
+FS:  00007f0d6ec506c0(0000) GS:ffff8880d6af2000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b333dcff8 CR3: 000000005d5af000 CR4: 0000000000352ef0
+DR0: ffffffffffffffff DR1: 00000000000001f8 DR2: 0000000000000083
+DR3: ffffffffefffff15 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ ovl_create_temp+0x54/0xb0 fs/overlayfs/dir.c:253
+ ovl_copy_up_workdir fs/overlayfs/copy_up.c:778 [inline]
+ ovl_do_copy_up fs/overlayfs/copy_up.c:988 [inline]
+ ovl_copy_up_one+0xc4e/0x3c40 fs/overlayfs/copy_up.c:1189
+ ovl_copy_up_flags+0x18f/0x240 fs/overlayfs/copy_up.c:1243
+ ovl_rename_start fs/overlayfs/dir.c:1161 [inline]
+ ovl_rename+0x270/0x6b0 fs/overlayfs/dir.c:1348
+ vfs_rename+0x1021/0x2390 fs/namei.c:5938
+ do_renameat2+0x71c/0x9b0 fs/namei.c:6056
+ __do_sys_rename fs/namei.c:6099 [inline]
+ __se_sys_rename fs/namei.c:6097 [inline]
+ __x64_sys_rename+0x7d/0xa0 fs/namei.c:6097
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xcd/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f0d6dd8f7c9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f0d6ec50038 EFLAGS: 00000246 ORIG_RAX: 0000000000000052
+RAX: ffffffffffffffda RBX: 00007f0d6dfe5fa0 RCX: 00007f0d6dd8f7c9
+RDX: 0000000000000000 RSI: 0000200000000180 RDI: 0000200000000000
+RBP: 00007f0d6de13f91 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f0d6dfe6038 R14: 00007f0d6dfe5fa0 R15: 00007fffee2fe808
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
