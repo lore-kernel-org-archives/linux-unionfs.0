@@ -1,428 +1,382 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-a3-smtp.messagingengine.com (flow-a3-smtp.messagingengine.com [103.168.172.138])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0D4B453482
-	for <linux-unionfs@vger.kernel.org>; Tue, 20 Jan 2026 15:12:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.50
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768921979; cv=pass; b=Pi8uL6LKC7jQfJ/BWBVLAGNjAo8PrxRij87D6obsI4ByIQJsyWBdE3VoxxgG4N7hDQQTdmNSrCCiMV6x7qwhtmcQSLyBZ9KB00V2QKrnuDMwh62kxnpPfa30OF1yTZSfakTD05pxUbdnUT/t5ihjBlt1AxVXzdH8mkwlMB/eyjI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768921979; c=relaxed/simple;
-	bh=Xnjuhtir64eVTIEfdUmhiDcTr/ARUdXCTWH26MCgUOU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kyNVaNtMwYDqfNDXdqe0PH5oXP3XI6aUTMiYkvg0Vpm8/CUUe83qWinvY6wK5wsQQgHHjJCf2xIUoV+zW2kzk2BzEDke2Scs4Qb/PhZzZ4WlYcBMxsDNVMS5eyiqvdLPPdosUk44HzbeA+osaaskdh5EsYAcgQhGzBTkS5ppkbk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wf9H/ICM; arc=pass smtp.client-ip=209.85.208.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 850C833D50C;
+	Wed, 21 Jan 2026 03:58:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.138
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1768967944; cv=none; b=I23Syzi0ej0D3jBZBqNZ/ucl8HnU/f4IiUwD7gYFCMLvaHUYkoFXdexBx5SBm5AYhOz9fXHorIXnqiPqua3nJ/EUhoFqCJDyJg/Rf+8n40uEud/WiY7SLzihHzDMVzKB7Zb2KLtwLjyvKM3gNill0XtIX7r/Oy8QHOr5PXQn3MA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1768967944; c=relaxed/simple;
+	bh=1DJQUEOUnj9KAwbZv2Hc+tLIGvXute4oJWQnX3cNwrY=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=HALgvbszliwKdW1S1peMfMZRqkAMwTsHf/WPCeOXOR1EB8QLrP3eZrUvmEhPs3Oi9JsK0UVtSHsV7VX5gUynery8lZX56Rp1mLEQMjXmIqg4RlTyIwLAl+tT+M400vC1KkQUNzoMBunL0DDfXP5fK2okok87kKczLmURvm4aMiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=YYEr2VjW; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Y4kSyYfn; arc=none smtp.client-ip=103.168.172.138
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wf9H/ICM"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-64b58553449so9701283a12.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jan 2026 07:12:56 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1768921975; cv=none;
-        d=google.com; s=arc-20240605;
-        b=FWi5sLVHBinfHCtbAtBVJtWI0wrG5BeeU89sArA+SjV5P8eLbAakeLBKUICCbifh2q
-         HVDZr3EnlnOBMcN0jxz4Yu0hvZKkF7otCmmGf3O5/JZgzWpM6pKOV5YrLTWKhTIHOcKi
-         rTbvRVnO31Ib2dz7Swql9qK+Taa155JhQbiUm/VoXHKJLUoj+XvV+tsayEE4DqEcBio8
-         K915Vl4S7cfrQruIpO3qaDImoIa2d3QX5/v+casxetbxafbPhOigLqLHqaaBLhECSTgN
-         xFn6OSzFkV20sJaCMcUCTqW/ol0HfgwonQ6nYiBgSJH9bi5qdAzs+p50ivN9nWlEQq7X
-         DJJQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=rp3Cco0V7YWfsBRnrN7YWiXeWxd2p0Ss5nTS/91MVtk=;
-        fh=INvSgyRTLmwB2/pxjNZSmee+rso7YK3kivwk28XkrZE=;
-        b=fq3cEfBrwnrJpd0Rw+lZrVMvYEKOZej8u0G0DGYRKxq6GA42k8fbGIcie1R/uB6tDm
-         1pgojjItoCVA/XOzdST+hfg1/jYMN3BiXFHrPhBPGbIYzCKGvj0i1P0aiquPy8V+NWcX
-         T8DZDWV87cD08BK6Euf6rC/UHb2NPY49rzKa6IhL8UvosHodyxNtZpshZDOfiT7aVWuB
-         9l21p3BBIrgXjTsy4scDCXe44XWiZZ7ju5T+uZfXWZxdjC96lhef8X0bCXtTF5vVvc2Z
-         LXkG19IkKKD7LuQPUAj84yauhHAubVHPeB5LWGXKUqD27Fu98YVEHffpMOOV+H8ZOdfq
-         gzzg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768921975; x=1769526775; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=rp3Cco0V7YWfsBRnrN7YWiXeWxd2p0Ss5nTS/91MVtk=;
-        b=Wf9H/ICMG/H9XmWjFGBJVy+WoCGIsBR+YwbkyuZq8rtMe0BdUguFDH98FrE5iYUD9F
-         +F3KgChkA5F5EmGdD3RSSI/qh/z5wsNFxTK6gDkb09/dVJS7yJ/JT0g9KeQSJ3r9ayRd
-         2Dsk8Kmh2qrXd6ip//1wleiPePY2NPHxaW1LNS90/p/z2GqHJ5wQEj4GLpEQaomK+iSY
-         gOLCPfXwccmH4V5JGp2xXtpnJtmzoqCEyPJROemcc+Gmi1m+pJ0n4B3C8jdwTQkhSXEo
-         RyCChFmSgVzGIgzI6RFIiH88JzqB4VoD1/dRz32ysqBPyiPguE08hGHdNtfoHzDcDq2K
-         p9Jg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768921975; x=1769526775;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rp3Cco0V7YWfsBRnrN7YWiXeWxd2p0Ss5nTS/91MVtk=;
-        b=ciGDfCiw3DJMNBfkpmmNXU8bsRTb6WwZNPHQSncB7vJ5T2yfx3xlVSot7XvlUgnOsR
-         qLDSfj/NshWP6yvitYUVuPEbL561q0iABZ8AjimOEyRXCdAKQ++pQ7RDf/VZxkCbBA3i
-         OScEt+xewwrJIB5T7lmYi77VYs2xPQVFWdV6oFTV9AXgb1+dSqgHeJRe9JOqebI592XJ
-         aRCDfvt+6sN6J87vLxoFrekkpVX3BVhrMYarew2OCKukE8hXJN8Zx3SxfTzXWkuLPFUs
-         ZCTd7eKRUcI8gOPiuhN3iTYiSgUBpIeINbj/hf/xo79JRLkEbk1JmViUkInj23tVq7XV
-         ncHA==
-X-Forwarded-Encrypted: i=1; AJvYcCXhghtde8ugzBv2CDGnk1EFkUg9y+4Xq4TjPT43/puADgWR+8bbwkEpmDhzxc1sQVGJK+gXKgSW99mUWcnD@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyd/0kd5qS3eHhupM5nq1e+GBdWS5f1OQNp6WbsECuW2VzHByJ4
-	3Vb8UFwSWSHKLrbmuhgprQDS+1TDECj9ZBkrAlWxLxRGrkvYP273C9fWd13iGuLeHaU2wWTHk/L
-	+QPIf0bOeiezqr6Urst4RCmm8Qz249bk=
-X-Gm-Gg: AZuq6aLRC1wvEVFzDUmrdqFu2NIQ5gk1QlcsezVFhP87SKe0Nj5bi/c+crmpPv/hvjg
-	yLoh+fa3jevaBaRbTiy3QfTxlpT5RvsD1rYm5afVm4VtvGSwwevJfq8a7D6R0wPrTx1BJBSgzdD
-	UYD5yUNPCi274iIm59wXn93JwApWWIjOrRWaVdyayPN7ymWEpCkQnLtvXZ7fAdPt3DFEJIvh2rv
-	qfeXaA7q0lVBrfEvbt+sEsTf4WV/X16A8vLoATOz6Om9z5xn3bo1IF6yDCROFeaRLU+lhaZGAXC
-	buy6YRtoLKuZBzaCox4yjYL2ipbOTg==
-X-Received: by 2002:a17:907:7b9a:b0:b87:115:a724 with SMTP id
- a640c23a62f3a-b879324398bmr1329515266b.34.1768921974511; Tue, 20 Jan 2026
- 07:12:54 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="YYEr2VjW";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Y4kSyYfn"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailflow.phl.internal (Postfix) with ESMTP id 59F6C1380787;
+	Tue, 20 Jan 2026 22:58:51 -0500 (EST)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-05.internal (MEProxy); Tue, 20 Jan 2026 22:58:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
+	1768967931; x=1768975131; bh=HPgiNusZcZTF/ZTl66piD/9BsmWo5Gc2+jA
+	KaL+zbjo=; b=YYEr2VjWIaKtDqIQ9vfEWExooQB7WdoWCHPbIyCUEJI6BAxeQcQ
+	Lbk8vsbd4GXH0kYHJaGcChinGdfj9GfFjBP2dVOEb1g7c0vP40XWPDTq6qbmdX+f
+	q8U4adtBeg5EFoL6E5HUF62j7hOUy4j8XFCT0i4fYg4se8kZH51qgrZqOSAUlTga
+	rl7CFzO8J+PeDJ7M2JSUWHisN0sDH8S0NMXRz8qdtkwm9W98zD3C3gklDbkWIXrK
+	vRegxtY4BxrRjprMIjBdoVNMCKrXQqfmvm/+rjsgzuPUZ23gzBTcc6UXYC33cLAY
+	vFj8n0R7qJgD5zcyYlJT/0wZ8oNx4to8Sng==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1768967931; x=
+	1768975131; bh=HPgiNusZcZTF/ZTl66piD/9BsmWo5Gc2+jAKaL+zbjo=; b=Y
+	4kSyYfnUGNoNeVLU3ka40YnKW2sl+45SitUqyg7vTCZpQcxFqZev1sh8sHAo4DzB
+	LJJuIPm7kr1a2T2O/jCPPqyfpx1RyAZnMeJxrzQuzh0MJ2v9HwC0x1U/ypjUALTY
+	LkBS/sHDc8LkvX0vZjnTUcBNoleBEEaONsgjyNXSYbPCsyTNNhNqwnjeRYEYWhC0
+	Keyf4hXJLJ2uIP8nM1JZTI64DK90fYZcMdZmLKhtCiDOLF6zK0pOuLIFL3efcAnh
+	U7QNK8cCXtqL4iHqmwf38GI0o4feHmUs9gVmK1fgy3LCnOLy087fTAjf+2UjG0tL
+	Zxk2nmIhddHGej/ASyZkw==
+X-ME-Sender: <xms:9k5waa6xGMlhNWG7OiNFHfIpLvabWA1DAPtyEn94taKAb8B-mUoW7w>
+    <xme:9k5waRR7ItrMgf6WBso9qWSvOzTjS1gqDa4US3nP2_YPOGpBhCwjdwQRddvH-EWFV
+    V57p5_-4xzEl4CNusEssTAjoVs4ZFelbrYFxoXbJ50yHbQn>
+X-ME-Received: <xmr:9k5waeoZsLXtAC9WGWMpKfuL6jcuFf0eBU9OKagBSlfpxrmBa-z1UpdKQRgAi22TvEjMRNRptGtFkHbPbhda8VF8Vv99_8wlEjUQv-qrj4y4>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddugedvvdeiucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepjedvpdhmohguvgepshhmthhp
+    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
+    hrtghpthhtohepghhuohgthhhunhhhrghisehvihhvohdrtghomhdprhgtphhtthhopehl
+    ihhnuhigqdigfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinh
+    hugidquhhnihhonhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehl
+    ihhnuhigqdhnihhlfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplh
+    hinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhn
+    uhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlih
+    hnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohep
+    lhhinhhugidqvgigthegsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:9k5waUhf0LUODlL_PQYsCPf5h1Hz9YtKoS8AL4OAL0YUoX9vGv32rg>
+    <xmx:905waSCsyLL7f6fuPyvb6LM-a8AMULf8pIsT5TNPUcN888plxn2vJQ>
+    <xmx:905waT9XbBSmLAgfzGT6kRdfvn_ApgSn62i1cNhe3-zAYtSYAOgBDQ>
+    <xmx:905waTEUm6W92v2m08NAsDI3Dm--lHbflm-x_CKDQ7Y36cOw-DiEBA>
+    <xmx:-05waa7eNM5AFWgAvsYRXTN-gn5rTHGxvGEPMtNHM76v4SM6_x2afNUS>
+Feedback-ID: iab3e480c:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 20 Jan 2026 22:58:29 -0500 (EST)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
- <20260114-tonyk-get_disk_uuid-v1-3-e6a319e25d57@igalia.com>
- <20260114062608.GB10805@lst.de> <5334ebc6-ceee-4262-b477-6b161c5ca704@igalia.com>
- <20260115062944.GA9590@lst.de> <633bb5f3-4582-416c-b8b9-fd1f3b3452ab@suse.com>
- <20260115072311.GA10352@lst.de> <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
- <CAOQ4uxhbz7=XT=C3R8XqL0K_o7KwLKsoNwgk=qJGuw2375MTJw@mail.gmail.com>
- <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com> <CAOQ4uxi988PutUi=Owm5zf6NaCm90PUCJLu7dw8firH8305w-A@mail.gmail.com>
- <33c1ccbd-abbe-4278-8ab1-d7d645c8b6e8@igalia.com> <CAOQ4uxgCM=q29Vs+35y-2K9k7GP2A2NfPkuqCrUiMUHW+KhbWw@mail.gmail.com>
- <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
-In-Reply-To: <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 20 Jan 2026 16:12:41 +0100
-X-Gm-Features: AZwV_QghbBNAoP8paOdiNoqpwmmKM3bWt4If2fMAFv5l9zx2CG_D1s9roNDQ-Gs
-Message-ID: <CAOQ4uxig==FAd=2hO0B_CVBDSuBwdqL-zaXkpf-QXn5iEL364g@mail.gmail.com>
-Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, 
-	NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
-	Tom Talpey <tom@talpey.com>, Carlos Maiolino <cem@kernel.org>, Chris Mason <clm@fb.com>, 
-	David Sterba <dsterba@suse.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Christian Brauner <brauner@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
-	linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	kernel-dev@igalia.com, vivek@collabora.com, 
-	Ludovico de Nittis <ludovico.denittis@collabora.com>
-Content-Type: multipart/mixed; boundary="000000000000edabef0648d33d95"
+From: NeilBrown <neilb@ownmail.net>
+To: "Jeff Layton" <jlayton@kernel.org>
+Cc: "Christian Brauner" <brauner@kernel.org>,
+ "Christoph Hellwig" <hch@infradead.org>,
+ "Amir Goldstein" <amir73il@gmail.com>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Chuck Lever" <chuck.lever@oracle.com>,
+ "Olga Kornievskaia" <okorniev@redhat.com>,
+ "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
+ "Hugh Dickins" <hughd@google.com>,
+ "Baolin Wang" <baolin.wang@linux.alibaba.com>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "Theodore Ts'o" <tytso@mit.edu>,
+ "Andreas Dilger" <adilger.kernel@dilger.ca>, "Jan Kara" <jack@suse.com>,
+ "Gao Xiang" <xiang@kernel.org>, "Chao Yu" <chao@kernel.org>,
+ "Yue Hu" <zbestahu@gmail.com>, "Jeffle Xu" <jefflexu@linux.alibaba.com>,
+ "Sandeep Dhavale" <dhavale@google.com>,
+ "Hongbo Li" <lihongbo22@huawei.com>, "Chunhai Guo" <guochunhai@vivo.com>,
+ "Carlos Maiolino" <cem@kernel.org>, "Ilya Dryomov" <idryomov@gmail.com>,
+ "Alex Markuze" <amarkuze@redhat.com>,
+ "Viacheslav Dubeyko" <slava@dubeyko.com>, "Chris Mason" <clm@fb.com>,
+ "David Sterba" <dsterba@suse.com>,
+ "Luis de Bethencourt" <luisbg@kernel.org>,
+ "Salah Triki" <salah.triki@gmail.com>,
+ "Phillip Lougher" <phillip@squashfs.org.uk>,
+ "Steve French" <sfrench@samba.org>, "Paulo Alcantara" <pc@manguebit.org>,
+ "Ronnie Sahlberg" <ronniesahlberg@gmail.com>,
+ "Shyam Prasad N" <sprasad@microsoft.com>,
+ "Bharath SM" <bharathsm@microsoft.com>,
+ "Miklos Szeredi" <miklos@szeredi.hu>,
+ "Mike Marshall" <hubcap@omnibond.com>,
+ "Martin Brandenburg" <martin@omnibond.com>,
+ "Mark Fasheh" <mark@fasheh.com>, "Joel Becker" <jlbec@evilplan.org>,
+ "Joseph Qi" <joseph.qi@linux.alibaba.com>,
+ "Konstantin Komarov" <almaz.alexandrovich@paragon-software.com>,
+ "Ryusuke Konishi" <konishi.ryusuke@gmail.com>,
+ "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, "Dave Kleikamp" <shaggy@kernel.org>,
+ "David Woodhouse" <dwmw2@infradead.org>,
+ "Richard Weinberger" <richard@nod.at>, "Jan Kara" <jack@suse.cz>,
+ "Andreas Gruenbacher" <agruenba@redhat.com>,
+ "OGAWA Hirofumi" <hirofumi@mail.parknet.co.jp>,
+ "Jaegeuk Kim" <jaegeuk@kernel.org>, linux-nfs@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-mm@kvack.org, linux-ext4@vger.kernel.org,
+ linux-erofs@lists.ozlabs.org, linux-xfs@vger.kernel.org,
+ ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+ linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+ devel@lists.orangefs.org, ocfs2-devel@lists.linux.dev,
+ ntfs3@lists.linux.dev, linux-nilfs@vger.kernel.org,
+ jfs-discussion@lists.sourceforge.net, linux-mtd@lists.infradead.org,
+ gfs2@lists.linux.dev, linux-f2fs-devel@lists.sourceforge.net
+Subject: Re: [PATCH 00/29] fs: require filesystems to explicitly opt-in to
+ nfsd export support
+In-reply-to: <a35ac736d9ebc6c92a6e7d61aeb5198234102442.camel@kernel.org>
+References: <20260115-exportfs-nfsd-v1-0-8e80160e3c0c@kernel.org>,
+ <CAOQ4uxjOJMwv_hRVTn3tJHDLMQHbeaCGsdLupiZYcwm7M2rm3g@mail.gmail.com>,
+ <9c99197dde2eafa55a1b55dce2f0d4d02c77340a.camel@kernel.org>,
+ <176877859306.16766.15009835437490907207@noble.neil.brown.name>,
+ <aW3SAKIr_QsnEE5Q@infradead.org>,
+ <176880736225.16766.4203157325432990313@noble.neil.brown.name>,
+ <20260119-kanufahren-meerjungfrau-775048806544@brauner>,
+ <176885553525.16766.291581709413217562@noble.neil.brown.name>,
+ <20260120-entmilitarisieren-wanken-afd04b910897@brauner>,
+ <176890211061.16766.16354247063052030403@noble.neil.brown.name>,
+ <20260120-hacken-revision-88209121ac2c@brauner>,
+ <a35ac736d9ebc6c92a6e7d61aeb5198234102442.camel@kernel.org>
+Date: Wed, 21 Jan 2026 14:58:25 +1100
+Message-id: <176896790525.16766.11792073987699294594@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
---000000000000edabef0648d33d95
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jan 19, 2026 at 5:56=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@iga=
-lia.com> wrote:
->
-> Em 16/01/2026 14:06, Amir Goldstein escreveu:
-> > On Fri, Jan 16, 2026 at 2:28=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid=
-@igalia.com> wrote:
-> >>
-> >> [+CC SteamOS developers]
-> >>
-> >> Em 16/01/2026 06:55, Amir Goldstein escreveu:
-> >>> On Thu, Jan 15, 2026 at 7:55=E2=80=AFPM Andr=C3=A9 Almeida <andrealme=
-id@igalia.com> wrote:
-> >>>>
-> >>>> Em 15/01/2026 13:07, Amir Goldstein escreveu:
-> >>>>> On Thu, Jan 15, 2026 at 4:42=E2=80=AFPM Andr=C3=A9 Almeida <andreal=
-meid@igalia.com> wrote:
-> >>>>>>
-> >>>>>> Em 15/01/2026 04:23, Christoph Hellwig escreveu:
-> >>>>>>
-> >>>>>> [...]
-> >>>>>>
-> >>>>>>>
-> >>>>>>> I still wonder what the use case is here.  Looking at Andr=C3=A9'=
-s original
-> >>>>>>> mail it states:
-> >>>>>>>
-> >>>>>>> "However, btrfs mounts may have volatiles UUIDs. When mounting th=
-e exact same
-> >>>>>>> disk image with btrfs, a random UUID is assigned for the followin=
-g disks each
-> >>>>>>> time they are mounted, stored at temp_fsid and used across the ke=
-rnel as the
-> >>>>>>> disk UUID. `btrfs filesystem show` presents that. Calling statfs(=
-) however
-> >>>>>>> shows the original (and duplicated) UUID for all disks."
-> >>>>>>>
-> >>>>>>> and this doesn't even talk about multiple mounts, but looking at
-> >>>>>>> device_list_add it seems to only set the temp_fsid flag when set
-> >>>>>>> same_fsid_diff_dev is set by find_fsid_by_device, which isn't doc=
-umented
-> >>>>>>> well, but does indeed seem to be done transparently when two file=
- systems
-> >>>>>>> with the same fsid are mounted.
-> >>>>>>>
-> >>>>>>> So Andr=C3=A9, can you confirm this what you're worried about?  A=
-nd btrfs
-> >>>>>>> developers, I think the main problem is indeed that btrfs simply =
-allows
-> >>>>>>> mounting the same fsid twice.  Which is really fatal for anything=
- using
-> >>>>>>> the fsid/uuid, such NFS exports, mount by fs uuid or any sb->s_uu=
-id user.
-> >>>>>>>
-> >>>>>>
-> >>>>>> Yes, I'm would like to be able to mount two cloned btrfs images an=
-d to
-> >>>>>> use overlayfs with them. This is useful for SteamOS A/B partition =
-scheme.
-> >>>>>>
-> >>>>>>>> If so, I think it's time to revert the behavior before it's too =
-late.
-> >>>>>>>> Currently the main usage of such duplicated fsids is for Steam d=
-eck to
-> >>>>>>>> maintain A/B partitions, I think they can accept a new compat_ro=
- flag for
-> >>>>>>>> that.
-> >>>>>>>
-> >>>>>>> What's an A/B partition?  And how are these safely used at the sa=
-me time?
-> >>>>>>>
-> >>>>>>
-> >>>>>> The Steam Deck have two main partitions to install SteamOS updates
-> >>>>>> atomically. When you want to update the device, assuming that you =
-are
-> >>>>>> using partition A, the updater will write the new image in partiti=
-on B,
-> >>>>>> and vice versa. Then after the reboot, the system will mount the n=
-ew
-> >>>>>> image on B.
-> >>>>>>
-> >>>>>
-> >>>>> And what do you expect to happen wrt overlayfs when switching from
-> >>>>> image A to B?
-> >>>>>
-> >>>>> What are the origin file handles recorded in overlayfs index from i=
-mage A
-> >>>>> lower worth when the lower image is B?
-> >>>>>
-> >>>>> Is there any guarantee that file handles are relevant and point to =
+On Tue, 20 Jan 2026, Jeff Layton wrote:
+> On Tue, 2026-01-20 at 11:31 +0100, Christian Brauner wrote:
+> > On Tue, Jan 20, 2026 at 08:41:50PM +1100, NeilBrown wrote:
+> > > On Tue, 20 Jan 2026, Christian Brauner wrote:
+> > > > On Tue, Jan 20, 2026 at 07:45:35AM +1100, NeilBrown wrote:
+> > > > > On Mon, 19 Jan 2026, Christian Brauner wrote:
+> > > > > > On Mon, Jan 19, 2026 at 06:22:42PM +1100, NeilBrown wrote:
+> > > > > > > On Mon, 19 Jan 2026, Christoph Hellwig wrote:
+> > > > > > > > On Mon, Jan 19, 2026 at 10:23:13AM +1100, NeilBrown wrote:
+> > > > > > > > > > This was Chuck's suggested name. His point was that STABL=
+E means that
+> > > > > > > > > > the FH's don't change during the lifetime of the file.
+> > > > > > > > > >=20
+> > > > > > > > > > I don't much care about the flag name, so if everyone lik=
+es PERSISTENT
+> > > > > > > > > > better I'll roll with that.
+> > > > > > > > >=20
+> > > > > > > > > I don't like PERSISTENT.
+> > > > > > > > > I'd rather call a spade a spade.
+> > > > > > > > >=20
+> > > > > > > > >   EXPORT_OP_SUPPORTS_NFS_EXPORT
+> > > > > > > > > or
+> > > > > > > > >   EXPORT_OP_NOT_NFS_COMPATIBLE
+> > > > > > > > >=20
+> > > > > > > > > The issue here is NFS export and indirection doesn't bring =
+any benefits.
+> > > > > > > >=20
+> > > > > > > > No, it absolutely is not.  And the whole concept of calling s=
+omething
+> > > > > > > > after the initial or main use is a recipe for a mess.
+> > > > > > >=20
+> > > > > > > We are calling it for it's only use.  If there was ever another=
+ use, we
+> > > > > > > could change the name if that made sense.  It is not a public n=
+ame, it
+> > > > > > > is easy to change.
+> > > > > > >=20
+> > > > > > > >=20
+> > > > > > > > Pick a name that conveys what the flag is about, and document=
+ those
+> > > > > > > > semantics well.  This flag is about the fact that for a given=
+ file,
+> > > > > > > > as long as that file exists in the file system the handle is =
+stable.
+> > > > > > > > Both stable and persistent are suitable for that, nfs is ever=
+ything
+> > > > > > > > but.
+> > > > > > >=20
+> > > > > > > My understanding is that kernfs would not get the flag.
+> > > > > > > kernfs filehandles do not change as long as the file exist.
+> > > > > > > But this is not sufficient for the files to be usefully exporte=
+d.
+> > > > > > >=20
+> > > > > > > I suspect kernfs does re-use filehandles relatively soon after =
 the
-> >>>>> same objects?
-> >>>>>
-> >>>>> The whole point of the overlayfs index feature is that overlayfs in=
-odes
-> >>>>> can have a unique id across copy-up.
-> >>>>>
-> >>>>> Please explain in more details exactly which overlayfs setup you ar=
-e
-> >>>>> trying to do with index feature.
-> >>>>>
-> >>>>
-> >>>> The problem happens _before_ switching from A to B, it happens when
-> >>>> trying to install the same image from A on B.
-> >>>>
-> >>>> During the image installation process, while running in A, the B ima=
-ge
-> >>>> will be mounted more than once for some setup steps, and overlayfs i=
-s
-> >>>> used for this. Because A have the same UUID, each time B is remouted
-> >>>> will get a new UUID and then the installation scripts fails mounting=
- the
-> >>>> image.
-> >>>
-> >>> Please describe the exact overlayfs setup and specifically,
-> >>> is it multi lower or single lower layer setup?
-> >>> What reason do you need the overlayfs index for?
-> >>> Can you mount with index=3Doff which should relax the hard
-> >>> requirement for match with the original lower layer uuid.
-> >>>
-> >>
-> >> The setup has a single lower layer. This is how the mount command look=
-s
-> >> like:
-> >>
-> >> mount -t overlay -o
-> >> "lowerdir=3D${DEV_DIR}/etc,upperdir=3D${DEV_DIR}/var/lib/overlays/etc/=
-upper,workdir=3D${DEV_DIR}/var/lib/overlays/etc/work"
-> >> none "${DEV_DIR}/etc"
-> >>
-> >> They would rather not disable index, to avoid mounting the wrong layer=
-s
-> >> and to avoid corner cases with hardlinks.
-> >
-> > IIUC you have all the layers on the same fs ($DEV_DIR)?
-> >
-> > See mount option uuid=3Doff, created for this exact use case:
-> >
-> > Documentation/filesystems/overlayfs.rst:
-> > Note: the mount option uuid=3Doff can be used to replace UUID of the un=
-derlying
-> > filesystem in file handles with null, and effectively disable UUID chec=
-ks. This
-> > can be useful in case the underlying disk is copied and the UUID of thi=
-s copy
-> > is changed. This is only applicable if all lower/upper/work directories=
- are on
-> > the same filesystem, otherwise it will fallback to normal behaviour.
-> >
-> > commit 5830fb6b54f7167cc7c9d43612eb01c24312c7ca
-> > Author: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-> > Date:   Tue Oct 13 17:59:54 2020 +0300
-> >
-> >      ovl: introduce new "uuid=3Doff" option for inodes index feature
-> >
-> >      This replaces uuid with null in overlayfs file handles and thus re=
-laxes
-> >      uuid checks for overlay index feature. It is only possible in case=
- there is
-> >      only one filesystem for all the work/upper/lower directories and b=
-are file
-> >      handles from this backing filesystem are unique. In other case whe=
-n we have
-> >      multiple filesystems lets just fallback to "uuid=3Don" which is an=
-d
-> >      equivalent of how it worked before with all uuid checks.
-> >
-> >      This is needed when overlayfs is/was mounted in a container with i=
-ndex
-> >      enabled ...
-> >
-> >      If you just change the uuid of the backing filesystem, overlay is =
-not
-> >      mounting any more. In Virtuozzo we copy container disks (ploops) w=
-hen
-> >      create the copy of container and we require fs uuid to be unique f=
-or a new
-> >      container.
-> >
-> > TBH, I am trying to remember why we require upper/work to be on the
-> > same fs as lower for uuid=3Doff,index=3Don and I can't remember.
-> > If this is important I can look into it.
-> >
->
-> Actually they are not in the same fs, upper and lower are coming from
-> different fs', so when trying to mount I get the fallback to
-> `uuid=3Dnull`. A quick hack circumventing this check makes the mount work=
-.
->
-> If you think this is the best way to solve this issue (rather than
-> following the VFS helper path for instance),
+> > > > > > > file/object has been destroyed.  Maybe that is the real problem=
+ here:
+> > > > > > > filehandle reuse, not filehandle stability.
+> > > > > > >=20
+> > > > > > > Jeff: could you please give details (and preserve them in futur=
+e cover
+> > > > > > > letters) of which filesystems are known to have problems and wh=
+at
+> > > > > > > exactly those problems are?
+> > > > > > >=20
+> > > > > > > >=20
+> > > > > > > > Remember nfs also support volatile file handles, and other ap=
+plications
+> > > > > > > > might rely on this (I know of quite a few user space applicat=
+ions that
+> > > > > > > > do, but they are kinda hardwired to xfs anyway).
+> > > > > > >=20
+> > > > > > > The NFS protocol supports volatile file handles.  knfsd does no=
+t.
+> > > > > > > So maybe
+> > > > > > >   EXPORT_OP_NOT_NFSD_COMPATIBLE
+> > > > > > > might be better.  or EXPORT_OP_NOT_LINUX_NFSD_COMPATIBLE.
+> > > > > > > (I prefer opt-out rather than opt-in because nfsd export was the
+> > > > > > > original purpose of export_operations, but it isn't something
+> > > > > > > I would fight for)
+> > > > > >=20
+> > > > > > I prefer one of the variants you proposed here but I don't partic=
+ularly
+> > > > > > care. It's not a hill worth dying on. So if Christoph insists on =
+the
+> > > > > > other name then I say let's just go with it.
+> > > > > >=20
+> > > > >=20
+> > > > > This sounds like you are recommending that we give in to bullying.
+> > > > > I would rather the decision be made based on the facts of the case,=
+ not
+> > > > > the opinions that are stated most bluntly.
+> > > > >=20
+> > > > > I actually think that what Christoph wants is actually quite differ=
+ent
+> > > > > from what Jeff wants, and maybe two flags are needed.  But I don't =
+yet
+> > > > > have a clear understanding of what Christoph wants, so I cannot be =
+sure.
+> > > >=20
+> > > > I've tried to indirectly ask whether you would be willing to compromi=
+se
+> > > > here or whether you want to insist on your alternative name. Apparent=
+ly
+> > > > that didn't come through.
+> > >=20
+> > > This would be the "not a hill worthy dying on" part of your statement.
+> > > I think I see that implication now.
+> > > But no, I don't think compromise is relevant.  I think the problem
+> > > statement as originally given by Jeff is misleading, and people have
+> > > been misled to an incorrect name.
+> > >=20
+> > > >=20
+> > > > I'm unclear what your goal is in suggesting that I recommend "we" give
+> > > > into bullying. All it achieved was to further derail this thread.
+> > > >=20
+> > >=20
+> > > The "We" is the same as the "us" in "let's just go with it".
+> > >=20
+> > >=20
+> > > > I also think it's not very helpful at v6 of the discussion to start
+> > > > figuring out what the actual key rift between Jeff's and Christoph's
+> > > > position is. If you've figured it out and gotten an agreement and this
+> > > > is already in, send a follow-up series.
+> > >=20
+> > > v6?  v2 was posted today.  But maybe you are referring the some other
+> > > precursors.
+> > >=20
+> > > The introductory statement in v2 is
+> > >=20
+> > >    This patchset adds a flag that indicates whether the filesystem supp=
+orts
+> > >    stable filehandles (i.e. that they don't change over the life of the
+> > >    file). It then makes any filesystem that doesn't set that flag
+> > >    ineligible for nfsd export.
+> > >=20
+> > > Nobody else questioned the validity of that.  I do.
+> > > No evidence was given that there are *any* filesystems that don't
+> > > support stable filehandles.  The only filesystem mentioned is cgroups
+> > > and it DOES provide stable filehandles.
+> >=20
+>=20
+> Across reboot? Not really.
 
-That's up to you if you want to solve the "all lower layers on same fs"
-or want to also allow lower layers on different fs.
-The former could be solved by relaxing the ovl rules.
+Across reboot all the files are deleted and then new ones are created.
+So there is nothing that needs to be stable.
 
-> please let me know how can
-> I safely lift this restriction, like maybe adding a new flag for this?
+>=20
+> It's quite possible that we may end up with the same "id" numbers in
+> cgroupfs on a new incarnation of the filesystem after a reboot. The
+> files in there are not the same ones as the ones before, but their
+> filehandles may match because kernfs doesn't factor in an i_generation
+> number.
 
-I think the attached patch should work for you and should not
-break anything.
+That is is about filehandle re-use, not about filehandle stability.
 
-It's only sanity tested and will need to write tests to verify it.
+>=20
+> Could we fix it by adding a random i_generation value or something?
+> Possibly, but there really isn't a good use-case that I can see for
+> allowing cgroupfs to be exported via nfsd. Best to disallow it until
+> someone comes up with one.
+
+100% agree.
+
+>=20
+> > Oh yes we did. And this is a merry-go-round.
+> >=20
+> > It is very much fine for a filesystems to support file handles without
+> > wanting to support exporting via NFS. That is especially true for
+> > in-kernel pseudo filesystems.
+> >=20
+> > As I've said before multiple times I want a way to allow filesystems
+> > such as pidfs and nsfs to use file handles without supporting export.
+> > Whatever that fscking flag is called at this point I fundamentally don't
+> > care. And we are reliving the same arguments over and over.
+> >=20
+> > I will _hard NAK_ anything that starts mandating that export of
+> > filesystems must be allowed simply because their file handles fit export
+> > criteria. I do not care whether pidfs or nsfs file handles fit the bill.
+> > They will not be exported.
+>=20
+> I don't really care what we call the flag. I do care a little about
+> what its semantics are, but the effect should be to ensure that fs
+> maintainers make a conscious decision about whether nfsd export should
+> be allowed on the filesystem.=C2=A0
+
+Why do you need a conscious decision so much that you want to try to
+force it.
+Of course we want conscious decisions and hope they are always made, but
+trying to manipulate people to doing things often fails.  How sure are
+you that fs developers won't just copy-paste some other implementation
+and not think about the implications of the flag?
+
+What is the down side?  What is the harm from allowing export (should the
+admin attempt it)?
+If there were serious security concerns - then sure, make it harder to
+do the dangerous thing.
+But if it is just "it doesn't make sense", then there is no harm in
+letting people get away with not reading the documentation, and fixing
+things later as complaints arrive.  That is generally how the process
+works.
+
+But if you really really want to set this new flag on almost every
+export_operations, can I ask that you please set it on EVERY export
+operations, then allow maintainers to remove it as they see fit.
+I think that approach would be much easier to review.
+
+With your current series it is non-trivial to determine which
+export_operations you have chosen not to set the flag on.  If you had
+one patch that set it everywhere, then individual patches to remove it,
+that would be a lot easier to review.
 
 Thanks,
-Amir.
+NeilBrown
 
---000000000000edabef0648d33d95
-Content-Type: text/x-patch; charset="US-ASCII"; 
-	name="0001-ovl-relax-requirement-for-uuid-off-index-on.patch"
-Content-Disposition: attachment; 
-	filename="0001-ovl-relax-requirement-for-uuid-off-index-on.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_mkmqeux30>
-X-Attachment-Id: f_mkmqeux30
 
-RnJvbSAxNDdlODhkODhiNWRmYmNkZDIzYWZmNzM2ZTRkMzgxYThhZjQ0NmY2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBUdWUsIDIwIEphbiAyMDI2IDE1OjU4OjMxICswMTAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
-OiByZWxheCByZXF1aXJlbWVudCBmb3IgdXVpZD1vZmYsaW5kZXg9b24KCnV1aWQ9b2ZmLGluZGV4
-PW9uIHJlcXVpcmVkIHRoYXQgYWxsIHVwcGVyL2xvd2VyIGRpcmVjdG9yaWVzIGFyZSBvbiB0aGUK
-c2FtZSBmaWxlc3lzdGVtLgoKUmVsYXggdGhlIHJlcXVpcmVtZW50IHNvIHRoYXQgb25seSBhbGwg
-dGhlIGxvd2VyIGRpcmVjdG9yaWVzIG5lZWQgdG8gYmUKb24gdGhlIHNhbWUgZmlsZXN5c3RlbS4K
-ClNpZ25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQog
-RG9jdW1lbnRhdGlvbi9maWxlc3lzdGVtcy9vdmVybGF5ZnMucnN0IHwgIDIgKy0KIGZzL292ZXJs
-YXlmcy9uYW1laS5jICAgICAgICAgICAgICAgICAgICB8IDIxICsrKysrKysrKysrKystLS0tLS0t
-LQogZnMvb3ZlcmxheWZzL292ZXJsYXlmcy5oICAgICAgICAgICAgICAgIHwgIDIgKysKIGZzL292
-ZXJsYXlmcy9zdXBlci5jICAgICAgICAgICAgICAgICAgICB8IDEzICsrKysrLS0tLS0tLS0KIDQg
-ZmlsZXMgY2hhbmdlZCwgMjEgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pCgpkaWZmIC0t
-Z2l0IGEvRG9jdW1lbnRhdGlvbi9maWxlc3lzdGVtcy9vdmVybGF5ZnMucnN0IGIvRG9jdW1lbnRh
-dGlvbi9maWxlc3lzdGVtcy9vdmVybGF5ZnMucnN0CmluZGV4IGFiOTg5ODA3YTJjYjYuLmQ0MDIw
-ZWFlMWRlYmEgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3ZlcmxheWZz
-LnJzdAorKysgYi9Eb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1zL292ZXJsYXlmcy5yc3QKQEAgLTc1
-NSw3ICs3NTUsNyBAQCByZWFkLXdyaXRlIG1vdW50IGFuZCB3aWxsIHJlc3VsdCBpbiBhbiBlcnJv
-ci4KIE5vdGU6IHRoZSBtb3VudCBvcHRpb24gdXVpZD1vZmYgY2FuIGJlIHVzZWQgdG8gcmVwbGFj
-ZSBVVUlEIG9mIHRoZSB1bmRlcmx5aW5nCiBmaWxlc3lzdGVtIGluIGZpbGUgaGFuZGxlcyB3aXRo
-IG51bGwsIGFuZCBlZmZlY3RpdmVseSBkaXNhYmxlIFVVSUQgY2hlY2tzLiBUaGlzCiBjYW4gYmUg
-dXNlZnVsIGluIGNhc2UgdGhlIHVuZGVybHlpbmcgZGlzayBpcyBjb3BpZWQgYW5kIHRoZSBVVUlE
-IG9mIHRoaXMgY29weQotaXMgY2hhbmdlZC4gVGhpcyBpcyBvbmx5IGFwcGxpY2FibGUgaWYgYWxs
-IGxvd2VyL3VwcGVyL3dvcmsgZGlyZWN0b3JpZXMgYXJlIG9uCitpcyBjaGFuZ2VkLiBUaGlzIGlz
-IG9ubHkgYXBwbGljYWJsZSBpZiBhbGwgbG93ZXIgZGlyZWN0b3JpZXMgYXJlIG9uCiB0aGUgc2Ft
-ZSBmaWxlc3lzdGVtLCBvdGhlcndpc2UgaXQgd2lsbCBmYWxsYmFjayB0byBub3JtYWwgYmVoYXZp
-b3VyLgogCiAKZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9uYW1laS5jIGIvZnMvb3ZlcmxheWZz
-L25hbWVpLmMKaW5kZXggZTlhNjljOTViZTkxOC4uNzRjNTE0NjAzYWMyMyAxMDA2NDQKLS0tIGEv
-ZnMvb3ZlcmxheWZzL25hbWVpLmMKKysrIGIvZnMvb3ZlcmxheWZzL25hbWVpLmMKQEAgLTE1OCw2
-ICsxNTgsMTggQEAgc3RhdGljIHN0cnVjdCBvdmxfZmggKm92bF9nZXRfZmgoc3RydWN0IG92bF9m
-cyAqb2ZzLCBzdHJ1Y3QgZGVudHJ5ICp1cHBlcmRlbnRyeSwKIAlnb3RvIG91dDsKIH0KIAorYm9v
-bCBvdmxfdXVpZF9tYXRjaChzdHJ1Y3Qgb3ZsX2ZzICpvZnMsIGNvbnN0IHN0cnVjdCBzdXBlcl9i
-bG9jayAqc2IsCisJCSAgICBjb25zdCB1dWlkX3QgKnV1aWQpCit7CisJLyoKKwkgKiBNYWtlIHN1
-cmUgdGhhdCB0aGUgc3RvcmVkIHV1aWQgbWF0Y2hlcyB0aGUgdXVpZCBvZiB0aGUgbG93ZXIKKwkg
-KiBsYXllciB3aGVyZSBmaWxlIGhhbmRsZSB3aWxsIGJlIGRlY29kZWQuCisJICogSW4gY2FzZSBv
-ZiB1dWlkPW9mZiBvcHRpb24ganVzdCBtYWtlIHN1cmUgdGhhdCBzdG9yZWQgdXVpZCBpcyBudWxs
-LgorCSAqLworCXJldHVybiBvdmxfb3JpZ2luX3V1aWQob2ZzKSA/IHV1aWRfZXF1YWwodXVpZCwg
-JnNiLT5zX3V1aWQpIDoKKwkJCQkgICAgICB1dWlkX2lzX251bGwodXVpZCk7Cit9CisKIHN0cnVj
-dCBkZW50cnkgKm92bF9kZWNvZGVfcmVhbF9maChzdHJ1Y3Qgb3ZsX2ZzICpvZnMsIHN0cnVjdCBv
-dmxfZmggKmZoLAogCQkJCSAgc3RydWN0IHZmc21vdW50ICptbnQsIGJvb2wgY29ubmVjdGVkKQog
-ewpAQCAtMTY3LDE0ICsxNzksNyBAQCBzdHJ1Y3QgZGVudHJ5ICpvdmxfZGVjb2RlX3JlYWxfZmgo
-c3RydWN0IG92bF9mcyAqb2ZzLCBzdHJ1Y3Qgb3ZsX2ZoICpmaCwKIAlpZiAoIWNhcGFibGUoQ0FQ
-X0RBQ19SRUFEX1NFQVJDSCkpCiAJCXJldHVybiBOVUxMOwogCi0JLyoKLQkgKiBNYWtlIHN1cmUg
-dGhhdCB0aGUgc3RvcmVkIHV1aWQgbWF0Y2hlcyB0aGUgdXVpZCBvZiB0aGUgbG93ZXIKLQkgKiBs
-YXllciB3aGVyZSBmaWxlIGhhbmRsZSB3aWxsIGJlIGRlY29kZWQuCi0JICogSW4gY2FzZSBvZiB1
-dWlkPW9mZiBvcHRpb24ganVzdCBtYWtlIHN1cmUgdGhhdCBzdG9yZWQgdXVpZCBpcyBudWxsLgot
-CSAqLwotCWlmIChvdmxfb3JpZ2luX3V1aWQob2ZzKSA/Ci0JICAgICF1dWlkX2VxdWFsKCZmaC0+
-ZmIudXVpZCwgJm1udC0+bW50X3NiLT5zX3V1aWQpIDoKLQkgICAgIXV1aWRfaXNfbnVsbCgmZmgt
-PmZiLnV1aWQpKQorCWlmICghb3ZsX3V1aWRfbWF0Y2gob2ZzLCBtbnQtPm1udF9zYiwgJmZoLT5m
-Yi51dWlkKSkKIAkJcmV0dXJuIE5VTEw7CiAKIAlieXRlcyA9IChmaC0+ZmIubGVuIC0gb2Zmc2V0
-b2Yoc3RydWN0IG92bF9mYiwgZmlkKSk7CmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvb3Zlcmxh
-eWZzLmggYi9mcy9vdmVybGF5ZnMvb3ZlcmxheWZzLmgKaW5kZXggZjlhYzliZGRlODMwNS4uY2Yx
-MDY2MTUyMjEwNiAxMDA2NDQKLS0tIGEvZnMvb3ZlcmxheWZzL292ZXJsYXlmcy5oCisrKyBiL2Zz
-L292ZXJsYXlmcy9vdmVybGF5ZnMuaApAQCAtNzEwLDYgKzcxMCw4IEBAIHN0YXRpYyBpbmxpbmUg
-aW50IG92bF9jaGVja19maF9sZW4oc3RydWN0IG92bF9maCAqZmgsIGludCBmaF9sZW4pCiAJcmV0
-dXJuIG92bF9jaGVja19mYl9sZW4oJmZoLT5mYiwgZmhfbGVuIC0gT1ZMX0ZIX1dJUkVfT0ZGU0VU
-KTsKIH0KIAorYm9vbCBvdmxfdXVpZF9tYXRjaChzdHJ1Y3Qgb3ZsX2ZzICpvZnMsIGNvbnN0IHN0
-cnVjdCBzdXBlcl9ibG9jayAqc2IsCisJCSAgICBjb25zdCB1dWlkX3QgKnV1aWQpOwogc3RydWN0
-IGRlbnRyeSAqb3ZsX2RlY29kZV9yZWFsX2ZoKHN0cnVjdCBvdmxfZnMgKm9mcywgc3RydWN0IG92
-bF9maCAqZmgsCiAJCQkJICBzdHJ1Y3QgdmZzbW91bnQgKm1udCwgYm9vbCBjb25uZWN0ZWQpOwog
-aW50IG92bF9jaGVja19vcmlnaW5fZmgoc3RydWN0IG92bF9mcyAqb2ZzLCBzdHJ1Y3Qgb3ZsX2Zo
-ICpmaCwgYm9vbCBjb25uZWN0ZWQsCmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvc3VwZXIuYyBi
-L2ZzL292ZXJsYXlmcy9zdXBlci5jCmluZGV4IGJhOTE0NmYyMmEyY2MuLjhmMGVjYjQ5MDVlOTMg
-MTAwNjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9zdXBlci5jCisrKyBiL2ZzL292ZXJsYXlmcy9zdXBl
-ci5jCkBAIC05NDAsNyArOTQwLDcgQEAgc3RhdGljIGJvb2wgb3ZsX2xvd2VyX3V1aWRfb2soc3Ry
-dWN0IG92bF9mcyAqb2ZzLCBjb25zdCB1dWlkX3QgKnV1aWQpCiAJCSAqIGRpc2FibGUgbG93ZXIg
-ZmlsZSBoYW5kbGUgZGVjb2Rpbmcgb24gYWxsIG9mIHRoZW0uCiAJCSAqLwogCQlpZiAob2ZzLT5m
-c1tpXS5pc19sb3dlciAmJgotCQkgICAgdXVpZF9lcXVhbCgmb2ZzLT5mc1tpXS5zYi0+c191dWlk
-LCB1dWlkKSkgeworCQkgICAgb3ZsX3V1aWRfbWF0Y2gob2ZzLCBvZnMtPmZzW2ldLnNiLCB1dWlk
-KSkgewogCQkJb2ZzLT5mc1tpXS5iYWRfdXVpZCA9IHRydWU7CiAJCQlyZXR1cm4gZmFsc2U7CiAJ
-CX0KQEAgLTk1Miw2ICs5NTIsNyBAQCBzdGF0aWMgYm9vbCBvdmxfbG93ZXJfdXVpZF9vayhzdHJ1
-Y3Qgb3ZsX2ZzICpvZnMsIGNvbnN0IHV1aWRfdCAqdXVpZCkKIHN0YXRpYyBpbnQgb3ZsX2dldF9m
-c2lkKHN0cnVjdCBvdmxfZnMgKm9mcywgY29uc3Qgc3RydWN0IHBhdGggKnBhdGgpCiB7CiAJc3Ry
-dWN0IHN1cGVyX2Jsb2NrICpzYiA9IHBhdGgtPm1udC0+bW50X3NiOworCWNvbnN0IHV1aWRfdCAq
-dXVpZCA9IG92bF9vcmlnaW5fdXVpZChvZnMpID8gJnNiLT5zX3V1aWQgOiAmdXVpZF9udWxsOwog
-CXVuc2lnbmVkIGludCBpOwogCWRldl90IGRldjsKIAlpbnQgZXJyOwpAQCAtOTYzLDcgKzk2NCw3
-IEBAIHN0YXRpYyBpbnQgb3ZsX2dldF9mc2lkKHN0cnVjdCBvdmxfZnMgKm9mcywgY29uc3Qgc3Ry
-dWN0IHBhdGggKnBhdGgpCiAJCQlyZXR1cm4gaTsKIAl9CiAKLQlpZiAoIW92bF9sb3dlcl91dWlk
-X29rKG9mcywgJnNiLT5zX3V1aWQpKSB7CisJaWYgKCFvdmxfbG93ZXJfdXVpZF9vayhvZnMsIHV1
-aWQpKSB7CiAJCWJhZF91dWlkID0gdHJ1ZTsKIAkJaWYgKG9mcy0+Y29uZmlnLnhpbm8gPT0gT1ZM
-X1hJTk9fQVVUTykgewogCQkJb2ZzLT5jb25maWcueGlubyA9IE9WTF9YSU5PX09GRjsKQEAgLTk3
-Niw4ICs5NzcsNyBAQCBzdGF0aWMgaW50IG92bF9nZXRfZnNpZChzdHJ1Y3Qgb3ZsX2ZzICpvZnMs
-IGNvbnN0IHN0cnVjdCBwYXRoICpwYXRoKQogCQl9CiAJCWlmICh3YXJuKSB7CiAJCQlwcl93YXJu
-KCIlcyB1dWlkIGRldGVjdGVkIGluIGxvd2VyIGZzICclcGQyJywgZmFsbGluZyBiYWNrIHRvIHhp
-bm89JXMsaW5kZXg9b2ZmLG5mc19leHBvcnQ9b2ZmLlxuIiwKLQkJCQl1dWlkX2lzX251bGwoJnNi
-LT5zX3V1aWQpID8gIm51bGwiIDoKLQkJCQkJCQkgICAgImNvbmZsaWN0aW5nIiwKKwkJCQl1dWlk
-X2lzX251bGwodXVpZCkgPyAibnVsbCIgOiAiY29uZmxpY3RpbmciLAogCQkJCXBhdGgtPmRlbnRy
-eSwgb3ZsX3hpbm9fbW9kZSgmb2ZzLT5jb25maWcpKTsKIAkJfQogCX0KQEAgLTE0NjksMTAgKzE0
-NjksNyBAQCBzdGF0aWMgaW50IG92bF9maWxsX3N1cGVyX2NyZWRzKHN0cnVjdCBmc19jb250ZXh0
-ICpmYywgc3RydWN0IHN1cGVyX2Jsb2NrICpzYikKIAlpZiAoIW92bF91cHBlcl9tbnQob2ZzKSkK
-IAkJc2ItPnNfZmxhZ3MgfD0gU0JfUkRPTkxZOwogCi0JaWYgKCFvdmxfb3JpZ2luX3V1aWQob2Zz
-KSAmJiBvZnMtPm51bWZzID4gMSkgewotCQlwcl93YXJuKCJUaGUgdXVpZD1vZmYgcmVxdWlyZXMg
-YSBzaW5nbGUgZnMgZm9yIGxvd2VyIGFuZCB1cHBlciwgZmFsbGluZyBiYWNrIHRvIHV1aWQ9bnVs
-bC5cbiIpOwotCQlvZnMtPmNvbmZpZy51dWlkID0gT1ZMX1VVSURfTlVMTDsKLQl9IGVsc2UgaWYg
-KG92bF9oYXNfZnNpZChvZnMpICYmIG92bF91cHBlcl9tbnQob2ZzKSkgeworCWlmIChvdmxfaGFz
-X2ZzaWQob2ZzKSAmJiBvdmxfdXBwZXJfbW50KG9mcykpIHsKIAkJLyogVXNlIHBlciBpbnN0YW5j
-ZSBwZXJzaXN0ZW50IHV1aWQvZnNpZCAqLwogCQlvdmxfaW5pdF91dWlkX3hhdHRyKHNiLCBvZnMs
-ICZjdHgtPnVwcGVyKTsKIAl9Ci0tIAoyLjUyLjAKCg==
---000000000000edabef0648d33d95--
+>=20
+> At this point, maybe we should just go with Neil's=20
+> EXPORT_OP_SUPPORTS_NFS_EXPORT or something. It's much more arbitrary,
+> than trying to base this on criteria about filehandle stability, but it
+> would give us the effect we want.
+>=20
+> --=20
+> Jeff Layton <jlayton@kernel.org>
+>=20
+
