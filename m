@@ -1,39 +1,39 @@
 Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD53A2E6CAB;
-	Fri, 23 Jan 2026 13:25:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2FC2BD033;
+	Fri, 23 Jan 2026 20:08:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769174728; cv=none; b=ftvxTXbTwW5IdsGfIHmOu2fDm6LO2SqxCSCtC7bVLtocmWMP2juOfFHzikspdYC+iXFPZUUeShCivc8mPRLYZfCGHgfckWEH+et56ZPyUVdrhWJ/0shK8AqqsckF+jhbdsUkgA6QGFrd2ymJv7y/1r2t0tpAU1laGtNUlNOrOK8=
+	t=1769198938; cv=none; b=hQfx4H9LFb/f9zyfriMHZXCcJwRSHwv+mFGJnRw9RFDhDWfSaJQ2MjThtA4HYngtge1zrMCiR/8avIrkN5uI/B3NrGpoLp8xltWjp7TK4skwVkS9Ii5IdhDc79LnPfZCJEK76sKNN4itu1urXJy4afFvLFz/blDwCAE3WuEbajE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769174728; c=relaxed/simple;
-	bh=COI1Vn0YHKV3OVPLgMROQ8SgPobrtuTwkqABWHq9GFY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hVUwPOelcaLY6q2esZKgoBRU2kTVKu26gAU6VCClG2hwzdy+6ePM4q71O4XaY0pfASXCF97c9QmL8g9QKuWATf08XsEM6+TXEiySgtrrgixPNIxP2wxaRfAWa6Ej0HFuIuF/kJqBEW5TSMLFNXKtN/TiF0ysatKJYB3oGG6la2Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=F0TG+4Df; arc=none smtp.client-ip=213.97.179.56
+	s=arc-20240116; t=1769198938; c=relaxed/simple;
+	bh=yw2HWRH6pNHZTTAZOoeK52aKZQxm6K/tbztdUXquWbo=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=cS++bvi63edmVKX36rlsB93cuonEo9DL15vY0vOK0grjroAp2JRKNLycqDGkr3oz4q3FSmFkz/FwXfH36ts/jPy6eXsup9QDq6vv/YpwXp28ngTLyGFGHqwqoOR08aBuVuqy+8i4omWKJSnFqfB4Lul1qt7qVRqqsqZQzkwOMME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=LA+JHJHy; arc=none smtp.client-ip=213.97.179.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="F0TG+4Df"
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="LA+JHJHy"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=NkmcwHGTXfF74rwBRnsbltvXcHCGT5Xzk4r/Sa5CsWE=; b=F0TG+4DfKYqxbC9mBgnQPVdnqb
-	SZ9Dc0np9ZEglfchr7h44jnjx+M9hFgLwhavB3Lz7ZlEKpl384mNcXOUSCu/24DIYNtLoMIC4xKc2
-	2p6/dSQBF/g6NEdKb32Ql5ZLv925WgIVF1iVGSp9+Yjd3CwyEfhu4nZc4jgchJSEC3KPxz8lhTDZB
-	te2x3kgzGQJyaxuECraVFbEzOcAJ9s4Hxe+1v+xsqk1xc7y1tUgaFFqYCVUuiA45ld4ZDSvQ4H8Sr
-	ugdw6NYOtwP6YrzD9rY1US4CssTN/SBYbSu8DqbX63lqEi5/PwsaSmQxqdLIkztNuYkTpvGUzBych
-	lUXKTx+g==;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:References:
+	Cc:To:From:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=y2h4FKO/gqZGLIyqCMA1b/alWBeXTXRgrdUbRGvBD8A=; b=LA+JHJHy9q+ShI1ucA8baGdKFW
+	apfmJBwwbRyg/M0uStUWHdqrGP6Uq8oDQ6Qafq2DC3jjhsULMZgZMXbzjKDflefY4cu/+NSA/R5I3
+	43OKXh0Y9x6psWQsAzb3ZlsJVCqWLpbjO+QD/bPyzYhf2o089znqkibyqwr7IGbF2A8KKz+QAiTLP
+	6h4yUT8dgXFlF+XJ5sebPr3tuVdPcG1cortS3kxQYOk+7sAlhuYzHvbjHwYMlxJo3x1CFuT9nych9
+	CF31WIpq0da7Ro7d/1Mwv+C+UBBtpG8XahYjce/Eqx2Q9eS31trY5sH1K1S9laXQIXZK3ier//Umq
+	1zOMyPnA==;
 Received: from [179.98.220.182] (helo=[192.168.15.100])
 	by fanzine2.igalia.com with esmtpsa 
 	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-	id 1vjH9m-008tyb-VC; Fri, 23 Jan 2026 14:24:59 +0100
-Message-ID: <ee38734b-c4c3-4b96-8ff2-b4ce5730b57c@igalia.com>
-Date: Fri, 23 Jan 2026 10:24:50 -0300
+	id 1vjNSI-0092uX-KP; Fri, 23 Jan 2026 21:08:30 +0100
+Message-ID: <8ab387b1-c4aa-40a5-946f-f4510d8afd02@igalia.com>
+Date: Fri, 23 Jan 2026 17:08:23 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -42,6 +42,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
+From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>,
  Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
@@ -71,51 +72,71 @@ References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
  <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
  <CAOQ4uxig==FAd=2hO0B_CVBDSuBwdqL-zaXkpf-QXn5iEL364g@mail.gmail.com>
  <CAOQ4uxg6dKr4XB3yAkfGd_ehZkBMcoNHiF5CeB9=3aca44yHRg@mail.gmail.com>
+ <ee38734b-c4c3-4b96-8ff2-b4ce5730b57c@igalia.com>
 Content-Language: en-US
-From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-In-Reply-To: <CAOQ4uxg6dKr4XB3yAkfGd_ehZkBMcoNHiF5CeB9=3aca44yHRg@mail.gmail.com>
+In-Reply-To: <ee38734b-c4c3-4b96-8ff2-b4ce5730b57c@igalia.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-
-Em 22/01/2026 17:07, Amir Goldstein escreveu:
-> On Tue, Jan 20, 2026 at 4:12 PM Amir Goldstein <amir73il@gmail.com> wrote:
->>
->> On Mon, Jan 19, 2026 at 5:56 PM André Almeida <andrealmeid@igalia.com> wrote:
+Em 23/01/2026 10:24, André Almeida escreveu:
+> 
+> Em 22/01/2026 17:07, Amir Goldstein escreveu:
+>> On Tue, Jan 20, 2026 at 4:12 PM Amir Goldstein <amir73il@gmail.com> 
+>> wrote:
 >>>
-> ...
->>> Actually they are not in the same fs, upper and lower are coming from
->>> different fs', so when trying to mount I get the fallback to
->>> `uuid=null`. A quick hack circumventing this check makes the mount work.
+>>> On Mon, Jan 19, 2026 at 5:56 PM André Almeida 
+>>> <andrealmeid@igalia.com> wrote:
+>>>>
+>> ...
+>>>> Actually they are not in the same fs, upper and lower are coming from
+>>>> different fs', so when trying to mount I get the fallback to
+>>>> `uuid=null`. A quick hack circumventing this check makes the mount 
+>>>> work.
+>>>>
+>>>> If you think this is the best way to solve this issue (rather than
+>>>> following the VFS helper path for instance),
 >>>
->>> If you think this is the best way to solve this issue (rather than
->>> following the VFS helper path for instance),
+>>> That's up to you if you want to solve the "all lower layers on same fs"
+>>> or want to also allow lower layers on different fs.
+>>> The former could be solved by relaxing the ovl rules.
+>>>
+>>>> please let me know how can
+>>>> I safely lift this restriction, like maybe adding a new flag for this?
+>>>
+>>> I think the attached patch should work for you and should not
+>>> break anything.
+>>>
+>>> It's only sanity tested and will need to write tests to verify it.
+>>>
 >>
->> That's up to you if you want to solve the "all lower layers on same fs"
->> or want to also allow lower layers on different fs.
->> The former could be solved by relaxing the ovl rules.
+>> Andre,
 >>
->>> please let me know how can
->>> I safely lift this restriction, like maybe adding a new flag for this?
->>
->> I think the attached patch should work for you and should not
->> break anything.
->>
->> It's only sanity tested and will need to write tests to verify it.
+>> I tested the patch and it looks good on my side.
+>> If you want me to queue this patch for 7.0,
+>> please let me know if it addresses your use case.
 >>
 > 
-> Andre,
+> Hi Amir,
 > 
-> I tested the patch and it looks good on my side.
-> If you want me to queue this patch for 7.0,
-> please let me know if it addresses your use case.
+> I'm still testing it to make sure it works my case, I will return to you 
+> ASAP. Thanks for the help!
 > 
 
-Hi Amir,
+So, your patch wasn't initially working in my setup here, and after some 
+debugging it turns out that on ovl_verify_fh() *fh would have a NULL 
+UUID, but *ofh would have a valid UUID, so the compare would then fail.
 
-I'm still testing it to make sure it works my case, I will return to you 
-ASAP. Thanks for the help!
+Adding this line at ovl_get_fh() fixed the issue for me and made the 
+patch work as I was expecting:
 
-> Thanks,
-> Amir.
++       if (!ovl_origin_uuid(ofs))
++               fh->fb.uuid = uuid_null;
++
+         return fh;
+
+Please let me know if that makes sense to you.
+
+Thanks!
+	André
+
 
