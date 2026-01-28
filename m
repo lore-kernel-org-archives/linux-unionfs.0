@@ -1,79 +1,122 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f194.google.com (mail-pf1-f194.google.com [209.85.210.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C9F11C3F36;
-	Wed, 28 Jan 2026 00:43:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8863286405
+	for <linux-unionfs@vger.kernel.org>; Wed, 28 Jan 2026 02:42:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769561026; cv=none; b=ZqpsKNV02wrOlz6h4O1mYDxx9ou4zhEqmzBfORV4EGpZsfBTkp2esXImG0FUv4JOSoB579hCfm4jcGZXgwa6OrVkj4Sc3Fc76atRHhM1ItYMcDIP3L+HPZ3KPpt0U3N+YsnduneJBxbC/BG6BqBC59pHRF77F+XaoNuDw3QJh1s=
+	t=1769568141; cv=none; b=PbRj+DorGWIRdYcDHKzYbdBTn5i8Vt+iVJ8V3nWxj4cggm1Q+BDEGTEPMOGgegPSkRTqhfZKDpNZ4S5tWuNC6x7/MzaSuRqLgtdqDBbl2bMB0vnvxi3D+X6NuXV46acTuC8eNaxU/XIS3scGGJmxg/vRvHHLA0XmJuT77kyvtDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769561026; c=relaxed/simple;
-	bh=04EMNhNYa+4moEOW8sybqj0nJHgWQ+jxOKjR1lfuE1A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E0AtE9QdQdjxN9z+zHznoxO4kHuutssNDYE8NC/wqCed50EZJa5GMuPiWhZcRJ6hSwJvWiX1W19i0S4Zsigp8/xuBKZKaP99lgsIbXekDjc176MGtsvQ3fGXN55gGR1UTKeTu+GCPzyIPsZLK5wbb0fs/s9WBLYDmXT7wRimnTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KU+BzG8W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769568141; c=relaxed/simple;
+	bh=ySUVuUZdbvYFfY4FgYdpkObwkXmUBZX+j+38Y6EqrJU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=F6dyiniY850DbBAn1E8P0XAB2aCxCMmgDQNDpOh5UhCtZioKFL/+LDw1HyYLdpYVneZU+4wbMmzyakLFMfaJ5sXw68orDvVpk03oyqaU3sb3vNoXnp0CbCNYboxQc7mQWTjO98NM05k/Uw0Z+BammEVgWjLr2oQsdiwqneRgRXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fBgftnZ7; arc=none smtp.client-ip=209.85.210.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KU+BzG8W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96BA2C116C6;
-	Wed, 28 Jan 2026 00:43:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769561025;
-	bh=04EMNhNYa+4moEOW8sybqj0nJHgWQ+jxOKjR1lfuE1A=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KU+BzG8WZweNDX2NvBmANiaj/5BVyP2NHDlfSqikeS9miA9sensOsL/ephKH2aCsc
-	 4tmWlMwTiyiROk9JnvWSGcyD/fFVKIihdRhk06cg5OAq7tF2N7mesupNbHoDvuzwl4
-	 hemBgOtRN4ceiwylIQs+KZQ75qHyw0AjNKJ7d72W3br8YG6AWLxzuWppQnDTOmKuKD
-	 OjNRkVYsfbEzI7Qg7bKvoJX6ybE9ywzVl2uF58XXAo+sYO9ySDy9T4hqpGIvuy0u4d
-	 0vnH+C9UUPuaYKAJacdFqO2lzjDRDCTRw38NnFCm8KAjw6OHb4RfDmQF1WzP1vZxDA
-	 Eig0BXnbEZiYw==
-Date: Tue, 27 Jan 2026 16:43:44 -0800
-From: Eric Biggers <ebiggers@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Qing Wang <wangqing7171@gmail.com>, miklos@szeredi.hu,
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fBgftnZ7"
+Received: by mail-pf1-f194.google.com with SMTP id d2e1a72fcca58-82318b640beso2684452b3a.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 27 Jan 2026 18:42:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769568139; x=1770172939; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=QEZMQLfdyPYKzhiqnkvYGZfQ0QlObO2jzAVYfO/9mvE=;
+        b=fBgftnZ7ntOEThv5RpetTH/31HW1G3h7GfBLJXacJuaf5FS2C/x2kNdLbudVge+cQp
+         egM/YLXzTZJLqdKRs9KqqdVcaXdg8/Jw/soWKSlLNcs8uyNM0D7q47ccjdm5MAsUufuE
+         I2aI5s62Uf9U4RyMGJ4VOII1REkw+/946M8gzccRKsZyr0ckoegQL/9jJIBhMLA1/JIp
+         xN/fDjC/fzYk/iT43+vOEcgtj8UzGHNTiQLCpurToDwPJ9ElvLyANROr9boKB03h/ouS
+         8XXHx2yvhoMjefUQLlYnhxXtu6hmV7il2eNeA7/DJQxtUJmVjjh4DH0TxjA4jDWoNDQ2
+         lCtA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769568139; x=1770172939;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=QEZMQLfdyPYKzhiqnkvYGZfQ0QlObO2jzAVYfO/9mvE=;
+        b=VZAI8+Pcs8OpWRPUgZJy/aie16sE/m++CYUiP+3l+e+oNCSiv9+rgSYkBkD6mA1g+f
+         EEiW/0lnt4rXmVMHJHRoBEEjQuSpxMatNwmtGW9N1N5nCp+N7bXbE3U4q/mDewrs7NI5
+         YTUjHOvjY8WTzrTdPWFqgfbU6tzhpUtHlK3qZ/0p8SFXTAbUMGmTrf5EVYOw80PLwRJg
+         bsoo//Lc4vJmSFmqh9CvWQdheUhHTIGTcBS0F18EtD7y2Mto/x+fdfgEe1K6zESFXxpa
+         beU0+h8i8yzBff/3SR7nPv5Ckixjvhild0xyurVvSCbHLETyG//oae9BIfWNoZYmTOpd
+         EZHg==
+X-Forwarded-Encrypted: i=1; AJvYcCW5eej2vAnGmz5x7fVSHp8vx1cctVOwT4e4/GwCVpCvU4EfIHUaBmss0oS6nCbZCloioTDM8Ev3WylNZDX4@vger.kernel.org
+X-Gm-Message-State: AOJu0YxLyXp6YCQ4VC66XInImTlN04N2eQqvQbIjh9O02pvyMEY41Ml7
+	7C5YtouCezwgK0ZkbCvptAlSSWwyh3NmFWPTK6+bOuwAWKmD9PIl6EA03QD7+zXz
+X-Gm-Gg: AZuq6aKhZniD5gejpBRBMDpxAgzvZdsYZNefv/4qfiHdGOz+WE3MXTBEpFcQgY3m01l
+	t8jj4x9+j/5QcKXVRmTCKFxdq94CL1Jb7JTfq7XZ+AEtCJvr1K62AEGrnBdZOOZ7ooxHlMKzADC
+	p2w3Opujtc62YiYTc07wAyo6VoK4I3u6t26IiqcYBkAC5abIPsbjLV9jfaGXlcZBdjtS6+3l5mV
+	V0XyYEpsfbH9ArS/0fzIXMTJNuggoD+nb1gGfycMZjLiF/flqJNapDiNpaGDaJvSI0sAtdBhxLR
+	Eaj75jMDvtJxJnt9tqAdxZ+PZVUMYAArEWCSSe6DFwD3MuOTUb0BbgBZHTIdWznKLdz6Tc1OS91
+	KDUy1+oOFZqD/l+PVJ1m+NO1SJQz8PQF09yqa9Jh4KQ8gxH17FhYegMdDC/IgWrVfDvua1kPpf5
+	BEl4CJokyHY6qmRufNsNyAt9GAxDloqIpsG4iM1g==
+X-Received: by 2002:a05:6a00:4b01:b0:823:edf:9811 with SMTP id d2e1a72fcca58-823691738a2mr3517068b3a.18.1769568139083;
+        Tue, 27 Jan 2026 18:42:19 -0800 (PST)
+Received: from lima-ubuntu.hz.ali.com ([47.246.98.220])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82379bfd8desm869487b3a.33.2026.01.27.18.42.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Jan 2026 18:42:18 -0800 (PST)
+From: Qing Wang <wangqing7171@gmail.com>
+To: miklos@szeredi.hu
+Cc: amir73il@gmail.com,
+	linux-kernel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
 	syzbot+d130f98b2c265fae5297@syzkaller.appspotmail.com,
-	Christian Brauner <brauner@kernel.org>
+	wangqing7171@gmail.com
 Subject: Re: [PATCH v2] ovl: Fix uninit-value in ovl_fill_real
-Message-ID: <20260128004344.GA2127@quark>
-References: <CAJfpegt_n85jDSe9k9GcC_9KB=+R_oUeJTPt+3XSPkhjBPm3NQ@mail.gmail.com>
- <20260127105248.1485922-1-wangqing7171@gmail.com>
- <CAOQ4uxg2Zwuyorw50iKzwbQJO4wD2NfqhE21KPFZrDVMJAYzNQ@mail.gmail.com>
+Date: Wed, 28 Jan 2026 10:42:12 +0800
+Message-Id: <20260128024212.1818250-1-wangqing7171@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <CAJfpegt9yLioW1dEmGYOfib=TcuWVom=Z+a+bN+jS_8wFie90Q@mail.gmail.com>
+References: <CAJfpegt9yLioW1dEmGYOfib=TcuWVom=Z+a+bN+jS_8wFie90Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxg2Zwuyorw50iKzwbQJO4wD2NfqhE21KPFZrDVMJAYzNQ@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jan 27, 2026 at 12:09:47PM +0100, Amir Goldstein wrote:
-> Eric,
+On Tue, 27 Jan 2026 at 19:19, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 160960bb0ad0..9ea3cd11dd93 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -755,7 +755,7 @@ static bool ovl_fill_real(struct dir_context *ctx, const char *name,
+>         struct dir_context *orig_ctx = rdt->orig_ctx;
+>         bool res;
+>
+> -       if (rdt->parent_ino && strcmp(name, "..") == 0) {
+> +       if (rdt->parent_ino && namelen == 2 && !strncmp(name, "..", namelen)) {
 > 
-> Considering that fscrypt_fname_alloc_buffer() anyway allocates the byte for NUL
-> termination and that decrypted names are zero padded (right?).
+> Yeah, and also the str... functions only make sense on null terminated
+> strings, so that needs to be memcmp.
 
-Only when the length of the original filename isn't already a multiple
-of the padding amount, as configured by FSCRYPT_POLICY_FLAGS_PAD_*.
+Thanks for your idea, but I think strncmp is same as memncmp in this case.
+strncmp dons't use null terminated.
 
-> How about reinforcing this fix with:
-> 
-> diff --git a/fs/crypto/fname.c b/fs/crypto/fname.c
-> index a9a4432d12ba1..97e00af49bb9f 100644
-> --- a/fs/crypto/fname.c
-> +++ b/fs/crypto/fname.c
-> @@ -276,6 +276,7 @@ int fscrypt_fname_disk_to_usr(const struct inode *inode,
->         if (fscrypt_is_dot_dotdot(&qname)) {
->                 oname->name[0] = '.';
->                 oname->name[iname->len - 1] = '.';
-> +               oname->name[iname->len] = 0;
->                 oname->len = iname->len;
->                 return 0;
+```
+int strncmp(const char *cs, const char *ct, size_t count)
+{
+	unsigned char c1, c2;
 
-Do you propose to do the same for all callers of dir_emit() in all
-filesystems?  It seems not NUL-terminating the name is normal.  Just
-usually the name is in the pagecache rather than slab memory, which
-makes KMSAN not usually notice the out-of-bounds read in overlayfs.
+	while (count) {
+		c1 = *cs++;
+		c2 = *ct++;
+		if (c1 != c2)
+			return c1 < c2 ? -1 : 1;
+		if (!c1)
+			break;
+		count--;
+	}
+	return 0;
+}
+```
 
-- Eric
+What do you think?
+
+--
+Best Regards,
+Qing
