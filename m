@@ -1,72 +1,77 @@
 Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5973D350D79
-	for <linux-unionfs@vger.kernel.org>; Wed, 28 Jan 2026 13:24:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92364352C3A
+	for <linux-unionfs@vger.kernel.org>; Wed, 28 Jan 2026 13:24:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769606650; cv=none; b=Tc/RHFKwToORMn7hgCL4z7zaMTRw5a0oBjc29+Zsq1qzHNAJAfc4uMorb3qJHh0D9UcAvAzThR78wLgY2IJVBdODkfd/Htx1dFOqS3Nq3vUdXVhUfROPH1n6DeHCmE+EMgdwj4vs6aNKz8KSb6070/anZVJA65dWxyhMQ6/P3Ms=
+	t=1769606652; cv=none; b=pvPwvBepIPO5jVMcJcxo3M3ebIEmLcITN4TsPW/ahgTTQx8fmQYIB+linpcaf+NyMFk1CROg6eiwU4Lr/+DTVO89G2nlNuTyoLCZOgcTIJg+YtVLrGn3hVQNoi/busPI8thCvgWi3NVsDVw2/nlbVcsBiOVSAueRHY9nhfuakGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769606650; c=relaxed/simple;
-	bh=5mj9f+jiqWsP8JUwxAFNqRoV0N/RWg4pBZ79Q5rxyLU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IAjCMiqvUR+7WO4/cpM+ygFDlwa7u0R7jYGHeXGLAsAAKazZgYk3F0cJv7Gv7AMDUPjFYFD1ePe2GX6CPDSTWZ18UPKS7WipS8JDMawCF5UeWe60YLVQOuyKmXVpJHOg+PkJNYEqRHFboZ4x35u23faanaTJOT8kEXJha4VZ21s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Gchs8YhE; arc=none smtp.client-ip=209.85.208.50
+	s=arc-20240116; t=1769606652; c=relaxed/simple;
+	bh=by5c7OBWmvzWhVys6tF6T+VYllXJ1/+r8xSpNq3nuBQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=LtdrvhDHjX1FuDb1TXSif5XewDwUxIhJz4W/lQlySG36naqg6w1yORajhlsEY7tTuwGSkyqtXjvk10aHQa2lomr3p6vbdI3/VNLHi6ZtM2AaMnAbmU07pBMj8KB0TNGqZJK5O/OZLwy7VH+5JlxmNbW6qIuYWY8bKSdh51OF1so=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W7nt6ktY; arc=none smtp.client-ip=209.85.208.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Gchs8YhE"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-65832e566edso9841177a12.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 28 Jan 2026 05:24:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W7nt6ktY"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-65378ba2ff7so10302395a12.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 28 Jan 2026 05:24:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769606648; x=1770211448; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=2C0U7hvt67M0jhge/Mq6BbLukFcgthoPBAq2udkVqlA=;
-        b=Gchs8YhEuiqjm7UISgnUjThDUVDjst+urDIUMDvEB+B31Ai5cUSrRb3Qd2uWZnojlA
-         jE+uY/UYXdxaPhQKj/vTQbpygTlD6GYbeszZyAkIXsAVkFM5/Ludp+69wuF/CPmwGDIn
-         9wcjCFDjXBrziTjElQLGG3RzWEsLb2yFOUPYOAWyEUQzyUQy0Op9Rc7Fk+TXyO4mtgPK
-         6jcVnDRPs5m5BO9Fylo0AQQKDS6x40LuSQ2PN7p6JI4w/1QjvWFydOFjAP7Jh8RFkX5H
-         Alb/TM8kxyD3Nhr402gfxfnZpwW5YN9Xmx04SRjjheRMSckdoA/tyQZrWuIZ3B2Q+sDn
-         NWzg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769606648; x=1770211448;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1769606649; x=1770211449; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=2C0U7hvt67M0jhge/Mq6BbLukFcgthoPBAq2udkVqlA=;
-        b=EHP51/CqlYueovZ8lRS93fqjQVOUZ64XtZ4Tx7fTa6OnvnikQocmJ6ANcmi9I404pf
-         kL4X3xrpQaDAi3kWcprP87eePmK+VrN9pWbRtvGyzjmEpVX+S7NifimfA9EQAyXMZ2IA
-         yL9nhbKVr+Ap9P0hN8hYybLmaPrQxz+3GHAeBM6mTj6bDpkoJ0OF3F8E5yAEzBAXItwv
-         7BcobvUpzFfXRifzHYF1wV2pX7M4mWHdsnIVF0wASC6a8DzFwUv2FIXMHMYlEQMx/LoK
-         TAZb8rvem90PSGL2OzgAtZLQiUegGr02ZjzMgiFZZM8ltfbJGnyILnooQvhZpmPu/Mii
-         6c9g==
-X-Forwarded-Encrypted: i=1; AJvYcCXYFTt8lPy/6uUqqVP77UjuJ0H2tuKjJS8cKrmm8JY2zsev65JYSto75u+jdmzfxRiy7KfDqp2T1aOWIotU@vger.kernel.org
-X-Gm-Message-State: AOJu0YzgCT2aosCcdzy3Hka4Nm/ut7tfo+ekKIIvP2V9wfjI2UKbbdFD
-	d1yQ5n3V3J7935UWAn34g8ZFfg+bU2Xl1m2ivzH5A5Eda6S25MCfLuuy
-X-Gm-Gg: AZuq6aIaZQKhj5gtxwYW8OzErzCTqyFe33FhBEGMtbtpxhyijwrJvKRY5lVjH+vYfRR
-	Ah9NwMITVUrihPvOGj8l5HoITufVhI82UnZIAtVfgGeRD8HxJV9F/XZYcxe2TV591m6h7OrFfYU
-	IDACyO4rVwpDC6Wt3upyeKXg5cSOa2Cd33zpYYqrB0zELPyEfEluBqBnVMiQ9/QSTgBHfbZNQGO
-	LUUfE6s1raeI27wWtHKswna8Jw/mFO3ZFEOwLBF9E+fYz6pvUmr6vqR7HJ7tPZEbyma1pf+yTIS
-	eEBkdq6w8fm+YwTQzgX+Uxfh32k2nD4Fkx7ah9cmHsxQDrbOXJgRh9KtiShphK/ZeCXK0r1ElHh
-	vzAT6MPporWa9Qh3YzTOKMGBqwQjv5Oc2vZiEQN3gxr7KECW0Je0V+iMgTJi6xIxrk+9OrYpjFS
-	6cAAKWUUwjEwbYFlYKHlUQK/L/YAgAhzoPb89dxN6jQ5KXOgCqAjnqeERieeXRI2lpMds97XsA7
-	51NfxyemgvQKWBW
-X-Received: by 2002:a05:6402:430a:b0:658:b922:22e0 with SMTP id 4fb4d7f45d1cf-658b922246emr1251224a12.28.1769606647432;
-        Wed, 28 Jan 2026 05:24:07 -0800 (PST)
+        bh=kxRM277namVFNLdkVHTNF4KV4lqJB7EgGMx8/qf8f94=;
+        b=W7nt6ktYD1RiYz7pLN3PILLQbdb08/u009q6bRnAlNJiVOEJHRL0t1SR22otnk1NOC
+         R2+KUUGfOWhX931UJKyosaYw2rNAzzXfb+Wfo+bxZWeW2FQRLcIlBfSOyaIPZqrGLKtY
+         Y9CEKp+y3CrTHht6gaBKb/4cprKUfaF4iFMbIi1kXePlPeTgFgZbPZvTKwwSuVH14EyW
+         hzNK5NDI5N/QoOoVjPlcgLd06+aFpLLNX1nmV2mcfqynHEKWf53Hpg+ilU8gPxVP7LBZ
+         J747uuQqwoxIUG9shomO9o5KIt1eP1a4GFNZaJ59P+5blXfNNIc+V8ZEGoKVbdsD3Ifw
+         eBnw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769606649; x=1770211449;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=kxRM277namVFNLdkVHTNF4KV4lqJB7EgGMx8/qf8f94=;
+        b=JsX9LvaBpR1kTOgxF32AUjdQXZW3Y8HKuwVdN8l3c52YwRyYm7DzGt1rcM2K0VQnmL
+         jS9BHPZoJeLcfuw9utSyuDew6eU10q4QEZZjruBnzoXVElouFXTzvREdRFbnh462O+wb
+         uB+kVtGzWUrOg6hTIUesUSF5Y1QRg5Bqiq/1vFJWieBGogwY3Xt1TAUSZJ08+l+lDZ95
+         INA2omsois7J4N8VIEDAZulquSaCRy1V2bkJScf27oa/oMiAPoOxas1wq1Sn63O0P4tf
+         r8rtdg6OmVzMW1Jb0p3ScB8PJztbiMpL1Bpq7lTIZY3djgNA3Fd+KXr2m5y44xaKhbdB
+         scbw==
+X-Forwarded-Encrypted: i=1; AJvYcCVJ236Y8t2IYpwE49n0OGhoW/6J1EGTCQJ0bBqVk+/KSXqSr5HLmNUyP7uQPvJ85k1ba4IO99AjgQWHZ9sF@vger.kernel.org
+X-Gm-Message-State: AOJu0YwcqsXovxntMZqRzumqFLutX8wYai9w0LtHxP+RNPvaaVabmLtD
+	dxeDnlCBoLudTNYcKOMVrd4dsVw0QcvsOnkInwE6etwTeoRAqBweVX5k
+X-Gm-Gg: AZuq6aIv/HpgWrCMl9E0ja2wBYwSkiWtXrG0N5yuD/1IRuG+HYgvlQliVmyvIq1lPC7
+	SUuoWmP3GSojTxhNbRF/fqO4nqjSsgruMI2kqB24G8cjyzg9Kd4MbtVnmsU2irHtfZltrzurFce
+	JGwUzJFmx4VDdVQQeho9CTsZd55yFz6gYde5c3Ttm5sJOv2XjLMMIA9sHA6Wd5A7TQ5v1VlKN95
+	KMqs5olRSodsVrx6vR+/pi40iJ1iIgFHnXUTQZoytuGj4nLSGb3bllA36/ddsZB5iOto4ywyy02
+	tjOCerz0QKMZs9wlMSO6t4iRVqoyMNBTTWw7dZ6y/mdcKBu4sRE88o7EPBgxVE3HiCHmHl/DnyK
+	5jQZk2P9mC1sQ/qUajzzIFDGK/TTPBWWd4ZwOxwerGQRxYnrAlC8wypZyOlo60fG9ijNa+CKe4p
+	b3Gl7L2fjCAOz+p5WIcPTBk37/UhzU5TIXgc2bVLkRdpPEhXTZWYsGg549l87zYzvt3D3T/ICTc
+	KGXlQ9eaQYYLNPlJl/wqOKZvYU=
+X-Received: by 2002:a17:907:6d0a:b0:b87:1c74:a8c6 with SMTP id a640c23a62f3a-b8dab3f022dmr389917666b.57.1769606648807;
+        Wed, 28 Jan 2026 05:24:08 -0800 (PST)
 Received: from localhost (2001-1c00-570d-ee00-c84e-f30e-bdab-df5a.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:c84e:f30e:bdab:df5a])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-658b4691d0asm1545885a12.18.2026.01.28.05.24.06
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b8dbf184343sm122306466b.33.2026.01.28.05.24.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Jan 2026 05:24:06 -0800 (PST)
+        Wed, 28 Jan 2026 05:24:08 -0800 (PST)
 From: Amir Goldstein <amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>
 Cc: Qing Wang <wangqing7171@gmail.com>,
 	linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Subject: [PATCH 0/3] name_is_dot* cleanup
-Date: Wed, 28 Jan 2026 14:24:03 +0100
-Message-ID: <20260128132406.23768-1-amir73il@gmail.com>
+	linux-unionfs@vger.kernel.org,
+	syzbot+d130f98b2c265fae5297@syzkaller.appspotmail.com
+Subject: [PATCH 1/3] ovl: Fix uninit-value in ovl_fill_real
+Date: Wed, 28 Jan 2026 14:24:04 +0100
+Message-ID: <20260128132406.23768-2-amir73il@gmail.com>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260128132406.23768-1-amir73il@gmail.com>
+References: <20260128132406.23768-1-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -75,48 +80,49 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Miklos,
+From: Qing Wang <wangqing7171@gmail.com>
 
-Following the syzbot ovl bug report and a fix by Qing Wang,
-I decided to follow up with a small vfs cleanup of some
-open coded version of checking "." and ".." name in readdir.
+Syzbot reported a KMSAN uninit-value issue in ovl_fill_real.
 
-The fix patch is applied at the start of this cleanup series to allow
-for easy backporting, but it is not an urgent fix so I don't think
-there is a need to fast track it.
+This iusse's call chain is:
+__do_sys_getdents64()
+    -> iterate_dir()
+        ...
+            -> ext4_readdir()
+                -> fscrypt_fname_alloc_buffer() // alloc
+                -> fscrypt_fname_disk_to_usr // write without tail '\0'
+                -> dir_emit()
+                    -> ovl_fill_real() // read by strcmp()
 
-Christian,
+The string is used to store the decrypted directory entry name for an
+encrypted inode. As shown in the call chain, fscrypt_fname_disk_to_usr()
+write it without null-terminate. However, ovl_fill_real() uses strcmp() to
+compare the name against "..", which assumes a null-terminated string and
+may trigger a KMSAN uninit-value warning when the buffer tail contains
+uninit data.
 
-I am assuming that you would want to take the vfs cleanup
-via your tree, so might as well take the ovl adjacent patches
-with it.
+Reported-by: syzbot+d130f98b2c265fae5297@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d130f98b2c265fae5297
+Fixes: 4edb83bb1041 ("ovl: constant d_ino for non-merge dirs")
+Signed-off-by: Qing Wang <wangqing7171@gmail.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/readdir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If you want me to drive this entire series via ovl tree, please
-ack the vfs cleanup patch.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-unionfs/20260127105248.1485922-1-wangqing7171@gmail.com/
-
-Amir Goldstein (2):
-  fs: add helpers name_is_dot{,dot,_dotdot}
-  ovl: use name_is_dot* helpers in readdir code
-
-Qing Wang (1):
-  ovl: Fix uninit-value in ovl_fill_real
-
- fs/crypto/fname.c      |  2 +-
- fs/ecryptfs/crypto.c   |  2 +-
- fs/exportfs/expfs.c    |  3 ++-
- fs/f2fs/dir.c          |  2 +-
- fs/f2fs/hash.c         |  2 +-
- fs/namei.c             |  2 +-
- fs/overlayfs/readdir.c | 39 +++++++++++++++------------------------
- fs/smb/server/vfs.c    |  2 +-
- include/linux/fs.h     | 14 ++++++++++++--
- 9 files changed, 35 insertions(+), 33 deletions(-)
-
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 160960bb0ad0b..724ec9d93fc82 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -755,7 +755,7 @@ static bool ovl_fill_real(struct dir_context *ctx, const char *name,
+ 	struct dir_context *orig_ctx = rdt->orig_ctx;
+ 	bool res;
+ 
+-	if (rdt->parent_ino && strcmp(name, "..") == 0) {
++	if (rdt->parent_ino && namelen == 2 && !strncmp(name, "..", 2)) {
+ 		ino = rdt->parent_ino;
+ 	} else if (rdt->cache) {
+ 		struct ovl_cache_entry *p;
 -- 
 2.52.0
 
