@@ -1,86 +1,121 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B888A37649A;
-	Thu, 29 Jan 2026 09:09:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B65541C72;
+	Fri, 30 Jan 2026 00:14:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769677764; cv=none; b=E93hh4Dbhg+73BBueD5N0jzb//cJ0A/O/1P4D68DEtltTIjPu1xv/E5oHVu4v2TebnNUlkcxxdaVsCbJER927HPaqb6S5Idz93Qmwk+MNomavuv4nLqrJ6MfVmXqYVDtc0Ic1QZz3iXiqNZOX5hayR4H758XsWM6GAiujxjJnBM=
+	t=1769732076; cv=none; b=dPpjlVm//CSeO6jxo6OzcIoYSBfXWbpjpAoBLxZLf5FO3a64g1BTSFdz/yStzmwKYhKF0qBKRiGwg/BQjIxwHS4WlJ7UyA88tgJ+FiTpj2SKppCSpPYmHKSzVgL9fRUd0dxtJWvRn3IDLu94dARok2eS0eMu0171NZSYhJvOIz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769677764; c=relaxed/simple;
-	bh=UoIAiEX09GkrcLEaGRH5RKWxYxamRPfWAW00Ayv8wv8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dqmpKxLb1z36s/CgXg0cfnO/ItOsA3g0JAK5+Z8yj/1eXLx71+vBitqEid8S8evw80tUlL5zOAdj8cVnBI+WjT9tdVdICVgL+L1aJagNrC05m+aiu3h+PYGZsZciBDkJ6ygqvhA0jD/YqFfNiKa1Z9600blyE/+W2+CIOq0vTg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GfZjEcQC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769732076; c=relaxed/simple;
+	bh=MFYc7QZX/EcS0/lin6rkPLcoR1gv1Dfino1TVsSDx6Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=t6Jtg0O8DCR9m35Lb7l8Is9SP1hYn0yhR2zEhSOhsM8bbRZGAw2XhJZ9aYeYAqisPUNghjnZg2KG6MlYu2YP2omA/OFKDPMfpwhqoQWRfDqczcc1jLsCrGaKpj/BKA8G2HrDFSCQPwVZIQEPrvxnj/5kXFPItPlOQ0MV4S5iOIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fcwwchHB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GfZjEcQC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFFEBC4CEF7;
-	Thu, 29 Jan 2026 09:09:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fcwwchHB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13057C4CEF7;
+	Fri, 30 Jan 2026 00:14:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769677764;
-	bh=UoIAiEX09GkrcLEaGRH5RKWxYxamRPfWAW00Ayv8wv8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GfZjEcQCHOg0gXBIsX0ouVo6Cot3uLz3+ZiqEiUnJzjIvcEoKqyZ8YkkQX2wCtq92
-	 Gu1lEF1dAwFHasoT4xTJaPL+1a8q6F0TBdH9Fwk+n/rvpPALo8+S2e/RXU9LWutq43
-	 TLDm4QiQhRz2LfNlLxMw01SVrlZ/A+PQH06v9n1XZ1ymH7C/2K0VkDU3cUsv23/zN1
-	 yUT6eewKbQdhY71m7x6/kX+e5M62voTUOmkrS/Pnu7JqL7v8jKbmALyZ68cIJR0XRM
-	 V9fDFuNw0m4cNA+FsfBqEuXkPUyXE25YH1AiEKN1uJnlavCi0vaMrB6FCFz/fKKKoU
-	 uEVwKZLQkiScA==
-From: Christian Brauner <brauner@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Qing Wang <wangqing7171@gmail.com>,
-	linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 0/3] name_is_dot* cleanup
-Date: Thu, 29 Jan 2026 10:09:17 +0100
-Message-ID: <20260129-lehrzeit-antennen-b3fc78c3e9a7@brauner>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260128132406.23768-1-amir73il@gmail.com>
-References: <20260128132406.23768-1-amir73il@gmail.com>
+	s=k20201202; t=1769732076;
+	bh=MFYc7QZX/EcS0/lin6rkPLcoR1gv1Dfino1TVsSDx6Q=;
+	h=From:To:Cc:Subject:Date:From;
+	b=fcwwchHBZZqZCBGAGAbybhVbkmwp8deGQKCX1ukcvzMNHuEEkE01L/NJhilGngsRR
+	 oPOT7F8cvmv9SXqyw/+xq2kZKA6oLxKTLvRFP1Z+SHVNDed69QuHqsEVodXDzn4aZA
+	 QognOKgpKGpTqneiKMgQXsQOtQgX4JdVmvbDSE7v76qBGrC2oczqTlMewHL6qBKa5F
+	 qAQynNLdKK4kTns9gR/PuP9utDMpOx46LzSI5hDVjrolp9jUKeM7KLhkEzzRSsEW7Z
+	 oD7P0aUpDiEUxSVFUp2yfpdNeO+D+BwEA8f2K4xYGlDXayhug2ZBjaTWND+ATaPwns
+	 WYcWwLSkLr7NQ==
+From: wufan@kernel.org
+To: linux-security-module@vger.kernel.org
+Cc: linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	corbet@lwn.net,
+	mic@digikod.net,
+	miklos@szeredi.hu,
+	amir73il@gmail.com,
+	linux-unionfs@vger.kernel.org,
+	Fan Wu <wufan@kernel.org>
+Subject: [PATCH] ipe: document AT_EXECVE_CHECK TOCTOU issue on OverlayFS
+Date: Fri, 30 Jan 2026 00:14:18 +0000
+Message-Id: <20260130001418.18414-1-wufan@kernel.org>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1427; i=brauner@kernel.org; h=from:subject:message-id; bh=UoIAiEX09GkrcLEaGRH5RKWxYxamRPfWAW00Ayv8wv8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWRWK++/u8hJfhInnz6Th6rz7gUXk8vfyi5wNBK99HpW3 fVn3yyfdJSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEyEXZaRYU9svKO13o1lEkGN SzK2Ma7gUqk+ElN/5m63VG9+BPPT5YwMlzRztgfyM6uoOS7b1hQ3QaigyzBVX2uBVKKyfLH8Shc GAA==
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-On Wed, 28 Jan 2026 14:24:03 +0100, Amir Goldstein wrote:
-> Miklos,
-> 
-> Following the syzbot ovl bug report and a fix by Qing Wang,
-> I decided to follow up with a small vfs cleanup of some
-> open coded version of checking "." and ".." name in readdir.
-> 
-> The fix patch is applied at the start of this cleanup series to allow
-> for easy backporting, but it is not an urgent fix so I don't think
-> there is a need to fast track it.
-> 
-> [...]
+From: Fan Wu <wufan@kernel.org>
 
-Applied to the vfs-7.0.misc branch of the vfs/vfs.git tree.
-Patches in the vfs-7.0.misc branch should appear in linux-next soon.
+Document a known TOCTOU (time-of-check to time-of-use) issue when using
+AT_EXECVE_CHECK with read() on OverlayFS. The deny_write_access()
+protection is only held during the syscall, allowing a copy-up operation
+to be triggered afterward, causing subsequent read() calls to return
+content from the unprotected upper layer.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+This is generally not a concern for typical IPE deployments since
+dm-verity and fs-verity protected files are effectively read-only.
+However, OverlayFS with a writable upper layer presents a special case.
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+Document mitigation strategies including mounting overlay as read-only
+and using mmap() instead of read(). Note that the mmap() mitigation
+relies on current OverlayFS implementation details and should not be
+considered a security guarantee.
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
+Signed-off-by: Fan Wu <wufan@kernel.org>
+---
+ Documentation/admin-guide/LSM/ipe.rst | 32 +++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-7.0.misc
+diff --git a/Documentation/admin-guide/LSM/ipe.rst b/Documentation/admin-guide/LSM/ipe.rst
+index a756d8158531..b621a98fe5e2 100644
+--- a/Documentation/admin-guide/LSM/ipe.rst
++++ b/Documentation/admin-guide/LSM/ipe.rst
+@@ -110,6 +110,34 @@ intercepts during the execution process, this mechanism needs the interpreter
+ to take the initiative, and existing interpreters won't be automatically
+ supported unless the signal call is added.
+ 
++.. WARNING::
++
++   There is a known TOCTOU (time-of-check to time-of-use) issue with
++   ``AT_EXECVE_CHECK`` when interpreters use ``read()`` to obtain script
++   contents after the check [#atacexecvecheck_toctou]_. The ``AT_EXECVE_CHECK``
++   protection (via ``deny_write_access()``) is only held during the syscall.
++   After it returns, the file can be modified before the interpreter reads it.
++
++   In typical IPE deployments, this is not a concern because files protected
++   by dm-verity or fs-verity are effectively read-only and cannot be modified.
++   However, OverlayFS presents a special case: when the lower layer is
++   dm-verity protected (read-only) but the upper layer is writable, an
++   attacker with write access can trigger a copy-up operation after the
++   ``AT_EXECVE_CHECK`` returns, causing subsequent ``read()`` calls to return
++   content from the unprotected upper layer instead of the verified lower layer.
++
++   To mitigate this issue on OverlayFS:
++
++   -  Mount the overlay as read-only, or restrict write access to the upper
++      layer.
++   -  Interpreters may use ``mmap()`` instead of ``read()`` to obtain script
++      contents. Currently, OverlayFS fixes the underlying real file reference
++      at ``open()`` time for mmap operations, so mmap will continue to access
++      the original lower layer file even after a copy-up. However, this
++      behavior is an implementation detail of OverlayFS and is not guaranteed
++      to remain stable across kernel versions. Do not rely on this as a
++      security guarantee.
++
+ Threat Model
+ ------------
+ 
+@@ -833,3 +861,7 @@ A:
+                      kernel's fsverity support; IPE does not impose any
+                      restrictions on the digest algorithm itself;
+                      thus, this list may be out of date.
++
++.. [#atacexecvecheck_toctou] See the O_DENY_WRITE RFC discussion for details on
++                             this TOCTOU issue:
++                             https://lore.kernel.org/all/20250822170800.2116980-1-mic@digikod.net/
+-- 
+2.52.0
 
-[1/3] ovl: Fix uninit-value in ovl_fill_real
-      https://git.kernel.org/vfs/vfs/c/1992330d90dd
-[2/3] fs: add helpers name_is_dot{,dot,_dotdot}
-      https://git.kernel.org/vfs/vfs/c/55fb177d3a03
-[3/3] ovl: use name_is_dot* helpers in readdir code
-      https://git.kernel.org/vfs/vfs/c/9cf8ddb12a72
