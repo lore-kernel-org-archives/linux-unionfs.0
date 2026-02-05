@@ -1,168 +1,162 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3B1B39903E;
-	Wed,  4 Feb 2026 10:58:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770202721; cv=none; b=DpdIpIKv48+G1be8XRNZ1Y01uf/bErvMnI4bJU+Vj5rWZ6WwTgL8ZE5VmgdKmhvdsypt5xoyDff9OK1a/4yfZL/W54oBGLg4Gr+Nbr9ulsIjdJ30E4azzB/NAA2qV4uV5Fd/jNqJu7MUFZJj4XJT+P4xmiHZZhHmwFMy9XTGV34=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770202721; c=relaxed/simple;
-	bh=e4OYY/P0s+n3f6l0Un+2wnNzSCxA9PSWh2mQE2h/QLI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FfSqTBetpmnUBCBZUYYLO9V3Z35kpksT6kzY+xJhIlpc6tMwbrPvrD18nN/1gu+iHyWhiokZdqENJZl8v+quNXF0FT4eBDWpKS3EnD8lrlGXn7UYGWYfbBeYNzWw9jXpw0Ol6GxMEveGaTVkYYzhhzAFinlC5pbmmHBzcMjSc4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P/rXH+g6; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C51D39E6E9
+	for <linux-unionfs@vger.kernel.org>; Thu,  5 Feb 2026 09:37:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770284251; cv=pass; b=PqxGjoBViQFhaQdAwwwFapw6yVuPoqQKoXRPXp7iVXcjmVEodcj/k8GI8gESb5aLXwTVrKUCSUwr09w/ZorXX9BxVu82MiSOYPd5w/i9OY3vnjChqITdXYKcAIgicJW0o6jLhf20iMbGgPh2Fo+ln5q7G2sdSKRSPhSYvDlo4sk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770284251; c=relaxed/simple;
+	bh=O3zjcpb1gIgdrnZIOWkOIcCmTAMhdJCAtczZfkl8Mgo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WAzYR/ZgXqDUhQfl0FcWGaky8U5CYVpZtKdwoWWc0pXwiOqhxQUKA72zFm5xTrEgiS9Z6t0FrhTrjwSpcsqBmHXn+gTRucJ192H+l76+PGFfVcj0nELJ96/zEv4ceKfwKxpJjQSwZQ04l4ksDArzNMn2EdYxI9FzfLjxvniLD/o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FjUGTiXw; arc=pass smtp.client-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P/rXH+g6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1770202721; x=1801738721;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=e4OYY/P0s+n3f6l0Un+2wnNzSCxA9PSWh2mQE2h/QLI=;
-  b=P/rXH+g67RmGvsKf8fW9NdXPYHiQBhjsXbEl5xs9cdbkru+GcsMpIjPF
-   ZgAZq2ETt877WT5m1Nx94gr4d/N8pblUQCmq0mKcAFYCIgNnY/plSvsix
-   hRJI37HGYUCi6SsOHqLspIZPElnW8hWE1s7I4u8Jn5ukSrBFAhWLIpE3Q
-   /PbylfvfXNN1S6/ThdghhLi0XtxG+ti5kvtasAmdX1ChGVh0jl0Z5jj93
-   EcqXLKNG+XUJW/L18PkEMzfb7RMvEgbHyog1thFe9zVGQxO2yc22+6sth
-   uwrsDhQoDtZsGIHRiQ3nKCCICPIvXqgCFaQPD2nPLnkzN30pOaAj//87J
-   w==;
-X-CSE-ConnectionGUID: Uqeby7skSJGEmc0KRBFotA==
-X-CSE-MsgGUID: qm180nDqQvud+jqMORzq4Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11691"; a="88807943"
-X-IronPort-AV: E=Sophos;i="6.21,272,1763452800"; 
-   d="scan'208";a="88807943"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2026 02:58:40 -0800
-X-CSE-ConnectionGUID: oBTx9fyySBW7CeLiYKyMow==
-X-CSE-MsgGUID: 6hswnyijS3qwmcCTJ28ksw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,272,1763452800"; 
-   d="scan'208";a="209230824"
-Received: from lkp-server01.sh.intel.com (HELO 765f4a05e27f) ([10.239.97.150])
-  by orviesa006.jf.intel.com with ESMTP; 04 Feb 2026 02:58:17 -0800
-Received: from kbuild by 765f4a05e27f with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1vnaaN-00000000hii-2R8J;
-	Wed, 04 Feb 2026 10:58:15 +0000
-Date: Wed, 4 Feb 2026 18:58:08 +0800
-From: kernel test robot <lkp@intel.com>
-To: NeilBrown <neilb@ownmail.net>, Christian Brauner <brauner@kernel.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	David Howells <dhowells@redhat.com>, Jan Kara <jack@suse.cz>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jeff Layton <jlayton@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	John Johansen <john.johansen@canonical.com>,
-	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Stephen Smalley <stephen.smalley.work@gmail.com>
-Cc: oe-kbuild-all@lists.linux.dev, linux-kernel@vger.kernel.org,
-	netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
-	apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
-	selinux@vger.kernel.org
-Subject: Re: [PATCH 04/13] Apparmor: Use simple_start_creating() /
- simple_done_creating()
-Message-ID: <202602041851.x2RfFgKO-lkp@intel.com>
-References: <20260204050726.177283-5-neilb@ownmail.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FjUGTiXw"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-65956402da9so1336261a12.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 05 Feb 2026 01:37:31 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1770284250; cv=none;
+        d=google.com; s=arc-20240605;
+        b=QP1LEBKsjmdVjj3GQYHu6Q0r0WoMiE8ieOUmlbyeaAM+aPXp1C4RgViVQ6BP16ybj1
+         kvRrq112zSmgtnc3FUOuHcZhMAkDT8Iuz9dr89+vFlo0Qn+OPfbqH1ep0rW/IzZjdrOP
+         FqDgRDAy/4asQYiGtD8Nzbps1MzetI/+x+ePsp8gP+RA6EGIDZRjH0P4msnb3ikbIwpn
+         nVihdm0SYAEiRyl+JkiFPcOwWrEygavjRdIgau2bSAkRZEQnIYwjm5bzZMzSj0dcuzAt
+         66qXk69jKrO9CKwvHiBFf/D+v0jlfosZRwvituyQlF86sPF4frXSdMnHeb1lHDW6brJT
+         Ys/g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=ts7BIpqOHUIYO1yz8UgL/PwCOZwIbnvcvFeQ/hBIaCk=;
+        fh=oNBTSJRl2jE8aJy+3oOF5cOzCZupsV1PuZfGflrqgyk=;
+        b=ZOpCgM1WZBchmzbt/HZ5b1dKsMcPf/EwfyKxQK5PzFcGBWmkUJ4A82DRl+Gbz2CKMQ
+         WYaiTK/dg2ukQXUrebye1nskeIRy4RzNa+0uN8FHY34Jp8QX6rVjKEteSDUpRn+x3F5y
+         heeHQveoK+jg5MSpVeitDUbtMFKNvZ8Om3NIXzu1YN/k8EZVGqTw00Aiii0bhKc0aiaY
+         EV8QPOl30AaLFIXK7Jf/U86iT1FzLhAYNBfXWh+z2a1hVWXJUFLHLUbRoeWzoqY67zmm
+         c31nsqSFZ5JlV2iQ4gEzV0zoiS80wCj0tHGXaZlabTzDQ+EwCQlJgofk45cKzy9LiR+t
+         841w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1770284250; x=1770889050; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ts7BIpqOHUIYO1yz8UgL/PwCOZwIbnvcvFeQ/hBIaCk=;
+        b=FjUGTiXw2YWjuQ7I+GqvszU9ONy2XE3+0JTAxPXHkvt5eZPZz+J5Ufml3pqOgP8T2L
+         rGpjc6btwhogLQMha/Jf6R6/yMMHusEbVvvB9GvauRcrLVSE37m/5NRzEmxkn7UFT56a
+         iuPSJZkpndM52iukwsc73xY8GdCH4GozIXR7BrzDyyEcwiI2UfOmNraXaq/qo6qKWX5v
+         Js4guz62jAPbbEGBBruoJBw9nESFq2rhHfK5hAw/E3v3AMLBniyg3HEQD/EO70aNkSpl
+         fnmqT9r0YmS9KqEzDR/y8yvYgP0e5gBj2781l3djCI2R2Qr30Ey5NTf0YpiUPWKYhCsR
+         bKZQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770284250; x=1770889050;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=ts7BIpqOHUIYO1yz8UgL/PwCOZwIbnvcvFeQ/hBIaCk=;
+        b=n4jLyKhnYde/SuNkH1DW75A/ZNkqZ5q87MK04XoWHyaORFvgYp4GxJ7nHQ6Rhl6Zy4
+         BXNfEz1gjWW1fz43NRKqO27g7UEG7atabI0uKZ9snu39Bq8Yx9ggU9YopUD5Yu9v6lqb
+         ZSPjxGTAUAMqwf++ACAeZTBLbUOjYmBsCamSpRZdwsigfEvpzVMFDxIibcBJwXtKN7gQ
+         QPG1dbvItmIGFKoBfP0tYVTjRNkj2JNvuXCqgZY9qqyVPCfRPuNB/3c1CGwYtgwO8XXn
+         60hwntuE3RSU7oK1s/l1yZ0/RNxMptn0QzDJzGQtu6A2SFvmVvbvAW+S8l4spbod+nwN
+         4xAQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUHfNAh242gY7Y6pJSsUul5AdS54Z52Nk1ENzSBRUzEnNCN10aJ0MRPjY6cCoDgbMe9QYpKYMxayanJR9pW@vger.kernel.org
+X-Gm-Message-State: AOJu0YyvMCZAGDGtX9SxJTOO1omsbriiw+osN+DYOjTUmlOJnKEpcVIR
+	AZsWeUOLHKPpK5W1++TUhtsWBgz5j/mg8cV8OnDlRm7fW3SWNb2Glci04Ot5CXLjFUKZJBKfYmC
+	oSwAKm2XrKR2oJlX6DWFq60KA1z0dvik=
+X-Gm-Gg: AZuq6aK3uXpBqqvp5MPJNtj1St58CkpEIZeaJJXR1sOYiZRisiZn4wgE6RqeMzleev6
+	jwmy0QiUBhgxgWTc4B4fqpCWkseI9a5fJ1X/yZKbukZ9lkcS2KyRAfZkp5kh8Gf9XGnR1fz5kE0
+	RSYFp53bhRWRvncfyZSdF1GQ+aauKGeCxeLXQI9k4lBmzOpHzZ7r+a/OcdNgsoa0AIdTtjj2GA4
+	rMi56jYHUiNBkqsW30xrlT555gqh8a5hB9VtnKJyvtK2SngUNjeiqQaQtOAN+nQJLe+ABAY+Jov
+	Yl3Xj1hUgushFN0C5N+vdt8XRMd8Yg==
+X-Received: by 2002:a05:6402:2688:b0:658:cf28:90ed with SMTP id
+ 4fb4d7f45d1cf-65949cc1e5emr3920680a12.15.1770284249654; Thu, 05 Feb 2026
+ 01:37:29 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260204050726.177283-5-neilb@ownmail.net>
+References: <20260204050726.177283-1-neilb@ownmail.net> <20260204050726.177283-12-neilb@ownmail.net>
+In-Reply-To: <20260204050726.177283-12-neilb@ownmail.net>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 5 Feb 2026 10:37:18 +0100
+X-Gm-Features: AZwV_QjDs8XEOiRuWGAHzisKUrokVjcatEGo5N0FYjLzK48UQXH5p374RE5BkHo
+Message-ID: <CAOQ4uxiYUTi=8BjRFbY_GdBZR_5CuP6680me=_xQaPcQk7EFuQ@mail.gmail.com>
+Subject: Re: [PATCH 11/13] ovl: use is_subdir() for testing if one thing is a
+ subdir of another
+To: NeilBrown <neil@brown.name>
+Cc: Christian Brauner <brauner@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	David Howells <dhowells@redhat.com>, Jan Kara <jack@suse.cz>, Chuck Lever <chuck.lever@oracle.com>, 
+	Jeff Layton <jlayton@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+	John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, 
+	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, linux-kernel@vger.kernel.org, 
+	netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
+	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org, 
+	selinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi NeilBrown,
+On Wed, Feb 4, 2026 at 6:09=E2=80=AFAM NeilBrown <neilb@ownmail.net> wrote:
+>
+> From: NeilBrown <neil@brown.name>
+>
+> Rather than using lock_rename(), use the more obvious is_subdir() for
+> ensuring that neither upper nor workdir contain the other.
+> Also be explicit in the comment that the two directories cannot be the
+> same.
+>
+> As this is a point-it-time sanity check and does not provide any
+> on-going guarantees, the removal of locking does not introduce any
+> interesting races.
+>
+> Signed-off-by: NeilBrown <neil@brown.name>
 
-kernel test robot noticed the following build warnings:
+Looks reasonable
 
-[auto build test WARNING on brauner-vfs/vfs.all]
-[also build test WARNING on viro-vfs/for-next linus/master v6.19-rc8 next-20260203]
-[cannot apply to pcmoore-selinux/next]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-url:    https://github.com/intel-lab-lkp/linux/commits/NeilBrown/fs-proc-Don-t-lock-root-inode-when-creating-self-and-thread-self/20260204-131659
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git vfs.all
-patch link:    https://lore.kernel.org/r/20260204050726.177283-5-neilb%40ownmail.net
-patch subject: [PATCH 04/13] Apparmor: Use simple_start_creating() / simple_done_creating()
-config: arm-randconfig-r133-20260204 (https://download.01.org/0day-ci/archive/20260204/202602041851.x2RfFgKO-lkp@intel.com/config)
-compiler: arm-linux-gnueabi-gcc (GCC) 11.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260204/202602041851.x2RfFgKO-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202602041851.x2RfFgKO-lkp@intel.com/
-
-sparse warnings: (new ones prefixed by >>)
->> security/apparmor/apparmorfs.c:295:16: sparse: sparse: Using plain integer as NULL pointer
-
-vim +295 security/apparmor/apparmorfs.c
-
-   247	
-   248	/**
-   249	 * aafs_create - create a dentry in the apparmorfs filesystem
-   250	 *
-   251	 * @name: name of dentry to create
-   252	 * @mode: permissions the file should have
-   253	 * @parent: parent directory for this dentry
-   254	 * @data: data to store on inode.i_private, available in open()
-   255	 * @link: if symlink, symlink target string
-   256	 * @fops: struct file_operations that should be used for
-   257	 * @iops: struct of inode_operations that should be used
-   258	 *
-   259	 * This is the basic "create a xxx" function for apparmorfs.
-   260	 *
-   261	 * Returns a pointer to a dentry if it succeeds, that must be free with
-   262	 * aafs_remove(). Will return ERR_PTR on failure.
-   263	 */
-   264	static struct dentry *aafs_create(const char *name, umode_t mode,
-   265					  struct dentry *parent, void *data, void *link,
-   266					  const struct file_operations *fops,
-   267					  const struct inode_operations *iops)
-   268	{
-   269		struct dentry *dentry;
-   270		struct inode *dir;
-   271		int error;
-   272	
-   273		AA_BUG(!name);
-   274		AA_BUG(!parent);
-   275	
-   276		if (!(mode & S_IFMT))
-   277			mode = (mode & S_IALLUGO) | S_IFREG;
-   278	
-   279		error = simple_pin_fs(&aafs_ops, &aafs_mnt, &aafs_count);
-   280		if (error)
-   281			return ERR_PTR(error);
-   282	
-   283		dir = d_inode(parent);
-   284	
-   285		dentry = simple_start_creating(parent, name);
-   286		if (IS_ERR(dentry)) {
-   287			error = PTR_ERR(dentry);
-   288			goto fail;
-   289		}
-   290	
-   291		error = __aafs_setup_d_inode(dir, dentry, mode, data, link, fops, iops);
-   292		simple_done_creating(dentry);
-   293		if (error)
-   294			goto fail;
- > 295		return 0;
-   296	fail:
-   297		simple_release_fs(&aafs_mnt, &aafs_count);
-   298		return ERR_PTR(error);
-   299	}
-   300	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> ---
+>  fs/overlayfs/super.c | 15 +++++----------
+>  1 file changed, 5 insertions(+), 10 deletions(-)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index ba9146f22a2c..2fd3e0aee50e 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -451,18 +451,13 @@ static int ovl_lower_dir(const char *name, const st=
+ruct path *path,
+>         return 0;
+>  }
+>
+> -/* Workdir should not be subdir of upperdir and vice versa */
+> +/*
+> + * Workdir should not be subdir of upperdir and vice versa, and
+> + * they should not be the same.
+> + */
+>  static bool ovl_workdir_ok(struct dentry *workdir, struct dentry *upperd=
+ir)
+>  {
+> -       bool ok =3D false;
+> -
+> -       if (workdir !=3D upperdir) {
+> -               struct dentry *trap =3D lock_rename(workdir, upperdir);
+> -               if (!IS_ERR(trap))
+> -                       unlock_rename(workdir, upperdir);
+> -               ok =3D (trap =3D=3D NULL);
+> -       }
+> -       return ok;
+> +       return !is_subdir(workdir, upperdir) && !is_subdir(upperdir, work=
+dir);
+>  }
+>
+>  static int ovl_setup_trap(struct super_block *sb, struct dentry *dir,
+> --
+> 2.50.0.107.gf914562f5916.dirty
+>
