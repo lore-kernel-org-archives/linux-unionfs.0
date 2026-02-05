@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498C83A7F51;
-	Thu,  5 Feb 2026 12:41:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9349D3ACF0D;
+	Thu,  5 Feb 2026 12:58:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770295272; cv=none; b=j7FcbIlLtuqsIU12IbqtiA51c9egaC5LL/9/HzVQmUNhDf/DzsI+5OrzbKj9XGNBY4xUqXr4xtsbMusnOQXu/6PMQrbugEdGZVl5HemqEmdOTdiTcYZ4Fbtg8hh+E9/roJGnh/EC9UWGaM9LQmGYjiYpggOsKnLQbPNtlbijNpw=
+	t=1770296335; cv=none; b=AXYunK3XiITsWPcbhMuBWsLfuJOvNr74tCqq00qWoz1dVONZ3KMUSjf/gfmPtRY/rwaIq9HPwxUmQei593SGClyEnuJgguvZO48n38yah32sp+5veYkc4ApZv+GuwtT+4xJ2mBVIB1hYKq/ETUTdsIsASFQOwDI0LqKqAaQTqAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770295272; c=relaxed/simple;
-	bh=10eAJGMMlh2msWrD5lNiwhWZEbQLdS27Ko9J4kfQK+Q=;
+	s=arc-20240116; t=1770296335; c=relaxed/simple;
+	bh=9Q7RomOb06jXqeFlfjuA47rwkNfZ48q07KB0txG+cDU=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=I7/JcLWhS7q2vtXd2NDwOV8sLyjPU9H78pPE3n2W6xvlABuZgtPqyZxff2Uw7BhJ3j5v2wMhEd1RxTfVuxZWoScpxGMgIkzfT5JHxup02a72nZfUNJMgi0sK3UoYzm4tGcsuhgHetT1flAddZ9xYlGOImYwmtJq8cHvpxVziOoU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dneZ39GP; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:MIME-Version; b=g/6+SIMlIbscZOztGaMxumfKht2yM0uuzCc35e4Xm7wogXSDyQTs/DEgvt1DkRX9ajLwRME1cRyzgun+g98JWUyD6QM/nwiK/ZRWkAyxQBfGg/cYzFbJ2LDU42Jh3aXGIeoQfKaAj1tcSGFNGzTsYP632I3H5FUev/h3nNE0ZgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d0PDIpJq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dneZ39GP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1615C4CEF7;
-	Thu,  5 Feb 2026 12:41:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d0PDIpJq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B856C19424;
+	Thu,  5 Feb 2026 12:58:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770295271;
-	bh=10eAJGMMlh2msWrD5lNiwhWZEbQLdS27Ko9J4kfQK+Q=;
+	s=k20201202; t=1770296335;
+	bh=9Q7RomOb06jXqeFlfjuA47rwkNfZ48q07KB0txG+cDU=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-	b=dneZ39GPuhzf31gcrpTN7Cl2LZ+TxQQ/ao5oPqvmPt4fhyzOnIr5MhcWr0/vdzPuj
-	 ve6frqT01HTU9e3cvYsM1FnuhoWotd21A6UC0f+uAdw9ajzhKI1zy1yYANPWHnPuUK
-	 bE55el8DPBP8HVZC5ShIoGLjS1xzpZw3WYvw4sEm6QPzDmhky943sa0aH0vQiQW0xz
-	 1Ogvc+0xIXseN6ajAVr+EP6dxMkooK9eACrwDjT6jm21+QmvGP2udgmvieRO6Tpl+u
-	 uC2lkK7yK5seTjqqy4Zd+1oHUvVwMpH2ikiik/xTVom2z7kv8bYEnUeA6rB3XCh/Qi
-	 iBSrV0iBInikw==
-Message-ID: <3e5726689975c3436ec134a299c538183f6763b1.camel@kernel.org>
-Subject: Re: [PATCH 13/13] VFS: unexport lock_rename(), lock_rename_child(),
- unlock_rename()
+	b=d0PDIpJqdaagnxHuoM+slc3pVT8cJDMtTaD6ptFqt4pbITjYOIIBy92VgM8dFquWp
+	 gHCC72pgm3N2zYkM+SKGDi1y74CJr9ny0oJ3aWBQ7ige4nCo586bJfwRqcv/McH/+A
+	 DN6Cy52ELCGQNpT7B1YMYEpiPGTE1pp1yDpP9w1begCDMOhy4M5SpzomdVrtLp8Sox
+	 QBWnNZFlOuzKSBXcXE1H5KaTnXaFRhc+sdmEBAPezbSo3Z3rc7gC9rohb7vuw054nH
+	 tNPaaTijYXxpyTOkVAJv+oD5lyTmwITC6Fbv9tyeXC3CdjfcG3rwcv1574GXblSDzQ
+	 FYYfj7rQPrZDQ==
+Message-ID: <7fbfbeb0d57484172304b727bd888d1a1105f96d.camel@kernel.org>
+Subject: Re: [PATCH 04/13] Apparmor: Use simple_start_creating() /
+ simple_done_creating()
 From: Jeff Layton <jlayton@kernel.org>
 To: NeilBrown <neil@brown.name>, Christian Brauner <brauner@kernel.org>, 
  Alexander Viro <viro@zeniv.linux.org.uk>, David Howells
@@ -42,10 +42,10 @@ Cc: linux-kernel@vger.kernel.org, netfs@lists.linux.dev,
 	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, 
 	linux-unionfs@vger.kernel.org, apparmor@lists.ubuntu.com, 
 	linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Date: Thu, 05 Feb 2026 07:41:09 -0500
-In-Reply-To: <20260204050726.177283-14-neilb@ownmail.net>
+Date: Thu, 05 Feb 2026 07:58:52 -0500
+In-Reply-To: <20260204050726.177283-5-neilb@ownmail.net>
 References: <20260204050726.177283-1-neilb@ownmail.net>
-	 <20260204050726.177283-14-neilb@ownmail.net>
+	 <20260204050726.177283-5-neilb@ownmail.net>
 Autocrypt: addr=jlayton@kernel.org; prefer-encrypt=mutual;
  keydata=mQINBE6V0TwBEADXhJg7s8wFDwBMEvn0qyhAnzFLTOCHooMZyx7XO7dAiIhDSi7G1NPxw
  n8jdFUQMCR/GlpozMFlSFiZXiObE7sef9rTtM68ukUyZM4pJ9l0KjQNgDJ6Fr342Htkjxu/kFV1Wv
@@ -133,98 +133,109 @@ MIME-Version: 1.0
 On Wed, 2026-02-04 at 15:57 +1100, NeilBrown wrote:
 > From: NeilBrown <neil@brown.name>
 >=20
-> These three function are now only used in namei.c, so they don't need to
-> be exported.
+> Instead of explicitly locking the parent and performing a look up in
+> apparmor, use simple_start_creating(), and then simple_done_creating()
+> to unlock and drop the dentry.
+>=20
+> This removes the need to check for an existing entry (as
+> simple_start_creating() acts like an exclusive create and can return
+> -EEXIST), simplifies error paths, and keeps dir locking code
+> centralised.
 >=20
 > Signed-off-by: NeilBrown <neil@brown.name>
 > ---
->  Documentation/filesystems/porting.rst | 7 +++++++
->  fs/namei.c                            | 9 +++------
->  include/linux/namei.h                 | 3 ---
->  3 files changed, 10 insertions(+), 9 deletions(-)
+>  security/apparmor/apparmorfs.c | 38 ++++++++--------------------------
+>  1 file changed, 9 insertions(+), 29 deletions(-)
 >=20
-> diff --git a/Documentation/filesystems/porting.rst b/Documentation/filesy=
-stems/porting.rst
-> index ed86c95d9d01..5f7008172f14 100644
-> --- a/Documentation/filesystems/porting.rst
-> +++ b/Documentation/filesystems/porting.rst
-> @@ -1347,3 +1347,10 @@ implementation should set it to generic_setlease()=
-.
+> diff --git a/security/apparmor/apparmorfs.c b/security/apparmor/apparmorf=
+s.c
+> index 907bd2667e28..7f78c36e6e50 100644
+> --- a/security/apparmor/apparmorfs.c
+> +++ b/security/apparmor/apparmorfs.c
+> @@ -282,32 +282,19 @@ static struct dentry *aafs_create(const char *name,=
+ umode_t mode,
 > =20
->  lookup_one_qstr_excl() is no longer exported - use start_creating() or
->  similar.
-> +---
-> +
-> +** mandatory**
-> +
-> +lock_rename(), lock_rename_child(), unlock_rename() are no
-> +longer available.  Use start_renaming() or similar.
-> +
-> diff --git a/fs/namei.c b/fs/namei.c
-> index 307b4d0866b8..0bc82bf90adc 100644
-> --- a/fs/namei.c
-> +++ b/fs/namei.c
-> @@ -3713,7 +3713,7 @@ static struct dentry *lock_two_directories(struct d=
-entry *p1, struct dentry *p2)
->  /*
->   * p1 and p2 should be directories on the same fs.
->   */
-> -struct dentry *lock_rename(struct dentry *p1, struct dentry *p2)
-> +static struct dentry *lock_rename(struct dentry *p1, struct dentry *p2)
->  {
->  	if (p1 =3D=3D p2) {
->  		inode_lock_nested(p1->d_inode, I_MUTEX_PARENT);
-> @@ -3723,12 +3723,11 @@ struct dentry *lock_rename(struct dentry *p1, str=
-uct dentry *p2)
->  	mutex_lock(&p1->d_sb->s_vfs_rename_mutex);
->  	return lock_two_directories(p1, p2);
->  }
-> -EXPORT_SYMBOL(lock_rename);
+>  	dir =3D d_inode(parent);
 > =20
->  /*
->   * c1 and p2 should be on the same fs.
->   */
-> -struct dentry *lock_rename_child(struct dentry *c1, struct dentry *p2)
-> +static struct dentry *lock_rename_child(struct dentry *c1, struct dentry=
- *p2)
->  {
->  	if (READ_ONCE(c1->d_parent) =3D=3D p2) {
->  		/*
-> @@ -3765,9 +3764,8 @@ struct dentry *lock_rename_child(struct dentry *c1,=
- struct dentry *p2)
->  	mutex_unlock(&c1->d_sb->s_vfs_rename_mutex);
->  	return NULL;
->  }
-> -EXPORT_SYMBOL(lock_rename_child);
-> =20
-> -void unlock_rename(struct dentry *p1, struct dentry *p2)
-> +static void unlock_rename(struct dentry *p1, struct dentry *p2)
->  {
->  	inode_unlock(p1->d_inode);
->  	if (p1 !=3D p2) {
-> @@ -3775,7 +3773,6 @@ void unlock_rename(struct dentry *p1, struct dentry=
- *p2)
->  		mutex_unlock(&p1->d_sb->s_vfs_rename_mutex);
+> -	inode_lock(dir);
+> -	dentry =3D lookup_noperm(&QSTR(name), parent);
+> +	dentry =3D simple_start_creating(parent, name);
+>  	if (IS_ERR(dentry)) {
+>  		error =3D PTR_ERR(dentry);
+> -		goto fail_lock;
+> -	}
+> -
+> -	if (d_really_is_positive(dentry)) {
+> -		error =3D -EEXIST;
+> -		goto fail_dentry;
+> +		goto fail;
 >  	}
+> =20
+>  	error =3D __aafs_setup_d_inode(dir, dentry, mode, data, link, fops, iop=
+s);
+> +	simple_done_creating(dentry);
+>  	if (error)
+> -		goto fail_dentry;
+> -	inode_unlock(dir);
+> -
+> -	return dentry;
+> -
+> -fail_dentry:
+> -	dput(dentry);
+> -
+> -fail_lock:
+> -	inode_unlock(dir);
+> +		goto fail;
+> +	return 0;
+
+As KTR points out, this should be "return NULL;"
+
+> +fail:
+>  	simple_release_fs(&aafs_mnt, &aafs_count);
+> -
+>  	return ERR_PTR(error);
 >  }
-> -EXPORT_SYMBOL(unlock_rename);
 > =20
->  /**
->   * __start_renaming - lookup and lock names for rename
-> diff --git a/include/linux/namei.h b/include/linux/namei.h
-> index c7a7288cdd25..2ad6dd9987b9 100644
-> --- a/include/linux/namei.h
-> +++ b/include/linux/namei.h
-> @@ -165,9 +165,6 @@ extern int follow_down_one(struct path *);
->  extern int follow_down(struct path *path, unsigned int flags);
->  extern int follow_up(struct path *);
+> @@ -2572,8 +2559,7 @@ static int aa_mk_null_file(struct dentry *parent)
+>  	if (error)
+>  		return error;
 > =20
-> -extern struct dentry *lock_rename(struct dentry *, struct dentry *);
-> -extern struct dentry *lock_rename_child(struct dentry *, struct dentry *=
-);
-> -extern void unlock_rename(struct dentry *, struct dentry *);
->  int start_renaming(struct renamedata *rd, int lookup_flags,
->  		   struct qstr *old_last, struct qstr *new_last);
->  int start_renaming_dentry(struct renamedata *rd, int lookup_flags,
+> -	inode_lock(d_inode(parent));
+> -	dentry =3D lookup_noperm(&QSTR(NULL_FILE_NAME), parent);
+> +	dentry =3D simple_start_creating(parent, NULL_FILE_NAME);
+>  	if (IS_ERR(dentry)) {
+>  		error =3D PTR_ERR(dentry);
+>  		goto out;
+> @@ -2581,7 +2567,7 @@ static int aa_mk_null_file(struct dentry *parent)
+>  	inode =3D new_inode(parent->d_inode->i_sb);
+>  	if (!inode) {
+>  		error =3D -ENOMEM;
+> -		goto out1;
+> +		goto out;
+>  	}
+> =20
+>  	inode->i_ino =3D get_next_ino();
+> @@ -2593,18 +2579,12 @@ static int aa_mk_null_file(struct dentry *parent)
+>  	aa_null.dentry =3D dget(dentry);
+>  	aa_null.mnt =3D mntget(mount);
+> =20
+> -	error =3D 0;
+> -
+> -out1:
+> -	dput(dentry);
+>  out:
+> -	inode_unlock(d_inode(parent));
+> +	simple_done_creating(dentry);
+>  	simple_release_fs(&mount, &count);
+>  	return error;
+>  }
+> =20
+> -
+> -
+>  static const char *policy_get_link(struct dentry *dentry,
+>  				   struct inode *inode,
+>  				   struct delayed_call *done)
+
+Assuming you fix the minor problem above.
 
 Reviewed-by: Jeff Layton <jlayton@kernel.org>
