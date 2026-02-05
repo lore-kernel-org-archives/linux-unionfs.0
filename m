@@ -1,264 +1,197 @@
-Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B22573D331A
-	for <linux-unionfs@vger.kernel.org>; Thu,  5 Feb 2026 13:04:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.47
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770296696; cv=pass; b=sXcaL+cQcnIz7v3Y0YODCyuZFV/1DIoe4wv+6roKQf0lphqN5q8gFIhgb6fdqJyc03hh8nKLyYu3ZZgbujIifJf1RiYZB/jjsSg+So/ITvDMxF4+NuZdDCveVzU1XBSyZKvI+ad4kNTsu76QMQ7PTdoywVTF/iiFKSmzn7lQLaA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770296696; c=relaxed/simple;
-	bh=N2c1RM0b4ERNHu8Wc50fN3R9BsKRWCfa11p9n8FFco4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Eok5C+7ffALHn+vK+LUNGzMJRcGbFUsSdo8UJSz/5WlLjcetqaE39uZ2E8AjMbOUSW36BYagf0Tp7/ckuc6BjOTKz9NnXc4kpJJ36qwDziz0PgMXD8f6DPkaWCTdiYDU3u4dlsRRg+M6hksM/7RcLsV7WhE3FujonheQYhSOjSo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eFj/Wgov; arc=pass smtp.client-ip=209.85.221.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F1C12F3601;
+	Thu,  5 Feb 2026 20:35:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770323730; cv=none; b=sIdFe4AsrL89LS9F1S+6JA8OSBMxgKx6oQVRGAcRaGSUkOHE+khEpfPht8tbqpVphKA7aFGnH9oFyHoPlj0ph1hWjfLNbnMjgPWtKWqGxOqrYZPBXLFieR2BcA8uaCHyf5HL7a59Yqdp12GeP6xKdUqxaYz05aOB+jkr60YjtCk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770323730; c=relaxed/simple;
+	bh=vM7jv+m+6bMkOShmYUN1ahQ9mC41CDLIlJMHJGRgfaA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Yfmpjy92gQXOdmc2HhsLSCpbIAa9iE0jDgEI3JBr+GVMhvDtF3ib6Rz51iw8hIX1TRVRtpOUtPE5q7X2OWmQylMsF9xRy3FA8A9OLBBSUELvhYMA1oXEJ0hHLrXscI5QQczg66Uxvv2u+rn7TTp85fgx1dhoqzp0Bja6vaVENXM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=eNaQaWxY; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eFj/Wgov"
-Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-432d2670932so774653f8f.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Feb 2026 05:04:55 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770296694; cv=none;
-        d=google.com; s=arc-20240605;
-        b=MtCBdWhzqAnsPLcqgxaGKclnWc9isWlSpnw0/GqBYK6Jri7vcXUwpIa9ihzi1NS6XV
-         O+oXak3P/6mKceLSWeLCK3tKwbFmsSIwDfO/7yGeNs7ZjDY696s0sLUBk14oaW9N6w5g
-         W2ghD0LId34Aahx/KFJmJstlm/3mEooxA/qLAzEm4J/YjF1JhAw5bJOzYbo2HYoAYdHi
-         Jl+kdGx5Nb5tav1c/epMfvojfufHPm4MxJ9pfB1qX9Cx/+gsdpeQBVG1bAjRM8UKkUko
-         eL7OdLwSWQwMvkR053NjJ6MRvnLJCeOtGIwxaaGhOJwAB9lXwG47A1EiNXUWiv4igLvY
-         L5zA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=5QIFMxkl9qDrU626LjrUWWxNqKmOaBddIPVVlA8pXoo=;
-        fh=lxyvdPBh+9k2emywTOp65IEcKPjFnsEa0RRS89ggHn4=;
-        b=Lhbsgte9T64py5BFneHvw4BHWzQBcSnhNj9VE1qlNu/tgboNQtD1EWHWAdtia/ZLoP
-         hpE6+VqylfiHKWgCTeV0MW7E76ohb/ty6tk5+465vng0sujtvY8a3d8dIIpEbLWcF+VX
-         70Zqw5wy6JbewSvFWwistplH8n8bCc96VDz4fgmff6fJTkC7rrho+XPxitWAGWDAYMRv
-         bHdf9LhEFynof2nyGpIz7JK1RrcszJgU/17KLi0g8sVAf7qKfvF+EAbqT4GXGKtfQdg4
-         WV/DZXsSv+gDZcYLtLYpm5YIUVnWANNx7rwdxP/CiiOz15WuxJ9cUoVLgMF55T+QQIeZ
-         m6mw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770296694; x=1770901494; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5QIFMxkl9qDrU626LjrUWWxNqKmOaBddIPVVlA8pXoo=;
-        b=eFj/Wgovw5nx28AuntEcmYhTLWrcShD+FEPlxv8t7bORKwNp4fZgpa1A8jYpx19B7V
-         zpkQAXJ4K4F1Rv7pM72BhwnMUSRonxs65fpBhDO4SGuX0qAlWPM8t4D5sePSeStUIeFr
-         q/hMmt72lMyU9ipFKtciig6U6q4SzUh9UN7CUoRKLW2gH8q1i1KthFAMEUcimBVmwnkX
-         fbv53HjAq8YAWe/nohi9dOQlYvBcBwPjRxIto8GV/ST/gaM13N9HphSRgAZAg+w0Rq6K
-         YgOePfLA4Z3vgrxDj4Z5paCLoAaxyEGqvGJgUxqAYNThBSY9LBmewV+08tHdpfqS5uF6
-         B8fg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770296694; x=1770901494;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=5QIFMxkl9qDrU626LjrUWWxNqKmOaBddIPVVlA8pXoo=;
-        b=pxVfy7vdv/2v2KrTSQAJGpt58zYBEE/QVhHgu5YCwupRToafxcQRMTuK26TzU10vZz
-         oCMPaVXZSMcn/MLISL2un3lbuqhSg2+MKz9290yov/DULxlXcy8rGcjT459uOMEi5/vr
-         AYxdj1dkKKa7cu4bexRFXD4mu3h5xj61XCKqj46Mo0yQJ1pfuIAnZFNNeySpkFyQAAlO
-         fqxcDu8DMl6y3Ci6Kn33MoLW0R1OcrTX0YFP4XYUmYRmN0kTn0z2iWw8B2MADavIO4Zm
-         lveufbCTs/XmO4jS5vnjbJtTCE8ZX3izhmpA2MKJW1Ik9pf4ehKbT5N+ewHZSvkV+Orp
-         YzFg==
-X-Forwarded-Encrypted: i=1; AJvYcCVvqjA4ux6w/O5DouIxS9JwPhaGlcfuIgn4fw27MYYRZa3uHBgoEj+qH4ChspUTyvw8ZRWt68jjTMXVA3Ua@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx75pzH1wtMKGFJElFINglKrWYEKCmEkW2U8uEYGpPGtPvV1LtO
-	toy3GoT0mtoNZVEH0PRcww6CwlvpeaNJN2/NNdkqZr/a2jsPQSJi34njIWFgSg7l+RCotLNkGAJ
-	1APwgvKMOAC7kDoN/J0pV6UKweQqTnBI=
-X-Gm-Gg: AZuq6aKS+Gzn8jrfYYRxfD+izpf9r+fl2AAqd8jCcg8RjXDwoa0PAkR2kuKGKzGIKFx
-	6G6mogelwq3RNU7J1IsiZGkWtfKdVuvgc92v2E0o204vJRq7uxaETZ0DN/jn2C+XOm1WFOt3f0n
-	m6fJ8ZfP/OggOHuqfWCenUsaQXz87r2zUEgUv1Defmpz9YqJ8T8qcz3IrDlO3dlNs6gqQE9UVUv
-	8vNmJau9imCJTf2Y30g61wMVixYb8zhpF9pI/dOmWiGvWF87ZMuZi+MesFQ5uFBAZpc7Mf4n/qr
-	Vv9xNry1S4luPO9fUnbYYvy6dGscPw==
-X-Received: by 2002:a05:6000:1acb:b0:432:5bac:3915 with SMTP id
- ffacd0b85a97d-43618053bc4mr9962281f8f.39.1770296693827; Thu, 05 Feb 2026
- 05:04:53 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="eNaQaWxY"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=yHhcPcm7/aNDLEtRnOuhFSnTHyU3PJmqaMR5L62zSNU=; b=eNaQaWxYojWshirXCeqA9eyVJZ
+	hZcnGM9H28EPr5osfLxORkm082Y6MkKZ5voUiADi394hCJ+XNhacAJh1LBRmNsyQoB4xZUVcwuVfj
+	YGaPAZG+JMFzlnk7BDNjCRiAyQQLtUsVPuA1eZZYshIAwYWNpgs40J3djdEEtw8t3WTuN67ziGx1y
+	rFpklmAl4+PoV/fL0slBG35ZyahuEDzQuEQQpaHP3OhTS542F8aTc3Ck6it796ftV4eKAnoVJEW+q
+	WTnRFjYyNfg5nrpdc7UVma2NHmv6D4tGfOk0PaN8+NylCYq2Z1CJZnXg97oAE13fcllv6V0qHi4Ke
+	/xvHK1tg==;
+Received: from [187.57.129.220] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+	id 1vo63v-00EXuY-38; Thu, 05 Feb 2026 21:34:51 +0100
+Message-ID: <05c37282-715e-4334-82e6-aea3241f15eb@igalia.com>
+Date: Thu, 5 Feb 2026 17:34:42 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260204050726.177283-1-neilb@ownmail.net> <20260204050726.177283-9-neilb@ownmail.net>
- <5d273a008fc51a2fded785efbe30e5bd2a89b985.camel@kernel.org>
-In-Reply-To: <5d273a008fc51a2fded785efbe30e5bd2a89b985.camel@kernel.org>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 5 Feb 2026 14:04:42 +0100
-X-Gm-Features: AZwV_QhEkTNuUX-zP-udJB3TTtiGdaNYEr11QFKjoqWXaHOUCtxdu5bQUZv0f1A
-Message-ID: <CAOQ4uxh_Ugyy9=Vx_XOzWMTdhqVx6kAu43q+F+afhNF_Zv_9TA@mail.gmail.com>
-Subject: Re: [PATCH 08/13] ovl: Simplify ovl_lookup_real_one()
-To: Jeff Layton <jlayton@kernel.org>
-Cc: NeilBrown <neil@brown.name>, Christian Brauner <brauner@kernel.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Howells <dhowells@redhat.com>, Jan Kara <jack@suse.cz>, 
-	Chuck Lever <chuck.lever@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, 
-	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
-	Stephen Smalley <stephen.smalley.work@gmail.com>, linux-kernel@vger.kernel.org, 
-	netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
-	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org, 
-	selinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>,
+ Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
+ Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+ Tom Talpey <tom@talpey.com>, Carlos Maiolino <cem@kernel.org>,
+ Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>,
+ Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+ linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, kernel-dev@igalia.com, vivek@collabora.com,
+ Ludovico de Nittis <ludovico.denittis@collabora.com>
+References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
+ <20260115062944.GA9590@lst.de>
+ <633bb5f3-4582-416c-b8b9-fd1f3b3452ab@suse.com>
+ <20260115072311.GA10352@lst.de>
+ <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
+ <CAOQ4uxhbz7=XT=C3R8XqL0K_o7KwLKsoNwgk=qJGuw2375MTJw@mail.gmail.com>
+ <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com>
+ <CAOQ4uxi988PutUi=Owm5zf6NaCm90PUCJLu7dw8firH8305w-A@mail.gmail.com>
+ <33c1ccbd-abbe-4278-8ab1-d7d645c8b6e8@igalia.com>
+ <CAOQ4uxgCM=q29Vs+35y-2K9k7GP2A2NfPkuqCrUiMUHW+KhbWw@mail.gmail.com>
+ <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
+ <CAOQ4uxig==FAd=2hO0B_CVBDSuBwdqL-zaXkpf-QXn5iEL364g@mail.gmail.com>
+ <CAOQ4uxg6dKr4XB3yAkfGd_ehZkBMcoNHiF5CeB9=3aca44yHRg@mail.gmail.com>
+ <ee38734b-c4c3-4b96-8ff2-b4ce5730b57c@igalia.com>
+ <8ab387b1-c4aa-40a5-946f-f4510d8afd02@igalia.com>
+ <CAOQ4uxiRpwuyfj_Wy3Zj+HAi+jgQOq8nPQK8wmn6Hgsz-9i1fw@mail.gmail.com>
+ <CAOQ4uxhHFvYNAgES9wpM_C-7GvfwXC2xet1ensfeQOyPJRAuNQ@mail.gmail.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+In-Reply-To: <CAOQ4uxhHFvYNAgES9wpM_C-7GvfwXC2xet1ensfeQOyPJRAuNQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Thu, Feb 5, 2026 at 1:38=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wro=
-te:
->
-> On Wed, 2026-02-04 at 15:57 +1100, NeilBrown wrote:
-> > From: NeilBrown <neil@brown.name>
-> >
-> > The primary purpose of this patch is to remove the locking from
-> > ovl_lookup_real_one() as part of centralising all locking of directorie=
-s
-> > for name operations.
-> >
-> > The locking here isn't needed.  By performing consistency tests after
-> > the lookup we can be sure that the result of the lookup was valid at
-> > least for a moment, which is all the original code promised.
-> >
-> > lookup_noperm_unlocked() is used for the lookup and it will take the
-> > lock if needed only where it is needed.
-> >
-> > Also:
-> >  - don't take a reference to real->d_parent.  The parent is
-> >    only use for a pointer comparison, and no reference is needed for
-> >    that.
-> >  - Several "if" statements have a "goto" followed by "else" - the
-> >    else isn't needed: the following statement can directly follow
-> >    the "if" as a new statement
-> >  - Use a consistent pattern of setting "err" before performing a test
-> >    and possibly going to "fail".
-> >  - remove the "out" label (now that we don't need to dput(parent) or
-> >    unlock) and simply return from fail:.
-> >
-> > Signed-off-by: NeilBrown <neil@brown.name>
-> > ---
-> >  fs/overlayfs/export.c | 61 ++++++++++++++++++-------------------------
-> >  1 file changed, 26 insertions(+), 35 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> > index 83f80fdb1567..dcd28ffc4705 100644
-> > --- a/fs/overlayfs/export.c
-> > +++ b/fs/overlayfs/export.c
-> > @@ -359,59 +359,50 @@ static struct dentry *ovl_lookup_real_one(struct =
-dentry *connected,
-> >                                         struct dentry *real,
-> >                                         const struct ovl_layer *layer)
-> >  {
-> > -     struct inode *dir =3D d_inode(connected);
-> > -     struct dentry *this, *parent =3D NULL;
-> > +     struct dentry *this;
-> >       struct name_snapshot name;
-> >       int err;
-> >
-> >       /*
-> > -      * Lookup child overlay dentry by real name. The dir mutex protec=
-ts us
-> > -      * from racing with overlay rename. If the overlay dentry that is=
- above
-> > -      * real has already been moved to a parent that is not under the
-> > -      * connected overlay dir, we return -ECHILD and restart the looku=
-p of
-> > -      * connected real path from the top.
-> > +      * @connected is a directory in the overlay and @real is an objec=
-t
-> > +      * on @layer which is expected to be a child of @connected.
-> > +      * The goal is to return a dentry from the overlay which correspo=
-nds
+Em 28/01/2026 08:49, Amir Goldstein escreveu:
+> On Sat, Jan 24, 2026 at 11:45 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>>
+>> On Fri, Jan 23, 2026 at 9:08 PM André Almeida <andrealmeid@igalia.com> wrote:
+>>>
+>>> Em 23/01/2026 10:24, André Almeida escreveu:
+>>>>
+>>>> Em 22/01/2026 17:07, Amir Goldstein escreveu:
+>>>>> On Tue, Jan 20, 2026 at 4:12 PM Amir Goldstein <amir73il@gmail.com>
+>>>>> wrote:
+>>>>>>
+>>>>>> On Mon, Jan 19, 2026 at 5:56 PM André Almeida
+>>>>>> <andrealmeid@igalia.com> wrote:
+>>>>>>>
+>>>>> ...
+>>>>>>> Actually they are not in the same fs, upper and lower are coming from
+>>>>>>> different fs', so when trying to mount I get the fallback to
+>>>>>>> `uuid=null`. A quick hack circumventing this check makes the mount
+>>>>>>> work.
+>>>>>>>
+>>>>>>> If you think this is the best way to solve this issue (rather than
+>>>>>>> following the VFS helper path for instance),
+>>>>>>
+>>>>>> That's up to you if you want to solve the "all lower layers on same fs"
+>>>>>> or want to also allow lower layers on different fs.
+>>>>>> The former could be solved by relaxing the ovl rules.
+>>>>>>
+>>>>>>> please let me know how can
+>>>>>>> I safely lift this restriction, like maybe adding a new flag for this?
+>>>>>>
+>>>>>> I think the attached patch should work for you and should not
+>>>>>> break anything.
+>>>>>>
+>>>>>> It's only sanity tested and will need to write tests to verify it.
+>>>>>>
+>>>>>
+>>>>> Andre,
+>>>>>
+>>>>> I tested the patch and it looks good on my side.
+>>>>> If you want me to queue this patch for 7.0,
+>>>>> please let me know if it addresses your use case.
+>>>>>
+>>>>
+>>>> Hi Amir,
+>>>>
+>>>> I'm still testing it to make sure it works my case, I will return to you
+>>>> ASAP. Thanks for the help!
+>>>>
+>>>
+>>> So, your patch wasn't initially working in my setup here, and after some
+>>> debugging it turns out that on ovl_verify_fh() *fh would have a NULL
+>>> UUID, but *ofh would have a valid UUID, so the compare would then fail.
+>>>
+>>> Adding this line at ovl_get_fh() fixed the issue for me and made the
+>>> patch work as I was expecting:
+>>>
+>>> +       if (!ovl_origin_uuid(ofs))
+>>> +               fh->fb.uuid = uuid_null;
+>>> +
+>>>           return fh;
+>>>
+>>> Please let me know if that makes sense to you.
+>>
+>> It does not make sense to me.
+>> I think you may be using the uuid=off feature in the wrong way.
+>> What you did was to change the stored UUID, but this NOT the
+>> purpose of uuid=off.
+>>
+>> The purpose of uuid=off is NOT to allow mounting an overlayfs
+>> that was previously using a different lower UUID.
+>> The purpose is to mount overlayfs the from the FIRST time with
+>> uuid=off so that ovl_verify_origin_fh() gets null uuid from the
+>> first call that sets the ORIGIN xattr.
+>>
+>> IOW, if user want to be able to change underlying later UUID
+>> user needs to declare from the first overlayfs mount that this
+>> is expected to happen, otherwise, overlayfs will assume that
+>> an unintentional wrong configuration was used.
+>>
+>> I updated the documentation to try to explain this better:
+>>
+>> Is my understanding of the problems you had correct?
+>> Is my solution understood and applicable to your use case?
+>>
+> 
+> Hi Andre,
+> 
+> Sorry to nag you, but if you'd like me to queue the suggested change to 7.0,
+> I would need your feedback soon.
+> 
 
-As the header comment already says:
-"...return a connected overlay dentry whose real dentry is @real"
+Hey Amir, sorry for my delay. I just had a week out of the office and 
+just got back to this.
 
-The wording "corresponds to @real" reduces clarity IMO.
+Our initial test case worked great! We managed to mount both images and 
+use overlayfs without a problem after your clarification of where to use 
+uuid=off, which should be on the first mount.
 
-> > +      * to @real.  This is done by looking up the name from @real in
-> > +      * @connected and checking that the result meets expectations.
-> > +      *
-> > +      * Return %-ECHILD if the parent of @real no-longer corresponds t=
-o
-> > +      * @connected, and %-ESTALE if the dentry found by lookup doesn't
-> > +      * correspond to @real.
-> >        */
+However, when rebooting to the other partition, the mount failed with 
+"failed to verify upper root origin" again, but I believe that I forgot 
+to add `uuid=off` somewhere in the mount scripts. I'm still debugging this.
 
-I dislike kernel-doc inside code comments.
-I think this is actively discouraged and I haven't found a single example
-of this style in fs code.
+Anyhow, I see that we are now too close to the merge window, and from my 
+side we can delay this for 7.1 and merge it when it gets 100% clear that 
+this is the solution that we are looking for.
 
-If you want to keep this format, please lift the comment to function
-header comment - it is anyway a very generic comment that explains the
-function in general.
+Thanks again for your help!
+	André
 
-> > -     inode_lock_nested(dir, I_MUTEX_PARENT);
-> > -     err =3D -ECHILD;
-> > -     parent =3D dget_parent(real);
-> > -     if (ovl_dentry_real_at(connected, layer->idx) !=3D parent)
-> > -             goto fail;
-> >
-> > -     /*
-> > -      * We also need to take a snapshot of real dentry name to protect=
- us
-> > -      * from racing with underlying layer rename. In this case, we don=
-'t
-> > -      * care about returning ESTALE, only from dereferencing a free na=
-me
-> > -      * pointer because we hold no lock on the real dentry.
-> > -      */
-> >       take_dentry_name_snapshot(&name, real);
-> > -     /*
-> > -      * No idmap handling here: it's an internal lookup.
-> > -      */
-> > -     this =3D lookup_noperm(&name.name, connected);
-> > +     this =3D lookup_noperm_unlocked(&name.name, connected);
-> >       release_dentry_name_snapshot(&name);
-> > +
-> > +     err =3D -ECHILD;
-> > +     if (ovl_dentry_real_at(connected, layer->idx) !=3D real->d_parent=
-)
-> > +             goto fail;
-> > +
-> >       err =3D PTR_ERR(this);
-> > -     if (IS_ERR(this)) {
-> > +     if (IS_ERR(this))
-> >               goto fail;
-> > -     } else if (!this || !this->d_inode) {
-> > -             dput(this);
-> > -             err =3D -ENOENT;
-> > +
-> > +     err =3D -ENOENT;
-> > +     if (!this || !this->d_inode)
-> >               goto fail;
-> > -     } else if (ovl_dentry_real_at(this, layer->idx) !=3D real) {
-> > -             dput(this);
-> > -             err =3D -ESTALE;
-> > +
-> > +     err =3D -ESTALE;
-> > +     if (ovl_dentry_real_at(this, layer->idx) !=3D real)
-> >               goto fail;
-> > -     }
-> >
-> > -out:
-> > -     dput(parent);
-> > -     inode_unlock(dir);
-> >       return this;
-> >
-> >  fail:
-> >       pr_warn_ratelimited("failed to lookup one by real (%pd2, layer=3D=
-%d, connected=3D%pd2, err=3D%i)\n",
-> >                           real, layer->idx, connected, err);
-> > -     this =3D ERR_PTR(err);
-> > -     goto out;
-> > +     if (!IS_ERR(this))
-> > +             dput(this);
-> > +     return ERR_PTR(err);
-> >  }
-> >
-> >  static struct dentry *ovl_lookup_real(struct super_block *sb,
->
-> Reviewed-by: Jeff Layton <jlayton@kernel.org>
+> FWIW, I think that this change of restrictions for uuid=null could be backported
+> to stable kernels, but I am not going to mark it for auto select, because
+> I'd rather see if anyone shouts with upstream kernel first when (if) we make
+> this change and manually backport later per demand.
+> 
+> Thanks,
+> Amir.
 
-Otherwise, it looks fine.
-
-Thanks,
-Amir.
