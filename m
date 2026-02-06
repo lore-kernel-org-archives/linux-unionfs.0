@@ -1,197 +1,230 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from flow-a7-smtp.messagingengine.com (flow-a7-smtp.messagingengine.com [103.168.172.142])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F1C12F3601;
-	Thu,  5 Feb 2026 20:35:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB6271E3DE5;
+	Fri,  6 Feb 2026 00:21:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.142
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770323730; cv=none; b=sIdFe4AsrL89LS9F1S+6JA8OSBMxgKx6oQVRGAcRaGSUkOHE+khEpfPht8tbqpVphKA7aFGnH9oFyHoPlj0ph1hWjfLNbnMjgPWtKWqGxOqrYZPBXLFieR2BcA8uaCHyf5HL7a59Yqdp12GeP6xKdUqxaYz05aOB+jkr60YjtCk=
+	t=1770337282; cv=none; b=OrNGoTS9SvA8k5WRcSuj9Kr2TislL5K/aW9iV+48OwDT2zIq16amwDcwuISXXe+CjGDl84VNEEvwLk5sfbcP5fKS0lZPlrGCKpprKejPv8Kl61tXJ5kYsLUgDwTAks/7fs5wDnT/A9GZKHVsK7BNMzq8YeXRQMn9UadHSEn2pCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770323730; c=relaxed/simple;
-	bh=vM7jv+m+6bMkOShmYUN1ahQ9mC41CDLIlJMHJGRgfaA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Yfmpjy92gQXOdmc2HhsLSCpbIAa9iE0jDgEI3JBr+GVMhvDtF3ib6Rz51iw8hIX1TRVRtpOUtPE5q7X2OWmQylMsF9xRy3FA8A9OLBBSUELvhYMA1oXEJ0hHLrXscI5QQczg66Uxvv2u+rn7TTp85fgx1dhoqzp0Bja6vaVENXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=eNaQaWxY; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1770337282; c=relaxed/simple;
+	bh=VS688kmTOerW5kLLzHeK6bUW9BpPShhuYIroSr7p9jo=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=Fpghwre9LS3UfF0NqC2a8LLag/4nAwh2qEZfOnQ4d1do+BH8flJYg6G6I7mPydx3zj6EcwItDAKOgCZKQAtwcgbU2ZwNBBcZUSwdk83aWQ+ptfv7i523nae0cTWSRgp9drozyNAteSlzqqiHfrPOfVyuBhi4bJ+lJ7bRwFj2bOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=Toy3OUKz; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=mG6CPkhW; arc=none smtp.client-ip=103.168.172.142
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="eNaQaWxY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=yHhcPcm7/aNDLEtRnOuhFSnTHyU3PJmqaMR5L62zSNU=; b=eNaQaWxYojWshirXCeqA9eyVJZ
-	hZcnGM9H28EPr5osfLxORkm082Y6MkKZ5voUiADi394hCJ+XNhacAJh1LBRmNsyQoB4xZUVcwuVfj
-	YGaPAZG+JMFzlnk7BDNjCRiAyQQLtUsVPuA1eZZYshIAwYWNpgs40J3djdEEtw8t3WTuN67ziGx1y
-	rFpklmAl4+PoV/fL0slBG35ZyahuEDzQuEQQpaHP3OhTS542F8aTc3Ck6it796ftV4eKAnoVJEW+q
-	WTnRFjYyNfg5nrpdc7UVma2NHmv6D4tGfOk0PaN8+NylCYq2Z1CJZnXg97oAE13fcllv6V0qHi4Ke
-	/xvHK1tg==;
-Received: from [187.57.129.220] (helo=[192.168.15.100])
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-	id 1vo63v-00EXuY-38; Thu, 05 Feb 2026 21:34:51 +0100
-Message-ID: <05c37282-715e-4334-82e6-aea3241f15eb@igalia.com>
-Date: Thu, 5 Feb 2026 17:34:42 -0300
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="Toy3OUKz";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="mG6CPkhW"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailflow.phl.internal (Postfix) with ESMTP id 068041380420;
+	Thu,  5 Feb 2026 19:21:21 -0500 (EST)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Thu, 05 Feb 2026 19:21:21 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm3; t=
+	1770337280; x=1770344480; bh=DmksmkpWEFjDfVOkfeg8VRIAIhqDjvEflXp
+	Cuv+Zy1k=; b=Toy3OUKzFZ/MXYhK4rOI5A0BLeaMjnJ4CZNKeHk564BSavXVzS4
+	qfKdNrxakQxclMIlJ5ClebrV25619IF1gJCgtLFLxy2tGhMMqpe+SNOrzaRSt1iN
+	2L1jczM6EYyQld7yKh4PmXvmp48M3kWTnxzgJgQ4NgY56CgqF9faU/xNQNFdzWAg
+	oa3g/TDlIE/RQeOJX2av7+ohxCHh+vPRuXgoC+V+mXOXVFYRvLn93QYb3ZmJdv9g
+	1TXzMch7sMk1bdRcCGMuqIVeVxlZRoAOiArwyX31PVdtnu/2HXiSTEMdgK5GtTRL
+	oSxi8xkNenxfehm+xxq28ydhr8BONYZn/nw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1770337280; x=
+	1770344480; bh=DmksmkpWEFjDfVOkfeg8VRIAIhqDjvEflXpCuv+Zy1k=; b=m
+	G6CPkhWw3EZsOe4CLqXD23vIBrQbqnahY2jgRN/UZ7ltoMPUR9ebgYLBHG02oafq
+	7yOTC7Nc5l3zva1NTUnjKJ/VBuQG9nR4vWRhJoyO7gg6BKc9+nYsS7rBEPQSXv82
+	uKaywbbv+QCoViLK9H/DOwLc9Zvr2FrhfvNFhVbFu3wHYN3qU85RjZRbWuGolAuN
+	jKxmK30WImx4rXv7aZJ1yA0PUHdMOnyMntp+WMqiOBMD+0htLpQqBfFLCD2MaPEl
+	w6H6JJkKrlBBDgqtDpjWBQlQszHSwKRB+EnnpccQqFRAp4A2U7Psqb9PXfzGmNxv
+	qcuCNdOx1FeEyi7Y60LAA==
+X-ME-Sender: <xms:_zOFaTGg81dJa15ymcfPdPu9aEr8hepsSeCXNF76WiHLuVzS1TkRXQ>
+    <xme:_zOFab7h5EUA_NOI5TxJbnaWmYm_hvto0Q3xtongwU43ODdCqcuS6riEiEAObt8j_
+    bnMDR_SBdNU8RDrxgyIlhVoRFJUs0o-Pa43FOVG8Zl4umIW5Q>
+X-ME-Received: <xmr:_zOFaVJuZxIdc6BE__hhv0-qjiCqA245jU3C5IeZZQbXf6d69lH476A1ArFMffisI8PQ73tfmqtTGCwPFhuNJOahrqo8lUUY2ioFZeKLJzRz>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddukeeijedvucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepvddupdhmohguvgepshhmthhp
+    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
+    hrtghpthhtohepshgvlhhinhhugiesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphht
+    thhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtg
+    hpthhtoheplhhinhhugidqshgvtghurhhithihqdhmohguuhhlvgesvhhgvghrrdhkvghr
+    nhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhnfhhssehvghgvrhdrkhgvrhhnvg
+    hlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhn
+    vghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvg
+    hrnhgvlhdrohhrghdprhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhr
+    tghpthhtohepjhgrtghksehsuhhsvgdrtgii
+X-ME-Proxy: <xmx:_zOFaWCYEJXkjaLebHvyJmDQINpOi3ipHwHwXfxkqxX5hdtfyusVew>
+    <xmx:_zOFabQxo3Fa2K8iVOJctyPkt9nfGPjcj38BzwgujnxC3gjOLdTAlQ>
+    <xmx:_zOFaYextvdPZR5y49EMZ0kfIqh7dOBJCGFKTJdTSP8wqz5XrCnBpQ>
+    <xmx:_zOFabg5BfPKeRr-0Xa6rJqWY1PtnzM_R0UOGA8wFbJriDagCmEVkw>
+    <xmx:ADSFadNlJldg85dJB9Ejs3OXt0OEUMuvbIWGhn08pJ85rcZBZ5KBTxh3>
+Feedback-ID: i9d664b8f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 5 Feb 2026 19:21:13 -0500 (EST)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>,
- Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
- Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>,
- Tom Talpey <tom@talpey.com>, Carlos Maiolino <cem@kernel.org>,
- Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>,
- Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
- linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, kernel-dev@igalia.com, vivek@collabora.com,
- Ludovico de Nittis <ludovico.denittis@collabora.com>
-References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
- <20260115062944.GA9590@lst.de>
- <633bb5f3-4582-416c-b8b9-fd1f3b3452ab@suse.com>
- <20260115072311.GA10352@lst.de>
- <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
- <CAOQ4uxhbz7=XT=C3R8XqL0K_o7KwLKsoNwgk=qJGuw2375MTJw@mail.gmail.com>
- <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com>
- <CAOQ4uxi988PutUi=Owm5zf6NaCm90PUCJLu7dw8firH8305w-A@mail.gmail.com>
- <33c1ccbd-abbe-4278-8ab1-d7d645c8b6e8@igalia.com>
- <CAOQ4uxgCM=q29Vs+35y-2K9k7GP2A2NfPkuqCrUiMUHW+KhbWw@mail.gmail.com>
- <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
- <CAOQ4uxig==FAd=2hO0B_CVBDSuBwdqL-zaXkpf-QXn5iEL364g@mail.gmail.com>
- <CAOQ4uxg6dKr4XB3yAkfGd_ehZkBMcoNHiF5CeB9=3aca44yHRg@mail.gmail.com>
- <ee38734b-c4c3-4b96-8ff2-b4ce5730b57c@igalia.com>
- <8ab387b1-c4aa-40a5-946f-f4510d8afd02@igalia.com>
- <CAOQ4uxiRpwuyfj_Wy3Zj+HAi+jgQOq8nPQK8wmn6Hgsz-9i1fw@mail.gmail.com>
- <CAOQ4uxhHFvYNAgES9wpM_C-7GvfwXC2xet1ensfeQOyPJRAuNQ@mail.gmail.com>
-Content-Language: en-US
-From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-In-Reply-To: <CAOQ4uxhHFvYNAgES9wpM_C-7GvfwXC2xet1ensfeQOyPJRAuNQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From: NeilBrown <neilb@ownmail.net>
+To: "Jeff Layton" <jlayton@kernel.org>
+Cc: "Christian Brauner" <brauner@kernel.org>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "David Howells" <dhowells@redhat.com>, "Jan Kara" <jack@suse.cz>,
+ "Chuck Lever" <chuck.lever@oracle.com>, "Miklos Szeredi" <miklos@szeredi.hu>,
+ "Amir Goldstein" <amir73il@gmail.com>,
+ "John Johansen" <john.johansen@canonical.com>,
+ "Paul Moore" <paul@paul-moore.com>, "James Morris" <jmorris@namei.org>,
+ "Serge E. Hallyn" <serge@hallyn.com>,
+ "Stephen Smalley" <stephen.smalley.work@gmail.com>,
+ linux-kernel@vger.kernel.org, netfs@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, apparmor@lists.ubuntu.com,
+ linux-security-module@vger.kernel.org, selinux@vger.kernel.org
+Subject: Re: [PATCH 04/13] Apparmor: Use simple_start_creating() /
+ simple_done_creating()
+In-reply-to: <7fbfbeb0d57484172304b727bd888d1a1105f96d.camel@kernel.org>
+References: <20260204050726.177283-1-neilb@ownmail.net>,
+ <20260204050726.177283-5-neilb@ownmail.net>,
+ <7fbfbeb0d57484172304b727bd888d1a1105f96d.camel@kernel.org>
+Date: Fri, 06 Feb 2026 11:21:09 +1100
+Message-id: <177033726944.16766.14495020155654514261@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-Em 28/01/2026 08:49, Amir Goldstein escreveu:
-> On Sat, Jan 24, 2026 at 11:45 AM Amir Goldstein <amir73il@gmail.com> wrote:
->>
->> On Fri, Jan 23, 2026 at 9:08 PM André Almeida <andrealmeid@igalia.com> wrote:
->>>
->>> Em 23/01/2026 10:24, André Almeida escreveu:
->>>>
->>>> Em 22/01/2026 17:07, Amir Goldstein escreveu:
->>>>> On Tue, Jan 20, 2026 at 4:12 PM Amir Goldstein <amir73il@gmail.com>
->>>>> wrote:
->>>>>>
->>>>>> On Mon, Jan 19, 2026 at 5:56 PM André Almeida
->>>>>> <andrealmeid@igalia.com> wrote:
->>>>>>>
->>>>> ...
->>>>>>> Actually they are not in the same fs, upper and lower are coming from
->>>>>>> different fs', so when trying to mount I get the fallback to
->>>>>>> `uuid=null`. A quick hack circumventing this check makes the mount
->>>>>>> work.
->>>>>>>
->>>>>>> If you think this is the best way to solve this issue (rather than
->>>>>>> following the VFS helper path for instance),
->>>>>>
->>>>>> That's up to you if you want to solve the "all lower layers on same fs"
->>>>>> or want to also allow lower layers on different fs.
->>>>>> The former could be solved by relaxing the ovl rules.
->>>>>>
->>>>>>> please let me know how can
->>>>>>> I safely lift this restriction, like maybe adding a new flag for this?
->>>>>>
->>>>>> I think the attached patch should work for you and should not
->>>>>> break anything.
->>>>>>
->>>>>> It's only sanity tested and will need to write tests to verify it.
->>>>>>
->>>>>
->>>>> Andre,
->>>>>
->>>>> I tested the patch and it looks good on my side.
->>>>> If you want me to queue this patch for 7.0,
->>>>> please let me know if it addresses your use case.
->>>>>
->>>>
->>>> Hi Amir,
->>>>
->>>> I'm still testing it to make sure it works my case, I will return to you
->>>> ASAP. Thanks for the help!
->>>>
->>>
->>> So, your patch wasn't initially working in my setup here, and after some
->>> debugging it turns out that on ovl_verify_fh() *fh would have a NULL
->>> UUID, but *ofh would have a valid UUID, so the compare would then fail.
->>>
->>> Adding this line at ovl_get_fh() fixed the issue for me and made the
->>> patch work as I was expecting:
->>>
->>> +       if (!ovl_origin_uuid(ofs))
->>> +               fh->fb.uuid = uuid_null;
->>> +
->>>           return fh;
->>>
->>> Please let me know if that makes sense to you.
->>
->> It does not make sense to me.
->> I think you may be using the uuid=off feature in the wrong way.
->> What you did was to change the stored UUID, but this NOT the
->> purpose of uuid=off.
->>
->> The purpose of uuid=off is NOT to allow mounting an overlayfs
->> that was previously using a different lower UUID.
->> The purpose is to mount overlayfs the from the FIRST time with
->> uuid=off so that ovl_verify_origin_fh() gets null uuid from the
->> first call that sets the ORIGIN xattr.
->>
->> IOW, if user want to be able to change underlying later UUID
->> user needs to declare from the first overlayfs mount that this
->> is expected to happen, otherwise, overlayfs will assume that
->> an unintentional wrong configuration was used.
->>
->> I updated the documentation to try to explain this better:
->>
->> Is my understanding of the problems you had correct?
->> Is my solution understood and applicable to your use case?
->>
-> 
-> Hi Andre,
-> 
-> Sorry to nag you, but if you'd like me to queue the suggested change to 7.0,
-> I would need your feedback soon.
-> 
+On Thu, 05 Feb 2026, Jeff Layton wrote:
+> On Wed, 2026-02-04 at 15:57 +1100, NeilBrown wrote:
+> > From: NeilBrown <neil@brown.name>
+> >=20
+> > Instead of explicitly locking the parent and performing a look up in
+> > apparmor, use simple_start_creating(), and then simple_done_creating()
+> > to unlock and drop the dentry.
+> >=20
+> > This removes the need to check for an existing entry (as
+> > simple_start_creating() acts like an exclusive create and can return
+> > -EEXIST), simplifies error paths, and keeps dir locking code
+> > centralised.
+> >=20
+> > Signed-off-by: NeilBrown <neil@brown.name>
+> > ---
+> >  security/apparmor/apparmorfs.c | 38 ++++++++--------------------------
+> >  1 file changed, 9 insertions(+), 29 deletions(-)
+> >=20
+> > diff --git a/security/apparmor/apparmorfs.c b/security/apparmor/apparmorf=
+s.c
+> > index 907bd2667e28..7f78c36e6e50 100644
+> > --- a/security/apparmor/apparmorfs.c
+> > +++ b/security/apparmor/apparmorfs.c
+> > @@ -282,32 +282,19 @@ static struct dentry *aafs_create(const char *name,=
+ umode_t mode,
+> > =20
+> >  	dir =3D d_inode(parent);
+> > =20
+> > -	inode_lock(dir);
+> > -	dentry =3D lookup_noperm(&QSTR(name), parent);
+> > +	dentry =3D simple_start_creating(parent, name);
+> >  	if (IS_ERR(dentry)) {
+> >  		error =3D PTR_ERR(dentry);
+> > -		goto fail_lock;
+> > -	}
+> > -
+> > -	if (d_really_is_positive(dentry)) {
+> > -		error =3D -EEXIST;
+> > -		goto fail_dentry;
+> > +		goto fail;
+> >  	}
+> > =20
+> >  	error =3D __aafs_setup_d_inode(dir, dentry, mode, data, link, fops, iop=
+s);
+> > +	simple_done_creating(dentry);
+> >  	if (error)
+> > -		goto fail_dentry;
+> > -	inode_unlock(dir);
+> > -
+> > -	return dentry;
+> > -
+> > -fail_dentry:
+> > -	dput(dentry);
+> > -
+> > -fail_lock:
+> > -	inode_unlock(dir);
+> > +		goto fail;
+> > +	return 0;
+>=20
+> As KTR points out, this should be "return NULL;"
 
-Hey Amir, sorry for my delay. I just had a week out of the office and 
-just got back to this.
+Actually it should be "return dentry;" which is what the original code
+did.
+I've no idea how it became 0...
+Callers of aafs_create() will silently treat NULL as failure.
 
-Our initial test case worked great! We managed to mount both images and 
-use overlayfs without a problem after your clarification of where to use 
-uuid=off, which should be on the first mount.
+>=20
+> > +fail:
+> >  	simple_release_fs(&aafs_mnt, &aafs_count);
+> > -
+> >  	return ERR_PTR(error);
+> >  }
+> > =20
+> > @@ -2572,8 +2559,7 @@ static int aa_mk_null_file(struct dentry *parent)
+> >  	if (error)
+> >  		return error;
+> > =20
+> > -	inode_lock(d_inode(parent));
+> > -	dentry =3D lookup_noperm(&QSTR(NULL_FILE_NAME), parent);
+> > +	dentry =3D simple_start_creating(parent, NULL_FILE_NAME);
+> >  	if (IS_ERR(dentry)) {
+> >  		error =3D PTR_ERR(dentry);
+> >  		goto out;
+> > @@ -2581,7 +2567,7 @@ static int aa_mk_null_file(struct dentry *parent)
+> >  	inode =3D new_inode(parent->d_inode->i_sb);
+> >  	if (!inode) {
+> >  		error =3D -ENOMEM;
+> > -		goto out1;
+> > +		goto out;
+> >  	}
+> > =20
+> >  	inode->i_ino =3D get_next_ino();
+> > @@ -2593,18 +2579,12 @@ static int aa_mk_null_file(struct dentry *parent)
+> >  	aa_null.dentry =3D dget(dentry);
+> >  	aa_null.mnt =3D mntget(mount);
+> > =20
+> > -	error =3D 0;
+> > -
+> > -out1:
+> > -	dput(dentry);
+> >  out:
+> > -	inode_unlock(d_inode(parent));
+> > +	simple_done_creating(dentry);
+> >  	simple_release_fs(&mount, &count);
+> >  	return error;
+> >  }
+> > =20
+> > -
+> > -
+> >  static const char *policy_get_link(struct dentry *dentry,
+> >  				   struct inode *inode,
+> >  				   struct delayed_call *done)
+>=20
+> Assuming you fix the minor problem above.
+>=20
+> Reviewed-by: Jeff Layton <jlayton@kernel.org>
+>=20
 
-However, when rebooting to the other partition, the mount failed with 
-"failed to verify upper root origin" again, but I believe that I forgot 
-to add `uuid=off` somewhere in the mount scripts. I'm still debugging this.
-
-Anyhow, I see that we are now too close to the merge window, and from my 
-side we can delay this for 7.1 and merge it when it gets 100% clear that 
-this is the solution that we are looking for.
-
-Thanks again for your help!
-	André
-
-> FWIW, I think that this change of restrictions for uuid=null could be backported
-> to stable kernels, but I am not going to mark it for auto select, because
-> I'd rather see if anyone shouts with upstream kernel first when (if) we make
-> this change and manually backport later per demand.
-> 
-> Thanks,
-> Amir.
-
+Thanks,
+NeilBrown
