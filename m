@@ -1,252 +1,136 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-ot1-f69.google.com (mail-ot1-f69.google.com [209.85.210.69])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D52FC3A9624
-	for <linux-unionfs@vger.kernel.org>; Fri,  6 Feb 2026 13:35:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.45
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770384939; cv=pass; b=F4wMDJbnjbJMWic2AWP4aFlUrpNGIwBpuM9BmCCewjbpHrnBii9DpcsMQ1a9I7OOB17KatFStFL9cCKciBJK5iT5xIvE3VlU3rNTdY2MW/mDRmhQm+r4qMsPLButIkK32evltRGADRnTAjqfI3EGcuNWMzbJ4KGU+0lqvinGRNs=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770384939; c=relaxed/simple;
-	bh=RxTY2ZddbzZaifKXYPGFFlp4mavJ0NrEEi4EM4pjmj8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OEHzs/ge3WV0KoA+tjh8gWh5Od6sMCsJYXXPf47eCf7rYiRM8gPLNm80oqB8pOm7of7r7gcgDQNEC8ypSBTufqJGPE1MLRq3Uz5OX9/jqWRCy+gpGq4JEfG4EfH+Eis4hBWFVhRp7DIQcEXMTEnp0Xhp0X8pbAF8hndnBv7F1+A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=G8ekIMW4; arc=pass smtp.client-ip=209.85.208.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G8ekIMW4"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-653780e9eb3so2806900a12.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 06 Feb 2026 05:35:38 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770384937; cv=none;
-        d=google.com; s=arc-20240605;
-        b=Lj7dp562b3z8Cvxj8tQ/0IMvzRzse6/eSeyTiWfyVBzOMe8E5EvioiiPsM1YZA4jC/
-         K6TTJtcgj/F0HDo/96qxFdJ3NGFk1zfHsG2LS6eTnSqKDv/4xhiuyNB0S7ODIE/ACI/K
-         o96dSfqL/VP5Ynxx465mheyedKcDi9hcHqQYlV5WsDaCipypZk5cvdwzFtc20Gan4JZZ
-         EH3xbA8M/2EmtWw5+Eq6o9W/nGLw6N9JFZL8HVNu4xHMN/skzfAq5NtnHJswb7b1o8Lc
-         XHYwKV+sz8Ohy4fINmQx4XM4ceDOaKMTAPoRSDc5n2BG6xyeNjEOcVV9te5XtnPZR575
-         pKew==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=EpmWnKuQAvcxfN2n9Aws3fxLD/5TLycZ+iQI8ZhYj4E=;
-        fh=5XSfbCX+S1ovO13Vl6iSBahjm516OkSwMLjtz/EXvJg=;
-        b=G8M8Y82Qog6Jp7eafAoh6PziSrEh8V793lIpJy2eDlecTUinf6dbRqnSRmHVhu22mX
-         t0d/7wPHK0E996wtP98Wf8Jn4tg74bW3f0CMwS2lGpc8UQaFxUKyCviPfDasdNBjAXVU
-         /MGkdnrGzokmLgaqcOnzNzSnz3ih+bl6Hlnz9lq9dQM5d+9xFvWoF37dUxJR0UkgA2+T
-         xo0IMPXEi/awW11gGDBTuThLFxwgdo0qRfbNOkrI3z2T81VNi9m3C1SSqeo98XG/hm6r
-         E7zuuJvYbQHrvQngEW0YNCDYPc1mGOLNBHKeAKlvMeSYJP88+IEdvohBMcTd1T76Xh6D
-         xouQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770384937; x=1770989737; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=EpmWnKuQAvcxfN2n9Aws3fxLD/5TLycZ+iQI8ZhYj4E=;
-        b=G8ekIMW4Rdfti92YPZTjnFCLgDeLQsQHUoyr2TCfEQZQCVb2c5M0+6TtOw0kY1Q8Dq
-         Zwsgc5IHRrC4+tiEcyZfpbeNxRSa8S1XeY4M0IEFpO5u3HYsFfPtY2Iyf6Y4cFvl3bBW
-         0WaeRK9TSDIMbSsRkVPrveGXRINO7LkR7MPN++bwTK5jQPOcRvKW6XAo4YpEpefzRchr
-         CHKCNtKhjFPRXMgwINs7cqLC+ctgxPTkv5XV/dQUt9LQywZGXWp7GRq1iOy4FEmJ/2Sn
-         S00BW1/MFWgFOOGOg4hTQ4zHqu8AM64BwotbYNzlMqPYxDoJyE44thsYEvydDdRMfZDl
-         pCcg==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62A9B32E745
+	for <linux-unionfs@vger.kernel.org>; Tue, 10 Feb 2026 07:05:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.69
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770707129; cv=none; b=LqJViuPtzqfN7MM0TUR8wA07n5GgRA57ic+ZznZH593pPGCWLMnXUGE0chNDN4PbCN9/WePqbtVo17lT2L9RhbfiVtMIlajXnazt9fV2nKDI4fhwB/j1yc8AkWnd+VYHAy5MQEEdeoLVn1tILMZGKO0/TEP7iX8/qXpa202pFV4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770707129; c=relaxed/simple;
+	bh=FfvjmMtbr+l7yyr/lzi2SNNav2qpTG29N9G1743vkIU=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=Yz4QAt6pQnNVlL1smcZrvpueQHQaUt4XfYVqtuFaXpDGUKwYtoeJ8B6K/wQkZufd6/kXgVoc8Q6U/ZW9hcH6gGzNJkb77HtvLRYBYjquPK/4ycPO2FQ/o2L0JtIoS6OmQq007ZR+qtNwCyAf7GDOewJytOX8WkzbVw5pG0N4NqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.69
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-7d185984792so2105219a34.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 09 Feb 2026 23:05:28 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770384937; x=1770989737;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=EpmWnKuQAvcxfN2n9Aws3fxLD/5TLycZ+iQI8ZhYj4E=;
-        b=P/bXitjDVpz6zxjECDRMc6xOvy3tujSgp2bhqlBkhhEQIG64gXSvaBovFK/nvgQ+DZ
-         EtZopVml78ubnxmohRdkgwkkMlagYsO74Bg34rgIGP/Woeb1Vh0riRQslWwLDG8w1drH
-         fzky0HinAjKZRhhaswAbPaAG1acHBkemxA2yBOvnXyw9pi2jwBGtNNRH99/VTMznPdIV
-         UguNkgI6gZHV5v+8y2UCom55I2jFteBcmH8hP0zOLXXIi73BJjx7Rtje3+MILNsyWa0G
-         a8ZsrP7gJem95zY/q7+WLAIQtqinsSX/YSE14659xcbUWBf5JB6TOC0EHqGvGkRwkHDU
-         250Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUmEo9oYTe7cJ4KWxChls/91BmeOGsBHAsQRrdnuWWSZS0v9iXY77iX5wxsYRyzTVws4pD11inG15VEIzUv@vger.kernel.org
-X-Gm-Message-State: AOJu0YxfiFbOJiKbZBwa7E49JSdiJDZzWNz3zWNiJ8dr/C4xcCtiiv04
-	09GKfonzqzDKnmJwvSKL9VLZW7kXAIiXFUqwaW5vBfyc9AqN/d+BvJ/t7wMdJWyKVzjyqHjSGxU
-	ikdNfN3jRrqjJFLprsotdfXZEozAsYb8=
-X-Gm-Gg: AZuq6aKcNlYIauQJfJ4gJHNfWiOBDQTAFoV2uQB52MSxzlWYeXwJQP2Ncom98xHRDQD
-	3NNzoipog99NApWBaoM7X+ei53DRRAsgRFeLh0CcT+YV7pUe/iN1RED1z2aYTCdffb8Jqdp+FT+
-	Lp6Ya3o54M8Exqyfw6gxUt+MnDbzNsMEXD8ii6+1Gavi13ilYpvlX2xP61R5bwo5Wg3c37Wq3Kq
-	YJzIdtPLNkeKU+7xiGu/enYvDMUUulzjVQC/u0l4ry3GNi85AVAqL7KDdMK765kxA/EhklX2qem
-	vYbcT1LeVmWvNky9z/DbItsNPbKEe6JNUows59Z1
-X-Received: by 2002:a05:6402:518f:b0:658:bd60:43e2 with SMTP id
- 4fb4d7f45d1cf-659841692cdmr1419837a12.17.1770384937041; Fri, 06 Feb 2026
- 05:35:37 -0800 (PST)
+        d=1e100.net; s=20230601; t=1770707127; x=1771311927;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=D6BRwKNufHnhCCmb1iIN3+erlQW3TyvPeAAx0pMb11k=;
+        b=M7ywRnAy9AsF4EUnp1G7uZm4AthEymNoHTdtWNvR6/W6hmP/fAG4TDYHInvOHoDkZv
+         VMoGDd3OkQt5Wjq4OIViMylqLkrgogdthsUK6f8zZPB/CccndRpqNMYJlxt1qhd3DMuU
+         TSgNXeQ5mhnDEIdf+BOZyb364bJ/+/VuTZcAnl83/nZU5sKguLcmuOPMRwN14NrU8lC0
+         Wl+uifybDE0erqgbKkEyh31pWKzOyyy+YfvmkBgnbM7kfCKMjFV3zXd5Lp6oJW9Kp6lX
+         uH6Cze0Yarsg97+uieqmLkiPiQKVeaQjs21CpiiUAd07y7IlsDfLMSvhx/9m7DBksHwV
+         9EbQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWxmy7Dgus+ZZsq84oKPHynnQyFX9yHcZWdTvJTmzMNwad9NvNCPCKx/0R2kvE6wxtXIbJjdS7r66C71SKk@vger.kernel.org
+X-Gm-Message-State: AOJu0YwFuT3V0oWabnb+udeLxf2eL8CzXr9DBc2ltIrLuBu6CyFdPooI
+	PHOJU2QVLGcjbb5r88w6z/vAXSHLbBymf7S4q0WJzfL7FEX96YSjEmhimbFN8sR4GWq8VseArnd
+	5W/+B0X8tiiU5McDUdNfJrmIW0cYARySwIKvZ2Kwx4FuaEihxlZ4TAIqouQs=
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260204050726.177283-1-neilb@ownmail.net> <20260204050726.177283-11-neilb@ownmail.net>
- <CAOQ4uxh-MLgwZCstwr6HyPXHVRmtj2F_=xS8pE3FN6Ex-wex4w@mail.gmail.com> <177034031005.16766.246184445940612287@noble.neil.brown.name>
-In-Reply-To: <177034031005.16766.246184445940612287@noble.neil.brown.name>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 6 Feb 2026 14:35:25 +0100
-X-Gm-Features: AZwV_QjjYiogfyc5arz_rTitKV8bnytIdEM4CjRfI_5mGtvMvwFYoZk4un_zak4
-Message-ID: <CAOQ4uxiWE5eVTrL-2EWVHGQEpEX7HSstj_+kEp-b7xZrnfoXMA@mail.gmail.com>
-Subject: Re: [PATCH 10/13] ovl: change ovl_create_real() to get a new lock
- when re-opening created file.
-To: NeilBrown <neil@brown.name>
-Cc: Christian Brauner <brauner@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	David Howells <dhowells@redhat.com>, Jan Kara <jack@suse.cz>, Chuck Lever <chuck.lever@oracle.com>, 
-	Jeff Layton <jlayton@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
-	John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, 
-	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
-	Stephen Smalley <stephen.smalley.work@gmail.com>, linux-kernel@vger.kernel.org, 
-	netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
-	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org, 
-	selinux@vger.kernel.org
+X-Received: by 2002:a05:6820:3088:b0:662:f61e:759d with SMTP id
+ 006d021491bc7-66d0c666b89mr6513087eaf.62.1770707127429; Mon, 09 Feb 2026
+ 23:05:27 -0800 (PST)
+Date: Mon, 09 Feb 2026 23:05:27 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <698ad8b7.050a0220.3b3015.008b.GAE@google.com>
+Subject: [syzbot] [overlayfs?] KMSAN: uninit-value in ovl_fileattr_get
+From: syzbot <syzbot+fa79520cb6cf363d660d@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 6, 2026 at 2:11=E2=80=AFAM NeilBrown <neilb@ownmail.net> wrote:
->
-> On Thu, 05 Feb 2026, Amir Goldstein wrote:
-> > On Wed, Feb 4, 2026 at 6:09=E2=80=AFAM NeilBrown <neilb@ownmail.net> wr=
-ote:
-> > >
-> > > From: NeilBrown <neil@brown.name>
-> > >
-> > > When ovl_create_real() is used to create a file on the upper filesyst=
-em
-> > > it needs to return the resulting dentry - positive and hashed.
-> > > It is usually the case the that dentry passed to the create function
-> > > (e.g.  vfs_create()) will be suitable but this is not guaranteed.  Th=
-e
-> > > filesystem may unhash that dentry forcing a repeat lookup next time t=
-he
-> > > name is wanted.
-> > >
-> > > So ovl_create_real() must be (and is) aware of this and prepared to
-> > > perform that lookup to get a hash positive dentry.
-> > >
-> > > This is currently done under that same directory lock that provided
-> > > exclusion for the create.  Proposed changes to locking will make this
-> > > not possible - as the name, rather than the directory, will be locked=
-.
-> > > The new APIs provided for lookup and locking do not and cannot suppor=
-t
-> > > this pattern.
-> > >
-> > > The lock isn't needed.  ovl_create_real() can drop the lock and then =
-get
-> > > a new lock for the lookup - then check that the lookup returned the
-> > > correct inode.  In a well-behaved configuration where the upper
-> > > filesystem is not being modified by a third party, this will always w=
-ork
-> > > reliably, and if there are separate modification it will fail cleanly=
-.
-> > >
-> > > So change ovl_create_real() to drop the lock and call
-> > > ovl_start_creating_upper() to find the correct dentry.  Note that
-> > > start_creating doesn't fail if the name already exists.
-> > >
-> > > This removes the only remaining use of ovl_lookup_upper, so it is
-> > > removed.
-> > >
-> > > Signed-off-by: NeilBrown <neil@brown.name>
-> > > ---
-> > >  fs/overlayfs/dir.c       | 24 ++++++++++++++++++------
-> > >  fs/overlayfs/overlayfs.h |  7 -------
-> > >  2 files changed, 18 insertions(+), 13 deletions(-)
-> > >
-> > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > > index ff3dbd1ca61f..ec08904d084d 100644
-> > > --- a/fs/overlayfs/dir.c
-> > > +++ b/fs/overlayfs/dir.c
-> > > @@ -219,21 +219,33 @@ struct dentry *ovl_create_real(struct ovl_fs *o=
-fs, struct dentry *parent,
-> > >                 err =3D -EIO;
-> > >         } else if (d_unhashed(newdentry)) {
-> > >                 struct dentry *d;
-> > > +               struct name_snapshot name;
-> > >                 /*
-> > >                  * Some filesystems (i.e. casefolded) may return an u=
-nhashed
-> > > -                * negative dentry from the ovl_lookup_upper() call b=
-efore
-> > > +                * negative dentry from the ovl_start_creating_upper(=
-) call before
-> > >                  * ovl_create_real().
-> >
-> >
-> > According to the new locking rules, if the hashed dentry itself is
-> > the synchronization object, is it going to be allowed to
-> > filesystem to unhash the dentry while the dentry still in the
-> > "creating" scope? It is hard for me to wrap my head around this.
->
-> It can be confusing....
->
-> It will be important for the name the remain locked (and hashed) until
-> the operation (create, remove, rename) either succeeds or fails.  So
-> leaving a dentry unhashed will be OK providing a subsequent lookup will
-> also succeed or fail in the same way.  The caller must be able to use
-> the dentry to access the object (i.e.  the inode) on success, but they
-> is nothing in POSIX that requires that the object still has any
-> particular name.
->
-> >
-> > Or do we need this here because some filesystems (casefold in
-> > particular) are not going to support parallel creations?
->
-> There is no reason that a casefolding filesystem would not support parall=
-el
-> ops. And it isn't just casefolding that acts like this.  At least one of
-> the special filesystems (tracefs maybe) always unhashes on create.  You
-> only ever get a hashed positive dentry as a result of lookup.
-> (overlayfs would never see this case of course).
->
-> >
-> > >                  * In that case, lookup again after making the newden=
-try
-> > >                  * positive, so ovl_create_upper() always returns a h=
-ashed
-> > >                  * positive dentry.
-> > > +                * As we have to drop the lock before the lookup a ra=
-ce
-> > > +                * could result in a lookup failure.  In that case we=
- return
-> > > +                * an error.
-> > >                  */
-> > > -               d =3D ovl_lookup_upper(ofs, newdentry->d_name.name, p=
-arent,
-> > > -                                    newdentry->d_name.len);
-> > > -               dput(newdentry);
-> > > -               if (IS_ERR_OR_NULL(d))
-> > > +               take_dentry_name_snapshot(&name, newdentry);
-> > > +               end_creating_keep(newdentry);
-> > > +               d =3D ovl_start_creating_upper(ofs, parent, &name.nam=
-e);
-> > > +               release_dentry_name_snapshot(&name);
-> >
-> > OK. not saying no to this (yet) but I have to admit that it is pretty
-> > ugly that the callers of ovl_create_real() want to create a specific
-> > stable name, which is could be passed in as const char *name
-> > and yet we end up doing this weird dance here just to keep the name
-> > from newdentry.
->
-> There are three callers of ovl_create_real()
->
-> ovl_lookup_or_create() does have a "const char *name".
-> ovl_create_upper() has a stable dentry from which it can copy a QSTR
-> ovl_create_temp() would need some sort of dance to keep hold of the
-> temporary name that was allocated.
->
-> If it weren't for ovl_create_temp() I would agree with you.
->
-> Though we could have the three callers of ovl_start_creating_temp() pass =
-a
-> "char name[OVL_TEMPNAME_SIZE]" in, then ovl_create_temp() would have
-> easy access.
-> I could do that if you like.
+Hello,
 
-Yes, considering that two of the callers are from the same function
-(ovl_whiteout()) I think that would end up looking nicer.
+syzbot found the following issue on:
 
-Thanks,
-Amir.
+HEAD commit:    8fdb05de0e2d Merge tag 'net-6.19-rc9' of git://git.kernel...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13d888aa580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=9682a42d8ec8b05c
+dashboard link: https://syzkaller.appspot.com/bug?extid=fa79520cb6cf363d660d
+compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1233cb22580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1035878a580000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/25d060d68c51/disk-8fdb05de.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/f033f4d0ec73/vmlinux-8fdb05de.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/942ea5e5d5f5/bzImage-8fdb05de.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+fa79520cb6cf363d660d@syzkaller.appspotmail.com
+
+=====================================================
+BUG: KMSAN: uninit-value in ovl_security_fileattr fs/overlayfs/inode.c:617 [inline]
+BUG: KMSAN: uninit-value in ovl_real_fileattr_get fs/overlayfs/inode.c:701 [inline]
+BUG: KMSAN: uninit-value in ovl_fileattr_get+0x5cd/0x650 fs/overlayfs/inode.c:720
+ ovl_security_fileattr fs/overlayfs/inode.c:617 [inline]
+ ovl_real_fileattr_get fs/overlayfs/inode.c:701 [inline]
+ ovl_fileattr_get+0x5cd/0x650 fs/overlayfs/inode.c:720
+ vfs_fileattr_get fs/file_attr.c:94 [inline]
+ __do_sys_file_getattr fs/file_attr.c:416 [inline]
+ __se_sys_file_getattr+0x6cb/0xbd0 fs/file_attr.c:372
+ __x64_sys_file_getattr+0xe4/0x150 fs/file_attr.c:372
+ x64_sys_call+0x17cd/0x3e70 arch/x86/include/generated/asm/syscalls_64.h:469
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xc9/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Uninit was stored to memory at:
+ ovl_security_fileattr fs/overlayfs/inode.c:612 [inline]
+ ovl_real_fileattr_get fs/overlayfs/inode.c:701 [inline]
+ ovl_fileattr_get+0x5c6/0x650 fs/overlayfs/inode.c:720
+ vfs_fileattr_get fs/file_attr.c:94 [inline]
+ __do_sys_file_getattr fs/file_attr.c:416 [inline]
+ __se_sys_file_getattr+0x6cb/0xbd0 fs/file_attr.c:372
+ __x64_sys_file_getattr+0xe4/0x150 fs/file_attr.c:372
+ x64_sys_call+0x17cd/0x3e70 arch/x86/include/generated/asm/syscalls_64.h:469
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xc9/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Local variable fa.i created at:
+ __do_sys_file_getattr fs/file_attr.c:380 [inline]
+ __se_sys_file_getattr+0x8c/0xbd0 fs/file_attr.c:372
+ __x64_sys_file_getattr+0xe4/0x150 fs/file_attr.c:372
+
+CPU: 0 UID: 0 PID: 6044 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(voluntary) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/24/2026
+=====================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
