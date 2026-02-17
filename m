@@ -1,103 +1,120 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46EA62EC0AA;
-	Mon, 16 Feb 2026 14:59:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46BE236AB65
+	for <linux-unionfs@vger.kernel.org>; Tue, 17 Feb 2026 13:25:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771253985; cv=none; b=Fn0flUGTitQ+/pNmFAQOXBZL1jLu883s1qPYpaieFQcACP6uluP0hIqwh4t/gifwBwB3u3JwUm8vSd5JIpYjj5vlQmAHLvk5K36ez/Y/avpmClkX91dr4z3O5CNEMx6iJmYz/TfVma+OvsaKyO93w3JfM05A8gBPO7wiOo2GDJM=
+	t=1771334729; cv=none; b=c4HbVI+0R+mAegmHn8V9kC+sj7cXOmqRDxT7JR84wQocgmdmtdDT1fFemtqNKqRq9+2+79HVEMwyTrHnPGFyQzmsOVFJqyjXNHitA0HW3T94sAyVGDBiRNz8oOWod7iIfJGmOHx8yX5G0dSmR+bReTLxxW8AGcrA1/g/PPfkhec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771253985; c=relaxed/simple;
-	bh=oc55y3wjpZlo833gGfIcwf9bnB6EdTCJlBIxD29V68E=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pOBfUWd+7Sc33IA8jiZEM+eLNJChSUs1YHI9NgD59Zw5N0K69txMMbjYUDUcqUOd9iqgS+FqkZMyMhkWVgIVp/oXioRONXw4X3QwoAwexAAWEi0sxt6Z/kf0s1Sf6WGIhhYa3klLSrFhjw+fCsbhWj3zK/zPvc/RgbugQ8bX5GA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=b9mkgaCF; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1771334729; c=relaxed/simple;
+	bh=y3A+hPugdQy/aMZ17xCeJhJKVKDBVbOjH8vc5PGYIwg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ptljse4pc1RI8jyqJCodr9+jyu9GvMpAsk4CjiHMxtt6oX2o72AsqEEPgk0Avsu/r/HxhY5Moe9EAOj6Xl4oaq0WD6fLsOgQuJaPc07daURBYKgUCbLEjdZHD2zsLQycBam83SETzOhV4Jz2U9sHFOGR5M2wYLqbblJN2VY6HgE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iHj9NiLe; arc=none smtp.client-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="b9mkgaCF"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=QxvgiaqVGCdeAbIPSiymes9zs7t9hJVWrxFxQjBQv9A=; b=b9mkgaCFKmDR3uUeKv38fBPlRg
-	oNKjrKR415peZXAlfQOXGvzNGm4OZdQ3Qvhm250ewB6UzAT7qLMlYw2siUKErOyOKWzYI5IUxHiJR
-	OIZlmXY8WJ8/hJMlU5ScacR+Rx1MLJYIzg0M+gOLhKPyXhZ3j2B3LxXUth8cwUdfslCjCFM+1I3eM
-	mj9Jp/pI8g3BB+CMww1S3jI+hFu4/zRUSgnd2dTb6OBQPaEn042GgRzjQfbEMeAfmPKxIHb/7rh0L
-	16bGQOltX759CtlZcMszJxAC4L5pRncMOTza9zZPBzIr2NM1xunCaLZ0CxGvQv0WTJX6o8mhZmcZt
-	Jku+Qbgw==;
-Received: from [191.204.193.173] (helo=[192.168.15.100])
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-	id 1vs04J-001Kau-SZ; Mon, 16 Feb 2026 15:59:24 +0100
-Message-ID: <8bec19de-6e6e-418a-a256-5918bd835d98@igalia.com>
-Date: Mon, 16 Feb 2026 11:59:14 -0300
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iHj9NiLe"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-480706554beso41190285e9.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Feb 2026 05:25:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1771334726; x=1771939526; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=+YJwnWVkIxYK1DSRWlkzfvTcjMJVZh4C48PXVKLFwOE=;
+        b=iHj9NiLeEcpiqtKj0vpIUVWYDd97vCLmMs0cFgmwQiTae/7coIcYUJZnMQZ7nsF0Hm
+         kYhxOdr2h2RO2i5pFlKLrkr73Otyq8Yh3hJgvbraPXrE4hML8kI60CB7l1SOMMQoTmll
+         VdHNQI4BUbVequhKOT82PA5gzK3X1npjJNaX6SnhfxUFBMDuyCMmr2qEDssuMauvCPfK
+         cdfn2b3XIA2cSpClxDeuP+CvjsxEaUonPTmFt0MSAPGfEhU+o+T5UfhnbiZTmpklSsVx
+         MaJEqSxp4xMpDEc2yNqtKTgvK9ShwlFbGyoAFMZPIgOUKg11M6xFCURXhZJ/6L/nzRqZ
+         1EiA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1771334726; x=1771939526;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=+YJwnWVkIxYK1DSRWlkzfvTcjMJVZh4C48PXVKLFwOE=;
+        b=aen7FvzIRoktc/+21DPNxwpfb05v+MbO5At3Y3dAEEumgbgoS5agG2/NnG0HJhHFU0
+         XgEtSEPzhyt5/BQVMdh3k7594tR0wOFGx72dthwqTNPIdpHDmfex8Ez7bSa+EYD2iNHY
+         4SPrCNB3m4Uj5oP9x+x4ZnpYlARTw/1bMFzTeM1La1zvZ5FvHpCAJ1ZcJblyU+nfTexe
+         skf8X82A/xVzsMk7nnYWJlfmvtisp8W9+qZDuX+fLIoi1MwNyushA47hjKIV9h+15NMy
+         eAeiRf69XgZ6u1r8/FTfBSvTg22jW3RptjAEitOP1N/Rs596YWrDB5Ru2ierjjMIAHfC
+         +tDw==
+X-Forwarded-Encrypted: i=1; AJvYcCXJrGxdQxjjo1Z23Lqy74UuSl5VXvSkKyYF5meIj+BiHmeKdo/oILxHAXvemX/rwRR259GDyEfxHcTB8fgM@vger.kernel.org
+X-Gm-Message-State: AOJu0YwyAsNcuE/O0A9wXEC+gFqp0dBNC8jZFqhCIvxlxghvF5ZxvhdP
+	W0uXyS6rkW6ST3ZEjrjhsKPG2VW0LIlztaOpTZvJi3vqJG1q9Ta+Gd6u
+X-Gm-Gg: AZuq6aIlGMr/VzPqseHV3uK+dDY3YjqyWFLjDV5v9i+DOgjGkmOO5TsY8Bvdpz/HiWz
+	Q3IM3PsFeWFvedWjsGPkdNTLNWgbtlI0bK4Mf0PTqbBGl3rUez/UTorxd2Wm2HYPyL9mOTklick
+	G1nqsxzXI3fxpWg3+CQ0SE6S5amRRWc1QyrQCFY0iOaOLOkuYm4UHSWsud/JuruGNT4R7xYRKgC
+	GezrA74NtylXv7g8JsDxJS5uAX9D9YIbki3zIeQDFXP5A8bgeLD5oS6rZwsU0h/HUXPSSwEftCs
+	io8ocRgoIZ24Iy6LM9wvMulZ1h2jVdAGu0O+/t8CeSdoymQBsGfrOsggWGVUYlRuNyp9IANBvjW
+	fzP7eVmmkhKbXqkCmBJfwQkM2xOr+C4wj2TLE9JZl3hWbJvVhCDua9f13/SFyIkuvFeX5AvLMEg
+	M0qVSKjhosz07AOwuW97QPnc5h1Yheq1SRHYa97WMBT1FW+etPG108FKs=
+X-Received: by 2002:a05:600c:83c6:b0:477:639d:bca2 with SMTP id 5b1f17b1804b1-48379b93357mr158975845e9.4.1771334726065;
+        Tue, 17 Feb 2026 05:25:26 -0800 (PST)
+Received: from localhost (109-186-143-15.bb.netvision.net.il. [109.186.143.15])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4837b68e5adsm319859315e9.9.2026.02.17.05.25.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Feb 2026 05:25:25 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs updates for 7.0
+Date: Tue, 17 Feb 2026 15:25:24 +0200
+Message-ID: <20260217132524.681374-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/3] ovl: Use real disk UUID for origin file handles
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>, Chuck Lever <chuck.lever@oracle.com>,
- Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
- Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>,
- Tom Talpey <tom@talpey.com>, Carlos Maiolino <cem@kernel.org>,
- Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>,
- Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
- linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Qu Wenruo <wqu@suse.com>, linux-btrfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, kernel-dev@igalia.com, vivek@collabora.com,
- Ludovico de Nittis <ludovico.denittis@collabora.com>
-References: <20260114-tonyk-get_disk_uuid-v1-0-e6a319e25d57@igalia.com>
- <22b16e24-d10e-43f6-bc2b-eeaa94310e3a@igalia.com>
- <CAOQ4uxhbz7=XT=C3R8XqL0K_o7KwLKsoNwgk=qJGuw2375MTJw@mail.gmail.com>
- <0241e2c4-bf11-4372-9eda-cccaba4a6d7d@igalia.com>
- <CAOQ4uxi988PutUi=Owm5zf6NaCm90PUCJLu7dw8firH8305w-A@mail.gmail.com>
- <33c1ccbd-abbe-4278-8ab1-d7d645c8b6e8@igalia.com>
- <CAOQ4uxgCM=q29Vs+35y-2K9k7GP2A2NfPkuqCrUiMUHW+KhbWw@mail.gmail.com>
- <75a9247a-12f4-4066-9712-c70ab41c274f@igalia.com>
- <CAOQ4uxig==FAd=2hO0B_CVBDSuBwdqL-zaXkpf-QXn5iEL364g@mail.gmail.com>
- <CAOQ4uxg6dKr4XB3yAkfGd_ehZkBMcoNHiF5CeB9=3aca44yHRg@mail.gmail.com>
- <ee38734b-c4c3-4b96-8ff2-b4ce5730b57c@igalia.com>
- <8ab387b1-c4aa-40a5-946f-f4510d8afd02@igalia.com>
- <CAOQ4uxiRpwuyfj_Wy3Zj+HAi+jgQOq8nPQK8wmn6Hgsz-9i1fw@mail.gmail.com>
- <CAOQ4uxhHFvYNAgES9wpM_C-7GvfwXC2xet1ensfeQOyPJRAuNQ@mail.gmail.com>
- <05c37282-715e-4334-82e6-aea3241f15eb@igalia.com>
- <CAOQ4uxgzK7qYDFWYT62jH_zq8JkLGussD5ro4cKDqSNQqBiVUA@mail.gmail.com>
-Content-Language: en-US
-From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-In-Reply-To: <CAOQ4uxgzK7qYDFWYT62jH_zq8JkLGussD5ro4cKDqSNQqBiVUA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Em 06/02/2026 10:12, Amir Goldstein escreveu:
-> On Thu, Feb 5, 2026 at 9:34 PM André Almeida <andrealmeid@igalia.com> wrote:
->>
->> Anyhow, I see that we are now too close to the merge window, and from my
->> side we can delay this for 7.1 and merge it when it gets 100% clear that
->> this is the solution that we are looking for.
->>
-> 
-> I pushed this patch to overlayfs-next branch.
-> It is an internal logic change in overlayfs that does not conflict with
-> other code, so there should not be a problem to send a PR on the
-> second half of the 7.0 merge window if this is useful.
-> 
-> I think that the change itself makes sense because there was never
-> a justification for the strict rule of both upper/lower on the same fs
-> for uuid=off, but I am still not going to send it without knowing that
-> someone finds this useful for their workload.
-> 
+Hi Linus,
 
-Hi Amir,
+Please pull overlayfs updates for 7.0 with a single functional
+change.
 
-I can confirm that this is useful for my workload. After correctly 
-setting this flag for every mount, everything is working good and we can 
-bypass the random UUID issues. Thank you for your help!
+This branch has been sitting in linux-next for a while and
+it has gone through the usual overlayfs test routines.
+
+The branch merges cleanly with master branch of the moment.
+
+Thanks,
+Amir.
+
+----------------------------------------------------------------
+The following changes since commit fcb70a56f4d81450114034b2c61f48ce7444a0e2:
+
+  Merge tag 'vfs-6.19-rc8.fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs (2026-01-26 09:30:48 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-update-7.0
+
+for you to fetch changes up to 869056dbbd636f8f256b695f39c102eb3ce2edd0:
+
+  ovl: relax requirement for uuid=off,index=on (2026-02-06 13:48:23 +0100)
+
+----------------------------------------------------------------
+overlayfs updates for 7.0:
+
+  The semantics of uuid=off were relaxed to cater a use case of overlayfs
+  lower layers on btrfs clones, whose UUID are ephemeral and an upper layer
+  on a different filesystem.
+
+----------------------------------------------------------------
+Amir Goldstein (1):
+      ovl: relax requirement for uuid=off,index=on
+
+ Documentation/filesystems/overlayfs.rst |  6 +++---
+ fs/overlayfs/namei.c                    | 21 +++++++++++++--------
+ fs/overlayfs/overlayfs.h                |  2 ++
+ fs/overlayfs/super.c                    | 15 ++++++---------
+ 4 files changed, 24 insertions(+), 20 deletions(-)
