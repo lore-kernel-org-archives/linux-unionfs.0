@@ -1,187 +1,145 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-a3-smtp.messagingengine.com (flow-a3-smtp.messagingengine.com [103.168.172.138])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A495331A4B
-	for <linux-unionfs@vger.kernel.org>; Mon, 23 Feb 2026 17:31:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.52
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771867918; cv=pass; b=B48o5LpvQgyiZQKha34tXL3DTLcMbiFEg3sCJJ/6zsxq7EiFGI6gkY5+N8jHf30q+lEhhsfEMHmY7BgDJs3ogQRT06bRXGorKbZ66hdqRiQa5Po/PxNv9w89hIQ+NwfYKZDgbIeU4XK0/erEuzsBmG7AGef6wB5XDXHf6DwYkxU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771867918; c=relaxed/simple;
-	bh=hK/0jeoKCkucbRZSvX1AYVctVojQdWNjxRFJpKPT85c=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=grjlGxhE+g1KnfZY499G6l+kmFyHsHlCjW10e/t38CshGHoyh5bk7jlCXeH/CrLHU3ECXOfKWsVRBszIBzNIwjSZS/kLB4j9OarSJU4xmpjXVw9dc/kSem3qdbDjdAtrmt8ek+SOvfzzYuWsqBumCNo1lUxCCcKPPShzwhVmlB4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=F+M8ReRS; arc=pass smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 135B136BCFD;
+	Mon, 23 Feb 2026 22:04:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.138
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771884282; cv=none; b=PFNxKgmcarWkf0zqVFJqnDCQd8DBpzccSsvgDOJjTLbb5Q/7o6osOX2M1xkCfNlBk62bAiSPE/JctfX/xduSssh+lke5fHo0cT0Ls60bocVs4qceZf4fxddZtyjp5UQtnxtoQi3Z7Gqiomi/g7A8cYGFl/p/zik9t9tyXp0YgOw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771884282; c=relaxed/simple;
+	bh=b8ebazC08m5tcyqPoSGgh7JjSJ9g1Sz97a83jABjm2g=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=cXpEl0TDc4IMleNFkGw89iZW3YT3VX5E1v3uqxZ1UAjUYOjs+GSqqd4vUZ92nNHHohY0CYXRoo5LLQ213guMYYF+ncKUizu3binolqjNPazIniF5kcvyma+3YeiMdkiLZTZ7N6yWINlu+Ry6W1ugk8+YMlvGrJrsT0b505LMS3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=Ws9UlC4r; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=gSfvEOQL; arc=none smtp.client-ip=103.168.172.138
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="F+M8ReRS"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-354a7b089bbso2628271a91.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 23 Feb 2026 09:31:55 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1771867915; cv=none;
-        d=google.com; s=arc-20240605;
-        b=MkTO6L+ZwmnM5qxzUlLlkdKT/6+X9HljlI6PP/pDhWn1+izLIf9L2inu0uVJyG9n79
-         pe9jwmWSttsKQhD14E/XY522aeK6zsUUF39Dw1YmuUEtvqwgOpX1qTeiFVQ+STSZQLar
-         k9O02sGOAvuvQjO58pzKx2ppc7auw5+fUiCBiUHWYC/xi5kmKF0KKMN/wCXxyz8WmwD0
-         Mtl9iy9RKlvXn5W1Vc4EfR/CyLPCafLQARAlShq/fFj5exUEtpk8d2KdtTvmbBryFoTN
-         NiKNNFKwRFOLv3bapthmbcOMrijQpDh2cy5roXqv645kWDP3Sk85YDCDJCWveAk4cmg5
-         EngA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=6UKo5s8UZQoKFDeeGaREA8NHzO9NWVOgEQkt9hAvBaw=;
-        fh=YSS1dKN5v1zKprRZr7dsHkyOWi3CBMJr9sPAK51T2gc=;
-        b=QquKCH0AS0hj4lmlkTAm5KBembSgIjCVZowSrsbP0AfMvz2iJ1sHOP2vEAhPLWBws+
-         xh1d3JhW6wYPvCi0FKjRXMybm2Mcqspvc5BPDRkqpvq6kcG5xyLiwiSmZtWXSAkIpqlQ
-         QtWQrWQ1qdxIWslc1sfESq8imLcu+KtM+XGR0528oZGBIBNl265LQj8pCWUepwWmwKXv
-         MzKZv/GsLiorYi7L9b1ZX4n9qYccb6apzLeQwYBBhwAA5CQrwQ27nzllkjAx3sHbQK1V
-         nHnlLvaKylQH7irxigT9KoY4NbH10K8CQQLTLFLAVLkfNdhkjeuDHitDe0g6dQLlFqoT
-         EBgw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1771867915; x=1772472715; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=6UKo5s8UZQoKFDeeGaREA8NHzO9NWVOgEQkt9hAvBaw=;
-        b=F+M8ReRSjHBcODwL6YMsB62k5KM9tS8sOWzeJ5+cgWNwRgCriw3XQa/eD8Yx/Hni30
-         IdB+LiB/ApJjquQB5KcxVEI5HLkLWuZ1vTpKyL0E0HUfvIQZRWdXowU9+z67g7Gwx52C
-         +oyHQZzV3WLMrQboFAG7U9dC2B2apXVJrFgLqbBoeCt8vO8eZLDHjMm8iii0dsQnf5WW
-         Z+IHssdjgGYFzkGRQY1XVAsJ4gq0CVWEFyPOg2QbuYKPHrO7FhEUN0jl57qhGgMjZ2bq
-         zTkZ+QXwpKHtOYw10dJFzE57zltv532RD2Y3Hk+vJDyanvg3sI0G/4PpvFt2TNvnCaPd
-         NKxw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771867915; x=1772472715;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=6UKo5s8UZQoKFDeeGaREA8NHzO9NWVOgEQkt9hAvBaw=;
-        b=aPu7/Mpjok1Do+Kucjxfdrzfp9jzkmYjMavVW7fx605xn0Y8uPa5oSDDRSS8bFpIXm
-         Al9if1txfleXmMIN8TZKypdvGE9kzlx2hJwUwKno5Aesf81FgpAvwNQaXci59m5o1Lkl
-         4p1q/5tN0duMY6KhkQRclNiuxWLepyDkzv+HxihY+QQ002bip3mkXRIul83Qz3BniomI
-         mg8uoVHazT/XErnk/9wklYuLIHy0q86o2bZp+OpJWrNrxHLPZq1SVsgKnTaqIkmvSSI6
-         brD5JvrIYH/55GD4u1pT/qi2bN9Ad+JvTMjo+6qSP+d++7N5dbk2s/gqKWycyV4jzcFM
-         SRFg==
-X-Forwarded-Encrypted: i=1; AJvYcCVBLb1uU34XRbb6sgnay8gMBi/g7gIvLAoBHOENXQtNjHVWKER93wefFTIRUidBaufWeKFbGcRoMvK7F6wV@vger.kernel.org
-X-Gm-Message-State: AOJu0YyvtMM6viSqGwozhab3jjhtPwZ8L3/+fDalmh8wKhEwFg0ZFZs+
-	eeUOMnzhRwIeyRNnOQh51057IuDJt1vBqoP7CIswk2EySUkkDWCfDKEgGI/n0K5b4Ta+wolaXIu
-	Tv3ystMpilSkmI7S1ZN5/fLiHVQJYXL4eVmWfp9CW
-X-Gm-Gg: ATEYQzyBLopR48UdtW3SJMJ1EvE8B34G1uflZs5BfC43bejfepveCmrIHB5rZSuJHO7
-	IEovg9V36NKM4Yq5ZIRw4khqeZCTYzs4eZMtPKrjOFsFaVSzX70P/pLQdU27e/3WaLJ1jPxWz77
-	GLvT037szB57pzoUOcsIl0QnpILje5LH/pdGPcxmPQ9RzJVttEZUs2FxQJPNqyjxMavHjOEAswG
-	XqbQedFm3NC94pI6mGVPAUj4TzZzG/ZxBV6aKAb0KXjNg1d4/8Rs5+p24uqyiwNK/zrkb+guYnO
-	OZxQ53Y=
-X-Received: by 2002:a17:90b:2543:b0:352:b674:2592 with SMTP id
- 98e67ed59e1d1-358ae7c3605mr8357173a91.7.1771867914678; Mon, 23 Feb 2026
- 09:31:54 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="Ws9UlC4r";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="gSfvEOQL"
+Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
+	by mailflow.phl.internal (Postfix) with ESMTP id 321D11380B23;
+	Mon, 23 Feb 2026 17:04:40 -0500 (EST)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-02.internal (MEProxy); Mon, 23 Feb 2026 17:04:40 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm3; t=
+	1771884280; x=1771891480; bh=irJDLVX2qQd7f5zlPhvRXNbNOW59zFnQ/W/
+	IgkKi5wQ=; b=Ws9UlC4rdriRa58ciza8b/c8892GSffjK4vkvwK954POlcz2OLd
+	VocxQMBMIDIuYSfHzGqq1u5KvY1ucluTa8LIMX0UGJUqfwEePKk83cHtYriVfunu
+	hDcEejJZw0ihKjkBsQifj50+BH2BTncg1WYH53Sa4hXmmgw+tvUfbL62iD5CIbLM
+	e+bGRRQxJxafgNPvlM52xGDBrGl3uBBnwTRlbpJdBEycTqioZhsoEJobcQeWg/8b
+	9+KNyq6UcQ/ckMD6PHGquMFUrOuo5l7JnPCdf4YKbzQ6Z1YWnnN0+AyDt/FQgf37
+	V3RHM7FhB4x1u7gi8ODZn1J8lxdpWQ2Dwbg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1771884280; x=
+	1771891480; bh=irJDLVX2qQd7f5zlPhvRXNbNOW59zFnQ/W/IgkKi5wQ=; b=g
+	SfvEOQLw03OJS55vANdkI8ZK0mDTjV4rbPiMQP5hk6tPdiUTcgzHORJVzlnh5yhW
+	MhpnHbAVh3lvmU1AOT+1Q4s4jALw3pvSXLsufb4tq8KacyUcoBx2R5WCgFxr4J+f
+	LIs8YnOBRBhlbxePazNlKj4WmdTLL89NDXcQFYuYEA2O7XioXR6xuqEkAMnk8hXM
+	+LEVTJAUGamZd6PHdG2P1yxTMEdJLbtMzbHLDNj0wOmIZ0WwBcw8jGxhAbpjVpgX
+	9Tp5bK3mSBrg4VKtftuNK4jj9oz8BdO7KI6/Yp/0Y+w2KEttE+RiTcBS9oEr1xXs
+	P/rN2/vGT8nSvuCIgPRIw==
+X-ME-Sender: <xms:9s6caajI56O9imISxyOkzDSC_MpwrChoCCPHEQJo0aQxIfr3tWOa6w>
+    <xme:9s6caXKOeQt2WKMFpfvQ0M6rtsLaOeE6RUgFu7T32IgxFtnf8nXYHcFqhYmtOvHR1
+    O2GGx91cKWKeMEZxzbbl1myQDCyLQiY8X13fNZTGLITpedG8w>
+X-ME-Received: <xmr:9s6cad5eHm4bz9KWixR0h9Yx4lOHceVBloWp1EP5PO2FzM3jijsihFMEheV0EkxjYQqbo-mPF6h1P8WQ8NOY6VIdP8n1_0ww6BJoDU_OgeVC>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvfeekfeelucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepvdefpdhmohguvgepshhmthhp
+    ohhuthdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpd
+    hrtghpthhtohepshgvlhhinhhugiesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphht
+    thhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtg
+    hpthhtoheplhhinhhugidqshgvtghurhhithihqdhmohguuhhlvgesvhhgvghrrdhkvghr
+    nhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhnfhhssehvghgvrhdrkhgvrhhnvg
+    hlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhn
+    vghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvg
+    hrnhgvlhdrohhrghdprhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhr
+    tghpthhtohepjhgrtghksehsuhhsvgdrtgii
+X-ME-Proxy: <xmx:9s6caclzLrgKfeDhlox16fw51GXG-3HrDff5GauOyjg85bKiL4YmNg>
+    <xmx:9s6caX6TGDCjSAAqAFbyiuqfkVrSrwQwMHwy5d8W07K53q3z5lNFXw>
+    <xmx:9s6caV_2kCQ1Lik20KddbFxgbSwKSj3rN2G2aUmuymGiRuDLfloUBA>
+    <xmx:9s6caXidElUn8Kg0ersqdtpRNxuaxlxy_QnaPAYc7wp0BUi5SC4-8Q>
+    <xmx:-M6caRagjaoVbqBcqtcqEGXNSfbjV9m04SvT9GVJMVNOcNe_crWGDOHL>
+Feedback-ID: i9d664b8f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 23 Feb 2026 17:04:32 -0500 (EST)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260223011210.3853517-1-neilb@ownmail.net> <20260223011210.3853517-7-neilb@ownmail.net>
- <20260223132533.136328-1-clm@meta.com>
-In-Reply-To: <20260223132533.136328-1-clm@meta.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Mon, 23 Feb 2026 12:31:40 -0500
-X-Gm-Features: AaiRm52jwDH7iM8Njra-WDPg6xnZ2flvbCTBnLCHZ5MkdIrvbyo0z9crRKbktmQ
-Message-ID: <CAHC9VhSVjLNeTdxHmwYsGX75Z4FOAP+26=PjVdFxpmEkTrPvxA@mail.gmail.com>
-Subject: Re: [PATCH v2 06/15] selinux: Use simple_start_creating() / simple_done_creating()
-To: Chris Mason <clm@meta.com>
-Cc: NeilBrown <neil@brown.name>, Christian Brauner <brauner@kernel.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Howells <dhowells@redhat.com>, Jan Kara <jack@suse.cz>, 
-	Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
-	John Johansen <john.johansen@canonical.com>, James Morris <jmorris@namei.org>, 
-	"Serge E. Hallyn" <serge@hallyn.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>, linux-kernel@vger.kernel.org, netfs@lists.linux.dev, 
-	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, apparmor@lists.ubuntu.com, 
-	linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: NeilBrown <neilb@ownmail.net>
+To: "Chris Mason" <clm@meta.com>
+Cc: "Christian Brauner" <brauner@kernel.org>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "David Howells" <dhowells@redhat.com>, "Jan Kara" <jack@suse.cz>,
+ "Chuck Lever" <chuck.lever@oracle.com>, "Jeff Layton" <jlayton@kernel.org>,
+ "Miklos Szeredi" <miklos@szeredi.hu>, "Amir Goldstein" <amir73il@gmail.com>,
+ "John Johansen" <john.johansen@canonical.com>,
+ "Paul Moore" <paul@paul-moore.com>, "James Morris" <jmorris@namei.org>,
+ "Serge E. Hallyn" <serge@hallyn.com>,
+ "Stephen Smalley" <stephen.smalley.work@gmail.com>,
+ "Darrick J. Wong" <djwong@kernel.org>, linux-kernel@vger.kernel.org,
+ netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+ apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+ selinux@vger.kernel.org
+Subject: Re: [PATCH v2 01/15] VFS: note error returns is documentation for
+ various lookup functions
+In-reply-to: <20260223135517.1229434-1-clm@meta.com>
+References: <20260223011210.3853517-1-neilb@ownmail.net>,
+ <20260223011210.3853517-2-neilb@ownmail.net>,
+ <20260223135517.1229434-1-clm@meta.com>
+Date: Tue, 24 Feb 2026 09:04:27 +1100
+Message-id: <177188426768.8396.6205782771317375008@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-On Mon, Feb 23, 2026 at 8:26=E2=80=AFAM Chris Mason <clm@meta.com> wrote:
+On Tue, 24 Feb 2026, Chris Mason wrote:
 > NeilBrown <neilb@ownmail.net> wrote:
 > > From: NeilBrown <neil@brown.name>
+> >=20
+> > Darrick recently noted that try_lookup_noperm() is documented as
+> > "Look up a dentry by name in the dcache, returning NULL if it does not
+> > currently exist." but it can in fact return an error.
+> >=20
+> > So update the documentation for that and related function.
 > >
-> > Instead of explicitly locking the parent and performing a lookup in
-> > selinux, use simple_start_creating(), and then use
-> > simple_done_creating() to unlock.
-> >
->
+>=20
 > Hi everyone,
->
-> Amir suggested I run these through, and this commit was flagged:
->
-> commit bc981629767980bbaee2ca3c7348b5a648665a9d
+>=20
+> I don't normally forward the typos, but since this is a documentation-y pat=
+ch:
+
+I'm certainly happy to receive them.  Thanks for these and the others
+
+I also found ....
+>=20
+> commit 0254b9b974f23889898562aa94f6428bf30eb6b5
 > Author: NeilBrown <neil@brown.name>
->
-> selinux: Use simple_start_creating() / simple_done_creating()
->
-> Instead of explicitly locking the parent and performing a lookup in
-> selinux, use simple_start_creating(), and then use
-> simple_done_creating() to unlock.
->
-> This extends the region that the directory is locked for, and also
-> performs a lookup. The lock extension is of no real consequence.
-> The lookup uses simple_lookup() and so always succeeds. Thus when
-> d_make_persistent() is called the dentry will already be hashed.
-> d_make_persistent() handles this case.
->
-> Reviewed-by: Jeff Layton <jlayton@kernel.org>
-> Acked-by: Paul Moore <paul@paul-moore.com>
->
-> > diff --git a/security/selinux/selinuxfs.c b/security/selinux/selinuxfs.=
-c
-> > index 3245cc531555b..7d4f90e5b12a0 100644
-> > --- a/security/selinux/selinuxfs.c
-> > +++ b/security/selinux/selinuxfs.c
-> > @@ -1931,15 +1931,16 @@ static const struct inode_operations swapover_d=
-ir_inode_operations =3D {
-> >  static struct dentry *sel_make_swapover_dir(struct super_block *sb,
-> >                                               unsigned long *ino)
-> >  {
-> > -     struct dentry *dentry =3D d_alloc_name(sb->s_root, ".swapover");
-> > +     struct dentry *dentry;
-> >       struct inode *inode;
-> >
-> > -     if (!dentry)
-> > +     inode =3D sel_make_inode(sb, S_IFDIR);
-> > +     if (!inode)
-> >               return ERR_PTR(-ENOMEM);
-> >
-> > -     inode =3D sel_make_inode(sb, S_IFDIR);
-> > -     if (!inode) {
-> > -             dput(dentry);
-> > +     dentry =3D simple_start_creating(sb->s_root, ".swapover");
-> > +     if (!dentry) {
-> > +             iput(inode);
-> >               return ERR_PTR(-ENOMEM);
-> >       }
->
-> Can this cause a kernel crash when simple_start_creating() fails?
->
-> The function simple_start_creating() returns ERR_PTR on failure, not
-> NULL. The check `if (!dentry)` only catches NULL values. When
-> simple_start_creating() fails and returns an ERR_PTR value like
-> ERR_PTR(-ENOMEM), this value is non-NULL and the error check is bypassed.
->
-> Execution would continue to d_make_persistent(dentry, inode), which
-> attempts to lock dentry->d_lock, dereferencing the ERR_PTR value and
-> causing a kernel crash.
->
-> The old code used d_alloc_name() which returns NULL on error. The new
-> code uses simple_start_creating() which returns ERR_PTR on error, but
-> the error checking pattern wasn't updated to match.
->
-> Should the check be `if (IS_ERR(dentry))` instead, and return dentry
-> rather than ERR_PTR(-ENOMEM) to preserve the actual error code?
+>=20
+> VFS: note error returns is documentation for various lookup functions
+>                        ^^^^^ in?
+>=20
+> Darrick recently noted that try_lookup_noperm() is documented as
+> "Look up a dentry by name in the dcache, returning NULL if it does not
+> currently exist." but it can in fact return an error. So update the
+> documentation for that and related function.
+                                     ^^functions=20
 
-Good catch Chris, yes, please change this Neil and feel free to preserve my=
- ACK.
-
---=20
-paul-moore.com
+Thanks,
+NeilBrown
