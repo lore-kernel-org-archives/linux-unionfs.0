@@ -1,262 +1,291 @@
-Received: from flow-b5-smtp.messagingengine.com (flow-b5-smtp.messagingengine.com [202.12.124.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 241DB30FC29;
-	Fri, 13 Mar 2026 00:48:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.140
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773362905; cv=none; b=FfXDscDS/sEngEB/HT77iY/toZxY5fI51vrTdTXPNIQ7tmDG9qWONUGZzNAaAVjfBe+WdR7OnCnPMvt+IA3aIeqIzlaMn+OBSgi75iBEZDcgt0C2jvi1x8T2aNVXfiEdXN2uiHF60UntIi/GYBO9RmPPY2KeSBZJnWZshsrMli8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773362905; c=relaxed/simple;
-	bh=bPb+bIqpK5hvVK2d8DMn3IwNAwWZ+dX19WhkeuUgfD4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NB8qeLjWgF7NV0K0DYYOpDvQZQFO/o5P827Rhld7kvJxLpLITSKLbvz50eNHGVNezye97Q/ESKaK/ya/MXFD78HyaMwTNsTK6ePJ6SS/7mnlYsuf6nDu/IRKDO4QlWjcQDSC+380ayL2ZdvMbsjOsw7z9SG202NM194ArGIBxkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=dN+zoQ+X; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=34dgo/VI; arc=none smtp.client-ip=202.12.124.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E186334E766
+	for <linux-unionfs@vger.kernel.org>; Sun, 15 Mar 2026 13:51:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.48
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773582703; cv=pass; b=P+6hxHlXKsF8EQ68wmn3cC4jJWPgE5HM99jM2Zm0CsDl2Hjm0M62HlgYz8VwHle+qkGPHRt2QIp35WzS2OGDpKh6OyxL54hBKP4X/DL3WF1oklzk0NDk1GKMUE3MKncCbji0OcYVpVz4qg2ldPeRgVElr/ZnF0vE7uKsm9OOrk0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773582703; c=relaxed/simple;
+	bh=Vs01mlsWygXmaXPS3h5z1k3Hf3KZR9yElATURfIfNww=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bDaaqF19suhNrprom3Q5zmFWI/n8dTWxjqIzX2rv/fwx0b7+xAAsWBhmdYYTBOrmsbCW1X5EprkHag33QSz7hlHMh3zdLBzuJMeEc5ePyIGAgjyN2MXMbwalByvJNiQHhM8kZewo5keqM0tPxLx2O0LHogCEouPa6XoOMXkZ+KI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=niOi+68t; arc=pass smtp.client-ip=209.85.218.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="dN+zoQ+X";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="34dgo/VI"
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailflow.stl.internal (Postfix) with ESMTP id 723B61301B7D;
-	Thu, 12 Mar 2026 20:48:22 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-02.internal (MEProxy); Thu, 12 Mar 2026 20:48:23 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:date:date:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:reply-to:subject:subject:to:to; s=fm1; t=1773362902;
-	 x=1773370102; bh=3OVL4XXP8pGkqIJaCgrneigzeg9lURjpYtnSBAI2TgY=; b=
-	dN+zoQ+X4IMCOwHYdmkT/bGnzCHvuxlXBbrpp9O8UwCmnQeDDi7ioO7y2/TUY8l5
-	mQGtxsh3qVE4W70GI8wjUfwVDAFocwzcsunO2RHndj6ssUSoW5JU5xyWRUYJYDG9
-	NMIjn03yZHXunWH8BNEHahsglP7uOUYKduvq4RcsnRx45o5+YD6/oyA0D9GyutPP
-	mLXDY4UxeKqfkDk1pTNpvWvnW1/dJJmaIfcBQR9lGPgKHB0zDYqbbg/WeD543BZ1
-	YZZiFH4HEkOT7GPsszH0tbfrqAMP2nkAl+SHWoXH2ZfgLfzJ7G8Da4TigmEpPMMB
-	kWwgCUIZj7EH1b7QHZSsmw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
-	:x-me-sender:x-sasl-enc; s=fm1; t=1773362902; x=1773370102; bh=3
-	OVL4XXP8pGkqIJaCgrneigzeg9lURjpYtnSBAI2TgY=; b=34dgo/VIKgtmzJGsl
-	miC6lP3iQWBH1TiVT3V5XLsNBZ4hEoP69rm02c/9mKZc3HpddJ+Jm5BVWcJn9DkB
-	57t0tJJgDeHpeL+ua3mR8GhZPmEwPi0lQb3PwN14P92l/6Ep6Qp5LUxmLxKuHb0F
-	wZYQlWii+7LBp+7LMX/8e2iuf/gsPxQRwWVKDTbZSMt9L0ZT01nsdAwc9YTMK1yk
-	3Ch2rxde/oduz5imnG5I61fP0o7Q2RmqJ7K3UEHPNtcBLNHsLWMstLaJPoAb0igY
-	8DF5fJdmXv6TlSvdhF6xHSluXNYiYlg4IeJQvDDCwPSoyDiP0Juj0NE2pRGV7aHr
-	PQHYQ==
-X-ME-Sender: <xms:1V6zaXtH06rAO7pV4rOdlFXVNkVijrUmCf0vVAv_Ujaykp9lWFkVUA>
-    <xme:1V6zaSL_4xMe1h15v6v_9nrb4svolCWWxRRWlp58JThkCtUqNOpn_7K56KAMV4jBN
-    cGtzCL1Thm9U_31I3DYNACQlL80mseSG3Y6nzMDWD0wdm-FNw>
-X-ME-Received: <xmr:1V6zaRsNHbq1HAAvorz2a4ifJogef7TXKmNqTpQcCe9PxHeFXpkqvRiwJY2ifrOJhZJ5aR-dtvC4AwJT1dpKudgAOgsZ9isPlFg0GubFOswr>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvkeekvdeiucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhephffvvefufffkofgjfhhrggfgsedtkeertdertddtnecuhfhrohhmpefpvghilheu
-    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
-    epteetteeuteffveduveetgfdtuedvfffhudetuefgffejgffhgffhgfetffetudeinecu
-    ffhomhgrihhnpehsthgrthhushdruggrthgrnecuvehluhhsthgvrhfuihiivgeptdenuc
-    frrghrrghmpehmrghilhhfrhhomhepnhgvihhlsgesohifnhhmrghilhdrnhgvthdpnhgs
-    pghrtghpthhtohephedupdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehvihhroh
-    esiigvnhhivhdrlhhinhhugidrohhrghdruhhkpdhrtghpthhtoheplhhinhhugidqgihf
-    shesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhunhhioh
-    hnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqthhr
-    rggtvgdqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplh
-    hinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhn
-    uhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlih
-    hnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohep
-    lhhinhhugidqvgigthegsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplh
-    hinhhugidqvghfihesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:1V6zaaTzQHsC2J_WA_QH8YOW_5awtZOh6jhAGe4ctTmQ0wdnVKsSLA>
-    <xmx:1V6zaXWc7zV7rd1I7sVLWCAwTLiktPdZhBNJ4HbNuPxgBSFuw-c-Lg>
-    <xmx:1V6zaUwUe1ZPNR8n0_mEqCQ_Sd_NPmOB64IRNXt4wuoK-BJWr1Ospw>
-    <xmx:1V6zaT_DAKDOpJYW6voXCzE3Z5WD-QvwjIkw_5BxIl1FpW93PzBDgA>
-    <xmx:1l6zaV-vNAGrjs6_6LMnFfMVOi8yPfJmYBYHQZTtZUELj1jaKl8Npb0B>
-Feedback-ID: i9d664b8f:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 12 Mar 2026 20:48:08 -0400 (EDT)
-From: NeilBrown <neilb@ownmail.net>
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,	Jan Kara <jack@suse.cz>,
-	Jeff Layton <jlayton@kernel.org>,	Trond Myklebust <trondmy@kernel.org>,
-	Anna Schumaker <anna@kernel.org>,	Carlos Maiolino <cem@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>,	Amir Goldstein <amir73il@gmail.com>,
-	Jan Harkes <jaharkes@cs.cmu.edu>,	Hugh Dickins <hughd@google.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	David Howells <dhowells@redhat.com>,
-	Marc Dionne <marc.dionne@auristor.com>,	Steve French <sfrench@samba.org>,
-	Namjae Jeon <linkinjeon@kernel.org>,
-	Sungjong Seo <sj1557.seo@samsung.com>,
-	Yuezhang Mo <yuezhang.mo@sony.com>,
-	Andreas Hindborg <a.hindborg@kernel.org>,
-	Breno Leitao <leitao@debian.org>,	"Theodore Ts'o" <tytso@mit.edu>,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Ilya Dryomov <idryomov@gmail.com>,	Alex Markuze <amarkuze@redhat.com>,
-	Viacheslav Dubeyko <slava@dubeyko.com>,	Tyler Hicks <code@tyhicks.com>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,	Jeremy Kerr <jk@ozlabs.org>,
-	Ard Biesheuvel <ardb@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-xfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	coda@cs.cmu.edu,
-	linux-mm@kvack.org,
-	linux-afs@lists.infradead.org,
-	linux-cifs@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	ceph-devel@vger.kernel.org,
-	ecryptfs@vger.kernel.org,
-	gfs2@lists.linux.dev,
-	linux-um@lists.infradead.org,
-	linux-efi@vger.kernel.org
-Subject: [PATCH 19/53] afs: use d_time instead of d_fsdata
-Date: Fri, 13 Mar 2026 08:12:06 +1100
-Message-ID: <20260312214330.3885211-20-neilb@ownmail.net>
-X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
-In-Reply-To: <20260312214330.3885211-1-neilb@ownmail.net>
-References: <20260312214330.3885211-1-neilb@ownmail.net>
-Reply-To: NeilBrown <neil@brown.name>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="niOi+68t"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-b94358796a1so519484866b.2
+        for <linux-unionfs@vger.kernel.org>; Sun, 15 Mar 2026 06:51:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773582700; cv=none;
+        d=google.com; s=arc-20240605;
+        b=hVdTk3V7K/RPW0K9avatXWKpLDgMJrU+1D6XH5LhWVrWu8ziF+NdDoEfT7+8DNCNm9
+         Y06NieVaShRT8xiA0XwWddQ4FvXCJwBUrRlqxOmG+sLvgOtZadAHQ4ROtUjYaw6xMVrk
+         Uqv7hiubORanTWbQaDMZA3QQGWak4sRcbwjI/UWQvtndri3BDAv9NpLSgSJir0VI093b
+         50Ulv+z6gCIDckPRoF1JLQh8M43zNx8v/IbB1nBN2LC1nTmBC15y2dWBsNiYSdkgeOSu
+         XO8fzmsaTf79/AMmw8Xvwsp2wylBHPVKgWHKlY6Vl3XDdWr8vutJl/fFVhDLiXaBSbeo
+         zk0A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=LD1Y/Z+QIVaxjTqqF6DEde0TPCIZAs/xYcpmNl5+JUA=;
+        fh=byXZJIxeYHvQPKME/5EJuGqw+SBeZHHU/mWpzqkToDc=;
+        b=a/MtVAo8wXPJBV4qIMuNAhzw6wMZdnS+V9GDtiHJfKZpA60TmZXpOdOcUu+QWoTKeV
+         mC0WewfNGmCHBmM0E5dIQGtIhgiGaUdhJVgr3D27JWr6pfvGgpokduXxRGHT/uguGYEp
+         a7MyerOTscGWVFbC62XLWihy4+nXjx1Du0LBlEqtDFgFCv1jiVLZgvyBX1wqd4fCHa+I
+         C8m/gH+/25UPeOCCHIf3UIhm6vLFodahFCk5z6yBw+Acn10aZQ9RXsvYvaRLZnGa+cT5
+         1SC44yfdHb2/vukq0a6PLvhsvdlAIUawHeqbTpf6XxGcncIxl1fDd66Ia97FV0F8UsXl
+         36Jg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1773582700; x=1774187500; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LD1Y/Z+QIVaxjTqqF6DEde0TPCIZAs/xYcpmNl5+JUA=;
+        b=niOi+68t+4ftQYvaTzVsRIkap5gRXpAugLlwQHpWZCH0WvCYllQe1U7gpK6TQ746LN
+         sNb6+5qFVJvATOEcP8S1YSgpJuP99izxvfE9uv+ymv5s8v7mpmYBgjxzgmmrMIO20ol5
+         XRphCrEl9BexTpEgwv+wQSN4mImqSAHd9JsJo3w0NsYQAB6tOh/4qcvYp8Jff3IdmD2I
+         4tSEzLy6dzy72soZcqjVHMHgUtghx14Tou/mIE3WQ2HWt4arTCyksDfNfZAyf2iOSfXz
+         lwavfOdGwvHNzVdTXiKTbMW4WZkF9yE9MfkZ1gT2J9g25fenbgVIVPyGiFfk/1mzFyNE
+         UBEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773582700; x=1774187500;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=LD1Y/Z+QIVaxjTqqF6DEde0TPCIZAs/xYcpmNl5+JUA=;
+        b=s44ZWCAAiTUBKgzcLrCOToeaKJf4eeJOJ7Ko4t6q3eRILCbEJfWJTu1GcVDovwTO7Y
+         ti0yOcT0L+I1PFZ0kIEJvhpdaYTSbQOcsGjtvmAy8KSNIflHWqCc71GlQvhOeOUAbbE7
+         C0Ic0NNLe+hOYMrtDMY/RJ+KTk9stuJchDwre9M00XDhSUqyIakTJR0z4yXAllR2lOQJ
+         H4W9M+kJP6tBxlHLbEfdF6ORkSiKg4dPF701oa5OKTxvbzg8sSssX+cFbXYTRA+Ri+Td
+         jROsOrqbkjZU71bjwSkfLdwKqHQxOy7pxqulDDmrBrDU8yZDLmxQIBZ5C6xaaLUQJ62Y
+         zKHA==
+X-Forwarded-Encrypted: i=1; AJvYcCXCpSoabz7YDXo21Ev02DZ1HITnBPpJGZdmoCLqvGQsQslRCvY4VFGzR8xb1tBY9sn+NJjld7jgitOyK55D@vger.kernel.org
+X-Gm-Message-State: AOJu0YykfvtMeB0a34fAI2SAtTyFOIzCDWH9Dyf6aHl+slfSMum4d3vf
+	eddMcRdin9kTbJnDSlT6hks1JaIbBJaz3Wm+7NK3rvbVawNyCWtZmHqFd/4v8wT3tq0ZcpRmfV+
+	icm5NMxqxkRKx4L/yhE2pJjTPy36vZ6s=
+X-Gm-Gg: ATEYQzxZHiCQRtijvB3gJs2rqTa+boQYcFoYeP2tmcDVvsFnePSKt2/0vF+jqX6gX+f
+	BsODzLFqAD3NUmrbG7d/hmXXVvee4YY7NrwvtTh4FB40uz4Q/DXhVfaUv6q5R8fsIgVIUQm0O9a
+	i0u6zJimfviFHpjn9s15++BpWIIVH4t2K30bfqr45s6C00/hfdc8EDIUJVxVgEx9TZOnvNsU6Ko
+	ErMU8zzLCqky1trMDfZxFS0HQNL2gHzejj07h+U2kiGxeSew/LVUSMLgEcqyuRTLBiMcO6Hmr4e
+	nIaEv2eus59BTFuNy0pq9XsE0H3PUEH5PT0QbwUOnA==
+X-Received: by 2002:a17:907:8dcd:b0:b93:c5a9:a5e6 with SMTP id
+ a640c23a62f3a-b976507af92mr500109966b.2.1773582699724; Sun, 15 Mar 2026
+ 06:51:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260312214330.3885211-1-neilb@ownmail.net> <20260312214330.3885211-17-neilb@ownmail.net>
+In-Reply-To: <20260312214330.3885211-17-neilb@ownmail.net>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sun, 15 Mar 2026 14:51:27 +0100
+X-Gm-Features: AaiRm50yYPhN2uA9nBAPVNuAVUOhGIEBVS5rPtx5ZlpdDP1j4SB9NhEOC_7KNWo
+Message-ID: <CAOQ4uxjmcNxsCmDSVgkTns=3BAuQcT3pVvsQzza+u3iqXqrz5g@mail.gmail.com>
+Subject: Re: [PATCH 16/53] ovl: drop dir lock for lookups in impure readdir
+To: NeilBrown <neil@brown.name>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Jeff Layton <jlayton@kernel.org>, 
+	Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, Carlos Maiolino <cem@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Jan Harkes <jaharkes@cs.cmu.edu>, Hugh Dickins <hughd@google.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, David Howells <dhowells@redhat.com>, 
+	Marc Dionne <marc.dionne@auristor.com>, Steve French <sfrench@samba.org>, 
+	Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>, 
+	Yuezhang Mo <yuezhang.mo@sony.com>, Andreas Hindborg <a.hindborg@kernel.org>, 
+	Breno Leitao <leitao@debian.org>, "Theodore Ts'o" <tytso@mit.edu>, 
+	Andreas Dilger <adilger.kernel@dilger.ca>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Ilya Dryomov <idryomov@gmail.com>, 
+	Alex Markuze <amarkuze@redhat.com>, Viacheslav Dubeyko <slava@dubeyko.com>, Tyler Hicks <code@tyhicks.com>, 
+	Andreas Gruenbacher <agruenba@redhat.com>, Richard Weinberger <richard@nod.at>, 
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	Jeremy Kerr <jk@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, linux-fsdevel@vger.kernel.org, 
+	linux-nfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, coda@cs.cmu.edu, linux-mm@kvack.org, 
+	linux-afs@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-trace-kernel@vger.kernel.org, ceph-devel@vger.kernel.org, 
+	ecryptfs@vger.kernel.org, gfs2@lists.linux.dev, linux-um@lists.infradead.org, 
+	linux-efi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: NeilBrown <neil@brown.name>
+On Thu, Mar 12, 2026 at 10:49=E2=80=AFPM NeilBrown <neilb@ownmail.net> wrot=
+e:
+>
+> From: NeilBrown <neil@brown.name>
+>
+> When performing an "impure" readdir, ovl needs to perform a lookup on som=
+e
+> of the names that it found.
+> With proposed locking changes it will not be possible to perform this
+> lookup (in particular, not safe to wait for d_alloc_parallel()) while
+> holding a lock on the directory.
+>
+> ovl doesn't really need the lock at this point.
 
-afs uses ->d_fsdata to store version information for the parent
-directory.  ->d_time is arguably a better field to store this
-information as the version is like a time stamp, and ->d_time is an
-unsigned long, while ->d_fsdata is a void *.
+Not exactly. see below.
 
-This will leave ->d_fsdata free for a different use ...  which
-admittedly is also not a void*, but is certainly not at all a time.
+> It has already iterated
+> the directory and has cached a list of the contents.  It now needs to
+> gather extra information about some contents.  It can do this without
+> the lock.
+>
+> After gathering that info it needs to retake the lock for API
+> correctness.  After doing this it must check IS_DEADDIR() again to
+> ensure readdir always returns -ENOENT on a removed directory.
+>
+> Note that while ->iterate_shared is called with a shared lock, ovl uses
+> WRAP_DIR_ITER() so an exclusive lock is held and so we drop and retake
+> that exclusive lock.
+>
+> As the directory is no longer locked in ovl_cache_update() we need
+> dget_parent() to get a reference to the parent.
+>
+> Signed-off-by: NeilBrown <neil@brown.name>
+> ---
+>  fs/overlayfs/readdir.c | 19 ++++++++++++-------
+>  1 file changed, 12 insertions(+), 7 deletions(-)
+>
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 1dcc75b3a90f..d5123b37921c 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -568,13 +568,12 @@ static int ovl_cache_update(const struct path *path=
+, struct ovl_cache_entry *p,
+>                         goto get;
+>                 }
+>                 if (p->len =3D=3D 2) {
+> -                       /* we shall not be moved */
+> -                       this =3D dget(dir->d_parent);
+> +                       this =3D dget_parent(dir);
+>                         goto get;
+>                 }
+>         }
+>         /* This checks also for xwhiteouts */
+> -       this =3D lookup_one(mnt_idmap(path->mnt), &QSTR_LEN(p->name, p->l=
+en), dir);
+> +       this =3D lookup_one_unlocked(mnt_idmap(path->mnt), &QSTR_LEN(p->n=
+ame, p->len), dir);
 
-Interesting the value stored in ->d_time or d_fsdata is u64 which is a
-different size of 32 bit hosts.  Maybe that doesn't matter.
+ovl_cache_update() is also called from ovl_iterate_merged() where inode
+is locked.
 
-Signed-off-by: NeilBrown <neil@brown.name>
----
- fs/afs/dir.c      | 18 +++++++++---------
- fs/afs/internal.h |  8 ++++----
- 2 files changed, 13 insertions(+), 13 deletions(-)
+>         if (IS_ERR_OR_NULL(this) || !this->d_inode) {
+>                 /* Mark a stale entry */
+>                 p->is_whiteout =3D true;
+> @@ -666,11 +665,12 @@ static int ovl_dir_read_impure(const struct path *p=
+ath,  struct list_head *list,
+>         if (err)
+>                 return err;
+>
+> +       inode_unlock(path->dentry->d_inode);
+>         list_for_each_entry_safe(p, n, list, l_node) {
+>                 if (!name_is_dot_dotdot(p->name, p->len)) {
+>                         err =3D ovl_cache_update(path, p, true);
+>                         if (err)
+> -                               return err;
+> +                               break;
+>                 }
+>                 if (p->ino =3D=3D p->real_ino) {
+>                         list_del(&p->l_node);
+> @@ -680,14 +680,19 @@ static int ovl_dir_read_impure(const struct path *p=
+ath,  struct list_head *list,
+>                         struct rb_node *parent =3D NULL;
+>
+>                         if (WARN_ON(ovl_cache_entry_find_link(p->name, p-=
+>len,
+> -                                                             &newp, &par=
+ent)))
+> -                               return -EIO;
+> +                                                             &newp, &par=
+ent))) {
+> +                               err =3D -EIO;
+> +                               break;
+> +                       }
+>
+>                         rb_link_node(&p->node, parent, newp);
+>                         rb_insert_color(&p->node, root);
+>                 }
+>         }
+> -       return 0;
+> +       inode_lock(path->dentry->d_inode);
+> +       if (IS_DEADDIR(path->dentry->d_inode))
+> +               err =3D -ENOENT;
+> +       return err;
+>  }
+>
+>  static struct ovl_dir_cache *ovl_cache_get_impure(const struct path *pat=
+h)
+> --
 
-diff --git a/fs/afs/dir.c b/fs/afs/dir.c
-index 78caef3f1338..a0417292314c 100644
---- a/fs/afs/dir.c
-+++ b/fs/afs/dir.c
-@@ -808,7 +808,7 @@ static struct inode *afs_do_lookup(struct inode *dir, struct dentry *dentry)
- 		afs_dir_iterate(dir, &cookie->ctx, NULL, &data_version);
- 	}
- 
--	dentry->d_fsdata = (void *)(unsigned long)data_version;
-+	dentry->d_time = (unsigned long)data_version;
- 
- 	/* Check to see if we already have an inode for the primary fid. */
- 	inode = ilookup5(dir->i_sb, cookie->fids[1].vnode,
-@@ -895,9 +895,9 @@ static struct inode *afs_do_lookup(struct inode *dir, struct dentry *dentry)
- 	}
- 
- 	if (op->file[0].scb.have_status)
--		dentry->d_fsdata = (void *)(unsigned long)op->file[0].scb.status.data_version;
-+		dentry->d_time = (unsigned long)op->file[0].scb.status.data_version;
- 	else
--		dentry->d_fsdata = (void *)(unsigned long)op->file[0].dv_before;
-+		dentry->d_time = (unsigned long)op->file[0].dv_before;
- 	ret = afs_put_operation(op);
- out:
- 	kfree(cookie);
-@@ -1010,7 +1010,7 @@ static struct dentry *afs_lookup(struct inode *dir, struct dentry *dentry,
- 	_debug("splice %p", dentry->d_inode);
- 	d = d_splice_alias(inode, dentry);
- 	if (!IS_ERR_OR_NULL(d)) {
--		d->d_fsdata = dentry->d_fsdata;
-+		d->d_time = dentry->d_time;
- 		trace_afs_lookup(dvnode, &d->d_name, &fid);
- 	} else {
- 		trace_afs_lookup(dvnode, &dentry->d_name, &fid);
-@@ -1040,7 +1040,7 @@ static int afs_d_revalidate_rcu(struct afs_vnode *dvnode, struct dentry *dentry)
- 	 * version.
- 	 */
- 	dir_version = (long)READ_ONCE(dvnode->status.data_version);
--	de_version = (long)READ_ONCE(dentry->d_fsdata);
-+	de_version = (long)READ_ONCE(dentry->d_time);
- 	if (de_version != dir_version) {
- 		dir_version = (long)READ_ONCE(dvnode->invalid_before);
- 		if (de_version - dir_version < 0)
-@@ -1100,7 +1100,7 @@ static int afs_d_revalidate(struct inode *parent_dir, const struct qstr *name,
- 	 * version.
- 	 */
- 	dir_version = dir->status.data_version;
--	de_version = (long)dentry->d_fsdata;
-+	de_version = (long)dentry->d_time;
- 	if (de_version == (long)dir_version)
- 		goto out_valid_noupdate;
- 
-@@ -1161,7 +1161,7 @@ static int afs_d_revalidate(struct inode *parent_dir, const struct qstr *name,
- 	}
- 
- out_valid:
--	dentry->d_fsdata = (void *)(unsigned long)dir_version;
-+	dentry->d_time = (unsigned long)dir_version;
- out_valid_noupdate:
- 	key_put(key);
- 	_leave(" = 1 [valid]");
-@@ -1931,7 +1931,7 @@ static void afs_rename_edit_dir(struct afs_operation *op)
- 		spin_unlock(&new_inode->i_lock);
- 	}
- 
--	/* Now we can update d_fsdata on the dentries to reflect their
-+	/* Now we can update d_time on the dentries to reflect their
- 	 * new parent's data_version.
- 	 */
- 	afs_update_dentry_version(op, new_dvp, op->dentry);
-@@ -2167,7 +2167,7 @@ static int afs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
- 	}
- 
- 	/* This bit is potentially nasty as there's a potential race with
--	 * afs_d_revalidate{,_rcu}().  We have to change d_fsdata on the dentry
-+	 * afs_d_revalidate{,_rcu}().  We have to change d_time_ on the dentry
- 	 * to reflect it's new parent's new data_version after the op, but
- 	 * d_revalidate may see old_dentry between the op having taken place
- 	 * and the version being updated.
-diff --git a/fs/afs/internal.h b/fs/afs/internal.h
-index 009064b8d661..106a7fe06b56 100644
---- a/fs/afs/internal.h
-+++ b/fs/afs/internal.h
-@@ -1746,17 +1746,17 @@ static inline struct inode *AFS_VNODE_TO_I(struct afs_vnode *vnode)
- }
- 
- /*
-- * Note that a dentry got changed.  We need to set d_fsdata to the data version
-+ * Note that a dentry got changed.  We need to set d_time to the data version
-  * number derived from the result of the operation.  It doesn't matter if
-- * d_fsdata goes backwards as we'll just revalidate.
-+ * d_time goes backwards as we'll just revalidate.
-  */
- static inline void afs_update_dentry_version(struct afs_operation *op,
- 					     struct afs_vnode_param *dir_vp,
- 					     struct dentry *dentry)
- {
- 	if (!op->cumul_error.error)
--		dentry->d_fsdata =
--			(void *)(unsigned long)dir_vp->scb.status.data_version;
-+		dentry->d_time =
-+			(unsigned long)dir_vp->scb.status.data_version;
- }
- 
- /*
--- 
-2.50.0.107.gf914562f5916.dirty
+You missed the fact that overlayfs uses the dir inode lock
+to protect the readdir inode cache, so your patch introduces
+a risk for storing a stale readdir cache when dir modify operations
+invalidate the readdir cache version while lock is dropped
+and also introduces memory leak when cache is stomped
+without freeing cache created by a competing thread.
+I think something like the untested patch below should fix this.
 
+I did not look into ovl_iterate_merged() to see if it has a simple
+fix and I am not 100% sure that this fix for impure dir is enough.
+
+Thanks,
+Amir.
+
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index d5123b37921c8..9e90064b252ce 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -702,15 +702,13 @@ static struct ovl_dir_cache
+*ovl_cache_get_impure(const struct path *path)
+        struct inode *inode =3D d_inode(dentry);
+        struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
+        struct ovl_dir_cache *cache;
++       /* Snapshot version before ovl_dir_read_impure() drops i_rwsem */
++       u64 version =3D ovl_inode_version_get(inode);
+
+        cache =3D ovl_dir_cache(inode);
+-       if (cache && ovl_inode_version_get(inode) =3D=3D cache->version)
++       if (cache && version =3D=3D cache->version)
+                return cache;
+
+-       /* Impure cache is not refcounted, free it here */
+-       ovl_dir_cache_free(inode);
+-       ovl_set_dir_cache(inode, NULL);
+-
+        cache =3D kzalloc_obj(struct ovl_dir_cache);
+        if (!cache)
+                return ERR_PTR(-ENOMEM);
+@@ -721,6 +719,14 @@ static struct ovl_dir_cache
+*ovl_cache_get_impure(const struct path *path)
+                kfree(cache);
+                return ERR_PTR(res);
+        }
++
++       /*
++        * Impure cache is not refcounted, free it here.
++        * Also frees cache stored by concurrent readdir during i_rwsem dro=
+p.
++        */
++       ovl_dir_cache_free(inode);
++       ovl_set_dir_cache(inode, NULL);
++
+        if (list_empty(&cache->entries)) {
+                /*
+                 * A good opportunity to get rid of an unneeded "impure" fl=
+ag.
+@@ -736,7 +742,7 @@ static struct ovl_dir_cache
+*ovl_cache_get_impure(const struct path *path)
+                return NULL;
+        }
+
+-       cache->version =3D ovl_inode_version_get(inode);
++       cache->version =3D version;
+        ovl_set_dir_cache(inode, cache);
+
+        return cache;
