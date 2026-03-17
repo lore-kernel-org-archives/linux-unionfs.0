@@ -1,245 +1,195 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9966E29AB07
-	for <linux-unionfs@vger.kernel.org>; Tue, 17 Mar 2026 10:00:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773741653; cv=none; b=nrmvCuFcGCjY4a22XUeZltgxqmT7ufwQM0YWuUO+d79rHObvzhm0BSDu3IkCSNmw5VN0SrEI5KjLZ9budxOvHjnZgo6o2INnriV9aBuMJuGMLLcB3emOdzxbF7eDV9phhM/1ks0t/9M6HipfcbfiftqqpIs7H3fN2fhZXKAu2cU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773741653; c=relaxed/simple;
-	bh=xQClvtHmcR6w8TrLUiGiLIoF7WZTm3EhitOCJri8BXE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UMz3TMorI84JG0Iu581ibGGG/eC7ft8qJa4Mo8jZx0xoEoEPtcK9RAI2hjbAnHoXJ+M7rMfsEZZEm7LcCQmE2OePxQs2Vy0z2JykzESwhJTWIK6hv7pfuaz9hEa/tI6UXyh3Tu3L7F1dLwvPw69lDPXgTMWCBQNXCczgaa1F/pc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=oZJ3/cY6; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=z8+9L0n+; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=CX35RV4c; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=t/jEKk2C; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7532A38F25E
+	for <linux-unionfs@vger.kernel.org>; Tue, 17 Mar 2026 18:16:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.177
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773771374; cv=pass; b=a3mVlePIcjDNLmLVd+HmrtcARrCjM/dqHbn/w7WLmVqKWQ6tRRAHzp75987OSUG7e4hlq52cnrglOPt/s8BVFKUs1Z4cVt9osDnAFjox+Pc6Uxsf51T90bpIRtSUY9Kv+Usd99oavZ70TlzXjBLpxkyVzBaHwy8tBIa+yi8gSvM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773771374; c=relaxed/simple;
+	bh=QUDC5jrmRrJojzfitd2CzM1OmZr1G8/BgX/pdKw+87I=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Yq7GKIgZgWC+Jl9/wdzANEQ9HTTo6cPH6ow7TprXs9Uq16x1kk3pfLtbMYVbTYFvKBp02sue4B34xfHltP5LqT6lBhoUZ1uaanc4LTJerffeVosOrobAZdtQ0lZ581tS4Q2hmDtF1LdgUcrbCUu6sCax3Bf3jwIhfO9K2woWciI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=RoKUMaNJ; arc=pass smtp.client-ip=209.85.214.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="oZJ3/cY6";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="z8+9L0n+";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="CX35RV4c";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="t/jEKk2C"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 9C3725BDB1;
-	Tue, 17 Mar 2026 10:00:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1773741643; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3NxxYZ0Z73C+D6nMp9RM66Emm5gr807GrvA6Zh/dc0A=;
-	b=oZJ3/cY6ydGUBsEkcn4dEP5dVa8+6N5TCpbl/uoiRyk4zmmW7J9KBCWw5LYg5qJ9sSUBYN
-	kDXicji+Mmuu83eTS1GuU5bfaeUnybdFqqkL+Jwnv/gBugxmNyvsnLCjytkBMSabdBzeo2
-	pLuxV3JV9Bq7GlVOwyPPk0QMnb/TzHw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1773741643;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3NxxYZ0Z73C+D6nMp9RM66Emm5gr807GrvA6Zh/dc0A=;
-	b=z8+9L0n+2BvyNILizCEGBPcuF7FXAXX68hzMw03OLmlBtux01ucO78gQQUP6lspoRnVAHU
-	fjJTL+Fs+WzbkkBg==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=CX35RV4c;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b="t/jEKk2C"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1773741638; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3NxxYZ0Z73C+D6nMp9RM66Emm5gr807GrvA6Zh/dc0A=;
-	b=CX35RV4cPd92rVX9pIFlpypFdx5RdDbqy0m6JgL3N9BAb1bDqCFP/C0Zs6abuDaJbL268b
-	RKMPUfa+HwHLtaL4MRvpjsvnT/cJx39tZuQLpkJt2PNatB2G8g6k6iWLCggoPL5w+fPupt
-	OQrs5XNahoIFDxhNI9Hmnmsh9lYPs30=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1773741638;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3NxxYZ0Z73C+D6nMp9RM66Emm5gr807GrvA6Zh/dc0A=;
-	b=t/jEKk2CCIPbv8gHZqK1jU4ncUvF5g0vCKqzpoNhRGjc3w+LQQ99i+VJ4D9TTFrf362JNo
-	vbna+wrOzVfO1uAg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 833EB4273C;
-	Tue, 17 Mar 2026 10:00:38 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id ZhkGIEYmuWn0SwAAD6G6ig
-	(envelope-from <jack@suse.cz>); Tue, 17 Mar 2026 10:00:38 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 40DE4A0AB1; Tue, 17 Mar 2026 11:00:34 +0100 (CET)
-Date: Tue, 17 Mar 2026 11:00:34 +0100
-From: Jan Kara <jack@suse.cz>
-To: NeilBrown <neil@brown.name>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jeff Layton <jlayton@kernel.org>, Trond Myklebust <trondmy@kernel.org>, 
-	Anna Schumaker <anna@kernel.org>, Carlos Maiolino <cem@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
-	Jan Harkes <jaharkes@cs.cmu.edu>, Hugh Dickins <hughd@google.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, David Howells <dhowells@redhat.com>, 
-	Marc Dionne <marc.dionne@auristor.com>, Steve French <sfrench@samba.org>, 
-	Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>, 
-	Yuezhang Mo <yuezhang.mo@sony.com>, Andreas Hindborg <a.hindborg@kernel.org>, 
-	Breno Leitao <leitao@debian.org>, Theodore Ts'o <tytso@mit.edu>, 
-	Andreas Dilger <adilger.kernel@dilger.ca>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Ilya Dryomov <idryomov@gmail.com>, 
-	Alex Markuze <amarkuze@redhat.com>, Viacheslav Dubeyko <slava@dubeyko.com>, 
-	Tyler Hicks <code@tyhicks.com>, Andreas Gruenbacher <agruenba@redhat.com>, 
-	Richard Weinberger <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
-	Johannes Berg <johannes@sipsolutions.net>, Jeremy Kerr <jk@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, 
-	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, coda@cs.cmu.edu, linux-mm@kvack.org, 
-	linux-afs@lists.infradead.org, linux-cifs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org, ceph-devel@vger.kernel.org, 
-	ecryptfs@vger.kernel.org, gfs2@lists.linux.dev, linux-um@lists.infradead.org, 
-	linux-efi@vger.kernel.org
-Subject: Re: [PATCH 32/53] ext4: move dcache modifying code out of
- __ext4_link()
-Message-ID: <imo3cvhqtvginngr2ofsotmrsxixutn2jagbkj6322cfgxm3lj@wosdq3xvlym5>
-References: <20260312214330.3885211-1-neilb@ownmail.net>
- <20260312214330.3885211-33-neilb@ownmail.net>
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="RoKUMaNJ"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2b06c43e6a7so2475845ad.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Mar 2026 11:16:13 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773771373; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ImyP4aSkGshwXCX6yl30Y4SOu2KyBiGQE/gaPY6yWoZ0xpQiAptuA5fDyCLql9NHRC
+         QdwR8h58bp3lwlismUpGtQcOsgYs+kNe89ziN/E4BCjj6DKUouo/L402nc9f4aOOT71L
+         d4mGRBoc8DKuDR7h4lJXzkRxloUqY97+fC6bIQpDqAZPpYixo7RO6dRTwIGsPBJ+9F7x
+         WKohPGmdqbxhNBQ7P5CrxlG3kurhyjTPBn8+5CU5oi8u3ZKpRer763wvJssOtXZruXnb
+         WjDBcgC+Uxb/ZPSX6oz4N9LxLRJrCANgjlzCifZwXBGBiOBGZB4QPV35qHX2CdxopNbV
+         IyZg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=WngwhPK+4r0TmrjPdHGSTFw/2nCwtZ82oV0G4lyV188=;
+        fh=BTU5GyhPmF0QkgT0WrchXanwaGt+6En60hha1AeBBPU=;
+        b=CvgUb18ylsIQn+MbbpNO2uD1874K/oy99mFGCR3+4Sxatdb/2APtYOKuyOX3Ete1XL
+         pk9VUBtPXo4Ay/bd8einybrX8FT4mN6sb/OLe0gBXhfFg7bD6k8hAwY58hM4M2YmTQF/
+         cxKAtXsu9Xtx5Jvyf65GAuwD5gReNalllZef6riRyAtDufva1gTNO41kNFoMCnfwBuxn
+         zH3Goe8VyChMPz9nYE2mGvlz4WZNaQJqZRHi5OVAH2KAWkdyocfO4A5QRkVmQqeuYNhu
+         x4OIFPr9hEW0OugTYbLk9trZqgREVz7aJIpUqL/kSmfGNDcEfpzKmxmQFv6pC1WhyBbM
+         0sjQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1773771373; x=1774376173; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WngwhPK+4r0TmrjPdHGSTFw/2nCwtZ82oV0G4lyV188=;
+        b=RoKUMaNJelxkySue1Uj+KohQ2KRnoVt9Y6p+Jo16nniijXKT9ujEGEvX7xe2mSXF62
+         26nsMSxAbPUzYhJ+xUjvwEBI7dNOPm+cP2T3o0R6j+y2ltRPmSxYMLckKi7dqzF8TzJ0
+         gwXxY5yGtPnvALaJcGDMt6IHjoERwpza4t6SWZcm6JkzC/c2ts7HVbgeXh38FyTBoGb/
+         ktIQrKCPa05YyPFAzu7UVMTjrWMMGe7TvRMmzl7jLZV52bh1s2rVzzF1jfnwCslZAivi
+         tsdIpI9gHJgo+aElfozr2o8AMaMXdpoIFTpdoUyScfJZCHu7sbvTpfBdioeCEh8e5CiR
+         6XWQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773771373; x=1774376173;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=WngwhPK+4r0TmrjPdHGSTFw/2nCwtZ82oV0G4lyV188=;
+        b=i17HpCWUMJoWJ/jZ4PuaLeIr/zgjnntVqFLxOs/0yYJtSKiLtRnXhYRT4LALJf53Lg
+         9epYCDvCJlRBhJec8ZOwNgLAnGFaN0ycT76NkpNK6iNzZwPYn3jAwj/zQ1iOF4NHdWBR
+         S+CNk0wcsM27RalEWkJh4AD0lliBqC0pq92N151XoVqQnN/wAgcPcMc/W0/nrk1wtYw/
+         6J24CBoCYyDEfLKUICOXD0fVtPZPfftB9vMdutwrpkpgZTLaVc7ZCt7Qa95RAVNx50IR
+         fZWLk0VjpTZjSXKj7PwTir3ZQHFrY21gf0LE/9pVRxgS+6r6zaINkRP3eFbdGnYliwop
+         /GBw==
+X-Forwarded-Encrypted: i=1; AJvYcCXSXb9y7x71I27/LKraAZREbJy4xDvliQdNR0tYzeis78mZsMUwUaGWi65jLgtOX9Bz25Kzg4/URPPgSBlJ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy1tPoGI4/Tw08byeaz69DE9nX07/uIRGnQi+ou/eQRMH5jZ5b0
+	mw2nrtAqWbV2IFD/xdeRtgcIpXSCxG6TkWzJOXOJ/ANVTro7xRtl2wgWmdzCf16M5ZwkahikhsP
+	y70hHy3AC06HhcH+1T1gLbGySbJT3EuvShQ31Y4Fc
+X-Gm-Gg: ATEYQzy9VNoS9RuZs6H12SfJ9NXA+ZSIXYgbpjYb1OfmR7F3Kp5gqjZIm8GfIfz4Srq
+	CgA4CCHjSEFqIV3UMjYhVxJyFJtTucwuzRjjH19VpGpl6S7tXwfHcbKChnkB7IPhwmlwTtTlglr
+	5qZsJ0fmk4P65T4RnBTdmQ56tc3vhcc5D++Uk/H0NtD/v91hLBnJ9kWr/3NvOspBE5GvwwkcynY
+	/F6m43ImG5mzd91uL7IIPIuYyjzKTTX0rqrUlY5dAPs1EtgPN7hdCqRZ9ZXBz/lSGDY0xCNlmto
+	gd5pg3Q=
+X-Received: by 2002:a17:903:1447:b0:2ae:c5fc:b2ea with SMTP id
+ d9443c01a7336-2b06e3d2eb0mr4770225ad.30.1773771372739; Tue, 17 Mar 2026
+ 11:16:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260312214330.3885211-33-neilb@ownmail.net>
-X-Spamd-Result: default: False [-2.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RCVD_TLS_LAST(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_COUNT_THREE(0.00)[3];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	FREEMAIL_CC(0.00)[linux-foundation.org,zeniv.linux.org.uk,kernel.org,suse.cz,szeredi.hu,gmail.com,cs.cmu.edu,google.com,linux.alibaba.com,redhat.com,auristor.com,samba.org,samsung.com,sony.com,debian.org,mit.edu,dilger.ca,goodmis.org,dubeyko.com,tyhicks.com,nod.at,cambridgegreys.com,sipsolutions.net,ozlabs.org,vger.kernel.org,kvack.org,lists.infradead.org,lists.linux.dev];
-	DKIM_TRACE(0.00)[suse.cz:+];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[52];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	ASN(0.00)[asn:32098, ipnet:2800::/6, country:US];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RL51pwup9t9rrf6fhpcri3z6a5)];
-	MISSING_XM_UA(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:dkim,suse.com:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -2.51
-X-Spam-Level: 
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 9C3725BDB1
+References: <20260316213606.374109-5-paul@paul-moore.com> <CAHC9VhTEX-sRjyVi2p9j_jFjyWbzy54b=iteiTKGq-mnBaHkrg@mail.gmail.com>
+ <CAOQ4uxi7+6Qt5K9s6Fq8deN-ep2gnxqJ6-wJy9pXJzszpfn-6A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxi7+6Qt5K9s6Fq8deN-ep2gnxqJ6-wJy9pXJzszpfn-6A@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Tue, 17 Mar 2026 14:16:01 -0400
+X-Gm-Features: AaiRm52ZqNJHAbRzZUAvcxik2J2qc91q1AUn-hHxOheIit1e-BlWZgjcVmBec3Q
+Message-ID: <CAHC9VhQX4aDvrd9uX1ESGteWpLLGbXmH1+SVFfE06juAsSCkGQ@mail.gmail.com>
+Subject: Re: [PATCH 0/3] Fix incorrect overlayfs mmap() and mprotect() LSM
+ access controls
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-security-module@vger.kernel.org, selinux@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-erofs@lists.ozlabs.org, Gao Xiang <xiang@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri 13-03-26 08:12:19, NeilBrown wrote:
+On Tue, Mar 17, 2026 at 3:26=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+> On Mon, Mar 16, 2026 at 10:59=E2=80=AFPM Paul Moore <paul@paul-moore.com>=
+ wrote:
+> > On Mon, Mar 16, 2026 at 5:36=E2=80=AFPM Paul Moore <paul@paul-moore.com=
+> wrote:
+
 ...
-> diff --git a/fs/dcache.c b/fs/dcache.c
-> index a1219b446b74..c48337d95f9a 100644
-> --- a/fs/dcache.c
-> +++ b/fs/dcache.c
-> @@ -358,7 +358,7 @@ static inline int dname_external(const struct dentry *dentry)
->  	return dentry->d_name.name != dentry->d_shortname.string;
->  }
->  
-> -void take_dentry_name_snapshot(struct name_snapshot *name, struct dentry *dentry)
-> +void take_dentry_name_snapshot(struct name_snapshot *name, const struct dentry *dentry)
->  {
->  	unsigned seq;
->  	const unsigned char *s;
 
-The constification of take_dentry_name_snapshot() should probably be a
-separate patch? Also I'd note that this constification (and the
-constification of __ext4_fc_track_link()) isn't really needed here because
-ext4_fc_track_link() will immediately bail through ext4_fc_disabled() when
-fast commit replay is happening so __ext4_fc_track_link() never gets called
-in that case - more about that below.
+> > Due to the nature of the issue, I'm going to merge this into
+> > lsm/stable-7.0 in a few moments so the changes can get some testing in
+> > linux-next with the idea of sending this up to Linus' later in the
+> > week.  If anyone has any concerns over this patchset, please let me
+> > know as soon as possible.
+>
+> Since previous 4 revisions were not posted to public list,
+> let me repeat my concern from v4:
+>
+> On Fri, Mar 6, 2026 at 5:24=E2=80=AFPM Paul Moore <paul@paul-moore.com> w=
+rote:
+> > On Fri, Mar 6, 2026 at 3:24=E2=80=AFAM Amir Goldstein <amir73il@gmail.c=
+om> wrote:
+> ...
+> > > My expectation is that the merge of this patch will be collaborated
+> > > with Christian ...
+> >
+> > Of course, that is one reason he is on the To/CC line.  More on this
+> > in my reply to your 0/4 comments.
+> >
+>
+> I am sorry Paul. This must be a misunderstanding.
+>
+> My expectation for collaborating the merge of my patch with
+> Christian was that an agreement would be reached regarding
+> which way it would be routed to Linus.
+>
+> CC to Christian and sending the patch to Linus without getting any
+> ACK from Christian was not the way I expected this to go.
 
-> @@ -1471,7 +1471,15 @@ static int ext4_fc_replay_link_internal(struct super_block *sb,
->  		goto out;
->  	}
->  
-> +	ihold(inode);
-> +	inc_nlink(inode);
->  	ret = __ext4_link(dir, inode, dentry_inode);
-> +	if (ret) {
-> +		drop_nlink(inode);
-> +		iput(inode);
-> +	} else {
-> +		d_instantiate(dentry_inode, inode);
-> +	}
->  	/*
->  	 * It's possible that link already existed since data blocks
->  	 * for the dir in question got persisted before we crashed OR
-...
-> @@ -3460,8 +3460,6 @@ int __ext4_link(struct inode *dir, struct inode *inode, struct dentry *dentry)
->  		ext4_handle_sync(handle);
->  
->  	inode_set_ctime_current(inode);
-> -	ext4_inc_count(inode);
-> -	ihold(inode);
->  
->  	err = ext4_add_entry(handle, dentry, inode);
->  	if (!err) {
-> @@ -3471,11 +3469,7 @@ int __ext4_link(struct inode *dir, struct inode *inode, struct dentry *dentry)
->  		 */
->  		if (inode->i_nlink == 1)
->  			ext4_orphan_del(handle, inode);
-> -		d_instantiate(dentry, inode);
-> -		ext4_fc_track_link(handle, dentry);
-> -	} else {
-> -		drop_nlink(inode);
-> -		iput(inode);
-> +		__ext4_fc_track_link(handle, inode, dentry);
+To be honest I expected Christian to provide an ACK by now, as he
+reviewed and commented on your earlier patches with the O_PATH file
+approach.  He has had weeks, if not months, to comment further and/or
+supply an ACK so at this point I'm proceeding ahead as I mentioned to
+you (and Christian last week).  You were very anxious to bring these
+patches on-list, which I did, however, now that everything is on-list
+there is a responsibility to act on this quickly (this was the
+motivation for discussing the solution privately at first).
 
-This looks wrong. If fastcommit replay is running, we must skip calling
-__ext4_fc_track_link(). Similarly if the filesystem is currently
-inelligible for fastcommit (due to some complex unsupported operations
-running in parallel). Why did you change ext4_fc_track_link() to
-__ext4_fc_track_link()?
+Hopefully Christian will comment, and preferably ACK your patch, but
+even if he does not we still need to go ahead and fix this soon in
+Linus' tree.
 
-> @@ -3504,7 +3498,16 @@ static int ext4_link(struct dentry *old_dentry,
->  	err = dquot_initialize(dir);
->  	if (err)
->  		return err;
-> -	return __ext4_link(dir, inode, dentry);
-> +	ihold(inode);
-> +	ext4_inc_count(inode);
+> > > and that it will NOT be auto selected or rushed into stable.
+> >
+> > I haven't marked it with a 'Fixes:' tag or a stable Cc which in my
+> > experience are the two quickest ways to get pulled into a stable tree.
+> > I'm not sure what stable policy Al or Christian have for the VFS tree,
+> > but LSM and SELinux commits are not pulled into the stable trees
+> > unless explicitly marked with a stable Cc or requested by a dev after
+> > the fact.
+> >
+> > > I don't mind if you want to route the security_mmap_backing_file() ho=
+oks to
+> > > stable to use it for some simpler bandaid for stable, but rushing thi=
+s
+> > > one to stable is not a good idea IMO.
+> >
+> > Once again, see my (upcoming) reply to your 0/4 comments.
+>
+> TBH, I don't understand the logic of placing patches in lsm/stable-7.0
+> without the intent of backporting them to stable.
 
-I'd put inc_nlink() here instead. We are guaranteed to have a regular file
-anyway and it matches what we do in ext4_fc_replay_link_internal().
-Alternatively we could consistently use ext4_inc_count() &
-ext4_dec_count() in these functions.
+I'm not going to copy-n-paste my previous off-list reply, as I have a
+rather strict policy about forwarding private or off-list emails to a
+public list without consent.  However, the quick answer is that
+inclusion in a lsm/stable-X.Y branch does not mean a patch(set) is
+automatically tagged for stable, in fact you'll notice none of the
+patches have a stable marking, mostly due to your previous request.
+As the LSM and SELinux trees are not pulled into the stables trees
+unless explicitly marked, or requested, I do not expect those patches
+to be automatically backported.  I do not know the stable backport
+policy for VFS patches.
 
-> +	err = __ext4_link(dir, inode, dentry);
-> +	if (err) {
-> +		drop_nlink(inode);
-> +		iput(inode);
-> +	} else {
-> +		d_instantiate(dentry, inode);
-> +	}
-> +	return err;
->  }
+> I perceive my patch as a risky patch for overlayfs and the vfs
+> this is why I wanted Christian do be part of the decision if and when
+> my patch is sent to Linus.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Christian has been a part of the discussion for months now, and has
+already provided feedback on the VFS portions of this patchset (which
+you have incorporated).  I agree, I would appreciate it if Christian
+could supply his ACK, or an alternate solution, but as you strongly
+encouraged us to bring this issue on-list, we now need to get a fix in
+Linus' tree soon.
+
+--=20
+paul-moore.com
