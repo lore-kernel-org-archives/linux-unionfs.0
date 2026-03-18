@@ -1,233 +1,368 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fout-b6-smtp.messagingengine.com (fout-b6-smtp.messagingengine.com [202.12.124.149])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 161393F7E81
-	for <linux-unionfs@vger.kernel.org>; Wed, 18 Mar 2026 20:00:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.174
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773864054; cv=pass; b=kjtMdezPE6uhKbvAGgSZHRSgvQCcDRFUysyoAF9NkPfmulaFAJDg+4J9wOmPXRYlj+q8mplD9BLRXE6kdwXra4A9L+ibt/9wUplQAWHGerEoYyG0QxuJdUMlfBPAanfDwFSLX7wKJRwnvzjiBJkTM5YJ+TUmExPK5HmR0s+dON8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773864054; c=relaxed/simple;
-	bh=HHWKUxL2f5dmXpuQep9FKj2ZGNOpjWa4Ggq5Y+nPWh0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZGy1X4QGn9C2bpshyXJfeL6cohrRh1JJdMUhBLxuzikaT/Uuz+pUAlGM3FdcM3/xcDG8mgxHAR3XIL3WVLo0dJqlMpZUnMtt/YB4hTIYvJK3grQJHCh9A5ce5zPbsMvF4B1gpfUENTmQnJfZxsZ+rUoeyI0bTlH7T/m+jRXsobE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=NtwOi+jN; arc=pass smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82D86279DC9;
+	Wed, 18 Mar 2026 21:10:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.149
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773868252; cv=none; b=S4hPjuWZn4sIoyx79O5LaPrZb1JpDOfWcP1TpUyqVG+596826KyEsFMtrV2IqRQjYfNUo/+fAJe35P3VEcCxCF2f2mXWHwx3q/8zf7ruYXiGqU3fBmGxXi3EFfK+rEfQzqsjtli8A3r8cVz2DWXNhLfR07GHJCvuQkQDinIL3OI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773868252; c=relaxed/simple;
+	bh=J+cGMFv7pNcT+NAanC853cURBp507qR5OxATUCcXKwc=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=kkCVmlzU+9rmLhppc/D3/KURZfEpMhv1qHNIc2fM3YoeE77SUAylulHgQymTfrnLOFd+ER4vgTK+OXwFAQj1F7Zh+HMURKqzOyUQeitp1mPNAe3leiw2hTeMsWq5xrMsoPDTi13gLQCaexBKIWSN7dCBJ/2kyYjYs9+Shovn4fc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=ZaaLk60z; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=dEMLsgaf; arc=none smtp.client-ip=202.12.124.149
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="NtwOi+jN"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2a9296b3926so1858775ad.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Mar 2026 13:00:51 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1773864051; cv=none;
-        d=google.com; s=arc-20240605;
-        b=KQJYOjvRkSzr/EW6hdFYKBs7J38sh8ANwdSlZ9mAHGwvkODmL6B6ncoDorIxw2JmWG
-         KCH/ZSZAXRfUqzUrXDFd2fHTNrhuGxy/li5qSEkVA4MQWBifQJxL0ihAnppGrZqnPWSG
-         B5aWdWS8GQ9TuMfIgWs27Dpe5wFTrc/0wds83FXuFgbYaJQe0u9LSelutbUvjNLW1EyX
-         b4G/SYlHrQMscgnB1ofL8C0FOv2B5g+96sIwiHEn7+r0mv5P/Fs5s/jLMnoz9TfKezP+
-         Pr/xWPGjNYaVHp85b1xR6Ovpt5DhU3FLGttp1osrGbpUobDUAYjrFdmnno5taqtzturi
-         mRMA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=71OKjSWJ7h2Q1GFZJc35pK1JHDHtKN/E4Pws9ixreXc=;
-        fh=3IIUHkuwlzsreLtzfXKTqOCAlniMI32FidVIfK+74NU=;
-        b=Ix4Tzfsv9pduKM0GoMTnB9kplBmz7Kr+Hlt7SVp3brsO+WJFaa4GCo0aRGDnzD4SzB
-         2Sn6eUlMzqME5L/braeO5kdvlQnGQuctQP0Dv86w6OI7WQ20mORRjKlgeBoVOGRK3CF0
-         dFdudP+o8W8vyPz77W27hG76C7I/y+9keUN9qYWmMd6zeeNKsN7JLZLjwKXtlYNMIJkr
-         f+dqXoLKEn1AZw92WOL3kbVdJfdYrQU03UC/lSDrxNI+U+DyAQACP53mvUwTTvZ4N1Eu
-         auB19E4OnA1BWUAnkGlqvwAJ4hAwn3bFH9oc6tQJYf3todnYA8zQ2Qhqbi0SZQm1qFdZ
-         TxLA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1773864051; x=1774468851; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=71OKjSWJ7h2Q1GFZJc35pK1JHDHtKN/E4Pws9ixreXc=;
-        b=NtwOi+jNDtF28Lhp8zGgTXUoZzr9e02O6NwxhSgbyWpLMh0MupV0xrLqemnvKhLS3J
-         rtyyDMWJSCQhHtqkRPtdZxjfzYIYUM74b2KcbuePULFo19uyVNn5uynjiB2q9ZITTDTS
-         2iLUShgjm9S1UTUxzM2pHSUAR2UrdAS7ZDs8HiWNL/4wGmYTHhNDL9hPJYt3kr+BlQu+
-         NiP/F9WLBbVaygTC5oayHgRS32WWHywEpUfj4AuICWV78LkO+zHe2bcSG71MtnNEgVBR
-         EGVRRiOp7aKS/N5iNqHgIba5qLwpg35V14/As+qmTFQw/4Y5UXrbV4nccbqL8QVsN99V
-         84gg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773864051; x=1774468851;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=71OKjSWJ7h2Q1GFZJc35pK1JHDHtKN/E4Pws9ixreXc=;
-        b=NBSwk7WOgsH/gr4ilfyucCcBCUKmGsaI+CpaNx508wmNdLdNYlvBUrlTkfnsSuwm9R
-         gqLmRpGktSvrVoQDIsPgQ1ZrU+yt+xmdBL4/C4cp0/glO5CxZbMq8CE9J/boTVzRCq0d
-         9NyxWEyRjURbXL9AuEgVBBS3b60FauJsbNK9zUtbp7FNutve7ApcQUyaUdo7MkeZtPD7
-         OWheIOrG7TPf+XzriGeS6SmqWp6EJZjdpFcorSn2DorfA7BbWBgm6FQxOQ/iw6cy0Vjx
-         MdtIh8fxXQXp04Na+gxSnHqKP406uzEeuGc170MD7Vdg5nl9FZgSf/z+B2Am4bMTvep2
-         a8+A==
-X-Forwarded-Encrypted: i=1; AJvYcCWU/Jh9j7xif02+AApVqqbyxwQXeT6/eEsiQfvHYUzhgH1DDWCX6zDIhqZFbisgkBJe5PEs8DvMvschSe6+@vger.kernel.org
-X-Gm-Message-State: AOJu0YzGPuJAjHyys8oMSudGiFIkKweuFjZ9HvQt0dNexx8J80NgwnDK
-	mRe6aXp8qz8I1ttFxLd3I2dvM9u0SBhtfRiKrD/ThFefXRU5UB/vwYHwnjTomZfipLSPkjBrHsk
-	yB9Y3nPTNoly4New15ppnpIw2xPQXmdMcNb8xhA5i
-X-Gm-Gg: ATEYQzyxTFubT1ie10rF2wxQ8eSNVRf8mGFjUK3QoBxTvwi3swZlkn8Jc0zwioHNR5n
-	laJph86J2y/FTSVwlKRD2vVh1Wh9Ir4wS5+EDJ0IV1nesdPk4IS7qYh/aRJBE5XNifFdsysDkXC
-	Y9Sb9MyG86vDtSNDd4LC2ONrCB1XK2eQDZy8eNHk9MWQgt8g97OiTRJ5NdCYBxeoNdVofk1KYlU
-	dwbgfUBb5jrPxdKGxSYbxDrg22oAAxXpCyKEXGeiVHFKUscTfsrw/Ae3Fuq092cW5sBuFFYqhPk
-	mX2QP+oGRGrsAwOjXg==
-X-Received: by 2002:a17:903:2a90:b0:2b0:4158:c9d1 with SMTP id
- d9443c01a7336-2b06e3e5bacmr54910065ad.36.1773864050852; Wed, 18 Mar 2026
- 13:00:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="ZaaLk60z";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="dEMLsgaf"
+Received: from phl-compute-09.internal (phl-compute-09.internal [10.202.2.49])
+	by mailfout.stl.internal (Postfix) with ESMTP id 3A1EE1D0010D;
+	Wed, 18 Mar 2026 17:10:48 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-09.internal (MEProxy); Wed, 18 Mar 2026 17:10:48 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm1; t=
+	1773868247; x=1773954647; bh=WSFi2o3Y9GnmyvEwB/Q9Ty1o7W8p9zIWLum
+	oY1klqoA=; b=ZaaLk60zAH09PLfQ0OzqBUM+d/Yis13eg+KqdjJ2eKR0eb3dg84
+	A8Vvh0a6Yn0OgnVpbPdswyuOzW8LJSUUF9GTalPAQ1FORAAyoefdgZeVFME+DWaf
+	nbVbzxkKg6Ceyk/OyYYHkQ2CsDzKZvUQECdHVRVWcJ+lvlZV7BdIcOv/ugS0rkrT
+	94QLJdhMboKurOWPJyZj78I9dvjVJm++nXB7c2pR+HktX4+bXmSN1FLe7PsJWmJp
+	K5jNBUBCj9dWNz1zdvJd0SPXOojrvuDRu7BSVpPS8jOs+hK3yFoBxSPWxg49AJfw
+	IE8sT+xmrhXRBkTZOXm97nlFX0gwfwAZ+DA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1773868247; x=
+	1773954647; bh=WSFi2o3Y9GnmyvEwB/Q9Ty1o7W8p9zIWLumoY1klqoA=; b=d
+	EMLsgafr/GuO5V7RaObcCQEPvWxBq1SCcA9AKz214wW+vQwERTuRuwqft8zXfhTG
+	n0wPmv6I7c6smc0xHFgtEu+t+E2lrdp3BXe0RTSYot7n5PYxd8U9cgZfSpp6orVw
+	Yk6eWKmmTpljf0hd4cxPdEOW79rlU/gsc8BNvT0sbVZ2ANxmM9Mftvx6o9MeAqwd
+	jRuFfnYIsCum8ab/2N2Qp+oX+4D2Hahu8JgQF2fHuFaow74kw5XLbYfiqhSuch8R
+	eDnAGDYeFiZ3KP11RQb8mlotrULZYZoiJ12v1tPff/m+15hl42jJ7ReutXJCFvIf
+	fWw2lfWMwB3ihYMbvN2aQ==
+X-ME-Sender: <xms:1xS7acp9OJ-EBgP3exSLkevl1pq7trqo2fp8_nrn-DGvIfH1Ya6wMA>
+    <xme:1xS7aXnA1bshS-KmaTK2o5fcHTtojDZmuBSzucTJDE5AJ_NQ1mn_ORWfaHRcVGBTT
+    gDV61Q8GbES1A5jLOk9M8zXhMI5Y6UvvXZl1ScXP7RYz94R7w>
+X-ME-Received: <xmr:1xS7aVfZ--PswtpxT1t5h140-WyPg95qRHAcK82aCkdoBL2Q5BTl6LBuekmeCeqtLyFGFujwYZIImwXP9lw5sk3YsslARpkApWCCtF4EsVVb>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgdeftdehudejucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurheptgfgggfhvfevufgjfhffkfhrsehtqhertddttdejnecuhfhrohhmpefpvghilheu
+    rhhofihnuceonhgvihhlsgesohifnhhmrghilhdrnhgvtheqnecuggftrfgrthhtvghrnh
+    epleejtdefgeeukeeiteduveehudevfeffvedutefgteduhfegvdfgtdeigeeuudejnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepnhgvihhlsg
+    esohifnhhmrghilhdrnhgvthdpnhgspghrtghpthhtohepkedpmhhouggvpehsmhhtphho
+    uhhtpdhrtghpthhtohepvhhirhhoseiivghnihhvrdhlihhnuhigrdhorhhgrdhukhdprh
+    gtphhtthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhg
+    pdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorh
+    hgpdhrtghpthhtoheplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdr
+    ohhrghdprhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtoh
+    epthhorhhvrghlughssehlihhnuhigqdhfohhunhgurghtihhonhdrohhrghdprhgtphht
+    thhopegsrhgruhhnvghrsehkvghrnhgvlhdrohhrghdprhgtphhtthhopegrmhhirhejfe
+    hilhesghhmrghilhdrtghomh
+X-ME-Proxy: <xmx:1xS7aTpqVTf_SLuBu-d8saI_QyG7R01DqZjfNjmemQuMDub6AspYrw>
+    <xmx:1xS7afNSTU__-zgcRaXk4-fMZ7PEpOlJTeQVOw-knFIq0tK25x5JCw>
+    <xmx:1xS7aWiKQuaI4a8eQZ75t3IXTa-cYrReWz62Sqoj9se0blXe_-dzZA>
+    <xmx:1xS7aSuXNA7QmI9f1tloMR3gDrnRaw2AUhD4Sc0Zxx_UoE5f8Z3WFw>
+    <xmx:1xS7aUGbuBAZZgn7SpR9wk64qUAerXjmOHXv99ZCqXP-yS16sxMUXYll>
+Feedback-ID: i9d664b8f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 18 Mar 2026 17:10:44 -0400 (EDT)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260316213606.374109-5-paul@paul-moore.com> <20260316213606.374109-6-paul@paul-moore.com>
- <20260318-einsam-sellerie-2d547dd338ee@brauner> <CAOQ4uxhfvS1SCkp504uDuBmgqSEBYaQDDVAm+JY=w_2fKLbQsQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhfvS1SCkp504uDuBmgqSEBYaQDDVAm+JY=w_2fKLbQsQ@mail.gmail.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Wed, 18 Mar 2026 16:00:39 -0400
-X-Gm-Features: AaiRm50bTirLC51vuYEkGlExlBIJP04T2IlKkXqzaEFW_Rpzh7aQ_TFopQtvPJk
-Message-ID: <CAHC9VhS+83FZoyVOV_tKHOBtVSwK76TS-gbc=cKzL5QK1P21Mg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] backing_file: store user_path_file
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>, linux-security-module@vger.kernel.org, 
-	selinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
-	Gao Xiang <xiang@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: NeilBrown <neilb@ownmail.net>
+To: "Amir Goldstein" <amir73il@gmail.com>
+Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>,
+ "Miklos Szeredi" <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 16/53] ovl: drop dir lock for lookups in impure readdir
+In-reply-to:
+ <CAOQ4uxjmcNxsCmDSVgkTns=3BAuQcT3pVvsQzza+u3iqXqrz5g@mail.gmail.com>
+References: <20260312214330.3885211-1-neilb@ownmail.net>,
+ <20260312214330.3885211-17-neilb@ownmail.net>,
+ <CAOQ4uxjmcNxsCmDSVgkTns=3BAuQcT3pVvsQzza+u3iqXqrz5g@mail.gmail.com>
+Date: Thu, 19 Mar 2026 08:10:39 +1100
+Message-id: <177386823998.3934327.10803400222725196190@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-On Wed, Mar 18, 2026 at 8:07=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
-> On Wed, Mar 18, 2026 at 11:57=E2=80=AFAM Christian Brauner <brauner@kerne=
-l.org> wrote:
-> > On Mon, Mar 16, 2026 at 05:35:56PM -0400, Paul Moore wrote:
-> > > From: Amir Goldstein <amir73il@gmail.com>
-> > >
-> > > Instead of storing the user_path, store an O_PATH file for the
-> > > user_path with the original user file creds and a security context.
-> > >
-> > > The user_path_file is only exported as a const pointer and its refcnt
-> > > is initialized to FILE_REF_DEAD, because it is not a refcounted objec=
-t.
-> > >
-> > > The only caller of file_ref_init() is now open coded, so the helper
-> > > is removed.
-> > >
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > Tested-by: Paul Moore <paul@paul-moore.com> (SELinux)
-> > > Acked-by: Gao Xiang <hsiangkao@linux.alibaba.com> (EROFS)
-> > > Signed-off-by: Paul Moore <paul@paul-moore.com>
-> > > ---
-> > >  fs/backing-file.c            | 20 ++++++++------
-> > >  fs/erofs/ishare.c            |  6 ++--
-> > >  fs/file_table.c              | 53 ++++++++++++++++++++++++++++------=
---
-> > >  fs/fuse/passthrough.c        |  3 +-
-> > >  fs/internal.h                |  5 ++--
-> > >  fs/overlayfs/dir.c           |  3 +-
-> > >  fs/overlayfs/file.c          |  1 +
-> > >  include/linux/backing-file.h | 29 ++++++++++++++++++--
-> > >  include/linux/file_ref.h     | 10 -------
-> > >  9 files changed, 90 insertions(+), 40 deletions(-)
+[[ CC list trimmed ]]
 
-...
-
-> > > diff --git a/fs/file_table.c b/fs/file_table.c
-> > > index aaa5faaace1e..b7dc94656c44 100644
-> > > --- a/fs/file_table.c
-> > > +++ b/fs/file_table.c
-> > > @@ -56,24 +57,44 @@ struct backing_file {
-> > >
-> > >  const struct path *backing_file_user_path(const struct file *f)
-> > >  {
-> > > -     return &backing_file(f)->user_path;
-> > > +     return &backing_file(f)->user_path_file.f_path;
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(backing_file_user_path);
-> > >
-> > > -void backing_file_set_user_path(struct file *f, const struct path *p=
-ath)
-> > > +const struct file *backing_file_user_path_file(const struct file *f)
-> > >  {
-> > > -     backing_file(f)->user_path =3D *path;
-> > > +     return &backing_file(f)->user_path_file;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(backing_file_user_path_file);
-> > > +
-> > > +void backing_file_open_user_path(struct file *f, const struct path *=
-path)
+On Mon, 16 Mar 2026, Amir Goldstein wrote:
+> On Thu, Mar 12, 2026 at 10:49=E2=80=AFPM NeilBrown <neilb@ownmail.net> wrot=
+e:
 > >
-> > I think this is a bad idea. This should return an error but still
-> > WARN_ON(). Just make callers handle that error just like we do
-> > everywhere else.
->
-> OK.
-
-That's good, I can remove the FMODE_OPENED sanity check in
-selinux_file_mprotect() now.
-
-> > > +{
-> > > +     /* open an O_PATH file to reference the user path - cannot fail=
- */
-> > > +     WARN_ON(vfs_open(path, &backing_file(f)->user_path_file));
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(backing_file_open_user_path);
-> > > +
-> > > +static void destroy_file(struct file *f)
-> > > +{
-> > > +     security_file_free(f);
-> > > +     put_cred(f->f_cred);
+> > From: NeilBrown <neil@brown.name>
 > >
-> > Note that calling destroy_file() in this way bypasses
-> > security_file_release(). Presumably this doesn't matter because no LSM
-> > does a security_alloc_file() for this but it adds a nother wrinkly into
-> > the cleanup path.
+> > When performing an "impure" readdir, ovl needs to perform a lookup on some
+> > of the names that it found.
+> > With proposed locking changes it will not be possible to perform this
+> > lookup (in particular, not safe to wait for d_alloc_parallel()) while
+> > holding a lock on the directory.
+> >
+> > ovl doesn't really need the lock at this point.
+>=20
+> Not exactly. see below.
+>=20
+> > It has already iterated
+> > the directory and has cached a list of the contents.  It now needs to
+> > gather extra information about some contents.  It can do this without
+> > the lock.
+> >
+> > After gathering that info it needs to retake the lock for API
+> > correctness.  After doing this it must check IS_DEADDIR() again to
+> > ensure readdir always returns -ENOENT on a removed directory.
+> >
+> > Note that while ->iterate_shared is called with a shared lock, ovl uses
+> > WRAP_DIR_ITER() so an exclusive lock is held and so we drop and retake
+> > that exclusive lock.
+> >
+> > As the directory is no longer locked in ovl_cache_update() we need
+> > dget_parent() to get a reference to the parent.
+> >
+> > Signed-off-by: NeilBrown <neil@brown.name>
+> > ---
+> >  fs/overlayfs/readdir.c | 19 ++++++++++++-------
+> >  1 file changed, 12 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> > index 1dcc75b3a90f..d5123b37921c 100644
+> > --- a/fs/overlayfs/readdir.c
+> > +++ b/fs/overlayfs/readdir.c
+> > @@ -568,13 +568,12 @@ static int ovl_cache_update(const struct path *path=
+, struct ovl_cache_entry *p,
+> >                         goto get;
+> >                 }
+> >                 if (p->len =3D=3D 2) {
+> > -                       /* we shall not be moved */
+> > -                       this =3D dget(dir->d_parent);
+> > +                       this =3D dget_parent(dir);
+> >                         goto get;
+> >                 }
+> >         }
+> >         /* This checks also for xwhiteouts */
+> > -       this =3D lookup_one(mnt_idmap(path->mnt), &QSTR_LEN(p->name, p->l=
+en), dir);
+> > +       this =3D lookup_one_unlocked(mnt_idmap(path->mnt), &QSTR_LEN(p->n=
+ame, p->len), dir);
+>=20
+> ovl_cache_update() is also called from ovl_iterate_merged() where inode
+> is locked.
+>=20
+> >         if (IS_ERR_OR_NULL(this) || !this->d_inode) {
+> >                 /* Mark a stale entry */
+> >                 p->is_whiteout =3D true;
+> > @@ -666,11 +665,12 @@ static int ovl_dir_read_impure(const struct path *p=
+ath,  struct list_head *list,
+> >         if (err)
+> >                 return err;
+> >
+> > +       inode_unlock(path->dentry->d_inode);
+> >         list_for_each_entry_safe(p, n, list, l_node) {
+> >                 if (!name_is_dot_dotdot(p->name, p->len)) {
+> >                         err =3D ovl_cache_update(path, p, true);
+> >                         if (err)
+> > -                               return err;
+> > +                               break;
+> >                 }
+> >                 if (p->ino =3D=3D p->real_ino) {
+> >                         list_del(&p->l_node);
+> > @@ -680,14 +680,19 @@ static int ovl_dir_read_impure(const struct path *p=
+ath,  struct list_head *list,
+> >                         struct rb_node *parent =3D NULL;
+> >
+> >                         if (WARN_ON(ovl_cache_entry_find_link(p->name, p-=
+>len,
+> > -                                                             &newp, &par=
+ent)))
+> > -                               return -EIO;
+> > +                                                             &newp, &par=
+ent))) {
+> > +                               err =3D -EIO;
+> > +                               break;
+> > +                       }
+> >
+> >                         rb_link_node(&p->node, parent, newp);
+> >                         rb_insert_color(&p->node, root);
+> >                 }
+> >         }
+> > -       return 0;
+> > +       inode_lock(path->dentry->d_inode);
+> > +       if (IS_DEADDIR(path->dentry->d_inode))
+> > +               err =3D -ENOENT;
+> > +       return err;
+> >  }
+> >
+> >  static struct ovl_dir_cache *ovl_cache_get_impure(const struct path *pat=
+h)
+> > --
+>=20
+> You missed the fact that overlayfs uses the dir inode lock
+> to protect the readdir inode cache, so your patch introduces
+> a risk for storing a stale readdir cache when dir modify operations
+> invalidate the readdir cache version while lock is dropped
+> and also introduces memory leak when cache is stomped
+> without freeing cache created by a competing thread.
+> I think something like the untested patch below should fix this.
 
-The alloc_empty_backing_file() function will call init_file() on the
-O_PATH file which in turnwill call security_file_alloc().  We depend
-on that behavior as we need to set the creds properly on the file.
+Yes, I did miss that - thanks. I think I missed a few other details too.
+I no longer think it can be safe to drop the lock without substantial
+rewrites - and even then maybe not.
 
-The tricky bit is that security_file_release() is currently only used
-by IMA/EVM; it was created when we folded IMA/EVM into the LSM
-framework, making them proper LSMs and cleaning up a lot of the hook
-calls in the VFS.  The commit description provides some info on the
-hook:
+So I'm considering a different approach.
+This patch demonstrates what I'm thinking, though it still needs work I
+think.
 
-   IMA calculates at file close the new digest of the file content
-   and writes it to security.ima, so that appraisal at next file
-   access succeeds.
+Thanks,
+NeilBrown
 
-   The new hook cannot return an error and cannot cause the operation
-   to be reverted.
+From: NeilBrown <neil@brown.name>
+Subject: [PATCH] ovl: stop using lookup_one() in iterate_shared() handling.
 
-As O_PATH files never go through the
-security_file_open()/security_file_post_open() path, O_PATH files
-should be ignored by IMA/EVM (which makes sense, as there is no data
-or xattrs to measure, update, etc.).  For that reason, skipping
-security_file_release() should be okay in this particular case.
+lookup_one() is expected to be removed as it does not fit well with
+proposed changes to directory locking.
+Specifically d_alloc_parallel() will be ordered outside of i_rwsem
+and as iterate_shared() is called with i_rwsem held it is not safe
+to call d_alloc_parallel().
 
-Other LSMs which allocate file specific state, e.g. AppArmor, in
-security_file_alloc() should free that state in security_file_free()
-which is handled in Amir's patch.
+We can instead call d_alloc_noblock() and then call the ->lookup, but
+that can fail if there is a lookup attempt concurrent with the
+readdir().
 
-> This is for Paul to comment on.
-> The way I see it, security_file_open() was not called on the user path fi=
-le,
-> so no reason to call security_file_release()?
->
-> It is very much a possibility that LSM would want to allocate security
-> context for the user path file during backing_file_mmap, when both files
-> are available in context, so that later mprotect() will have this stored
-> information in the user path file security context.
->
-> But in this case, wouldn't security_file_free() be enough?
+ovl cannot afford for the lookup to fail as that could produce incorrect
+results, and it cannot safely drop i_rwsem temporarily and that could
+introduce races with handling of the directory cache.
 
-See my comments above.  If we wanted to look into removing the
-destroy_file() special case for the user_path file hanging off the
-backing file I'm happy to work with you guys in the future to sort
-that out, but I'd prefer to tackle that at a later date as it could
-potentially have a much larger footprint than this patchset.
+Instead we rely on the fact that ovl_iterate() has an exclusive lock on
+the directory, so any concurrent lookup will wait for the ovl_iterate()
+call to complete.  We allocate a separate dentry and if the lookup is
+successful, it is hashed with the result.
 
+When the concurrent lookup gets i_rwsem it mustn't do its own lookup -
+it must use the existing dentry.  This is done using
+try_lookup_noperm().  To manage overheads we keep a counter of the
+number of "Stray dentries" there might be on each directory and only
+check for one when this count is non zero.
+
+If a 'stray dentry' were discarded for any reason before the concurrent
+lookup completed, the count would never reach zero.  That might be a problem.
+
+Signed-off-by: NeilBrown <neil@brown.name>
+---
+ fs/overlayfs/namei.c     | 12 ++++++++++++
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/readdir.c   | 26 ++++++++++++++++++++++++--
+ fs/overlayfs/super.c     |  1 +
+ 4 files changed, 38 insertions(+), 2 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index d8dd4b052984..c3ff57047712 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -1399,6 +1399,18 @@ struct dentry *ovl_lookup(struct inode *dir, struct de=
+ntry *dentry,
+ 	if (dentry->d_name.len > ofs->namelen)
+ 		return ERR_PTR(-ENAMETOOLONG);
+=20
++	if (atomic_read(&OVL_I(dir)->stray_dentries) && d_in_lookup(dentry)) {
++		/* This dentry might have forced readdir to do the lookup */
++		struct dentry *alias =3D
++			try_lookup_noperm(&QSTR_LEN(dentry->d_name.name,
++						    dentry->d_name.len),
++					  dentry->d_parent);
++		if (alias && !IS_ERR(alias)) {
++			atomic_dec(&OVL_I(dir)->stray_dentries);
++			return alias;
++		}
++	}
++
+ 	with_ovl_creds(dentry->d_sb)
+ 		err =3D ovl_lookup_layers(&ctx, &d);
+=20
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 1d4828dbcf7a..0e7751d5dfca 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -172,6 +172,7 @@ struct ovl_inode {
+ 	struct inode vfs_inode;
+ 	struct dentry *__upperdentry;
+ 	struct ovl_entry *oe;
++	atomic_t stray_dentries; /* directory */
+=20
+ 	/* synchronize copy up and more */
+ 	struct mutex lock;
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 1dcc75b3a90f..add556a0a2b6 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -557,6 +557,7 @@ static int ovl_cache_update(const struct path *path, stru=
+ct ovl_cache_entry *p,
+ 	enum ovl_path_type type;
+ 	u64 ino =3D p->real_ino;
+ 	int xinobits =3D ovl_xino_bits(ofs);
++	bool did_alloc =3D false;
+ 	int err =3D 0;
+=20
+ 	if (!ovl_same_dev(ofs) && !p->check_xwhiteout)
+@@ -574,8 +575,29 @@ static int ovl_cache_update(const struct path *path, str=
+uct ovl_cache_entry *p,
+ 		}
+ 	}
+ 	/* This checks also for xwhiteouts */
+-	this =3D lookup_one(mnt_idmap(path->mnt), &QSTR_LEN(p->name, p->len), dir);
+-	if (IS_ERR_OR_NULL(this) || !this->d_inode) {
++	this =3D d_alloc_noblock(dir, &QSTR_LEN(p->name, p->len));
++	if (this =3D=3D ERR_PTR(-EWOULDBLOCK)) {
++		/*
++		 * Some other thread is looking up this name and will block
++		 * on i_rwsem before they can complete the lookup.
++		 * We will do the lookup and when that lookup gets a turn it
++		 * will return this dentry.
++		 */
++		this =3D d_alloc_name(dir, p->name);
++		did_alloc =3D true;
++	}
++	if (!IS_ERR(this) && !d_unhashed(this)) {
++		/* Either we got in-lookup or we made our own unhashed */
++		struct dentry *alias =3D ovl_lookup(dir->d_inode, this, 0);
++		if (alias) {
++			d_lookup_done(this);
++			dput(this);
++			this =3D alias;
++		} else if (did_alloc) {
++			atomic_inc(&OVL_I(dir->d_inode)->stray_dentries);
++		}
++	}
++	if (IS_ERR(this) || !this->d_inode) {
+ 		/* Mark a stale entry */
+ 		p->is_whiteout =3D true;
+ 		if (IS_ERR(this)) {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index d4c12feec039..172d3ac7d3e2 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -195,6 +195,7 @@ static struct inode *ovl_alloc_inode(struct super_block *=
+sb)
+ 	oi->__upperdentry =3D NULL;
+ 	oi->lowerdata_redirect =3D NULL;
+ 	oi->oe =3D NULL;
++	atomic_set(&oi->stray_dentries, 0);
+ 	mutex_init(&oi->lock);
+=20
+ 	return &oi->vfs_inode;
 --=20
-paul-moore.com
+2.50.0.107.gf914562f5916.dirty
+
