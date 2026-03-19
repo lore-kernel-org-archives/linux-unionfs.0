@@ -1,232 +1,177 @@
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
+Received: from mail-oi1-f198.google.com (mail-oi1-f198.google.com [209.85.167.198])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 751B038910E
-	for <linux-unionfs@vger.kernel.org>; Thu, 19 Mar 2026 18:44:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.42
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773945884; cv=pass; b=uoaM5UwCI/wmI8cUXJUieb1baMzGuwg7Cckz1ybXLaU7b0XVAhAxna4OwiqPL+N8sbLqXMIPFXo7Ajn9sFgU1TrtABHYeSwe9ZXNcjFIsehoT4YErVgl5NOSSfHvbgHURlgusgUk/95+fTLuDW2fAkW9R631cSDDMSq+T/wAfow=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773945884; c=relaxed/simple;
-	bh=uiCScWR+3uywURMbmYz4JIe2t6y1lUqRrJAsT5gXGhE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WPt7d0kI9HJf8Hv92qtYp/Sfyk+vtf+BnwpgB+Xmhk2sUkz8GhIRXs4IPtOgMsR1EpKjynKEvH6NXlaluhYZU72dsPbYALJrRrYb6T4gf52cmnOUzbEuHM5XPtODQzDaD6ZrruTelzlWEkKtzJrDrcjKmLLVzRIt7UiuOwJHOz0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=TjyUaHIz; arc=pass smtp.client-ip=209.85.216.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="TjyUaHIz"
-Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-3590042fa8eso951040a91.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 19 Mar 2026 11:44:42 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1773945882; cv=none;
-        d=google.com; s=arc-20240605;
-        b=bDDTkNSSSd+XiBx1ClCAY83JgLcgbr/MBDiNOwLoJwfcF7YwKR7iiLldoZosOM29PD
-         QtSUg1n58tZBjhmqMInRwsAKa1HXemAx6/Kpiqwxsp97UOSRldjhS+symkBnXNWelc2m
-         uEX9yDSkModAMxQvvE7x6qM9OFTZwUKivJo4VD8Y72ZP/9FSUFNvzx4iKa31eyHh6aW6
-         XMoWSlyL/v3PDj9XJwwIFRifU38frw0vNXcVmKgm+xZQdD8wk4uVklzBjss3nLYYB67q
-         JMJOYeCos/fW2Mhg5DSdyQZzsvgB1+PCKTNtjNJqDpsxiD70d5o76HAOjoZB9795IfLq
-         rQrA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=3LpRx2Ah23pGDXkHY7jaWEi08gxAWhSArXDD9NIs44I=;
-        fh=iLsExsHczCoVWgvepqvLxusNHvnCHvm+bCT6RapFk1M=;
-        b=EPEQvQVd6Ec5VbEVWcgcni7RK6kQ1HPK02zUn2m4ex4KNTnP01sBmZgWbTLhs/mR46
-         KaWFW/SsowsedibtrAFwxUoW2cfPuEDizVbpf+m0PYQoiBFx7oTBHfbQBxeW0O6zpxIS
-         U0GHhxlAV6R7j7YnAvBax1VXyjEhpxm3QNRbKdlxwpLTd7UVL8y3kRxsajD8Lq00sS3e
-         tP0hv9MWmxZ0lA7X8veKXKH683L4eduyzKMflq0BU7+A1aOm3rTwTKAVO66W/kDdCFl9
-         9x0rxsQTMj7UzrV0KXXMAL4AbxBohNxIbLxYjQGAIftvdrLsMsKrYtdjfDr55HhyeK0o
-         HtuA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1773945882; x=1774550682; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3LpRx2Ah23pGDXkHY7jaWEi08gxAWhSArXDD9NIs44I=;
-        b=TjyUaHIzmYG68QqM5p5GbP6rkqxVgWOuQrOEEVjjStrbOJagQocfIPRjeVPrQbdjS7
-         +mWKYqh4xTPF8reGAEST7QyQLIhKpN4kkk1fxVnaYDxAke8u2OcQgE0oQgj5KsKBlyc7
-         IY6QmrnzhEXTxEZ2JlE14Wc0ZFdJ6C8+tq7VmHCcQTTVKKk/Z8pVKsMODNutlPGC+wke
-         aXSnYr/5XJSb7Ewg1FkDDzJZknz2LlE3B06n5k7xCiY2plmZ2yE27HrU1pd2l+C64fI0
-         pHyfUXaSivMCSQ+PiE4tP1wyQGxr22Hk5VEUZIhxcJLoDBO3U0E0hQ4lyVaZ291fdeYF
-         HIAw==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0279C2741C9
+	for <linux-unionfs@vger.kernel.org>; Thu, 19 Mar 2026 19:03:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.198
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773946984; cv=none; b=EHKss+ik9Bf59MvKF/kZsIlS1ps7geiyCv259f7LHEuFta9CAFtAxanm9cJJZg1jzWQSFSd/uOla+vj01tKJJBzXzo+0ar1UXVfwHZoxDiTfR8shUoOFKGlztLQKaWs9T6Rr8PFD0o1C+p2+DfIYp7xYmYSAy5hfhcgZXk71CgM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773946984; c=relaxed/simple;
+	bh=crSjcue+IfsXTmT2xZQYzZd8QtOPpPIkDYJZpEMEBdg=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=oclIL/IMf9k9ytK+Tsw9XwuvtRKDUOFSITWuWUcZv/SAy4njaOs0v6XwUwqq3RxjRAweeFzq2uT17TU49aMn3WcqQkXIM91HnYezdLaZXUx7QQGfAqwrnO4L09iPYiwFLSAmvmXw4gz0oG+hxWztlXZxnadHsYVOup40ObxWD80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f198.google.com with SMTP id 5614622812f47-463a1cee56aso9720759b6e.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Mar 2026 12:03:02 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773945882; x=1774550682;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=3LpRx2Ah23pGDXkHY7jaWEi08gxAWhSArXDD9NIs44I=;
-        b=jJmEbmO66b8NDXwkE4tEzXyxczD3HZApwmW97ibZe0QkX0XeOx1SyoDJuT1QAZO/Pd
-         rrfqf+Qa3o3vLsb/4albxAK2I2YaUtuZhqD43DHFL8AiT4MVK7e7ZxdsbQDT8pd03QOQ
-         CQC5qQuVGz3J8ufNaUP7bVZHi8cYgc0LhXksMdCTmd+ADo6+AwDrr883h1cqdJ7c2hdV
-         46h8ZdvMtaqdABKT35ueqNWShNgevSqeNqoUF1QU2lmY7tEHcNaSkLIJZmazfOYhNPuy
-         v/t/bHBwRvQvwsxuXC6FxakVvUri3876nr+x1W0fIWF8zydPTG6cIUK6A/zdD3mYm8qE
-         tbZQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVSzswmj7lAUL26qlUK+X/9LSI7ah3K1uil0xE8VwE4NS9cCdN9xbprr22LONSrX4SxU+99L8EQhb/MTYQT@vger.kernel.org
-X-Gm-Message-State: AOJu0YzJL9BHr9iiHpJGm6QKt+P9+4hDExKFaP2SEEOgKorohs/0d+pp
-	aevZEEvnJPSgmoUuRyqrGrJS+FnNdMymkv9re5ocxN1nRyZOl9f641Ibo7UkT7EUCtH91EHFqOi
-	HB8LKvZIX3QINMJARt4/TsFluP2zl/0vXTnEJ42ZQ
-X-Gm-Gg: ATEYQzwPODJRYdqpmuxR0Fl92H/bAK0dXZgi6h44CTPnjxr7kFaDQtOCGawZXkYcxXA
-	GPePsqjgJhIEZbFu8D0PELtljec6JxSzhGTqPDjWc7VZAqm30JRRHiC7Z3o90HvvaU5wZDJJG3T
-	txYDWh0FgW/Pyezrz0vMel7uDDP0+NYaYXfpd0dZli4Klctwbl+PclFbT7QEsSB/HwvDaO+JhaT
-	XydM+8rntcZ2ptmb+4NVFVWHwEKf3+tPLAm5OJWgJwzNpkKYVA70rSXqyuSQuHyT9dT5ajUp0v+
-	q42A2z9jvuvtGoeQcQ==
-X-Received: by 2002:a17:90b:3d85:b0:35b:91e1:e110 with SMTP id
- 98e67ed59e1d1-35bd2cb726cmr153296a91.20.1773945881632; Thu, 19 Mar 2026
- 11:44:41 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1773946982; x=1774551782;
+        h=content-transfer-encoding:to:from:subject:message-id:in-reply-to
+         :date:mime-version:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=BYqngK77oMjnwirz58bwbt9XcUfomTFn+3M8Rkfh/tA=;
+        b=n1CS3tQC7C+mWtrJm+7+FO6cu+bLIMxJ1dlPaasb+NV2ZQ9V8+uG5e08jG/4Cg2w3q
+         quZNY9x7BDuxyLgFdkI+j74INPBzyrSCVoWnQu8m/D1OmrUuKL/Fj/+Mz802+xuuFdtE
+         2xS1SxCQ44/8vuVW0843j7Zb74vFvaTeNInD0UVd0DWB2hIAgpJWtHC1CdsjEYDGAJsh
+         W5mlWZ9GFiqgBvCpOToQA1Y2xA2n5QUnb8l4UurUF4A7DSUlsaVaQ0OwJjouATTPRJKW
+         b5V7PdPUMCfI1ncavbbc+uvsoSaPqDPMZ0Vl4f8DjtdY0OcsC3+qriwGQy/p6Y5VR7sU
+         pTLA==
+X-Forwarded-Encrypted: i=1; AJvYcCVouR79PjhNbeL6TTRrkf6VYbeveBXdYDDfZYqMSxjSsULlONwxNAbUD8jzwf5vSAR16ie3RmgUQrV6kH0g@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxp+Me6i2ZxzrpFUOXrVMA4PYTzw0obek/CufLH3aBmLcBwE06F
+	J68hjpdYj/Rglx9WvGgIRfpPBFnm+fHbjQPCpTIHqUJwHtxS8qpv+zrGXKKhUVueNOK6sN99MBR
+	d7AIIwtK4hFhtabfuWj8y/RamDog+uRKy9XIgU8wJ8M62gJmGpsLgexE2hzc=
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260319124616.1544415-1-amir73il@gmail.com> <20260319-unentbehrlich-reitturnier-f78d9fb01230@brauner>
- <CAOQ4uxiS1uM=mn4q6CQfganba1XcqyXYmXfQceWdfUVRFK_Pvg@mail.gmail.com>
- <CAHC9VhQDXHh_=X-OKD9oN8fapVXBwLakNp4rEHLUL0cQ1RSteA@mail.gmail.com> <CAOQ4uxinSLXKWjMgwyA2A_UU5e+6ZjbdsFUY-+f9DMfQcxH0qA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxinSLXKWjMgwyA2A_UU5e+6ZjbdsFUY-+f9DMfQcxH0qA@mail.gmail.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Thu, 19 Mar 2026 14:44:30 -0400
-X-Gm-Features: AaiRm50mWSepRO31-IrCKePpEwYDJfx_2t8PZ8Bwv853YChliBvO2jCDu0_F2bc
-Message-ID: <CAHC9VhQbT1jPXN-nqmoNS4DGkYGWrVkO9-C1k-9zjYU9cRDi0A@mail.gmail.com>
-Subject: Re: [PATCH] fs: allow vfs code to open an O_PATH file with negative dentry
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Gao Xiang <xiang@kernel.org>, 
-	linux-security-module@vger.kernel.org, selinux@vger.kernel.org, 
-	linux-erofs@lists.ozlabs.org, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, 
-	syzbot+f34aab278bf5d664e2be@syzkaller.appspotmail.com
+X-Received: by 2002:a05:6870:788b:b0:3f1:6d93:4386 with SMTP id
+ 586e51a60fabf-41c10e8098fmr270411fac.1.1773946981919; Thu, 19 Mar 2026
+ 12:03:01 -0700 (PDT)
+Date: Thu, 19 Mar 2026 12:03:01 -0700
+In-Reply-To: <CAOQ4uxgKgWi_ro2nGKkFuDFP9vPne_hRSNmfFiwxCQ6TjjH0tw@mail.gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <69bc4865.a00a0220.125422.0002.GAE@google.com>
+Subject: Re: [syzbot] [overlayfs?] general protection fault in do_dentry_open
+From: syzbot <syzbot+f34aab278bf5d664e2be@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 19, 2026 at 2:30=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
-> On Thu, Mar 19, 2026 at 4:55=E2=80=AFPM Paul Moore <paul@paul-moore.com> =
-wrote:
-> > On Thu, Mar 19, 2026 at 10:50=E2=80=AFAM Amir Goldstein <amir73il@gmail=
-.com> wrote:
-> > > On Thu, Mar 19, 2026 at 2:13=E2=80=AFPM Christian Brauner <brauner@ke=
-rnel.org> wrote:
-> > > > On Thu, Mar 19, 2026 at 01:46:16PM +0100, Amir Goldstein wrote:
-> > > > > The fields f_mapping, f_wb_err, f_sb_err are irrelevant for O_PAT=
-H file.
-> > > > > Skip setting them for O_PATH file, so that the O_PATH file could =
-be
-> > > > > opened with a negative dentry.
-> > > > >
-> > > > > This is not something that a user should be able to do, but vfs c=
-ode,
-> > > > > such as ovl_tmpfile() can use this to open a backing O_PATH tmpfi=
-le
-> > > > > before instantiating the dentry.
-> > > > >
-> > > > > Reported-by: syzbot+f34aab278bf5d664e2be@syzkaller.appspotmail.co=
-m
-> > > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > > > ---
-> > > > >
-> > > > > Christian,
-> > > > >
-> > > > > This patch fixes the syzbot report [1] that the
-> > > > > backing_file_user_path_file() patch [2] introduces.
-> > > > >
-> > > > > This is not the only possible fix, but it is the cleanest one IMO=
-.
-> > > > > There is a small risk in introducing a state of an O_PATH file wi=
-th
-> > > > > NULL f_inode, but I (and the bots that I asked) did not find any
-> > > > > obvious risk in this state.
-> > > > >
-> > > > > Note that specifically, the user path inode is accessed via d_ino=
-de()
-> > > > > and not via file_inode(), which makes this safe for file_user_ino=
-de()
-> > > > > callers.
-> > > > >
-> > > > > BTW, I missed this regression with the original patch because I
-> > > > > only ran the quick overlayfs sanity test.
-> > > > >
-> > > > > Now I ran a full quick fstest cycle and verified that the O_TMPFI=
-LE
-> > > > > test case is covered and that the bug is detected.
-> > > > >
-> > > > > WDYT?
-> > > > >
-> > > > > Thanks,
-> > > > > Amir.
-> > > > >
-> > > > > [1] https://syzkaller.appspot.com/bug?extid=3Df34aab278bf5d664e2b=
-e
-> > > > > [2] https://lore.kernel.org/linux-fsdevel/20260318131258.1457101-=
-1-amir73il@gmail.com/
-> > > > >
-> > > > >  fs/open.c | 7 ++++---
-> > > > >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > > > >
-> > > > > diff --git a/fs/open.c b/fs/open.c
-> > > > > index 91f1139591abe..2004a8c0d9c97 100644
-> > > > > --- a/fs/open.c
-> > > > > +++ b/fs/open.c
-> > > > > @@ -893,9 +893,6 @@ static int do_dentry_open(struct file *f,
-> > > > >
-> > > > >       path_get(&f->f_path);
-> > > > >       f->f_inode =3D inode;
-> > > > > -     f->f_mapping =3D inode->i_mapping;
-> > > > > -     f->f_wb_err =3D filemap_sample_wb_err(f->f_mapping);
-> > > > > -     f->f_sb_err =3D file_sample_sb_err(f);
-> > > > >
-> > > > >       if (unlikely(f->f_flags & O_PATH)) {
-> > > > >               f->f_mode =3D FMODE_PATH | FMODE_OPENED;
-> > > > > @@ -904,6 +901,10 @@ static int do_dentry_open(struct file *f,
-> > > > >               return 0;
-> > > > >       }
-> > > > >
-> > > > > +     f->f_mapping =3D inode->i_mapping;
-> > > > > +     f->f_wb_err =3D filemap_sample_wb_err(f->f_mapping);
-> > > > > +     f->f_sb_err =3D file_sample_sb_err(f);
-> > > > > +
-> > > > >       if ((f->f_mode & (FMODE_READ | FMODE_WRITE)) =3D=3D FMODE_R=
-EAD) {
-> > > > >               i_readcount_inc(inode);
-> > > > >       } else if (f->f_mode & FMODE_WRITE && !special_file(inode->=
-i_mode)) {
-> > > >
-> > > > I think this is really ugly and I'm really unhappy that we should a=
-djust
-> > > > initialization of generic vfs code for this. My preference is to pu=
-sh
-> > > > the pain into the backing file stuff. And my ultimate preference is=
- for
-> > > > this backing file stuff to be removed again for a simple struct pat=
-h.
-> > > > We're working around some more fundamental cleanup here imho.
-> > >
-> > > Fair enough, we can rip the entire thing from vfs if you don't like i=
-t.
-> > > The user path file can be opened and stored internally by selinux
-> > > without adding all the associated risks in vfs.
-> > >
-> > > Paul,
-> > >
-> > > Please see compile tested code at:
-> > > https://github.com/amir73il/linux/commits/user_path_file/
-> >
-> > No.  Definitely no.  Ignoring the fact that there is no reason we
-> > should pushing this into the LSM, doing it in this way means it is
-> > very likely that each LSM wanting to provide mmap/mprotect controls on
-> > overlayfs will have to create a new O_PATH file.  No.
-> >
-> > ... and let me preemptively comment that this doesn't belong in the
-> > LSM framework either.
-> >
-> > As Christian already mentioned, this really needs to be addressed in
-> > the backing file code, please do it there.
->
-> OK, will give it another try.
+Hello,
 
-Thanks, please let me know if there is anything I can do to help, e.g.
-testing, etc.
+syzbot tried to test the proposed patch but the build/boot failed:
 
---=20
-paul-moore.com
+failed to create instance: googleapi: Error 400: Invalid value for field 'r=
+esource.scheduling.preemptible': 'false'. Scheduling must have preemptible =
+be false when OnHostMaintenance isn't TERMINATE., invalid
+
+
+
+syzkaller build log:
+go env (err=3D<nil>)
+AR=3D'ar'
+CC=3D'gcc'
+CGO_CFLAGS=3D'-O2 -g'
+CGO_CPPFLAGS=3D''
+CGO_CXXFLAGS=3D'-O2 -g'
+CGO_ENABLED=3D'1'
+CGO_FFLAGS=3D'-O2 -g'
+CGO_LDFLAGS=3D'-O2 -g'
+CXX=3D'g++'
+GCCGO=3D'gccgo'
+GO111MODULE=3D'auto'
+GOAMD64=3D'v1'
+GOARCH=3D'amd64'
+GOAUTH=3D'netrc'
+GOBIN=3D''
+GOCACHE=3D'/syzkaller/.cache/go-build'
+GOCACHEPROG=3D''
+GODEBUG=3D''
+GOENV=3D'/syzkaller/.config/go/env'
+GOEXE=3D''
+GOEXPERIMENT=3D''
+GOFIPS140=3D'off'
+GOFLAGS=3D''
+GOGCCFLAGS=3D'-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=3D0=
+ -ffile-prefix-map=3D/tmp/go-build1926708935=3D/tmp/go-build -gno-record-gc=
+c-switches'
+GOHOSTARCH=3D'amd64'
+GOHOSTOS=3D'linux'
+GOINSECURE=3D''
+GOMOD=3D'/syzkaller/jobs/linux/gopath/src/github.com/google/syzkaller/go.mo=
+d'
+GOMODCACHE=3D'/syzkaller/jobs/linux/gopath/pkg/mod'
+GONOPROXY=3D''
+GONOSUMDB=3D''
+GOOS=3D'linux'
+GOPATH=3D'/syzkaller/jobs/linux/gopath'
+GOPRIVATE=3D''
+GOPROXY=3D'https://proxy.golang.org,direct'
+GOROOT=3D'/usr/local/go'
+GOSUMDB=3D'sum.golang.org'
+GOTELEMETRY=3D'local'
+GOTELEMETRYDIR=3D'/syzkaller/.config/go/telemetry'
+GOTMPDIR=3D''
+GOTOOLCHAIN=3D'auto'
+GOTOOLDIR=3D'/usr/local/go/pkg/tool/linux_amd64'
+GOVCS=3D''
+GOVERSION=3D'go1.26.0'
+GOWORK=3D''
+PKG_CONFIG=3D'pkg-config'
+
+git status (err=3D<nil>)
+HEAD detached at c01bca74391
+nothing to commit, working tree clean
+
+
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+Makefile:31: run command via tools/syz-env for best compatibility, see:
+Makefile:32: https://github.com/google/syzkaller/blob/master/docs/contribut=
+ing.md#using-syz-env
+go list -f '{{.Stale}}' -ldflags=3D"-s -w -X github.com/google/syzkaller/pr=
+og.GitRevision=3Dc01bca7439117559131c7afa36f261a369581611 -X github.com/goo=
+gle/syzkaller/prog.gitRevisionDate=3D20260317-064358"  ./sys/syz-sysgen | g=
+rep -q false || go install -ldflags=3D"-s -w -X github.com/google/syzkaller=
+/prog.GitRevision=3Dc01bca7439117559131c7afa36f261a369581611 -X github.com/=
+google/syzkaller/prog.gitRevisionDate=3D20260317-064358"  ./sys/syz-sysgen
+make .descriptions
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+Makefile:31: run command via tools/syz-env for best compatibility, see:
+Makefile:32: https://github.com/google/syzkaller/blob/master/docs/contribut=
+ing.md#using-syz-env
+bin/syz-sysgen
+touch .descriptions
+GOOS=3Dlinux GOARCH=3Damd64 go build -ldflags=3D"-s -w -X github.com/google=
+/syzkaller/prog.GitRevision=3Dc01bca7439117559131c7afa36f261a369581611 -X g=
+ithub.com/google/syzkaller/prog.gitRevisionDate=3D20260317-064358"  -o ./bi=
+n/linux_amd64/syz-execprog github.com/google/syzkaller/tools/syz-execprog
+mkdir -p ./bin/linux_amd64
+g++ -o ./bin/linux_amd64/syz-executor executor/executor.cc \
+	-m64 -O2 -pthread -Wall -Werror -Wparentheses -Wunused-const-variable -Wfr=
+ame-larger-than=3D16384 -Wno-stringop-overflow -Wno-array-bounds -Wno-forma=
+t-overflow -Wno-unused-but-set-variable -Wno-unused-command-line-argument -=
+static-pie -std=3Dc++17 -I. -Iexecutor/_include   -DGOOS_linux=3D1 -DGOARCH=
+_amd64=3D1 \
+	-DHOSTGOOS_linux=3D1 -DGIT_REVISION=3D\"c01bca7439117559131c7afa36f261a369=
+581611\"
+/usr/bin/ld: /tmp/ccLeYWkg.o: in function `Connection::Connect(char const*,=
+ char const*)':
+executor.cc:(.text._ZN10Connection7ConnectEPKcS1_[_ZN10Connection7ConnectEP=
+KcS1_]+0x386): warning: Using 'gethostbyname' in statically linked applicat=
+ions requires at runtime the shared libraries from the glibc version used f=
+or linking
+./tools/check-syzos.sh 2>/dev/null
+
+
+
+Tested on:
+
+commit:         045aba2b fs: allow vfs code to open an O_PATH file wit..
+git tree:       https://github.com/amir73il/linux.git vfs-fixes
+kernel config:  https://syzkaller.appspot.com/x/.config?x=3D6fb7e86cc0b17d7=
+8
+dashboard link: https://syzkaller.appspot.com/bug?extid=3Df34aab278bf5d664e=
+2be
+compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-=
+1~exp1~20251221153213.50), Debian LLD 21.1.8
+
+Note: no patches were applied.
