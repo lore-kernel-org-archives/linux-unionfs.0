@@ -1,192 +1,184 @@
-Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26CCD372675
-	for <linux-unionfs@vger.kernel.org>; Mon, 23 Mar 2026 21:06:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A92B3822A6
+	for <linux-unionfs@vger.kernel.org>; Mon, 23 Mar 2026 22:03:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.174
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774300015; cv=pass; b=DVkSYq9ISh3OQLArtg+cX3YVGV/xf9DEY6pe/MpJt5K4+7EH+oRiW0BuHc9wcltj0tbqAcfWWkttCCueEiBtSmVp0NFJJzA5HYZ4ttyn2fG6gchfqJWkLomit0dq9dhT7qMyKqFhY9+p0jnOVWSVzXGvsbghiCig6QGaGoCw5Ts=
+	t=1774303432; cv=pass; b=f/YRbTLp0ug/HlieVwaqL81wTaFTDybzUyL2r9FPd/v2RCiSF4zYhzbaAzzpCm9BSMQf0n4z8ZY22nnjlfm4+zEnG4G84iOp0H8Xju0wQoLJ7kAC02DDZLYfQ4zE3ZCDz37ca0IR6LSGXGXV/58uW8CPBontEPc/ouGtywFjwAc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774300015; c=relaxed/simple;
-	bh=lj1WSksNK02aO4n5dob09BxWp5H6I1TYco9D2RasOo4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=m2R+22XHJsuBwZhi71CLMKzPU18ekUznw1xuQ+9+5SzAVdQsal6rJcYSnM1thUcSksLhUGs06emJ7qSdf3R2JU3/k8bByeuRvzLdekEAPyCJM8aRUUs+h4CrStCGy171961NYAvxi+LrU6lKQmzi5rGRrGjJaJc+fzkl+QRkobQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=QBtcS8Hv; arc=pass smtp.client-ip=209.85.210.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1774303432; c=relaxed/simple;
+	bh=isQFDI7d05AvIlrp9iqnyQriaU043z6DYylvG6vWhF4=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=ZNWG4LeUSHtTwfG2RUyKhGJTz7+j7WRKwC+VasAL4jMkran5fNfsLFm6HG6f/Mv4JC0F+dtdW9VWGyucX/o3DHOAyZlS8XTy0fT9zIR3R5Mjs9lDuS4P7HPddi6cjlkfpNCBCd8WRzXaY2EwiEwuoB2OKQWIFP3qtTzX1pY2pAs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=K3fNt6Hz; arc=pass smtp.client-ip=209.85.160.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="QBtcS8Hv"
-Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-82bae83318bso1639989b3a.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 23 Mar 2026 14:06:53 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1774300012; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="K3fNt6Hz"
+Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-509062d829dso100791cf.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 23 Mar 2026 15:03:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1774303430; cv=none;
         d=google.com; s=arc-20240605;
-        b=DAASSRAJc0yMTdpEa9yjucAkEffNDRqrasQP5aEdWSwijL5PPC6oS5/f/62oCaI3j8
-         Qy6GxyVOdQXUDj47NLAtlRQyq1YTMEAQo+0K3v+G53EpSVs316hZ0lpooCw1+tGn/T9R
-         CqCVafPdognu+KXzkYFcpAT1WlOeKYjoJ4+q8+ub5khLvv8JWmx0epUbTBbIrXk1oMNZ
-         LS23p7ti98blFpzcwjrxbYg5d+fPP8Q8OD4Lrt37qWT9P5vy9ZbSlRJng6oRaO0LOgU3
-         nsOg5NPdFd57mDb3NbmOMy91EVSMc3L4cSp5iVd2XCVtRKcwT3k7Fc3sBR5F0MhNok3u
-         PW0A==
+        b=O3dpVZkjO7oQp8eVK1FWWvmNzrSlWdlmg07hCh38htPU+yxUrXsV0SQGcvLYL+hdN2
+         Ekhh41X8xG/Gfx6ayY5lLqOR+msMFxHi/2T/SfXRgEpyu+GykxV/eGrCSTFr1GScOM0O
+         q/fZpKnDdkpxObnPKS4kcn5lk+4MiB2oi/sBcEv0dBk0GMojBDprppkEcYInD8MA+H6d
+         8tfliPlhVaULd3gKJO/Ey9tHmrVSDz1LkdtYjRSck9NHfAgX3YdfQkNA8TkbwAPab9bk
+         8meM/CMwGORWnMKrRomnGezRqH1L++TMQTC4DXZN9Syc2deQyOUFVr4saXjapHQUofWh
+         WJLA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=NjsO6wgNY9CZeU5uk59dSPA1jA8p7uootZu2+ykxgC4=;
-        fh=5tlsi0QvxAs9MkEz1MzAXPT5bCQ3j3mFTXGnXTUIWVs=;
-        b=igbisVRWl3wz0ZONORAxYrQzHEzHo62t5puGbJZHYE9I8qrNXBGP2XQX1/vwgUdmQr
-         3Z0oOZjn8NTKUMIb0AfhVf00fcIJiOkKfb+TwfUUEcgK6lwtxccyZhG+8z/9VmOG/Vno
-         veOzmHu9PKnoiFnFWGEGcuQXXc+3Nkg5IWr4vCtKr/LY1ymFU5HURKj/OJWKzU4y3VIR
-         pV0AtMoPtNv7DfOIZG/M8ZxBcTmqAXOghbk2Q+LHjGQC+F+xSsw5DM5YJnzsrAhLCAEO
-         AMpwraNdriSHX/lJuvK6BmD0iTqc1ifoqyEteh4Klb1jpF5gXmytoifrJS5UIuKy3wJb
-         BpqA==;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=o1eGtSxZYUuz2uzB/0xmbY0GGzJTsHFF98WP24mcOxI=;
+        fh=TGwkXeJjE/RJGLr+81nV22MgHd5/SlFaUSd9aEDytZk=;
+        b=FOTZ91K0YnNTp6tl6yZI/UrRw8at6ned4dJj/pnhTYIINQ9ZnhmdWKaYaAPQKc4ycD
+         C+rbtj4Z10Dows7/+/nRov+en0bB9UagjzscX+jPQbr8YN/R6Idhab3f9WzkAvp6jOkp
+         5J8JIzR9nkthi9ETn7ldsOk96TxB2O5c5IqvJqucQ1jnStm01lvu5W5NWkSWP1PFY9Xs
+         sPkeTw4ncg45xVGIzqW5vGwkRAs0TnZywZy2aOMpTP38Q+YI02OuP+fmUsIv2usZAhPT
+         j9fHkl0J3yGwjRpTWdz48RUq2V4tX/FCn6c8YsNtrxsoyiAV3zRNQHEn5vVl48/eWbIr
+         929w==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1774300012; x=1774904812; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NjsO6wgNY9CZeU5uk59dSPA1jA8p7uootZu2+ykxgC4=;
-        b=QBtcS8HvpXO9IbViIwHmSUEd1cdHjK9S4SFD+KrQZ8bhDITcqbTe3aRVCdBgTe2A3n
-         yPEMyrAXW1HDf/yOqvfhmV0UV6nsguDlNnwsiu12fdLFTcyQQDeLoE4ppjSujK/vYbur
-         6Vh4bHjxQOGvJNvQcmIiGYefdfM6j1bAXms/E3+nKb3ABshNU1uhN6kg/vVgaD/GcP3E
-         akpfjZl48gVESxxOIaGcrKwYKHddzWZAykOpSpFzHdXM1Jum5FB6rgUjQu+UPGDg6Q7/
-         V9guohjp86bKIOaGeatTnM/vNT8vs82Ng13J8AmyBqJbn+u0bMDJq0vLUZtTY+smpY03
-         GnYw==
+        d=google.com; s=20251104; t=1774303430; x=1774908230; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=o1eGtSxZYUuz2uzB/0xmbY0GGzJTsHFF98WP24mcOxI=;
+        b=K3fNt6HzXpYnOTnwLtrEjVhhBv7zXHOrjFBtbAxr+ZyS7FR2fUfxCnZWbOSCEmrN0A
+         LCQcPnw6Cow7sGLE0ftcBkWmtyaZkG9XfjNhyY911L3hu2NmurLlPdvOB99h8OXY1Zjx
+         tJMiasHwW3RvN5cOsQ7jEDr640+2Ofc2nHTW6PJ/UJmCwvL92iVHBmYaetkxp9c8oj9y
+         xruAfeWok1v5EP1VlX/oczgtAhlBRa90mOK5hf82vL8dNFZOuSrddVwdDb7JKa6N2Sct
+         FFF3/slkc7qnL5QzRsRp6R7EfNdH5C4dtpO9Vr9+kQD8iTzV1/gU1BuiD8pKJzgfWkoy
+         2Kgw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774300012; x=1774904812;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=NjsO6wgNY9CZeU5uk59dSPA1jA8p7uootZu2+ykxgC4=;
-        b=qyIKHHWLi0CzmMc9Ylm+EswUq/Mjc16yX3HExKzTOyH6fLi6LqW3A6BpaVb9JTn0dv
-         +w53ehRj7nu1p4VmRT0c+2SapCMkULjI9Jdljl16klXXofX+n7QKfXBZUxyBPWo4UU2n
-         Phb3Fv0zurUjSLiY4wQHn29IyKX3I4COyt/zCqwtnuU6oGhNFE25J7rvxFXPIHzi3+LI
-         9Zw0jUgytEF48Lcn40Cy0koRiOgQSads/gG9oI5ih4+mC1YszHrI5X/6DvxOSIozHm9x
-         07LOIbbXpFsD57IBluT9VpKxbpCcnb/6E+Ss+DIH/cmaLUgLOzc7Shi669m8CKRKjqkH
-         bmoQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWrwWyrWNio5d3cCRK+MAoIK+97/4jtzr483AfJTAPRJ8L7s8V5XM0dfCqCwU4BCr1mNomrt4Xqn4ES/imN@vger.kernel.org
-X-Gm-Message-State: AOJu0YzOMhT5ts9NGEvQ3LjKi2SHBMUmgb1UWVcN/q4yfqch5orzyUPj
-	eheGouajwFXE4hI+0Y334UDdNwXb+UD22fVofVnxCc33uDHyJ6KD/zACRwxJoQgbJFJFizVgqzd
-	uaFGMVg6A6HMThOBP0379bMviGX9HN8kpaTl/ZpW8
-X-Gm-Gg: ATEYQzymqxCiJbnL/owuPQ1v6yFA8TeJMxKK895ncYHYoylXW0YjowvF+5nAIMp2jOE
-	wSD27UHo1VB8HZLe0VcCymNaeJpXzNwp7orI/HsXQi5E9pnmfbOISYpfRUH50iZ8trOjHAsgBSi
-	L5iHCKLbqHnV7u6nxCBtKTirUD8Aye36xxle4O3uAUxfsLRmCDK61IPqyBJzk0qLKqeX/BKrUNx
-	5MmcvAiH9fr/0l08epxQXXwKmIiw1U8oZGFv03cBwXX5ztl8iFAzrUYl5oLMAJ4K9fuPpJVe67U
-	Pr1l3jA=
-X-Received: by 2002:a05:6a20:a124:b0:398:9923:749f with SMTP id
- adf61e73a8af0-39bcea1d2c7mr12205176637.20.1774300012580; Mon, 23 Mar 2026
- 14:06:52 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1774303430; x=1774908230;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=o1eGtSxZYUuz2uzB/0xmbY0GGzJTsHFF98WP24mcOxI=;
+        b=pYFBMZ5auk7jRDNv5l0nINsukovSZa4qKFmNd8FsZQ6cK8L2qmDYtQGaRU153pCbMR
+         KAzfcG+AkF1eE3B4VSod6eottaHWgbrmuAyK9X2PwkPP7TNMxV+YHkNlnz7VLPF1gVyX
+         wk5lUtbFjxtcapVBByqYJt1vU/BlfVgO0qmaMNoUDN6zJBejvKeAGEvsPQl07dV28vPe
+         W2ee6fswL8HBfpAOMyycxnuCQVzH63tL8z48xOv8+RpEmSieDuQLQBraamBX5CCilrK/
+         0aBgst8nyL5UyD0H1r3nQR7X2USqzyabSaNQ5+1y/eQio7fpGrFWDbldu1NpyPrkd2K4
+         tGbw==
+X-Gm-Message-State: AOJu0Ywei7VsN0UKBm7/TiJSSxDcX0k88CTpXTKqh7jS9nS9Y3Nk1Q8K
+	2kqF01HN1NbOgj0SNMFW+PmIpW3PR1gi6eKQ1IXrAfY1uTGWIWxtRn2MEXEl8GD0ji5kOyHXufQ
+	L1JwblH16jmXXFj5WL+6Kv64MsOy7v5tCmWJBA7adkAkKif72BYXaLcrSfvQ=
+X-Gm-Gg: ATEYQzzEvq9xp8E7vR/gQRnE2WqhaiCMrHr5lQWzEtNz2xe7cd5uM0SY9/M8YMNCwrr
+	TvGr5N7JjUKfjH55p9oZvmseESziRaooU2uu9IobOet4Ur7TW7iWgCHAQJabtXp+TbmqKPuHz8i
+	OIlGeWwPA64UKKC+oh79WTbiCgZQBFIb4ijw0QhQngSeaiUaqQBZ8JQwsz1LhOrfUd75YewB7Tp
+	hTnw17oQiu3QIzrq4x8J3Pb+qPaIozNXNSoYWfmh+5GHkBdVRoglcRUbIQJ2Cg26g2YjLKwFgWO
+	Tr3DXrm57+SaG1QppjIxA1R1rdRvZGTkQ6Q=
+X-Received: by 2002:a05:622a:9009:b0:506:1f23:e22c with SMTP id
+ d75a77b69052e-50b6fb9bd95mr4925811cf.6.1774303429792; Mon, 23 Mar 2026
+ 15:03:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260323042510.3331778-4-paul@paul-moore.com> <20260323042510.3331778-6-paul@paul-moore.com>
-In-Reply-To: <20260323042510.3331778-6-paul@paul-moore.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Mon, 23 Mar 2026 17:06:40 -0400
-X-Gm-Features: AaiRm51oMol5rD-3lC5JmUxYQEOgP29lPad5MhWEYDTptj6N_TPcJrob_X8Dy0s
-Message-ID: <CAHC9VhQJcuA0VTpGSD0-x+Z5a__SQBiYfwc9zWwLMDa6THfKPw@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 2/2] selinux: fix overlayfs mmap() and mprotect()
- access checks
-To: linux-security-module@vger.kernel.org, selinux@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-erofs@lists.ozlabs.org
-Cc: Amir Goldstein <amir73il@gmail.com>, Gao Xiang <xiang@kernel.org>
+From: Chenglong Tang <chenglongtang@google.com>
+Date: Mon, 23 Mar 2026 15:03:39 -0700
+X-Gm-Features: AQROBzCJ71kjMcg47Y9l0d3oTHYV_D4QnyFW5DxoPbe2RkRTxMNDx_bzID4OPcQ
+Message-ID: <CAOdxtTadAFH01Vui1FvWfcmQ8jH1O45owTzUcpYbNvBxnLeM7Q@mail.gmail.com>
+Subject: [REGRESSION] fs/overlayfs/ext4: Severe jbd2 lock contention and
+ journal starvation on concurrent copy-up (v6.6 -> v6.12)
+To: linux-unionfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	regressions@lists.linux.dev
+Cc: jack@suse.com, Jan Kara <jack@suse.cz>, miklos@szeredi.hu, 
+	Amir Goldstein <amir73il@gmail.com>, tytso@mit.edu, adilger.kernel@dilger.ca, 
+	viro@zeniv.linux.org.uk, brauner@kernel.org, Kevin Berry <kpberry@google.com>, 
+	Robert Kolchmeyer <rkolchmeyer@google.com>, Deepa Dinamani <deepadinamani@google.com>, 
+	He Gao <hegao@google.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 23, 2026 at 12:25=E2=80=AFAM Paul Moore <paul@paul-moore.com> w=
-rote:
->
-> The existing SELinux security model for overlayfs is to allow access if
-> the current task is able to access the top level file (the "user" file)
-> and the mounter's credentials are sufficient to access the lower
-> level file (the "backing" file).  Unfortunately, the current code does
-> not properly enforce these access controls for both mmap() and mprotect()
-> operations on overlayfs filesystems.
->
-> This patch makes use of the newly created security_mmap_backing_file()
-> LSM hook to provide the missing backing file enforcement for mmap()
-> operations, and leverages the backing file API and new LSM blob to
-> provide the necessary information to properly enforce the mprotect()
-> access controls.
->
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Paul Moore <paul@paul-moore.com>
-> ---
->  security/selinux/hooks.c          | 252 ++++++++++++++++++++++--------
->  security/selinux/include/objsec.h |  17 ++
->  2 files changed, 200 insertions(+), 69 deletions(-)
->
-> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-> index d8224ea113d1..2a3d524dce24 100644
-> --- a/security/selinux/hooks.c
-> +++ b/security/selinux/hooks.c
-> @@ -1745,6 +1745,60 @@ static inline int file_path_has_perm(const struct =
-cred *cred,
->  static int bpf_fd_pass(const struct file *file, u32 sid);
->  #endif
->
-> +static int __file_has_perm(bool bf_user_file, const struct cred *cred,
-> +                          const struct file *file, u32 av)
-> +
-> +{
-> +       struct common_audit_data ad;
-> +       struct inode *inode;
-> +       u32 ssid =3D cred_sid(cred);
-> +       u32 tsid_fd;
-> +       int rc;
-> +
-> +       if (bf_user_file) {
-> +               struct backing_file_security_struct *bfsec;
-> +               const struct path *path;
-> +
-> +               if (WARN_ON(!(file->f_mode & FMODE_BACKING)))
-> +                       return -EPERM;
+Hi all,
 
-Based on other code paths, we should return -EIO here.  I've updated
-the patch, but I'm holding off on posting another version for a day or
-so in case anyone else is able to take a look.
+We are tracking a severe performance regression in Google's
+Container-Optimized OS (COS) that appeared when moving from the 6.6
+LTS kernel to the 6.12 LTS kernel.
 
-> +               bfsec =3D selinux_backing_file(file);
-> +               path =3D backing_file_user_path(file);
-> +               tsid_fd =3D bfsec->uf_sid;
-> +               inode =3D d_inode(path->dentry);
-> +
-> +               ad.type =3D LSM_AUDIT_DATA_PATH;
-> +               ad.u.path =3D *path;
-> +       } else {
-> +               struct file_security_struct *fsec =3D selinux_file(file);
-> +
-> +               tsid_fd =3D fsec->sid;
-> +               inode =3D file_inode(file);
-> +
-> +               ad.type =3D LSM_AUDIT_DATA_FILE;
-> +               ad.u.file =3D file;
-> +       }
-> +
-> +       if (ssid !=3D tsid_fd) {
-> +               rc =3D avc_has_perm(ssid, tsid_fd, SECCLASS_FD, FD__USE, =
-&ad);
-> +               if (rc)
-> +                       return rc;
-> +       }
-> +
-> +#ifdef CONFIG_BPF_SYSCALL
-> +       /* regardless of backing vs user file, use the underlying file he=
-re */
-> +       rc =3D bpf_fd_pass(file, ssid);
-> +       if (rc)
-> +               return rc;
-> +#endif
-> +
-> +       /* av is zero if only checking access to the descriptor. */
-> +       if (av)
-> +               return inode_has_perm(cred, inode, av, &ad);
-> +
-> +       return 0;
-> +}
+Under concurrent CI workloads (specifically, many containers doing
+Python package compilation / .pyc generation simultaneously), the 6.12
+kernel suffers from massive jbd2 journal contention. Processes hang
+for 20-30 seconds waiting for VFS locks and journal space. On 6.6, the
+exact same workload completes in ~4 seconds.
 
---=20
-paul-moore.com
+# Environment:
+* Host FS: ext4 (backed by standard cloud block storage)
+* Container FS: OverlayFS (Docker)
+* Machine: n2d-highmem-96 (96 vCPU, high memory)
+* Good Kernel: 6.6.87
+* Bad Kernels: 6.12.55, 6.12.68
+
+# The Bottleneck
+During the 20+ second hang, `cat /proc/<pid>/stack` reveals three
+distinct groups of blocked processes thrashing on the jbd2 journal.
+The OverlayFS copy-up mechanism seems to be generating so many
+synchronous ext4 transactions that it exhausts the jbd2 transaction
+buffers.
+
+1. Journal Space Exhaustion (Waiting to start transaction):
+[<0>] __jbd2_log_wait_for_space+0xa3/0x240
+[<0>] start_this_handle+0x42d/0x8a0
+[<0>] jbd2__journal_start+0x103/0x1e0
+[<0>] __ext4_journal_start_sb+0x129/0x1c0
+[<0>] __ext4_new_inode+0x7cd/0x1290
+[<0>] ext4_create+0xbc/0x1b0
+[<0>] vfs_create+0x192/0x250
+[<0>] ovl_create_real+0xd5/0x170
+[<0>] ovl_create_or_link+0x1d7/0x7f0
+
+2. VFS Rename / Copy-up Contention (Blocked by the slow sync):
+[<0>] lock_rename+0x29/0x50
+[<0>] ovl_copy_up_flags+0x84c/0x12e0
+[<0>] ovl_create_object+0x4a/0x120
+[<0>] vfs_mkdir+0x1aa/0x260
+[<0>] do_mkdirat+0xb9/0x240
+
+3. Synchronous Flush Blocking:
+[<0>] jbd2_log_wait_commit+0x107/0x150
+[<0>] jbd2_journal_force_commit+0x9c/0xc0
+[<0>] ext4_sync_file+0x278/0x310
+[<0>] ovl_sync_file+0x2f/0x50
+[<0>] ovl_copy_up_metadata+0x455/0x4b0
+
+# Minimal Reproducer
+The issue is easily reproducible by triggering 20 concurrent cold
+Python imports in Docker, which forces OverlayFS to copy-up the
+`__pycache__` directories and write the `.pyc` files.
+
+```bash
+# 1. Build a clean image with no pre-compiled bytecode
+cat << 'EOF' > Dockerfile
+FROM python:3.10-slim
+RUN pip install --quiet google-cloud-compute
+RUN find /usr/local -type d -name "__pycache__" -exec rm -rf {} +
+EOF
+docker build -t clean-import-test .
+
+# 2. Fire 20 concurrent imports
+for i in {1..20}; do
+  docker run --rm clean-import-test bash -c 'time python -c "import
+google.cloud.compute_v1"' > clean_test_cold_$i.log 2>&1 &
+done
+wait
+grep "real" clean_test_cold_*.log
+```
+
+On 6.6.87, all 20 containers finish in ~4.3s.
+On 6.12.x, they hang and finish between 17s and 27s. Bypassing disk
+writes completely mitigates the regression on 6.12 (using
+PYTHONDONTWRITEBYTECODE=1), confirming it is an ext4/overlayfs I/O
+contention issue rather than a CPU scheduling one.
+
+Because the regression spans from 6.6 to 6.12, bisection is quite
+heavy. Before we initiate a full kernel bisect, does this symptom ring
+a bell for any ext4 fast_commit, jbd2 locking, or OverlayFS
+metacopy/sync changes introduced during this window?
+
+Any pointers or patches you'd like us to test would be greatly appreciated.
+
+Thanks,
+Chenglong Tang
+Google Container-Optimized OS Team
