@@ -1,302 +1,351 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7C783659E7
-	for <linux-unionfs@vger.kernel.org>; Tue, 24 Mar 2026 08:28:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.176
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774340912; cv=pass; b=u/y7fMmVaVefnt8Xt6ZeRFpbUfAPSpOAgt5wbOdHxuQhSDRFEn20b3+/47Cb3n8T+BcY/GYjVSmk+ADF6yUty9C9O/CY7s998VzKyF6vp6XkL3iAqLEezBgpqvgxZw3ITB7A9PcoVuWgoWud2NrX3pZ9NryAtPV7GI5Y+xYQd3o=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774340912; c=relaxed/simple;
-	bh=tyQeomo4l0e4WGPfMZjOg8hL7A52QCZZza6GeOK/YyY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=j0d+6naBYSeidP+xfgIXFDGIoBGlBtVtbY+6ve4bprbF/N0nvqTFxKFDRS2Wm66swqaUxSL6ixftF/hwn9BGQY0DZ7ji7HLrKTpHaY4VNCTM/keXpgUJIzH2ajC5wp5JDF0Kp1197Xp0SrbkwsLrjrsCAWGe7iLhxTZENk0ylq8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OjsFtJEY; arc=pass smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E05953FE661
+	for <linux-unionfs@vger.kernel.org>; Tue, 24 Mar 2026 14:57:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774364275; cv=none; b=rBsaYNK8Xcuzf6XHMEYECichl4o5HB/mowifQFjli8EgpQtvXrDapCXEGkpK009aJLysjY2YrZb7LadZCOuMub/4XoejDFRkozJ2B56dUoreJB3ZcaFAHvB+xI6sFs/r2GxxcYmQif22mrrHcILc3uCTYZk2pQHxfFVW+aFEeQU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774364275; c=relaxed/simple;
+	bh=wP2VAd8uC5DoBq8oKC/ybQTbv78hd/KlwOq4UysuGKY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dZHDqyeq2emwCbLztRG4RMzfLHFkMQ4PMKnaO0DJam/iWO6MlDmTGxQmxWyy/+TCB58gAuTUOtx7FrgVl5QKRZxqc+mARAGZkjEs8Io0yCA/f1E+6PySpb4USGKWXQo/hM7jrH/UsWXpFsyfCic/6NitWS/enxLwX/WEvcgB0vM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qr6hdSZb; arc=none smtp.client-ip=209.85.218.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OjsFtJEY"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-509062d829dso386101cf.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 24 Mar 2026 01:28:24 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1774340903; cv=none;
-        d=google.com; s=arc-20240605;
-        b=JVTumWNHus9F24VrDOdy8FFA8K/QZAHekZeX3VVpmzGOq7wBZrq0xdl2pt0Ojtv8gc
-         7UNhxJzZdI/M6AWPyrGupALH7rtyHJnDZiTfjT1a46ldrt5NPbdjMGif6HzcG+yor5rX
-         3pK6frd05gKP0iMoRCUJcBlQQsiULuWK6YL4w/FnesaqsE9F30StmUeTQTmxmZCCggDW
-         N/1ive0t2lyx/zftsMmhRVdz9HGkbCVqDESf3CI4h1hBjRqxb/w+ZDCytj5/Ut+si+nl
-         AUkSvCpRog9ksrYtYomo2tTzN+6fCSdhBta+WhYs+FPN8XNQg7sfwmI3f0dBSvFskJ+d
-         Pcxw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=k/R4UrJ3i0AKSFB8S0BGmvzRVh7LGwkVlhjThqkyhKg=;
-        fh=0PKR6hjWLKhftCcJ37qUpfe72/vhBUt2DK3sXKJxQHE=;
-        b=FG1Fr7CJzAfIfNz9y1na3yBDqIJrQq+R3x56gVv2RULWYUmW6f6MzibAoWsyDp6GHx
-         /Jea9/mtJ5BGfdcyJ03aiUb0riPSf5kZ1jXyk+pwdXO0skPElf2p84IjqvFux9VzPSwa
-         JMHPV7vayk1l6AH3MtSrtc9IIClpaJkjxvstIyrZGddgG+2LFan9HZcKFFLElqu4uRyR
-         ukcu9Tl94YYF80Yrf4DHeeyPuLPbQ4i6xL15lvZY1bJK7KLxyDNuxBWWnwuaIFbx7E23
-         q4UkMHzTnQkXZE6Wgi8IsmHKaimoTA/WuDuBXmwYhOeS80nznglI9BKHvk8OdUKy/Ake
-         YhPA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qr6hdSZb"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-b97e6e48b24so266115266b.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Mar 2026 07:57:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1774340903; x=1774945703; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=k/R4UrJ3i0AKSFB8S0BGmvzRVh7LGwkVlhjThqkyhKg=;
-        b=OjsFtJEYLVlV7FadTD+YZUVrv7DIm4H2oto3/P+FFWHOZDyrhaPUDUqJEzMUKeVgdg
-         NgnMngBUi5V92KAM6S2CFLQB4Yl9j2cEdwhKggutiMHzq+HHMY8W9XV3rO/Xkkgcb/5e
-         7Lbualiwe4Qjdj5l0V6i3lkU++LZMUgNJbEpuBhIPMQd6zF5Y0eB1pwDmR2bSVxboaat
-         2v8nG748awU9aIArGjtJUW0+1AEzP3puXWAYWEVp+/Gb/C/OSXaJoic91LtAEJqH7Zb+
-         2JzQJ948ySTWqcpF41QnxMGNtsJwe6qSwIyXjeeS/yoHH9EyADsM9CzifQlPrS6BgP29
-         GTPw==
+        d=gmail.com; s=20251104; t=1774364272; x=1774969072; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=q/aXTMfWMQJT4pRNTYB+hJHAjo0aqEPgFnREjQmLCXU=;
+        b=Qr6hdSZby2gHgMLjDB7uw2qOPBFJVNyHWaZPMRALTzIvqnh91cEsf4m5jU/urRJyL3
+         z/Q9Rv+++r6jXPoDNtfWMkzAkmYVUHu/LIj84G3RfG6gmUxVPT/qBQyerQjdoIO53Ey5
+         4L4v9bVqrEY8hdTIBFm5NRV3bIGFKr272TgiqT2HzIv8OnqF9KolhxC+V9NPqLeqkT99
+         BVIA6KfgaiuNHPla8CPFXc/yjeR83pbwyk+l+yg3W82kbF3Q8bfTnOsOg9XQqGI5YrdK
+         eQ9R/LrKfBiyyjAyeFy0luW5UgW5L+ZOwDsrgw9HCMNDpkFq3jPqF0e5zptWi5NUGz30
+         ao0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774340903; x=1774945703;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=k/R4UrJ3i0AKSFB8S0BGmvzRVh7LGwkVlhjThqkyhKg=;
-        b=NY6LTfhcOJL1JLYmMuSdl3ThL81DbhbOClh7ANmfEx/SBrC9MjGCS70J/pYm9jberu
-         932n2Js9zrrY+IqK/UaTzUOfOM6cIsXWBu9+FJ9Vqp83ozv8scCD3yE+Qx6shS2JZ+Gs
-         nSmykaOPaN+qlr4ygB7on+2vVuqT5ZsfaYr9sb4zCYm/Qbf/4G/gwG/XW0Lbetd3wcGa
-         0XiE2UVG9OFsgVsJknBfIc0L0dbqYJOrG83Kc4N4tkdaFDIyIXxEVXrGPmP9QCoVR0JR
-         MaL06u+UUcDe4yXf9TvTFOIXNpcmeIuugrXKtBVujwbcqfavofyWIm7ZZzSaaB+9iY8u
-         be2Q==
-X-Gm-Message-State: AOJu0YwgZp+3vfSc6NWAkIeTnNnq/jyyQ+yAb91xyyKNLXN0Od7rcQLq
-	+mdJcNwxZJ54PKqtyjwVlDPlbeWXCn1qSxRdeD59IVM8zW1UvFHHYoQ+WfHFjOiMz5tD96NR68z
-	Efovn9MjxsSK4pZi9H+JwH/AKNLqE9a/u8EBJ1KST
-X-Gm-Gg: ATEYQzxE9l3B/miowUXCF4VJOFFrORV+EERr5ic9fjqXSTn0zgsVmwOlApFwE4BFvDH
-	I5RQJzL8WquuATL7A68MXAH1VrNDdEQZUz29U4FsTsy75SCIV+APyNLHzS79nVRqMHIsqxOqBHe
-	85CS4sVWPBs4Rd4eElCro4FPFDcs6MQrE6Thsg04zGFWJab8HhYJK9QQzp84d3nyY/YU4T7ph1o
-	5urDXIIh4H4yICYiUT4sHqtj0WAwVCSv2pVH0Ob0InK8VJlz2HgVJL9hzdLkSpSU+Up4/oZoCq0
-	EBznW3U=
-X-Received: by 2002:ac8:7d8c:0:b0:501:4eae:dbfc with SMTP id
- d75a77b69052e-50b7154b225mr8207991cf.5.1774340902858; Tue, 24 Mar 2026
- 01:28:22 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1774364272; x=1774969072;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=q/aXTMfWMQJT4pRNTYB+hJHAjo0aqEPgFnREjQmLCXU=;
+        b=jUuFOPCyNXhVwitg+FogjEwbH77PDdJHM3lU44ZByCvTNXvlIaqRrcL0RwevFQlLI8
+         IPyh2C+j1LjSMMNC1Lp+qcshjdeQv1ZVjQVohZ4H9o79nE0nhwNyu7KJ5MkyxelcR14V
+         KBbF3nf6dTWYMHtiI8Oi0uQUMlzP+UbnwHrYfiSBfWIeulmyc6NVfxqcI3KoeQOPUupb
+         Uw/K0lPha1uzZGW4Mz/6lZq7rEGkEteJ0z7AvMAblnrW9egNP5tytJFESTOq5TRr8Baq
+         Bs5FBpfwHwlXwyFPNts4pTsZSE+zWJXLS+RQF03zZF4y7euUU6+eIkyOZCt8DQl0r8oj
+         kL5A==
+X-Forwarded-Encrypted: i=1; AJvYcCUlR1f53V57mvKhq1a87prNxfVdMYqfNjgLS4qlefMBtmtsIbbumg2K6/ZEwRxEF+bBkHgtUU2bttZucMhy@vger.kernel.org
+X-Gm-Message-State: AOJu0YzdyPW2+3zUUHtnn7CeNPcXEh7PktJmlQztX0PREhMFqwBo70mr
+	3VUcujbVOMiSX/zCA6eCND8anxKErNUZ+d4VhlYk44MhqCIQC36OLcL3
+X-Gm-Gg: ATEYQzzU8XAh1yZHkhk56ael04FipAMwuNGdsQ3/6dOSSARqafbqsWU5dHhJaYJwNx8
+	EcfNbxEJKqmcM2ElMECzUXe3ZgDjph55pxpHT8V9bfX5PcSodWPzOOyFHU000CEfk7Zd+DkIXdA
+	3XYwucZcXwI16Z33x6w5b6C+Q/EP3Q2DoH4sdBvFd2JNU2rdjsnZBebiUTtOHtTM7cHIDTP7Kb9
+	kUrpEDZ+AVNtXSMzzHN7IMHnbRudGYrkInAdiZPYwe6cP0f+X0ldXRddH+xP8nzPVfUII0X08le
+	RP2psNbuGnp9xM47F+di0WJo+PzeA0qhPJUZVusL98xEDPm1kics6xyqI+F8Jrm+rR4U6oZ3/2E
+	AhMNHoq6Hoyj607BGn1zZlBiWzeUsXVioMdo0tXd6NMvbnE/7TaQ0rUmaONnBiJ8UmNhV/vGPdE
+	aUOQDXRB1b2RKB2sNk6wyPgg+b2NEMQo2zZG5/KoyQCmGlrXo7PaI2dSKjPzHRPk+K9RreitXrM
+	0F1s8uBvDPsQzLIFnrk/I/o1FqC
+X-Received: by 2002:a17:906:2691:b0:b97:d126:c007 with SMTP id a640c23a62f3a-b982f37d448mr863944066b.30.1774364271624;
+        Tue, 24 Mar 2026 07:57:51 -0700 (PDT)
+Received: from localhost (2001-1c00-570d-ee00-4ce2-3481-21c7-16a7.cable.dynamic.v6.ziggo.nl. [2001:1c00:570d:ee00:4ce2:3481:21c7:16a7])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-668d22914ecsm4874911a12.21.2026.03.24.07.57.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Mar 2026 07:57:51 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	Fei Lv <feilv@asrmicro.com>,
+	Chenglong Tang <chenglongtang@google.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] ovl: make fsync after metadata copy-up opt-in mount option
+Date: Tue, 24 Mar 2026 15:57:50 +0100
+Message-ID: <20260324145750.90719-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOdxtTadAFH01Vui1FvWfcmQ8jH1O45owTzUcpYbNvBxnLeM7Q@mail.gmail.com>
- <CAOQ4uxjuAfCJXGRchDf-7d+uCS+8=Du_Y8OzgX15w4-fOR_oHQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjuAfCJXGRchDf-7d+uCS+8=Du_Y8OzgX15w4-fOR_oHQ@mail.gmail.com>
-From: Chenglong Tang <chenglongtang@google.com>
-Date: Tue, 24 Mar 2026 01:28:11 -0700
-X-Gm-Features: AQROBzDDTcU2T2aPK1OlAz0eukcGSLH7JjmZixCRujqVcZW31tErSWlhhWfyG3c
-Message-ID: <CAOdxtTY9yKa5ZfzkoJYK_P=_mKygy1aQmCYfDdXo-xeU+pxqbA@mail.gmail.com>
-Subject: Re: [REGRESSION] fs/overlayfs/ext4: Severe jbd2 lock contention and
- journal starvation on concurrent copy-up (v6.6 -> v6.12)
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	regressions@lists.linux.dev, jack@suse.com, Jan Kara <jack@suse.cz>, 
-	miklos@szeredi.hu, tytso@mit.edu, adilger.kernel@dilger.ca, 
-	viro@zeniv.linux.org.uk, brauner@kernel.org, Kevin Berry <kpberry@google.com>, 
-	Robert Kolchmeyer <rkolchmeyer@google.com>, Deepa Dinamani <deepadinamani@google.com>, 
-	He Gao <hegao@google.com>, Fei Lv <feilv@asrmicro.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Amir,
+From: Fei Lv <feilv@asrmicro.com>
 
-You absolutely nailed it. Thank you.
+Commit 7d6899fb69d25 ("ovl: fsync after metadata copy-up") was done to
+fix durability of overlayfs copy up on an upper filesystem which does
+not enforce ordering on storing of metadata changes (e.g. ubifs).
 
-Regarding the test, you are correct: the rm -rf happens in the Docker
-build phase, so the timed test purely measures the burst creation of
-the new __pycache__ directories and .pyc files on a clean slate.
+In an earlier revision of the regressing commit by Lei Lv, the metadata
+fsync behavior was opt-in via a new "fsync=strict" mount option.
+We were hoping that the opt-in mount option could be avoided, so the
+change was only made to depend on metacopy=off, in the hope of not
+hurting performance of metadata heavy workloads, which are more likely
+to be using metacopy=on.
 
-I checked our environment, and metacopy is indeed disabled by default.
-We generally keep it disabled for broader compatibility with various
-container runtimes and user-namespace tooling that expect a full
-copy-up.
+This hope was proven wrong by a performance regression report from Google
+COS workload after upgrade to kernel 6.12.
 
-To test your theory, I dynamically enabled it (echo Y >
-/sys/module/overlay/parameters/metacopy) and re-ran the 20-container
-concurrent test. The journal lock contention completely vanished, and
-the times dropped from ~27 seconds back down to ~4.3 seconds, fully
-restoring the 6.6 performance.
+This is an adaptation of Lei's original "fsync=strict" mount option
+to the existing upstream code.
 
-I am currently building a custom COS image with your suggested 1-line
-patch (ctx.metadata_fsync =3D 0 && ...) to verify it on our 96-core test
-rig. I highly expect it to be the root cause, and I will report back
-with the benchmark results as soon as the build finishes.
+The new mount option is mutually exclusive with the "volatile" mount
+option, so the latter is now an alias to the "fsync=volatile" mount
+option.
 
-Since we generally keep metacopy disabled for broader compatibility
-with container tooling, your proposed patch to make metadata_fsync
-opt-in would be a good fix for us.
+Reported-by: Chenglong Tang <chenglongtang@google.com>
+Closes: https://lore.kernel.org/linux-unionfs/CAOdxtTadAFH01Vui1FvWfcmQ8jH1O45owTzUcpYbNvBxnLeM7Q@mail.gmail.com/
+Link: https://lore.kernel.org/linux-unionfs/CAOQ4uxgKC1SgjMWre=fUb00v8rxtd6sQi-S+dxR8oDzAuiGu8g@mail.gmail.com/
+Fixes: 7d6899fb69d25 ("ovl: fsync after metadata copy-up")
+Depends: 50e638beb67e0 ("ovl: Use str_on_off() helper in ovl_show_options()")
+Cc: stable@vger.kernel.org # v6.12
+Signed-off-by: Fei Lv <feilv@asrmicro.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Thanks again for the pointers!
+Miklos,
 
-Best,
+The linked conversion was concluded with:
+"Now we just need to hope that users won't come shouting about
+performance regressions."
 
-Chenglong
+Well, users came shouting.
 
-On Tue, Mar 24, 2026 at 12:53=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
-> wrote:
->
-> On Mon, Mar 23, 2026 at 11:03=E2=80=AFPM Chenglong Tang
-> <chenglongtang@google.com> wrote:
-> >
-> > Hi all,
->
-> Hi Chenglong,
->
-> >
-> > We are tracking a severe performance regression in Google's
-> > Container-Optimized OS (COS) that appeared when moving from the 6.6
-> > LTS kernel to the 6.12 LTS kernel.
-> >
-> > Under concurrent CI workloads (specifically, many containers doing
-> > Python package compilation / .pyc generation simultaneously), the 6.12
-> > kernel suffers from massive jbd2 journal contention. Processes hang
-> > for 20-30 seconds waiting for VFS locks and journal space. On 6.6, the
-> > exact same workload completes in ~4 seconds.
-> >
-> > # Environment:
-> > * Host FS: ext4 (backed by standard cloud block storage)
-> > * Container FS: OverlayFS (Docker)
-> > * Machine: n2d-highmem-96 (96 vCPU, high memory)
-> > * Good Kernel: 6.6.87
-> > * Bad Kernels: 6.12.55, 6.12.68
-> >
-> > # The Bottleneck
-> > During the 20+ second hang, `cat /proc/<pid>/stack` reveals three
-> > distinct groups of blocked processes thrashing on the jbd2 journal.
-> > The OverlayFS copy-up mechanism seems to be generating so many
-> > synchronous ext4 transactions that it exhausts the jbd2 transaction
-> > buffers.
-> >
-> > 1. Journal Space Exhaustion (Waiting to start transaction):
-> > [<0>] __jbd2_log_wait_for_space+0xa3/0x240
-> > [<0>] start_this_handle+0x42d/0x8a0
-> > [<0>] jbd2__journal_start+0x103/0x1e0
-> > [<0>] __ext4_journal_start_sb+0x129/0x1c0
-> > [<0>] __ext4_new_inode+0x7cd/0x1290
-> > [<0>] ext4_create+0xbc/0x1b0
-> > [<0>] vfs_create+0x192/0x250
-> > [<0>] ovl_create_real+0xd5/0x170
-> > [<0>] ovl_create_or_link+0x1d7/0x7f0
-> >
-> > 2. VFS Rename / Copy-up Contention (Blocked by the slow sync):
-> > [<0>] lock_rename+0x29/0x50
-> > [<0>] ovl_copy_up_flags+0x84c/0x12e0
-> > [<0>] ovl_create_object+0x4a/0x120
-> > [<0>] vfs_mkdir+0x1aa/0x260
-> > [<0>] do_mkdirat+0xb9/0x240
-> >
-> > 3. Synchronous Flush Blocking:
-> > [<0>] jbd2_log_wait_commit+0x107/0x150
-> > [<0>] jbd2_journal_force_commit+0x9c/0xc0
-> > [<0>] ext4_sync_file+0x278/0x310
-> > [<0>] ovl_sync_file+0x2f/0x50
-> > [<0>] ovl_copy_up_metadata+0x455/0x4b0
-> >
-> > # Minimal Reproducer
-> > The issue is easily reproducible by triggering 20 concurrent cold
-> > Python imports in Docker, which forces OverlayFS to copy-up the
-> > `__pycache__` directories and write the `.pyc` files.
-> >
-> > ```bash
-> > # 1. Build a clean image with no pre-compiled bytecode
-> > cat << 'EOF' > Dockerfile
-> > FROM python:3.10-slim
-> > RUN pip install --quiet google-cloud-compute
-> > RUN find /usr/local -type d -name "__pycache__" -exec rm -rf {} +
-> > EOF
-> > docker build -t clean-import-test .
-> >
-> > # 2. Fire 20 concurrent imports
-> > for i in {1..20}; do
-> >   docker run --rm clean-import-test bash -c 'time python -c "import
-> > google.cloud.compute_v1"' > clean_test_cold_$i.log 2>&1 &
-> > done
-> > wait
-> > grep "real" clean_test_cold_*.log
-> > ```
->
-> I don't understand.
->
-> You write that Python imports in Docker forces OverlayFS to copy-up the
-> `__pycache__` directories, but the prep stage removes all the
-> `__pycache__` directories.
->
-> My guess would be that rm -rf __pycache__ would generate a lot of
-> metadata copy ups, but you write that the issue occurs during the
-> 2nd stage. Maybe I misunderstood.
->
-> Please try to figure out which and how many copy up objects this translat=
-es to
-> for directories, for files?
->
-> >
-> > On 6.6.87, all 20 containers finish in ~4.3s.
-> > On 6.12.x, they hang and finish between 17s and 27s. Bypassing disk
-> > writes completely mitigates the regression on 6.12 (using
-> > PYTHONDONTWRITEBYTECODE=3D1), confirming it is an ext4/overlayfs I/O
-> > contention issue rather than a CPU scheduling one.
-> >
-> > Because the regression spans from 6.6 to 6.12, bisection is quite
-> > heavy. Before we initiate a full kernel bisect, does this symptom ring
-> > a bell for any ext4 fast_commit, jbd2 locking, or OverlayFS
-> > metacopy/sync changes introduced during this window?
-> >
-> > Any pointers or patches you'd like us to test would be greatly apprecia=
-ted.
-> >
->
-> Very high suspect:
->
-> 7d6899fb69d25 ovl: fsync after metadata copy-up
->
-> As you can see from this discussion [1] this performance regression
-> was somewhat anticipated:
->
-> "Now we just need to hope that users won't come shouting about
-> performance regressions."
->
-> [1] https://lore.kernel.org/linux-unionfs/CAOQ4uxgKC1SgjMWre=3DfUb00v8rxt=
-d6sQi-S+dxR8oDzAuiGu8g@mail.gmail.com/
->
-> With metacopy disabled this change introduced fsyncs on metadata-only
-> changes made my overlayfs which could generate a lot of journal stress
-> and explain the regression.
->
-> But we had not anticipated that workloads could be affected with
-> metacopy disabled, because it was anticipated that data fsync
-> would be the more significant bottleneck.
->
-> Do your containers have metacopy enabled?
-> If not, why not? Is it because metacopy is conflicting with some
-> other overlayfs feature that you need like userxattr?
->
-> Thinking out loud, I wonder if metadata copy up code would benefit from
-> calling export_ops->commit_metadata() when supported by upper fs
-> instead of open+vfs_fsync(), but I doubt if that would relieve journal st=
-ress
-> in this case.
->
-> Anyway, please see if forcing metadata_fsync off solves the regression
-> and I will stage the original patch from Fei to make metadata_fsync
-> opt-in.
->
-> Thanks,
-> Amir.
->
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -1154,7 +1154,7 @@ static int ovl_copy_up_one(struct dentry
-> *parent, struct dentry *dentry,
->          * that will hurt performance of workloads such as chown -R, so w=
-e
->          * only fsync on data copyup as legacy behavior.
->          */
-> -       ctx.metadata_fsync =3D !OVL_FS(dentry->d_sb)->config.metacopy &&
-> +       ctx.metadata_fsync =3D 0 && !OVL_FS(dentry->d_sb)->config.metacop=
-y &&
->                              (S_ISREG(ctx.stat.mode) || S_ISDIR(ctx.stat.=
-mode));
->         ctx.metacopy =3D ovl_need_meta_copy_up(dentry, ctx.stat.mode, fla=
-gs);
+I am going to queue this up for an explicit opt-in to strict
+metadata fsync.
+
+Your review comment on the original fsync=strict patch are
+already addressed by the upstream commit (no double fsync).
+
+Thanks,
+Amir.
+
+
+ Documentation/filesystems/overlayfs.rst | 39 +++++++++++++++++++++++++
+ fs/overlayfs/copy_up.c                  |  6 ++--
+ fs/overlayfs/ovl_entry.h                | 20 +++++++++++--
+ fs/overlayfs/params.c                   | 32 ++++++++++++++++----
+ fs/overlayfs/super.c                    |  2 +-
+ 5 files changed, 88 insertions(+), 11 deletions(-)
+
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index af5a69f87da42..f9ef3d101c172 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -783,6 +783,45 @@ controlled by the "uuid" mount option, which supports these values:
+     mounted with "uuid=on".
+ 
+ 
++Durability and copy up
++----------------------
++
++The fsync(2) and fdatasync(2) system calls ensure that the metadata and
++data of a file, respectively, are safely written to the backing
++storage, which is expected to guarantee the existence of the information post
++system crash.
++
++Without the fdatasync(2) call, there is no guarantee that the observed
++data after a system crash will be either the old or the new data, but
++in practice, the observed data after crash is often the old or new data or a
++mix of both.
++
++When overlayfs file is modified for the first time, copy up will create
++a copy of the lower file and its parent directories in the upper layer.
++In case of a system crash, if fdatasync(2) was not called after the
++modification, the upper file could end up with no data at all (i.e.
++zeros), which would be an unusual outcome.  To avoid this experience,
++overlayfs calls fsync(2) on the upper file before completing the copy up with
++rename(2) to make the copy up "atomic".
++
++Depending on the backing filesystem (e.g. ubifs), fsync(2) before
++rename(2) may not be enough to provide the "atomic" copy up behavior
++and fsync(2) on the copied up parent directories is required as well.
++
++Overlayfs can be tuned to prefer performance or durability when storing
++to the underlying upper layer.  This is controlled by the "fsync" mount
++option, which supports these values:
++
++- "ordered": (default)
++    Call fsync(2) on upper file before completion of copy up.
++- "strict":
++    Call fsync(2) on upper file and directories before completion of copy up.
++- "volatile": [*]
++    Prefer performance over durability (see `Volatile mount`_)
++
++[*] The mount option "volatile" is an alias to "fsync=volatile".
++
++
+ Volatile mount
+ --------------
+ 
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 758611ee4475f..eca285a2d0c5b 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -1146,15 +1146,15 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		return -EOVERFLOW;
+ 
+ 	/*
+-	 * With metacopy disabled, we fsync after final metadata copyup, for
++	 * With "fsync=strict", we fsync after final metadata copyup, for
+ 	 * both regular files and directories to get atomic copyup semantics
+ 	 * on filesystems that do not use strict metadata ordering (e.g. ubifs).
+ 	 *
+-	 * With metacopy enabled we want to avoid fsync on all meta copyup
++	 * By default, we want to avoid fsync on all meta copyup, because
+ 	 * that will hurt performance of workloads such as chown -R, so we
+ 	 * only fsync on data copyup as legacy behavior.
+ 	 */
+-	ctx.metadata_fsync = !OVL_FS(dentry->d_sb)->config.metacopy &&
++	ctx.metadata_fsync = ovl_should_sync_strict(OVL_FS(dentry->d_sb)) &&
+ 			     (S_ISREG(ctx.stat.mode) || S_ISDIR(ctx.stat.mode));
+ 	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
+ 
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 1d4828dbcf7ac..dbb2242647ce4 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -5,6 +5,12 @@
+  * Copyright (C) 2016 Red Hat, Inc.
+  */
+ 
++enum {
++	OVL_FSYNC_ORDERED,
++	OVL_FSYNC_STRICT,
++	OVL_FSYNC_VOLATILE,
++};
++
+ struct ovl_config {
+ 	char *upperdir;
+ 	char *workdir;
+@@ -18,7 +24,7 @@ struct ovl_config {
+ 	int xino;
+ 	bool metacopy;
+ 	bool userxattr;
+-	bool ovl_volatile;
++	int fsync_mode;
+ };
+ 
+ struct ovl_sb {
+@@ -122,7 +128,17 @@ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+ 
+ static inline bool ovl_should_sync(struct ovl_fs *ofs)
+ {
+-	return !ofs->config.ovl_volatile;
++	return ofs->config.fsync_mode != OVL_FSYNC_VOLATILE;
++}
++
++static inline bool ovl_should_sync_strict(struct ovl_fs *ofs)
++{
++	return ofs->config.fsync_mode == OVL_FSYNC_STRICT;
++}
++
++static inline bool ovl_is_volatile(struct ovl_config *config)
++{
++	return config->fsync_mode == OVL_FSYNC_VOLATILE;
+ }
+ 
+ static inline unsigned int ovl_numlower(struct ovl_entry *oe)
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 8111b437ae5d9..ba860bb92439a 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -58,6 +58,7 @@ enum ovl_opt {
+ 	Opt_xino,
+ 	Opt_metacopy,
+ 	Opt_verity,
++	Opt_fsync,
+ 	Opt_volatile,
+ 	Opt_override_creds,
+ };
+@@ -140,6 +141,23 @@ static int ovl_verity_mode_def(void)
+ 	return OVL_VERITY_OFF;
+ }
+ 
++static const struct constant_table ovl_parameter_fsync[] = {
++	{ "ordered",	OVL_FSYNC_ORDERED  },
++	{ "strict",	OVL_FSYNC_STRICT   },
++	{ "volatile",	OVL_FSYNC_VOLATILE },
++	{}
++};
++
++static const char *ovl_fsync_mode(struct ovl_config *config)
++{
++	return ovl_parameter_fsync[config->fsync_mode].name;
++}
++
++static int ovl_fsync_mode_def(void)
++{
++	return OVL_FSYNC_ORDERED;
++}
++
+ const struct fs_parameter_spec ovl_parameter_spec[] = {
+ 	fsparam_string_empty("lowerdir",    Opt_lowerdir),
+ 	fsparam_file_or_string("lowerdir+", Opt_lowerdir_add),
+@@ -155,6 +173,7 @@ const struct fs_parameter_spec ovl_parameter_spec[] = {
+ 	fsparam_enum("xino",                Opt_xino, ovl_parameter_xino),
+ 	fsparam_enum("metacopy",            Opt_metacopy, ovl_parameter_bool),
+ 	fsparam_enum("verity",              Opt_verity, ovl_parameter_verity),
++	fsparam_enum("fsync",               Opt_fsync, ovl_parameter_fsync),
+ 	fsparam_flag("volatile",            Opt_volatile),
+ 	fsparam_flag_no("override_creds",   Opt_override_creds),
+ 	{}
+@@ -665,8 +684,11 @@ static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ 	case Opt_verity:
+ 		config->verity_mode = result.uint_32;
+ 		break;
++	case Opt_fsync:
++		config->fsync_mode = result.uint_32;
++		break;
+ 	case Opt_volatile:
+-		config->ovl_volatile = true;
++		config->fsync_mode = OVL_FSYNC_VOLATILE;
+ 		break;
+ 	case Opt_userxattr:
+ 		config->userxattr = true;
+@@ -870,9 +892,9 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 		config->index = false;
+ 	}
+ 
+-	if (!config->upperdir && config->ovl_volatile) {
++	if (!config->upperdir && ovl_is_volatile(config)) {
+ 		pr_info("option \"volatile\" is meaningless in a non-upper mount, ignoring it.\n");
+-		config->ovl_volatile = false;
++		config->fsync_mode = ovl_fsync_mode_def();
+ 	}
+ 
+ 	if (!config->upperdir && config->uuid == OVL_UUID_ON) {
+@@ -1070,8 +1092,8 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
+ 	if (ofs->config.metacopy != ovl_metacopy_def)
+ 		seq_printf(m, ",metacopy=%s", str_on_off(ofs->config.metacopy));
+-	if (ofs->config.ovl_volatile)
+-		seq_puts(m, ",volatile");
++	if (ofs->config.fsync_mode != ovl_fsync_mode_def())
++		seq_printf(m, ",fsync=%s", ovl_fsync_mode(&ofs->config));
+ 	if (ofs->config.userxattr)
+ 		seq_puts(m, ",userxattr");
+ 	if (ofs->config.verity_mode != ovl_verity_mode_def())
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index d4c12feec0392..0822987cfb51c 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -776,7 +776,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 	 * For volatile mount, create a incompat/volatile/dirty file to keep
+ 	 * track of it.
+ 	 */
+-	if (ofs->config.ovl_volatile) {
++	if (ovl_is_volatile(&ofs->config)) {
+ 		err = ovl_create_volatile_dirty(ofs);
+ 		if (err < 0) {
+ 			pr_err("Failed to create volatile/dirty file.\n");
+-- 
+2.53.0
+
