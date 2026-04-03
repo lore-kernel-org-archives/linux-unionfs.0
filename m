@@ -1,61 +1,63 @@
-Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA33329BD82
-	for <linux-unionfs@vger.kernel.org>; Fri,  3 Apr 2026 03:09:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32EFB2FF65F
+	for <linux-unionfs@vger.kernel.org>; Fri,  3 Apr 2026 03:09:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775185749; cv=none; b=oxp7OVvYkDndeC+id5nFf/yNybwfm/3N62tISfDI+zPX93Wu2poAtLQ8FEu90SjxwxDG6YpO2ysiGqKhhIgcdMhz3GLTgGV6FaL7rIsZjyZ4z5zeP8vraH4HxpI7gz4vnxK6RHAgidO8fZ6+llnW4NrdHrkET0iqBUwerBdzLDk=
+	t=1775185750; cv=none; b=VSKC9LXsxmnREgd7bTh7dbfLIVqv0XNtwwJQ9e8orJzqEQ1y9WAnQME4CkL/zlVDWhfZ/XQjL+JjmBfaaC8OOiZSbXkmarBmFs0ykY2KRcsn1taEM7iDOBgsC1z9WSVDbpRlIiNXMTOPOwOqqtNnZCNJodsJiHFoFmRAkXwZZsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775185749; c=relaxed/simple;
-	bh=Ht/CWS8eAdFAx31qEnne/OHet5mQZLtjtZViqsMWheY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SudbyZznhxjuIcVMmeexXDd6FWMW99FVAr6wUHt8FOaNQdO/zKwbvOWo6B+DGiLNolKRYbgAqujgBxoyACqgDKmzCD0WUrMi9wCk1w4Pfv2cCPQtjB9t7NgD2WDuo7dnW+IOtAdmiL8Ovxa5lenlSPN/pfddNlzjmxNMEkbJQj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Zd5DTnBZ; arc=none smtp.client-ip=209.85.219.45
+	s=arc-20240116; t=1775185750; c=relaxed/simple;
+	bh=ubOzRRsA1zJd3i8a+Cuu7Mz/w23nuUBsWygkMvjVXm8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=iJUZDApzohdyd8gh0StDVCHq5xtbKAwmfBnKhmGvkD3dAgVL4fJpYoUsYqifCgxRIbqHnPlSPvcRsS5xpFSB2ch8Yng6IYB72c8ydehe0pIBZ0n2EMWks/U51q5PzxRZ76/9MGaZjsn36z1YmEZ4bT/4SjYRgfm1312pbLilqX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=EueiloQr; arc=none smtp.client-ip=209.85.160.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Zd5DTnBZ"
-Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-899d6b7b073so20649556d6.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 02 Apr 2026 20:09:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="EueiloQr"
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-50bbc41677dso21756681cf.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 02 Apr 2026 20:09:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1775185746; x=1775790546; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q+R/8MkRE1msWS32ANzMTpmj3lRg9zDjBRK7qW9MA9g=;
-        b=Zd5DTnBZbxFLUVGb3M3vyvfa+YDIGbXlT1WZnLSA/npeZOnHi2UG0Fke/jqKqml5B3
-         p8hJS+b21nmkMYMfOngu6n/5dXTGqPy7vPVUiX2rceZsuFqyUVZZF8m7zTnfrDX9cdXb
-         DHcpjEvOfQDg/WAaiE3FttsUbGTfvmD1DtyDdAJwo2SttFAVqMLC66LWN/UjzIMo6JsB
-         iH3FDX6kt+CboDUhklEFGToVBLEbWqMCj4VXHuoH4snvcDyWLFPfSDt9l0+xOVnMIKMe
-         1Clk4i7H9CMjX0NMEoux7gAQ5ZUSKSn5tBtmdag7F15jTRRSY4I6xVMJeuZZHU6YXBb3
-         ooJA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775185746; x=1775790546;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=paul-moore.com; s=google; t=1775185748; x=1775790548; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Q+R/8MkRE1msWS32ANzMTpmj3lRg9zDjBRK7qW9MA9g=;
-        b=efjmvTCAjj179WVfDrRKUtMN3DXH0PkfzsOYzZdulvvMquPnIwP9xfhYtDnFO5c8sM
-         LnAuleK0a6KAFNPUJfXhpNn+yYqdNxRhk+arh4GHPvhxXfQdUru1VcKgUG5Qhr88LH58
-         Piz/Vpr8IMdfaGz2QHT+3G+PfMWi0RFwRtjzVFj1ZEKzOVvwspKO2TRHn6G37MIYaa8B
-         y+ZPeMok6nhyNMYeguoOgAOWb6d1KOXjvkF6H4htgUFZIbJz069APfAyK+0RS4rmctaL
-         UmM9hkNPo39KZUJv5toE9+6FD1mlVWIVKePcAE5ScIaJMWmEUm3Xr8bBvrEyukjZZzv/
-         6TWg==
-X-Forwarded-Encrypted: i=1; AJvYcCV9/6q4OLMa7fK/fgVupdsWx2ccPhNVv+bYax21d+1X3d3OYiGR5spSFx53aVn9Qpnt96hm9DHfowjpM+YN@vger.kernel.org
-X-Gm-Message-State: AOJu0YwTRFXB2lN+bd45ubwvMutc6Gjtye5mDSNSsj1ayZ1G4hbOZ07m
-	d8r1E37BrtYRMSA8VgsuwRNvSMXi0bKv2PFQAlSOJyKwUsDZoy18a+Frrjx8pq6CLA==
-X-Gm-Gg: AeBDiesWmsJTZDnj+ZeDPdJp59IYz5T0S4SG6MNKZBE5Xx8iZPfmog2BKFM9ZCKEs03
-	KnDxK+VSiSyd7EHJgm4VFzE4uifpiDo642SreaOJY2rihYPhguga+wcCZZAFk4mMmgRclRlrkd7
-	ugdHtoVB1TVoMpNAuq9Q+4g+12ZlJyq4LjN4139fH/vhqO+m1Y4vXF/4+mSjVNKCEpXUNIpKece
-	Br6PD/tjqnsWPqwF3YbMkainYsKqLITRwxYJytk5wxrXALYO8UG7j6e6BcZM8vIHOK2ygM13tnC
-	ou+LjlUxeIgRX6v/L1bxLh5gPxJYojkHPwJ0Uph7yeZ7zITRBLE/JYtGhIjZ1CLsfctbpaqzw7U
-	gC2Q3+8PTysdhuesruhtrJZQ3Vry8GkCzjXwWIsaSmOQ5B82QMKn2UdqfEtxZlo/g9pJ/lHmLnL
-	xwgeOOaFm/Duin1jL3tyl/wHelz91XKo2FWkjCwvaCrZqTMWn6ApegSQNT1QoA2H6pmu+z
-X-Received: by 2002:a05:6214:2b0b:b0:8a0:22bb:1d3c with SMTP id 6a1803df08f44-8a7025b40bcmr26368956d6.3.1775185745794;
-        Thu, 02 Apr 2026 20:09:05 -0700 (PDT)
+        bh=K8u86zVn3x5mfnTbqvKyzgu+ADF1ErhB2fVGX96rkGw=;
+        b=EueiloQrO3mgJOBwjhqtGbQC/0qf+nDR7qWzm+FKV0I/Wobb/xR2Bu7C914FR9eO64
+         VzhvL3VmfT2rgPA2nh6glqRLG1/Fw8XHKZDuqHwjkHMup2OF4IWywMDdJ1LYIQ049CBr
+         pw+N6Byck5qP7o+uIaoNqIV8l1O/oIDj3pHh+W31sON3Vy8NzaOlDtSjNHoYwxb0fX9N
+         mNBodeqOOi6z4xyZlO6rkSzrMfI7jd0JGo/zH17wQQbu2CM1FlF4+U1qzwQK7X6ZsYEj
+         MOj/TgSquGMibCv2Fq1mAOzb9XGKF1cMs2JdjpfOlu4cDQ437Y9UpfdVwLqinem5fvWT
+         CmRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775185748; x=1775790548;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=K8u86zVn3x5mfnTbqvKyzgu+ADF1ErhB2fVGX96rkGw=;
+        b=EyAeXC13RsepL1yK76Us28uk5HjioIv3k7aq+9qL7Ta3Rix4HiMjCu7ebEMuaEa6WM
+         QlTaNb2OcyuK6K7MWTht0Y77r0dLjImSndYSEm35/hQG1zKmksi6AcUOG/9KsQkBwXbJ
+         vPlq1ibSw4YkoQ6w+roqel2TG8sGivhq6DoOzxDFcSeTJt+M7ULojNH0cMZIbT5Vnd4+
+         KIOhK/oPSOgYAbxNAeLwIf0Q+qQ9Chu0WwMlfcSp5KG6TQJTtwvQ5RO6EL+NftAtr6sc
+         nP86xHU366P2uOphyJ4EZg9Az8v0ZQXBC+D6R35mXiCRj/w00X2UD8W4TvhkfuTlY2+Z
+         9oJQ==
+X-Forwarded-Encrypted: i=1; AJvYcCURAroXtLT18+geCXW18OGyvnQKXAre29fBz2LV8zwV5wYOu/l/pK3aPCYtQ2pPVEZeb9pOFiGT+AL8FcyD@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw6VHvLwGbQlpTPsgdQbhOc62EXkcKw8OVVViSylr9jPpF+dQ3Z
+	yfaNy/DPyCLZ6fAdLtc64rbT5xGygj7WMZj3j9+evpltMOPxec6QEAvFSrE+T9YX9Q==
+X-Gm-Gg: ATEYQzz/wwzEydVfBS9dF5NQ8kLypB9W0TpcgxRwVTpzQS/20xPxO69hxENl3ghO5rT
+	PA2lAb8AgxOiQLadB580TjWnBCgI+fYWacpNboco9QHN180cUQonmoDTpSuUL6MOfEaCKIAsb2Y
+	2PfQ/YemQDfZFUUab9ekgsO4PIIKpn/a3Z53GCtsYxLvvlCds07oA0BNdcWxUG4ScthuQBzzQVH
+	7Y5ndLlA47NPvtLOM+9RXumro+Hl77/3MMxVWuG55RxUjAZhZHm10szahKVhHZs2cEvi1trvTEW
+	TJ2Uqm1Mch5ParvLTEpvg3B5TQnZj+yqLR2sVqr1l/WdKkrk/HFCQapnoohuHmz6yqqnz+n0vAb
+	Uv8VWofdrIPTaZLkJ/lHHbeFtTIuSLSgv+qsBbYL0AebAFwPHkREtG7d/LbgrIWE0YPLz3OWFln
+	PFQgbE9wOCdsOEorXJHncoq9N3tycWG4AAUpnZx5Ygvo3z37TzX6rKdqRaHH3ZqBPCMCJ/
+X-Received: by 2002:a05:622a:15:b0:509:1cf9:ea0e with SMTP id d75a77b69052e-50d62a80ddcmr26975991cf.41.1775185748160;
+        Thu, 02 Apr 2026 20:09:08 -0700 (PDT)
 Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8a596e03ce5sm43960226d6.35.2026.04.02.20.09.04
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8a593ded920sm37724896d6.21.2026.04.02.20.09.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Apr 2026 20:09:05 -0700 (PDT)
+        Thu, 02 Apr 2026 20:09:06 -0700 (PDT)
 From: Paul Moore <paul@paul-moore.com>
 To: linux-security-module@vger.kernel.org,
 	selinux@vger.kernel.org,
@@ -65,79 +67,93 @@ To: linux-security-module@vger.kernel.org,
 Cc: Amir Goldstein <amir73il@gmail.com>,
 	Gao Xiang <xiang@kernel.org>,
 	Christian Brauner <brauner@kernel.org>
-Subject: [PATCH v4 0/3] Fix incorrect overlayfs mmap() and mprotect() LSM access controls
-Date: Thu,  2 Apr 2026 23:08:32 -0400
-Message-ID: <20260403030848.731867-5-paul@paul-moore.com>
+Subject: [PATCH v4 1/3] fs: prepare for adding LSM blob to backing_file
+Date: Thu,  2 Apr 2026 23:08:33 -0400
+Message-ID: <20260403030848.731867-6-paul@paul-moore.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260403030848.731867-5-paul@paul-moore.com>
+References: <20260403030848.731867-5-paul@paul-moore.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2201; i=paul@paul-moore.com; h=from:subject; bh=vO4j5WeMDF8uCaEs+Rdi7vAE5nsJDGp7MtIwbA6jMDM=; b=owEBbQKS/ZANAwAKAeog8tqXN4lzAcsmYgBpzy9ABnm7o+Z/R7KK/xs51rLx8PxwZiwo+kbgY FAsqRG/RIeJAjMEAAEKAB0WIQRLQqjPB/KZ1VSXfu/qIPLalzeJcwUCac8vQAAKCRDqIPLalzeJ c0/iD/9AMU4LuXIflLPn+lMMYMXL4wz9r6vZ2+IPv39vdupeEEtbP25ysV3gOBT/AMCJr0YZsyJ nAA+n8pMAjlgBtJIk4TWLq7fpPB0T8u9E0JMzT9gZnOCHnqlqc4ydP0gySv8oT5rkfdlOaWBbpA gZe1wqNYP2HK1Kad7uVTVFets5abIwjgXwzPdXgMV9b/PFeXrp8fedOIAR8WBdlAD1I41BW6IDh HakWAR9mdWgZ3pLFsxddxWCu3jcTQnJ5dbOjjZ5//cWmwt+PKcBsu9PlkjfOPkzaMeJf6BfgLAW 5QukV/rYK3H1Dc+TeuDdbT7HI1cFzi7Xpz5LeW1IFzYyFByGryq3ug1tpSpmMQLUOZzDWARemhj gcqAU8aaBhMkclqN5XrJRdOdkxQJQyXgu4FyOsQ88DCAc6iqS9pTaXO7MXzRFf+Dy65Ue+LfpII d0ryWB+t6fWIUFbpD6lBPVhQGtjc/NI/u1jplqW58aA1T5vqMzmjEMatMUBcG/l5OyspEAsIlka caOfuNSjXvwX1j5JCPbkF1G+yT7fdc9g2D2pu0mIfxcJrUmy7Ti6uxndL6rt/qFXk/gFcbBpaVK p0Ow1dUry8bLwkwqcLWs6Q0F2SR4JIX8e/mNA5jb4FpnBSDrrD5V0+4H20fVhTMfuNcKYskg+Rp pRUE5uqRW8k9irA==
+X-Developer-Key: i=paul@paul-moore.com; a=openpgp; fpr=7100AADFAE6E6E940D2E0AD655E45A5AE8CA7C8A
 Content-Transfer-Encoding: 8bit
 
-Another week, another revision to this patchset.  The v3 revision can be
-found at the lore[1] link below.
+From: Amir Goldstein <amir73il@gmail.com>
 
-The revision still takes the same basic approach introduced in v2, with
-the most significant change in v4 being the change to make the backing
-file LSM blob conditional on CONFIG_SECURITY.  This requires a number of
-other changes to ensure that all accesses of the LSM blob go through a
-set of accessor functions which can be converted into dummy functions
-when !CONFIG_SECURITY.
+In preparation to adding LSM blob to backing_file struct, factor out
+helpers init_backing_file() and backing_file_free().
 
-While the changes between v3 and v4 were fairly straight forward, there
-were enough of them that it felt wrong to preserve the ACKs from previous
-revisions.  It would be appreciated if those of you who had previously
-ACK'd a patch could take a second look and renew your ACK (or comment on
-the problem preventing you from ACK'ing).
+Cc: stable@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-erofs@lists.ozlabs.org
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+[PM: use the term "LSM blob", fix comment style to match file]
+Signed-off-by: Paul Moore <paul@paul-moore.com>
+---
+ fs/file_table.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-Thanks all.
-
-[1] https://lore.kernel.org/linux-security-module/20260327220446.353103-4-paul@paul-moore.com/
-
---
-CHANGELOG:
-v4:
-- added fs prep patch (Amir)
-- added CONFIG_SECURITY conditional code (Amir)
-v3:
-- fix the LSM hook stubs (kernel robot, Ryan Lee)
-- fix the lsm_backing_file_cache allocation size (Ryan Lee)
-- minor style, simplicity tweaks to the SELinux patch
-v2:
-- remove the user O_PATH file patch from Amir
-- add the backing_file LSM blob and lifecycle hooks
-- update the SELinux code to reflect the other changes
-v1:
-- initial version
-
---
-Amir Goldstein (1):
-      fs: prepare for adding LSM blob to backing_file
-
-Paul Moore (2):
-      lsm: add backing_file LSM hooks
-      selinux: fix overlayfs mmap() and mprotect() access checks
-
- fs/backing-file.c                 |   18 +-
- fs/erofs/ishare.c                 |   10 +
- fs/file_table.c                   |   43 ++++-
- fs/fuse/passthrough.c             |    2 
- fs/internal.h                     |    3 
- fs/overlayfs/dir.c                |    2 
- fs/overlayfs/file.c               |    2 
- include/linux/backing-file.h      |    4 
- include/linux/fs.h                |   13 +
- include/linux/lsm_audit.h         |    2 
- include/linux/lsm_hook_defs.h     |    5 
- include/linux/lsm_hooks.h         |    1 
- include/linux/security.h          |   22 ++
- security/lsm.h                    |    1 
- security/lsm_init.c               |    9 +
- security/security.c               |  102 +++++++++++
- security/selinux/hooks.c          |  256 +++++++++++++++++++++---------
- security/selinux/include/objsec.h |   11 +
- 18 files changed, 419 insertions(+), 87 deletions(-)
+diff --git a/fs/file_table.c b/fs/file_table.c
+index aaa5faaace1e..3b3792903185 100644
+--- a/fs/file_table.c
++++ b/fs/file_table.c
+@@ -66,6 +66,12 @@ void backing_file_set_user_path(struct file *f, const struct path *path)
+ }
+ EXPORT_SYMBOL_GPL(backing_file_set_user_path);
+ 
++static inline void backing_file_free(struct backing_file *ff)
++{
++	path_put(&ff->user_path);
++	kmem_cache_free(bfilp_cachep, ff);
++}
++
+ static inline void file_free(struct file *f)
+ {
+ 	security_file_free(f);
+@@ -73,8 +79,7 @@ static inline void file_free(struct file *f)
+ 		percpu_counter_dec(&nr_files);
+ 	put_cred(f->f_cred);
+ 	if (unlikely(f->f_mode & FMODE_BACKING)) {
+-		path_put(backing_file_user_path(f));
+-		kmem_cache_free(bfilp_cachep, backing_file(f));
++		backing_file_free(backing_file(f));
+ 	} else {
+ 		kmem_cache_free(filp_cachep, f);
+ 	}
+@@ -283,6 +288,12 @@ struct file *alloc_empty_file_noaccount(int flags, const struct cred *cred)
+ 	return f;
+ }
+ 
++static int init_backing_file(struct backing_file *ff)
++{
++	memset(&ff->user_path, 0, sizeof(ff->user_path));
++	return 0;
++}
++
+ /*
+  * Variant of alloc_empty_file() that allocates a backing_file container
+  * and doesn't check and modify nr_files.
+@@ -305,7 +316,14 @@ struct file *alloc_empty_backing_file(int flags, const struct cred *cred)
+ 		return ERR_PTR(error);
+ 	}
+ 
++	/* The f_mode flags must be set before fput(). */
+ 	ff->file.f_mode |= FMODE_BACKING | FMODE_NOACCOUNT;
++	error = init_backing_file(ff);
++	if (unlikely(error)) {
++		fput(&ff->file);
++		return ERR_PTR(error);
++	}
++
+ 	return &ff->file;
+ }
+ EXPORT_SYMBOL_GPL(alloc_empty_backing_file);
+-- 
+2.53.0
 
