@@ -1,80 +1,80 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC6613B27FE
-	for <linux-unionfs@vger.kernel.org>; Tue,  7 Apr 2026 12:14:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C6DA226CFE
+	for <linux-unionfs@vger.kernel.org>; Tue,  7 Apr 2026 14:35:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.176
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775564090; cv=pass; b=IT6QQi5Ib9eS2MJLlJYI9u7SdROja3jNRozmXoL4ZrMMogyBIYsz+0D42vQRCulOHla8rw2VkNBNqeHQ/9BcIZtvAz2MTgWHMdxK6RaIXGrBn79nNOC00vpLDLWiignAWuXxqaDaKCeiCH/CsRbtCTLoV8EsckP3YazTMjxTASo=
+	t=1775572514; cv=pass; b=CiDWE+QWh6w9EOu3Jp5oWKQWfl3fITJ2SKwnCUJt+tTR9iaIZ27uVGGO16wmSd5mNIURcuIDpCSEuqjXSJEGJAmFnYVHZE45aHmzwk0i6QyBcvgLjLDwR9hdJkJ8qn/ATbw7rsgUY8pzoUos6pQGKv2zyClB55gi3UbZpdtTd+E=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775564090; c=relaxed/simple;
-	bh=DYtH3ovqeZiNqkreX7Nz4nkPWobgUXsJ5dwCB2BpWgA=;
+	s=arc-20240116; t=1775572514; c=relaxed/simple;
+	bh=52zpGg3kueHgGet8IztKdLA8+tZp4VM8MiDQmi08+vU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lh/9rPVw3IDOM6n6Lku37lQXGzyjsM5Tzl6anSZ4KMVE5EnfV53tWkhhMTUUKthwoL4YQlS5N8KoXdMD4hRos902GN9L0n7sSLtfFusvIeRNijrA22oI1hyrH/4MLiUT4qLT2RvUy6sSTCyPJtlPVesT4CeCBNiTczQeCo1CRz8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mVZPYGFy; arc=pass smtp.client-ip=209.85.216.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=X3BR31uwDLW1m1IkGY/VWzUdPHQjdSOfOeYMbhcNBxu4lN3+tVVHDF0rQB+wEjkynSyiYsOOmq62ASNJmjU2420HllGYYlGzViBd47LlyrQEeVeZUSGeSZKYMHeeTjF3mcapIIW+9PRISVlaxZaFUN2kGl29WMAegz51Jic9dQ0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=MSeCwIrQ; arc=pass smtp.client-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mVZPYGFy"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-35d9f68d011so3209943a91.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 07 Apr 2026 05:14:48 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775564088; cv=none;
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="MSeCwIrQ"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-82a893d289bso2199673b3a.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Apr 2026 07:35:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1775572512; cv=none;
         d=google.com; s=arc-20240605;
-        b=OBNO82Plcgv9LdLHKJZF78sCr1ThDOENUI+W/bbLCXrFocFv+5hJ8kfzxe8Wibiplk
-         qdBFrGRn77eAF48sU6lEUzjhvtA1sweDjSGre4X5D3rIkbePzb7N185iBnnUmzXqUwiy
-         9d5hKHSP0qV6//Ns1z22LOV1hpd4ZdHBmucjbUWy4z1UJ4AGSpt4wizLWG75y85Bjcw6
-         HzM31BgsGd4GWeROlC0FIZSjPehEw/z67QCBzWpte+TKtO9JY/G2CiraB4Pn67XzxktB
-         ZsV5XtOU1t2jGsWGO7u6mzH+PH2VQDdEBdsWswwq7Cnwx8Hba05VkHgxEiyVZV7oz5yZ
-         ZcGg==
+        b=FCmRRu32QjnQ/sEKDWgahOZrT2fxGZRm/eTi5wpevQGhEFPkHvW9TUqKXx1wdw9+4P
+         0GxpGjCmvVoT9WENvfLANZ96m9lqa3gw+FUAoqpLVyC+KvmJC4ykDuhkPYLHVgcTS6dH
+         V1ik+6h7b1AI2a8mqvtQxMiRijmJzqTZ6tzd2of3G2hxqNYPd1doQoNmeYoyGHCsjvT0
+         dyjQI7jVTs4D8cUXaDs+Zasb1ANA1TC84g667b2EMr+VvTXtAmponn/lbp/nOlAlRL5R
+         kXeOiNZe+GjP1MjkwlQoRfMvj6cOEyl+yGV2jAVsF7tqn5UECDSiKcQp9+WmlEjkU4KG
+         0pPg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=zTDkABRGJ7UHzKZMFM6DSH1URUE3mRRr3uWbQhi8EKg=;
-        fh=13ooZJkf+dkVFE8B6Rjvo43F4VfAncKlukd8OSQmJak=;
-        b=CkgLIo4VIH6yclTdwwve7N/k0h7LYzp2cU4Xu/HJnGkrEx772Tiwl3RaRsbqFh/Wl3
-         pa6fgDwHhl/dw5sEGv3dAoK9kG6catd5gQyatz/S1mpZ9yqszgmFh+6w+4j77RXWkwkt
-         PbVhJ9AGslpn/rPzIjKCHy+WsmK1V4lQbqMTgTzYWaeKjYRicuddQqVQwUC/fd6f0d26
-         n/my3stj7mQ85WE3b++UG80MBYmCrwrOpyPeS/Pc/6gzmR5CzM9blfXXMvBLslZ9UN/7
-         K0kTNUSDSfhVQ8m2GmaE7uNnuBp/sXAkSH8Gw0P8+jPbhoMtCd3PCHCeQRU8ljH7LJoy
-         9Cdg==;
+        bh=2qC5HIWFMfgCC7dxk8CsqfkMoXma/koXyhFD7US+Mog=;
+        fh=BmlWt5/CNL9KeBOO+MFbXTS/74TCp3Yv+Ah7VMEKTrM=;
+        b=OB8gDwh00OUOKt525w54C4cm/zTTSIDMSvctQFlcXVFW0JhtRTWcbBY9BPVoXSboIe
+         eqG2svlh04i+TwTbLFNxX7nZsFAHKlYJNXb2YVxcSBr0aJGq428ubgSUmKFJApLciEA8
+         2ZIYyEARVoUSUsgJvBHd4yIUgMBX3KIbXsCylaEibAi4Kv2ekLjdvQ2RMx5WfVwGp6Lm
+         XivfYlfzYMumaXL4nmdUeG3q1NYsDUoWgeoPVcwwG3a8qLEveoJTQUfW44Y61+XtuEvm
+         wWGXu58dXFbWZoR9SV/rijFfpnuFkoZQlpF3nzE1fuSgDN/wo0ej8R7oAbu8f7BtfrrH
+         zOiA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775564088; x=1776168888; darn=vger.kernel.org;
+        d=paul-moore.com; s=google; t=1775572512; x=1776177312; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=zTDkABRGJ7UHzKZMFM6DSH1URUE3mRRr3uWbQhi8EKg=;
-        b=mVZPYGFyBgGtpWk4sX37nuVl392e96R4bjfs0ORNcxHmm4repjBBJl6wER9s05QPRx
-         u9yMmyrIxhKtFPIgahhJkUem9XXnOt0Y4udHqUe5ZV5JLiunPgHbLwuF5YVLX9xOMwfS
-         SHajj6jRYt56S5BkSVItPD2zTTs+S886TqgSWf6wGsfmVf48l/adO1vgGfcBxFHMUdKk
-         98zAae8oxZWozMTxhB3oIy7PG5AaxmT0a1YdtlKIlVFcGbOdculw91xtDE6pfiAGsJ+L
-         dEx4POQKFfhhxVSIboL7SSA5JB8IVPNytMGFiSoathMYqf1+sLX8Za9GGxj7OoZpqzGF
-         gAug==
+        bh=2qC5HIWFMfgCC7dxk8CsqfkMoXma/koXyhFD7US+Mog=;
+        b=MSeCwIrQe235ez7W8m6HlUnnYkAayZ4Ym0rsusDeGgjvysabx79GAswgymvMDwdX15
+         FZci+n28iUiJBkB94aYRm7cQN12xS5bQ2IvJ7vp9ZFzi01QrgKVQbOKHprEKQycHOx8g
+         SwVpNT39z5mwh+sxkYl8XfXHIQ9jVIlGYCnWPXnZEZpiWl4+pK++qko+6KngzKrbFYmN
+         zgQHd4/KTK9qCjAsNh4izeax1jtfpXnjJn6T9gERrt5c5odoNSP2z1QDpX+Z7Erj5g4t
+         g4zNjphNUV2pniRnLFMWEo9qP5FZzGWUsKuGfgyxQNrK71fbqKDP8i8JNOaOfLepmYl+
+         xAPA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775564088; x=1776168888;
+        d=1e100.net; s=20251104; t=1775572512; x=1776177312;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=zTDkABRGJ7UHzKZMFM6DSH1URUE3mRRr3uWbQhi8EKg=;
-        b=i1u+BuVTa375RGYLp1BOe6EUgQl/Dqo89w435+ypspzLy/+OPkbWQ6gWjb4wR7f27X
-         kLIJdc8CAIJgYT75MwUuD4PsQJjuS2JVntSkKsMU0XYrwwl7fPWrMOh+/BRobL/NUEp9
-         1JQqXPOatzcV/Dhriwp/6WLlFJ7W8XckOQ8q2giQLwaFhl5geeAp9LkbBQREKsXD0TCT
-         1XLoOrU8jRDRXXFrMrarWlcR/USX87UjI5H7+shGnqCdnDNw7cxLuHupebU9GB1w7TbV
-         49YeCvR18higca0mSLdr0bDvRthU7yoCea/QfvbsNGvwpiXrgN/3rJw74T8jxpFlLfX7
-         abPg==
-X-Forwarded-Encrypted: i=1; AJvYcCUUbOoLGiKs9MmOJmVKWJj+nzu8Jrk0nl5RtHIwjY4OZ4s9AwzUIeF1ThuhS9yt6Svv9R483nCGITgNlCC0@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywao4iwCCznrzwCT23LUu1A+hLYj2BgUrUjhKBTWPo6hkq0ni/h
-	VzCI9C3Q5wmeHjyOsj3Nplm1+/Cv/786RpT/vHiQVEOu8ncKdvdnchzAEEr5fy3eHFiS4LNrCIw
-	KkJKNyTenhl4YLrCKWraPWj7x8U0Pgu8=
-X-Gm-Gg: AeBDieupdkoCwTMt//ZABntnbKc30S/yl82maR6cz4tjoEIVO5ShqopAxHUSyzNaTSW
-	Mxkt91errA483YrBVJiYPgLDeLNOQG1tUYvbNZ0csu5ISLx0UeSei9bu+RqaWQ5D5Mg363pe0fa
-	HM1veYyQ1qTFtXNJ/NzUd8vXw8Uzn2/S0Cyvs7yGxME4JTX/zwCMbSQEoX6XM3BR6ggw81j1QPZ
-	6m6GZ8BpEkehi6YliKEN5hPv5E2A7LOJzg8CGK52dcko4RofwMP0dg7VVB1fRsiZTTv8U+6Xg2j
-	5kQzsxY=
-X-Received: by 2002:a17:90b:3d4d:b0:35c:d37:6024 with SMTP id
- 98e67ed59e1d1-35de67ea9d5mr15645164a91.11.1775564088070; Tue, 07 Apr 2026
- 05:14:48 -0700 (PDT)
+        bh=2qC5HIWFMfgCC7dxk8CsqfkMoXma/koXyhFD7US+Mog=;
+        b=aUd7JQnUMXu3I1nUfqynflhP1IexHQAdiFMucG4R3gOH5HKWxhTBPgMIQdQBlDZqML
+         Vdu1Sh7li3lTudoDw7hcS/Dn4v91dQKxXs0bfmHUAln2Tn3ydcSCe5FQVKYm/JZQBeeu
+         a4KL7Qug31/q0WfX5oQ8kxk9t+RNDBBOn9LtD3gQqWptOFsD/Fkmvkni1u18ljfEVBFE
+         qwSiVUDBxB8rXdLgy84PRzIcBncFUMcTD1ADWynw64f1ORGhytFhuxPWPsdWplF+aKnJ
+         uZh+RjxvEa26DWc4gtdUd+aK3sPZvlh2wUvK1AkdyJuiyieafo1ZhbfqBD//8LDJ4Pqy
+         olcg==
+X-Forwarded-Encrypted: i=1; AJvYcCWchhP35tHna1IqdjRPAiiUwkhU0BZIHmn9NjOyYLhFMRwlFOfMrXOhTtuzj1u9oCTXTYBeTsQuUZZr6GSh@vger.kernel.org
+X-Gm-Message-State: AOJu0YzBIgJw0Z8hR39gCL3rETL1PNu6o3GBZZxTDhcJlSRj0vUY2gdS
+	9wufYM1FK1BBekP3oNcs9iHm3VCqIrMEUP3jgBK+ZEciv/1onQtlTpvGXFqEWwsnvgFMgPFcfMI
+	0obMhzYCEL5XKGR9wXSgu7LRAy7iB0P46yHC6PLAh
+X-Gm-Gg: AeBDievq7Bp6g+Ei5U5AcNiVMRK4jQc0gPxkvUdHb18rJ9beTGu3kAnrH+rkFkumKJO
+	RMoLBdzVJyeOLVvJn+EKCs4bU1CsCV97jnKlnHI9z1v9oeGOGo1cw6Xhu/BUOkT3uWNO00vi7LI
+	0rms3Ing3Q37EWtGuJ2HklRtXBIakgbcrAunOngeaQzngvTf93wIar3/4w8nUlEi4hRy9mIAAMj
+	he7KJ/pOKpTwAHj7JRVlVMhNjT79Fh3HeXpVBvW+7608VSHNcS0xfHCfgikB+VUBcFa3okjlrrV
+	MaxxcfU=
+X-Received: by 2002:a05:6a20:a91f:b0:39f:75a6:16e3 with SMTP id
+ adf61e73a8af0-39f75a642ddmr6186836637.2.1775572512468; Tue, 07 Apr 2026
+ 07:35:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -82,40 +82,57 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260403030848.731867-5-paul@paul-moore.com> <20260403030848.731867-8-paul@paul-moore.com>
-In-Reply-To: <20260403030848.731867-8-paul@paul-moore.com>
-From: Stephen Smalley <stephen.smalley.work@gmail.com>
-Date: Tue, 7 Apr 2026 08:14:36 -0400
-X-Gm-Features: AQROBzAHeiE5r-KOh8TmARe6SlYgAd0n8yvhwUwHmTAae_PdDX5ZmAScFcPTcfU
-Message-ID: <CAEjxPJ4nqeuPhve3Fe-tFuNW9R5grnWwfYJv7q2cRu+UPQ5c4A@mail.gmail.com>
+ <CAEjxPJ4nqeuPhve3Fe-tFuNW9R5grnWwfYJv7q2cRu+UPQ5c4A@mail.gmail.com>
+In-Reply-To: <CAEjxPJ4nqeuPhve3Fe-tFuNW9R5grnWwfYJv7q2cRu+UPQ5c4A@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Tue, 7 Apr 2026 10:35:00 -0400
+X-Gm-Features: AQROBzCbJor8xEV12qkCxYwq58fXkfkjQP4svTBOSHpDEN5glYblz9lJ5v7xffk
+Message-ID: <CAHC9VhQnA38-9wDeVmOMxAFPHnd9y6x5LXtD3cSquGiL_MDDpA@mail.gmail.com>
 Subject: Re: [PATCH v4 3/3] selinux: fix overlayfs mmap() and mprotect()
  access checks
-To: Paul Moore <paul@paul-moore.com>, Ondrej Mosnacek <omosnace@redhat.com>
-Cc: linux-security-module@vger.kernel.org, selinux@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-erofs@lists.ozlabs.org, Amir Goldstein <amir73il@gmail.com>, 
-	Gao Xiang <xiang@kernel.org>, Christian Brauner <brauner@kernel.org>
+To: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Ondrej Mosnacek <omosnace@redhat.com>, linux-security-module@vger.kernel.org, 
+	selinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
+	Amir Goldstein <amir73il@gmail.com>, Gao Xiang <xiang@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 2, 2026 at 11:09=E2=80=AFPM Paul Moore <paul@paul-moore.com> wr=
-ote:
+On Tue, Apr 7, 2026 at 8:14=E2=80=AFAM Stephen Smalley
+<stephen.smalley.work@gmail.com> wrote:
+> On Thu, Apr 2, 2026 at 11:09=E2=80=AFPM Paul Moore <paul@paul-moore.com> =
+wrote:
+> >
+> > The existing SELinux security model for overlayfs is to allow access if
+> > the current task is able to access the top level file (the "user" file)
+> > and the mounter's credentials are sufficient to access the lower
+> > level file (the "backing" file).  Unfortunately, the current code does
+> > not properly enforce these access controls for both mmap() and mprotect=
+()
+> > operations on overlayfs filesystems.
+> >
+> > This patch makes use of the newly created security_mmap_backing_file()
+> > LSM hook to provide the missing backing file enforcement for mmap()
+> > operations, and leverages the backing file API and new LSM blob to
+> > provide the necessary information to properly enforce the mprotect()
+> > access controls.
+> >
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Paul Moore <paul@paul-moore.com>
 >
-> The existing SELinux security model for overlayfs is to allow access if
-> the current task is able to access the top level file (the "user" file)
-> and the mounter's credentials are sufficient to access the lower
-> level file (the "backing" file).  Unfortunately, the current code does
-> not properly enforce these access controls for both mmap() and mprotect()
-> operations on overlayfs filesystems.
->
-> This patch makes use of the newly created security_mmap_backing_file()
-> LSM hook to provide the missing backing file enforcement for mmap()
-> operations, and leverages the backing file API and new LSM blob to
-> provide the necessary information to properly enforce the mprotect()
-> access controls.
->
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Paul Moore <paul@paul-moore.com>
+> Do you have tests for these changes showing the before and after (i.e.
+> failing without your patches, passing with them)? I tried running an
+> earlier set from Ondrej but they failed.
 
-Do you have tests for these changes showing the before and after (i.e.
-failing without your patches, passing with them)? I tried running an
-earlier set from Ondrej but they failed.
+A few months ago I sent you and Ondrej some feedback on those early
+tests from Ondrej, but yes, I also had problems with Ondrej's tests.
+I've been using a hacked up combination of the existing tests, some of
+Ondrej's additions, and an additional debug/test patch to ensure the
+labeling is correct.  It's far from ideal, but I didn't invest time in
+test development as I assumed Ondrej would continue his efforts there
+(unfortunately it doesn't appear that he has?), and I wanted to focus
+on getting a solution as soon as possible for obvious reasons.
+
+--=20
+paul-moore.com
