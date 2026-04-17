@@ -1,186 +1,92 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B67FE26FA5A
-	for <linux-unionfs@vger.kernel.org>; Fri, 10 Apr 2026 11:34:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775820885; cv=pass; b=GHHzsoIMppG/M82LGHi8hSzN55Et1UhvPrM0/pzD576GdjDttc6TVpoHNsGfoKo0cj15yfNRy+SD0RQkQHJkfEatsPIP8o+TVcaBa/E++3sW8CXu6dAUQ43dWb8mB+CukBdwOuURuuFCEprpJm4/QAi+SpEfCD73TvomasVcHFw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775820885; c=relaxed/simple;
-	bh=2p15eTMEFG5LbZTbfvyvyHQRJm3xhc7/w+GP3/gLHjo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ClhW+l3cjS/hUSyKh5v1EKhKBIMHl9lxzaQyi8w/gphRZrcKmMi0CqVosVYlIcW2rIuFBSKvVqBIXiRKElhIHOQ3hKvTLVgwBJ6ja/U04d+1s9IR4hVIrmhB4OtvShFexVCvQQFVobJe0RNwsig7GWwbuz8mDg6BsAcNoqf0VyY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AOxlGRvk; arc=pass smtp.client-ip=209.85.218.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AOxlGRvk"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-b9b1ffbb9f5so280383866b.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Apr 2026 04:34:43 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775820882; cv=none;
-        d=google.com; s=arc-20240605;
-        b=a43S2XO9WlHbmqMQQRxCAB8SH901EpaW8xskzi/XOIGRNxJeiSHlH6rcXojb/WwnPI
-         Bhlj/F0M7NKV4vZsrbI2B3J1UT+4Ba6uLmJMVSR1x135z13X8y4rwsI1c3IrwCiuIu0r
-         TaKenYEUHNPLigSsofk8E2sjkwTC/oSoWEQFW0qixNp6MWF41KMAkRXH4nnt7X+y2fn7
-         kAi1Pfi/gEuyAH8S/HRDtmOARlkmJAM/nL7BssMUlY62obSL7jhtC0p3fPceryyojBYt
-         AErhttjaGxiTDSxaZP4GOnYD82ReSHO6ath15kUe0DC+TWH0RQZBWNEiRJ5vVfoAeJIJ
-         ytqA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=t/Os5UX8qkAPx4XiFFfVcPBZNLQmrIX0gdgvO9SQghQ=;
-        fh=aqn9+8ojnFjJuyOw7BNp5smD3qNqSr4vPf7aSGDpZjQ=;
-        b=G2Dh35gfIuj1KjPbPiEAFdbDJyjUIJnVdiofEfNbsP2uKdk+ITyn3VHvZRw+D9+QAV
-         74J+wMKRFIfQ+UB3ekjykZ4f05SU1djhvPXaB2dX802UAHzPWn/wjtVjv1I4pVw3Wl40
-         TFqAtS9aWLPkcQnbSI7Rd2omJ6QLAdBwOXiyYLW+8o83v1spFKDcyfyabu8aa9wsbisP
-         uBQzlARH7+Sn3G3dpIhdNVQefoQ37N43u7ymsy3SO3CBzq+vXggWCt++UO/syLAEEp60
-         CgZeOihiBVm58VbQxPyts2fNRpfnctiepv1C5dQXFWKUgI+EHRQO+YEiB0VGy/nJIa+f
-         YTVA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775820882; x=1776425682; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=t/Os5UX8qkAPx4XiFFfVcPBZNLQmrIX0gdgvO9SQghQ=;
-        b=AOxlGRvkNIlpLvgddBF7CzEKNISaCJuTyE6CZJenNJUvwDifRv8ft7hunpAEHd4Duv
-         QMqtTdKjAm+guLCYUrUZ6qj08KqFeXmg1WEJDCg2e222ykgD67ZerTbwrtYWJpKRBX+X
-         ygFoAIc927WilKhMyLR2JCDY18ojXUVF2vDHuKHVNXicQwmCvvw8xockcBtaAJIAT8CV
-         El3xjZccGFz+YVbH1Y6Zavq/YkdC9qVrScf34I2ys4tyetPlxFkPVnbizww/X4JtfaEH
-         nH5dkXrBWwTcFEQ0YO0yOqr2C6I5NXMRn71AbJ1Ut/O+X/3UAg5sIw/D18qhjK0UlkVj
-         6jpQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775820882; x=1776425682;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=t/Os5UX8qkAPx4XiFFfVcPBZNLQmrIX0gdgvO9SQghQ=;
-        b=Jy/GXGQZkj/ipkeHx3cvw8lopfSTMv8Aie1UoBEZr1RxeUuxypkrF9YUDxLrlnBy3T
-         HRkuDb7OgQTBzI2Hfyh1dEZB4sYU2KgSLT9haBNCXcINFsEyCVzSAX3SqywIDJ5QKOVo
-         EV4zgnZ2dvlPug9HDfw29CX/oh07TZr1KLTmcVAG5xKP7ETQwTcJxbfZp1YLX/N+uYWA
-         ygDwRoX/zi9dyP02oLppFAiPuhV6b3zdFA/lpeA8CqXs67a5+MjxkT7K4lzbd5NhdEiP
-         wogbK9ampY2CsR/REO+KVaDELAbRSTXAzRWIi4D+MqnrHipgb3h+L2JyzSTjdWE9po8s
-         kFzA==
-X-Gm-Message-State: AOJu0Yy5J1UjxGKqPMCqBiZ1EKohMcIHU8a++RcW0ETk8KQ+afi35H88
-	BCZyzf1GuobCVmvioF7GV8gFdSFmNR5VTh7x7kbmFpW1bLbXeFY08bxTAw2/BsU+2BrKfLglRqp
-	dRszzkRqM6fiCZOjwSBDSDMlWexoQkLpD/yxL78g=
-X-Gm-Gg: AeBDievXVWgMafDezHlnTRzPATWQLyYTt1vdymH7iS/pnRXc+6wkdjotqSHomMfC6j3
-	UV+PkCos8ALbWZSOQMrxQDHh1EaF7diaB6YqhNPLLuDfqwonlUrPo5oyIKEXJnijOVkC+qkTHdb
-	JbDmLLHPgvKEwtNKX7Vwa88+1Kew/L+cHL1BWtsk9WkDqcoydlOeo6LAdke4kf/+A9mlu2YzTMW
-	OMaRuXEGADbUopzV+Z+2EYzwMxyFF38xN/AukWe+mh5jMjgSgzQ2OL4RaxZB7h1kA8VW0YR6t/f
-	uDeTxMItjI5ZP+ZiVbs/mGpBnAr2L754qoIGMuoCwQ==
-X-Received: by 2002:a17:907:e10d:b0:b97:f22f:43c3 with SMTP id
- a640c23a62f3a-b9d7279ae54mr107554466b.31.1775820881816; Fri, 10 Apr 2026
- 04:34:41 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B181347520
+	for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2026 08:38:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776415092; cv=none; b=CBiI3xnbIzWx8Aif4cVyYqxXmubqtM53n17ONyQe27/R4u9LfUGUld4MBbEZKd1Hi0B6BwPRNAkBzhX0yWG0YWkBH7Gd7efXBUCsbklFeqsDUZFRoiFUxUVdbeW1ruyRC/wc/194u+4qEYQmPAwCGeZVULB6GLjneJpzoa2e72o=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776415092; c=relaxed/simple;
+	bh=xvhZVhoX6KIDvZU6Mrny3lXApf4u6vNLedbRcTOP/J0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=p3e6Y9X1o+2itTATs+akulw6WY8xYLrvHfWeghRUwjzIFMM8oDdlMWEjbfvkAHzZDKI4Y5STITHRYPRM6YlJm6fFwfXaCD5X/oxTDOy/8APqdwrLJU2dvCECmUQKvsx6CAQ5GHvORz1OKZuCArr+G6KKkbmwG0yDvAcyiWLEpeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: c047b2623a3811f1aa26b74ffac11d73-20260417
+X-CTIC-Tags:
+	HR_CC_AS_FROM, HR_CC_COUNT, HR_CC_DOMAIN_COUNT, HR_CC_NAME, HR_CTE_8B
+	HR_CTT_MISS, HR_DATE_H, HR_DATE_WKD, HR_DATE_ZONE, HR_FROM_NAME
+	HR_SJ_LANG, HR_SJ_LEN, HR_SJ_LETTER, HR_SJ_NOR_SYM, HR_SJ_PHRASE
+	HR_SJ_PHRASE_LEN, HR_SJ_WS, HR_TO_COUNT, HR_TO_DOMAIN_COUNT, HR_TO_NO_NAME
+	IP_TRUSTED, SRC_TRUSTED, DN_TRUSTED, SA_EXISTED, SN_EXISTED
+	SPF_NOPASS, DKIM_NOPASS, DMARC_NOPASS, CIE_BAD, CIE_GOOD
+	CIE_GOOD_SPF, GTI_FG_BS, GTI_RG_INFO, GTI_C_BU, AMN_GOOD
+	ABX_MISS_RDNS
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.12,REQID:71a07ffe-bb2b-426a-9372-011c7d7a4b4e,IP:20,
+	URL:0,TC:0,Content:0,EDM:-25,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACT
+	ION:release,TS:-10
+X-CID-INFO: VERSION:1.3.12,REQID:71a07ffe-bb2b-426a-9372-011c7d7a4b4e,IP:20,UR
+	L:0,TC:0,Content:0,EDM:-25,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
+	N:release,TS:-10
+X-CID-META: VersionHash:e7bac3a,CLOUDID:66d95dbbd9a1ef649fd87880fe00ccd7,BulkI
+	D:260417163805SN32CEZA,BulkQuantity:0,Recheck:0,SF:17|19|38|66|78|102|127|
+	898,TC:nil,Content:0|15|50,EDM:2,IP:-2,URL:0,File:nil,RT:nil,Bulk:nil,QS:n
+	il,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC
+	:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR,TF_CID_SPAM_FAS,TF_CID_SPAM_FSD
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: c047b2623a3811f1aa26b74ffac11d73-20260417
+X-User: cuitao@kylinos.cn
+Received: from ctao-book.. [(183.242.174.21)] by mailgw.kylinos.cn
+	(envelope-from <cuitao@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 2033254324; Fri, 17 Apr 2026 16:38:04 +0800
+From: cuitao <cuitao@kylinos.cn>
+To: miklos@szeredi.hu,
+	amir73il@gmail.com,
+	linux-unionfs@vger.kernel.org
+Cc: cuitao <cuitao@kylinos.cn>
+Subject: [PATCH] ovl: skip ovl_file_modified() for dedupe operations
+Date: Fri, 17 Apr 2026 16:37:36 +0800
+Message-ID: <20260417083736.95117-1-cuitao@kylinos.cn>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <wtbfe3tb3uk6oeitkqodcal63p7pj6xjqwujzlzglina7o7imr@4sv25le6djgg>
-In-Reply-To: <wtbfe3tb3uk6oeitkqodcal63p7pj6xjqwujzlzglina7o7imr@4sv25le6djgg>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 10 Apr 2026 13:34:29 +0200
-X-Gm-Features: AQROBzCdR_vvGuOy7WliMnXcrBmo2-nNOI4jGqJBPctfX_e1ZHMuOzXOhwFVH4w
-Message-ID: <CAOQ4uxj558yzeFtbVbK-OZ_isWOEJ5fbD2odh4MkA4Od-ga6-A@mail.gmail.com>
-Subject: Re: [aalbersh@kernel.org: [PATCH v7 03/22] ovl: use core fsverity
- ensure info interface]
-To: Andrey Albershteyn <aalbersh@redhat.com>
-Cc: linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Apr 10, 2026 at 1:10=E2=80=AFPM Andrey Albershteyn <aalbersh@redhat=
-.com> wrote:
->
-> Forgot to add overlayfs as a receiver, this is overlayfs relevant
-> patch in the patchset adding fsverity support for XFS [1].
->
-> The patchset exposes fsverity_ensure_verity_info() [2] which could be
-> used instead.
->
-> 1: https://lore.kernel.org/linux-fsdevel/20260409131404.1545834-1-aalbers=
-h@kernel.org/T/#t
-> 2: https://lore.kernel.org/linux-fsdevel/20260409131404.1545834-1-aalbers=
-h@kernel.org/T/#m6baa3210a16a2f54ce977353da7532a93f1aef65
->
-> ----- Forwarded message from Andrey Albershteyn <aalbersh@kernel.org> ---=
---
->
-> Subject: [PATCH v7 03/22] ovl: use core fsverity ensure info interface
-> From: Andrey Albershteyn <aalbersh@kernel.org>
-> Date: Thu,  9 Apr 2026 15:13:35 +0200
-> To: linux-xfs@vger.kernel.org, fsverity@lists.linux.dev,
->   linux-fsdevel@vger.kernel.org, ebiggers@kernel.org
-> Cc: Andrey Albershteyn <aalbersh@kernel.org>, hch@lst.de,
->   linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
->   linux-btrfs@vger.kernel.org, djwong@kernel.org
-> Message-ID: <20260409131404.1545834-4-aalbersh@kernel.org>
-> In-Reply-To: <20260409131404.1545834-1-aalbersh@kernel.org>
->
-> fsverity now exposes fsverity_ensure_verity_info() which could be used
-> instead of opening file to ensure that fsverity info is loaded and
-> attached to inode.
->
-> Signed-off-by: Andrey Albershteyn <aalbersh@kernel.org>
+DEDUPE only compares data blocks between two files without modifying
+file_out, so there is no need to call ovl_file_modified() to sync
+attributes from the real inode. This aligns with the existing
+guard at the top of ovl_copyfile() which already skips copyattr
+and file_remove_privs for OVL_DEDUPE.
 
-Looks nice
+Signed-off-by: cuitao <cuitao@kylinos.cn>
+---
+ fs/overlayfs/file.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Acked-by: Amir Goldstein <amir73il@gmail.com>
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 27cc07738f33..f1829f425f45 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -572,7 +572,8 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
+ 	}
+ 
+ 	/* Update size */
+-	ovl_file_modified(file_out);
++	if (op != OVL_DEDUPE)
++		ovl_file_modified(file_out);
+ 
+ out_unlock:
+ 	inode_unlock(inode_out);
+-- 
+2.43.0
 
-> ---
->  fs/overlayfs/util.c | 14 +++-----------
->  1 file changed, 3 insertions(+), 11 deletions(-)
->
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 2ea769f311c3..8bde5dc31d7d 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -16,6 +16,7 @@
->  #include <linux/namei.h>
->  #include <linux/ratelimit.h>
->  #include <linux/overflow.h>
-> +#include <linux/fsverity.h>
->  #include "overlayfs.h"
->
->  /* Get write access to upper mnt - may fail if upper sb was remounted ro=
- */
-> @@ -1377,18 +1378,9 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, c=
-onst struct path *path, int pa
->  int ovl_ensure_verity_loaded(const struct path *datapath)
->  {
->         struct inode *inode =3D d_inode(datapath->dentry);
-> -       struct file *filp;
->
-> -       if (!fsverity_active(inode) && IS_VERITY(inode)) {
-> -               /*
-> -                * If this inode was not yet opened, the verity info hasn=
-'t been
-> -                * loaded yet, so we need to do that here to force it int=
-o memory.
-> -                */
-> -               filp =3D kernel_file_open(datapath, O_RDONLY, current_cre=
-d());
-> -               if (IS_ERR(filp))
-> -                       return PTR_ERR(filp);
-> -               fput(filp);
-> -       }
-> +       if (fsverity_active(inode))
-> +               fsverity_ensure_verity_info(inode);
->
->         return 0;
->  }
-> --
-> 2.51.2
->
->
->
-> ----- End forwarded message -----
->
-> --
-> - Andrey
->
->
