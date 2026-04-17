@@ -1,92 +1,135 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B181347520
-	for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2026 08:38:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776415092; cv=none; b=CBiI3xnbIzWx8Aif4cVyYqxXmubqtM53n17ONyQe27/R4u9LfUGUld4MBbEZKd1Hi0B6BwPRNAkBzhX0yWG0YWkBH7Gd7efXBUCsbklFeqsDUZFRoiFUxUVdbeW1ruyRC/wc/194u+4qEYQmPAwCGeZVULB6GLjneJpzoa2e72o=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776415092; c=relaxed/simple;
-	bh=xvhZVhoX6KIDvZU6Mrny3lXApf4u6vNLedbRcTOP/J0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=p3e6Y9X1o+2itTATs+akulw6WY8xYLrvHfWeghRUwjzIFMM8oDdlMWEjbfvkAHzZDKI4Y5STITHRYPRM6YlJm6fFwfXaCD5X/oxTDOy/8APqdwrLJU2dvCECmUQKvsx6CAQ5GHvORz1OKZuCArr+G6KKkbmwG0yDvAcyiWLEpeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: c047b2623a3811f1aa26b74ffac11d73-20260417
-X-CTIC-Tags:
-	HR_CC_AS_FROM, HR_CC_COUNT, HR_CC_DOMAIN_COUNT, HR_CC_NAME, HR_CTE_8B
-	HR_CTT_MISS, HR_DATE_H, HR_DATE_WKD, HR_DATE_ZONE, HR_FROM_NAME
-	HR_SJ_LANG, HR_SJ_LEN, HR_SJ_LETTER, HR_SJ_NOR_SYM, HR_SJ_PHRASE
-	HR_SJ_PHRASE_LEN, HR_SJ_WS, HR_TO_COUNT, HR_TO_DOMAIN_COUNT, HR_TO_NO_NAME
-	IP_TRUSTED, SRC_TRUSTED, DN_TRUSTED, SA_EXISTED, SN_EXISTED
-	SPF_NOPASS, DKIM_NOPASS, DMARC_NOPASS, CIE_BAD, CIE_GOOD
-	CIE_GOOD_SPF, GTI_FG_BS, GTI_RG_INFO, GTI_C_BU, AMN_GOOD
-	ABX_MISS_RDNS
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.12,REQID:71a07ffe-bb2b-426a-9372-011c7d7a4b4e,IP:20,
-	URL:0,TC:0,Content:0,EDM:-25,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACT
-	ION:release,TS:-10
-X-CID-INFO: VERSION:1.3.12,REQID:71a07ffe-bb2b-426a-9372-011c7d7a4b4e,IP:20,UR
-	L:0,TC:0,Content:0,EDM:-25,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
-	N:release,TS:-10
-X-CID-META: VersionHash:e7bac3a,CLOUDID:66d95dbbd9a1ef649fd87880fe00ccd7,BulkI
-	D:260417163805SN32CEZA,BulkQuantity:0,Recheck:0,SF:17|19|38|66|78|102|127|
-	898,TC:nil,Content:0|15|50,EDM:2,IP:-2,URL:0,File:nil,RT:nil,Bulk:nil,QS:n
-	il,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC
-	:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR,TF_CID_SPAM_FAS,TF_CID_SPAM_FSD
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: c047b2623a3811f1aa26b74ffac11d73-20260417
-X-User: cuitao@kylinos.cn
-Received: from ctao-book.. [(183.242.174.21)] by mailgw.kylinos.cn
-	(envelope-from <cuitao@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 2033254324; Fri, 17 Apr 2026 16:38:04 +0800
-From: cuitao <cuitao@kylinos.cn>
-To: miklos@szeredi.hu,
-	amir73il@gmail.com,
-	linux-unionfs@vger.kernel.org
-Cc: cuitao <cuitao@kylinos.cn>
-Subject: [PATCH] ovl: skip ovl_file_modified() for dedupe operations
-Date: Fri, 17 Apr 2026 16:37:36 +0800
-Message-ID: <20260417083736.95117-1-cuitao@kylinos.cn>
-X-Mailer: git-send-email 2.43.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A6D939FCD7
+	for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2026 10:24:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.51
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776421493; cv=pass; b=gnMu6rDMHii5NujjhrZ+TrnAI2Lo6LSyznrLa5zN95muJgao26hMRHl+EYQY98BAw7jHFZo7Cu6Wbx71OGS9FdYn/oAXZOQu04UApODuIQo1rzpbxXoM851KPbKqmFvRXAqZOUQQUD/CShwW7m8hlo1IMYa/rvpOyShm1gYv7ww=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776421493; c=relaxed/simple;
+	bh=bAFyJXwNVsC2wvYhPLhq16ECwjQk5bZejy5vkhU8j7U=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=J/0LQldYUily5+TTHSlCgjAnBx9GWMrvjvnwntvudK5RmgETYQ7eJFYgqszGHkyHvPBNChI2JRW8tmCrMXcjvNM/Ur+CYDX7S862JZteB8xE3orPin9vQOr3zftIfxOxqGphsqdL7tnv2+Wx/aPaAWPikMIUjrn9Im03UcOri/Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lg8cUFjR; arc=pass smtp.client-ip=209.85.218.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lg8cUFjR"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-b9c3e2cf3c0so94488466b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2026 03:24:49 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776421487; cv=none;
+        d=google.com; s=arc-20240605;
+        b=cRV3Pt7hYArajiMo+5B9Ugp9uzwcvx4JWXxrJQPqObTocIHDsIVIRcvPL5RJgMlYeQ
+         4XGu1wqAW+Hv5duZmVMTd17zdDI2KdkD72l9WQLw/H3YTYwLjH5ilrSfl8618eRrtHK1
+         NQox3yVFLneo8ElrdC4scYKLXU9vdpbsyDp/3cf9/Ym/NJJpZX12T3rFXlZxqQ+EFm3O
+         ISm0fLZFRYyMG17cfm2TXfPd9fbeSph6yl3aRnQcfu3jU7JntmBuaU3T90lnvbi4YCA4
+         Yqy4Scdfa9iX+zqh2dYsRsOu/A+Vihs3JmwELEyT2d4Iofz5WApKB14X+Eqfp9+u9aAH
+         KDvA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=/IwYpiRkcwNFCIz8HQXkqSlc8+1G34eRQhVzEJDpEpI=;
+        fh=JUeVftIImDvUnHQPB2YBJw++0b70y9K9hAcaTG6O/EU=;
+        b=MHUijWnrhbNAsb9VXPOlthfduwnNTBus+ys4Kn/cYZmrR9etFiR9WkBBUrTZ2PF7Y0
+         4EIFhWQltkyYcRpFrKAEsGQtM3Gq3+Y9GDgW+RmVUwtV2FCGhomwgV8JGnOOgQhexq6U
+         +8JqWd5R/IhDjdig8x/nCCp5L+YeorKTiBsTbDDPBNtho8mIfk++K1RLT1qysZony8Kp
+         x/LkrGBVZMgBDHsQKU/A3VKr9wjBQ6+qQ2UnpdWy23LFqskpCHljdg35tqwFn8pj7vQW
+         C6HhvtArE7scLp+lye/k8HQ8nLFt2wwuD5KnDJHy85rTpTTcCd8HPR0fvultxu46l2uM
+         7WiQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776421487; x=1777026287; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/IwYpiRkcwNFCIz8HQXkqSlc8+1G34eRQhVzEJDpEpI=;
+        b=Lg8cUFjR+30VYq1doKsKe+O1t9MoBtOiM/PSgeEChecrS9+PuFbOqXugkDRQ1qi0iA
+         EyOGzG2mVwvk+dT0wOWZL+23c5/LF4+qTRRObynwX8Ljd6sf2y9y1OqTLQX7I3dJQabm
+         F9ZlIorN8L08dD5ZOXrJQahORIYoW5VeXHYWoN8mN8VnJ4rNyiQYXuwT9skUnnPGBwTp
+         WJ/UorrN/5icOUtv217yrzOX+h7KvPDgllOLDQJaeS5Y5NDKqkU7vOT9zSetokIAeq0R
+         j8dTDI1iezxMwZlKc+iwIhn7U4Z+EOdbDmZ7oCaTKrvAuiEExw2K2NbqGmxixdBi2lrV
+         rDzQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776421487; x=1777026287;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=/IwYpiRkcwNFCIz8HQXkqSlc8+1G34eRQhVzEJDpEpI=;
+        b=QRkxhaOCIIjwkMAUuRz1KfTsefyuf6vyLWSsAw/XQelLEQxdx9+dajsaXzXZZJXcup
+         PFG/hBn/+x27KAHXoEwB0eZeWV7uTQVFV3vkOStHqjt3SKu7JcQsq0lvz8yxiPlW3jcE
+         mUzSqFRQQrH+9z5lDcZQSkNLRrleoKYayitLu8fWnCmygyHv148Q7f5jSwm6Df15IGcX
+         O3Labbke4XCVFGk9ImIVtDV8gV9NkvBPayqaehcVzyEtTdsXLeDReKnh3OHYskvlNs6p
+         8OUm+LLXFGRNdoyKnq/eKoyp2QksLLphZFlxfgStJRc6DSHOx1vng+s5k9k4m4yFeWnf
+         GDVg==
+X-Forwarded-Encrypted: i=1; AFNElJ8IzX89/yj0VzdUEW2TKJfefBwuPRpnC3Eipt6LUT00p/uqeWbzhZXKVkeVMvPDMuze21EhUvmaeohMi/bq@vger.kernel.org
+X-Gm-Message-State: AOJu0YzmDNRTOL+MYH1LHlpG9ur8usC8Ynyw1pz2JtpW3youWOXaoiuB
+	ePuA1ACLMVAubX54rtnd+PBBGVt2B6cme6vib2vSNIdyiu/LCNJuWducEgNrl2oQ25CMnQCc0dR
+	PkJ1YEAN+ofarsLePWon6A6/+7pn5yII=
+X-Gm-Gg: AeBDieu9HTApG/kPgttGrGMg1CWr4L9J0SGp3k4oGypAu301tLx/s39hu7qelgHICCy
+	7L9JNzhwoN9NAapK44OqGm6i/5xtV734QXy1+VPaI15zopLyDdIcNoq9EikDJ6jpABFQl2eHJv7
+	RriD+VRGD46yxQi4dHKyebHFTCRDDkUv/Ss0xUSi1sv6C5w7sQ1/k45ZUxUiz+D90Qjmz79gq+v
+	p6oBAkQGYQCEvX+K6gFPkZ9ANFm3MoH6BY/1Q5o1TsisO6IVVzuf7ZnEbqbWxa0BPnnxigZRt9M
+	SFhzW+4SjtgW6EzjtDI1u7yp39eIH4W8tV7+E0SJwEvuIMfXEnlZ8rHaEFioYmI=
+X-Received: by 2002:a17:907:d865:b0:b97:8503:8313 with SMTP id
+ a640c23a62f3a-ba41a047014mr112613966b.27.1776421487057; Fri, 17 Apr 2026
+ 03:24:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260417083736.95117-1-cuitao@kylinos.cn>
+In-Reply-To: <20260417083736.95117-1-cuitao@kylinos.cn>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 17 Apr 2026 12:24:34 +0200
+X-Gm-Features: AQROBzCB1KAt0WT221gMIiLwg545vLt7Fl1mOyt4viN13CTwOyd6-LpTOuJyk4g
+Message-ID: <CAOQ4uxh+wF6T9np25kqoxMPsiz4DCTofJ-4Xt4=1FNaspzh_rw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: skip ovl_file_modified() for dedupe operations
+To: cuitao <cuitao@kylinos.cn>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-DEDUPE only compares data blocks between two files without modifying
-file_out, so there is no need to call ovl_file_modified() to sync
-attributes from the real inode. This aligns with the existing
-guard at the top of ovl_copyfile() which already skips copyattr
-and file_remove_privs for OVL_DEDUPE.
+On Fri, Apr 17, 2026 at 10:39=E2=80=AFAM cuitao <cuitao@kylinos.cn> wrote:
+>
+> DEDUPE only compares data blocks between two files without modifying
+> file_out,
 
-Signed-off-by: cuitao <cuitao@kylinos.cn>
----
- fs/overlayfs/file.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Not accurate.
+It does not modify the data value.
+It definitely does modify the file's metadata as well as its ctime.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 27cc07738f33..f1829f425f45 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -572,7 +572,8 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
- 	}
- 
- 	/* Update size */
--	ovl_file_modified(file_out);
-+	if (op != OVL_DEDUPE)
-+		ovl_file_modified(file_out);
- 
- out_unlock:
- 	inode_unlock(inode_out);
--- 
-2.43.0
+> so there is no need to call ovl_file_modified() to sync
+> attributes from the real inode. This aligns with the existing
+> guard at the top of ovl_copyfile() which already skips copyattr
+> and file_remove_privs for OVL_DEDUPE.
+>
+> Signed-off-by: cuitao <cuitao@kylinos.cn>
+> ---
+>  fs/overlayfs/file.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 27cc07738f33..f1829f425f45 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -572,7 +572,8 @@ static loff_t ovl_copyfile(struct file *file_in, loff=
+_t pos_in,
+>         }
+>
+>         /* Update size */
+> -       ovl_file_modified(file_out);
+> +       if (op !=3D OVL_DEDUPE)
+> +               ovl_file_modified(file_out);
+>
 
+This is wrong because ovl_file_modified() also copied ctime.
+You could update the comment above to say
+/* Update size/mtime/ctime */
+but this is not very important IMO.
+
+Thanks,
+Amir.
