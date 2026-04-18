@@ -1,135 +1,140 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A6D939FCD7
-	for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2026 10:24:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB86A242D84
+	for <linux-unionfs@vger.kernel.org>; Sat, 18 Apr 2026 15:40:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.53
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776421493; cv=pass; b=gnMu6rDMHii5NujjhrZ+TrnAI2Lo6LSyznrLa5zN95muJgao26hMRHl+EYQY98BAw7jHFZo7Cu6Wbx71OGS9FdYn/oAXZOQu04UApODuIQo1rzpbxXoM851KPbKqmFvRXAqZOUQQUD/CShwW7m8hlo1IMYa/rvpOyShm1gYv7ww=
+	t=1776526804; cv=pass; b=lFKFe6McCIAG4Nws/OAm/9D9qFQ2nRMocwkPKImkwMipq3HNcVM7qVx+r4wtFuRe0pkWxnS3ZT2XAAfw2oP9b/hb+vbluVQKJ4dDkdx5Ml8GEc52OMQlaRLwm9tniZC6WU6pRajacjkihucnbaj4reVkK+8nJMmPxyOmQrH39Y0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776421493; c=relaxed/simple;
-	bh=bAFyJXwNVsC2wvYhPLhq16ECwjQk5bZejy5vkhU8j7U=;
+	s=arc-20240116; t=1776526804; c=relaxed/simple;
+	bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=J/0LQldYUily5+TTHSlCgjAnBx9GWMrvjvnwntvudK5RmgETYQ7eJFYgqszGHkyHvPBNChI2JRW8tmCrMXcjvNM/Ur+CYDX7S862JZteB8xE3orPin9vQOr3zftIfxOxqGphsqdL7tnv2+Wx/aPaAWPikMIUjrn9Im03UcOri/Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lg8cUFjR; arc=pass smtp.client-ip=209.85.218.51
+	 To:Cc:Content-Type; b=MjeefHt4j/2aCWA8KGRMFqEY9QC4DaXvb0TMaC19Wk/sUuIIaXLJ2QgbPcb/GX02s5BVdRkoIjE3Gbw1x42TvFfFiY03Ai1KxyzkjKLQAuy7IvEZSpHorE5moBLLcXX7R2s5Wnkn/Sg61AO1RIKztL4KuChG+Fx22Xlwdi4LCaY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GmnlTe6G; arc=pass smtp.client-ip=209.85.218.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lg8cUFjR"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-b9c3e2cf3c0so94488466b.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2026 03:24:49 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776421487; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GmnlTe6G"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b9c1da7ac63so313231466b.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 18 Apr 2026 08:40:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776526801; cv=none;
         d=google.com; s=arc-20240605;
-        b=cRV3Pt7hYArajiMo+5B9Ugp9uzwcvx4JWXxrJQPqObTocIHDsIVIRcvPL5RJgMlYeQ
-         4XGu1wqAW+Hv5duZmVMTd17zdDI2KdkD72l9WQLw/H3YTYwLjH5ilrSfl8618eRrtHK1
-         NQox3yVFLneo8ElrdC4scYKLXU9vdpbsyDp/3cf9/Ym/NJJpZX12T3rFXlZxqQ+EFm3O
-         ISm0fLZFRYyMG17cfm2TXfPd9fbeSph6yl3aRnQcfu3jU7JntmBuaU3T90lnvbi4YCA4
-         Yqy4Scdfa9iX+zqh2dYsRsOu/A+Vihs3JmwELEyT2d4Iofz5WApKB14X+Eqfp9+u9aAH
-         KDvA==
+        b=RPVHZ/PFlCHj6yaShrkni03rTtRxiaYqv2UmbivpuOOpgqQ1REk53/2zejUXJ86vaZ
+         U1EknBVClNFEh6yajik/Mf2k9AJY23YRuRwx5LXURvwfrevfNOBpIhm3J4DiXIcuBdiI
+         PVje3Ddb5gnkqYS37x7tbq1ddr8AeQCRHfNSocBs4Pfhz1UnXt6QDtHZV3w4ZE7PxBS1
+         9fMuu1PAcHGwmketjOS1PXnX5SqpPWpYWd4B6Rja8ftO/8pwfN3TIzjMnUmGwM1nSO4M
+         wYF/N8eISQD75Nb7lZhJuJsGch7HuzWPPNBYQhiBIgczrbt2Qn9HwEsWZpLjuYLGWlR7
+         yz+g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=/IwYpiRkcwNFCIz8HQXkqSlc8+1G34eRQhVzEJDpEpI=;
-        fh=JUeVftIImDvUnHQPB2YBJw++0b70y9K9hAcaTG6O/EU=;
-        b=MHUijWnrhbNAsb9VXPOlthfduwnNTBus+ys4Kn/cYZmrR9etFiR9WkBBUrTZ2PF7Y0
-         4EIFhWQltkyYcRpFrKAEsGQtM3Gq3+Y9GDgW+RmVUwtV2FCGhomwgV8JGnOOgQhexq6U
-         +8JqWd5R/IhDjdig8x/nCCp5L+YeorKTiBsTbDDPBNtho8mIfk++K1RLT1qysZony8Kp
-         x/LkrGBVZMgBDHsQKU/A3VKr9wjBQ6+qQ2UnpdWy23LFqskpCHljdg35tqwFn8pj7vQW
-         C6HhvtArE7scLp+lye/k8HQ8nLFt2wwuD5KnDJHy85rTpTTcCd8HPR0fvultxu46l2uM
-         7WiQ==;
+        bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
+        fh=ovNvZ6sv5LLQIeIPL6jSgEns1EQoTOlBRxlQtHXRDMc=;
+        b=Qkow/IBo+2Nh3gGNR+OMBiBXQIJtCD5K82PCu+RMP+0/eKvQ7r01qmeu36DYGOkis9
+         EVrTqOkYVXD1VVZtFa2fzMrOLgf4cFg8YHmkb6gK3DHLK6WPiztLG4/GEZXp5jBKa98q
+         Y40xWcCvJcDf7cCqpKrTtaXPV9c+9tahBxoOS/q3saCX6/LbzTgqN46oyFgucH66MFet
+         CZcRq5nh06LFHQTOk5nkk/OWx//ZOlgeYc7oQhi6HJvkhEEWg8BgoYeidvXAdfmZpATO
+         j1QAUrFwG17/+pnV4yRIawzxN4nH+7jNcne1QlBW5CujYnU/PYQnpf+h4YzPeAeWzZdm
+         ESaw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776421487; x=1777026287; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1776526801; x=1777131601; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=/IwYpiRkcwNFCIz8HQXkqSlc8+1G34eRQhVzEJDpEpI=;
-        b=Lg8cUFjR+30VYq1doKsKe+O1t9MoBtOiM/PSgeEChecrS9+PuFbOqXugkDRQ1qi0iA
-         EyOGzG2mVwvk+dT0wOWZL+23c5/LF4+qTRRObynwX8Ljd6sf2y9y1OqTLQX7I3dJQabm
-         F9ZlIorN8L08dD5ZOXrJQahORIYoW5VeXHYWoN8mN8VnJ4rNyiQYXuwT9skUnnPGBwTp
-         WJ/UorrN/5icOUtv217yrzOX+h7KvPDgllOLDQJaeS5Y5NDKqkU7vOT9zSetokIAeq0R
-         j8dTDI1iezxMwZlKc+iwIhn7U4Z+EOdbDmZ7oCaTKrvAuiEExw2K2NbqGmxixdBi2lrV
-         rDzQ==
+        bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
+        b=GmnlTe6Gt7g3mzOQJ3eMbzSphORZe47kZXX05KSaCBXAkhnxOaW6lpXZMabnSySTC2
+         S6PzjSDN7oViDfAES1IdHkJ6Gkg74uEIu9BTRqtgAFww/ILi5Shag42ZjiEeZyoMMrMv
+         GT6gNnKPyP6Ly8xBjQ+sUIgA/z3MeEhbzsr3KNxP5FAq+KUK5nxQu8vStidreIWEkUTS
+         0cP7ewpgut8blDQ76qVl+sSap+wFHWaSe7gqfFGVeRBHvTEoeG8tUv7+Fte4o954cyWU
+         NBEVmhh2DF3MZxVVD4AUoGunI8KPRZWg11narsSYaG3qXUmg3Z9dq6tcSqoUr4WcSIQw
+         zFjQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776421487; x=1777026287;
+        d=1e100.net; s=20251104; t=1776526801; x=1777131601;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=/IwYpiRkcwNFCIz8HQXkqSlc8+1G34eRQhVzEJDpEpI=;
-        b=QRkxhaOCIIjwkMAUuRz1KfTsefyuf6vyLWSsAw/XQelLEQxdx9+dajsaXzXZZJXcup
-         PFG/hBn/+x27KAHXoEwB0eZeWV7uTQVFV3vkOStHqjt3SKu7JcQsq0lvz8yxiPlW3jcE
-         mUzSqFRQQrH+9z5lDcZQSkNLRrleoKYayitLu8fWnCmygyHv148Q7f5jSwm6Df15IGcX
-         O3Labbke4XCVFGk9ImIVtDV8gV9NkvBPayqaehcVzyEtTdsXLeDReKnh3OHYskvlNs6p
-         8OUm+LLXFGRNdoyKnq/eKoyp2QksLLphZFlxfgStJRc6DSHOx1vng+s5k9k4m4yFeWnf
-         GDVg==
-X-Forwarded-Encrypted: i=1; AFNElJ8IzX89/yj0VzdUEW2TKJfefBwuPRpnC3Eipt6LUT00p/uqeWbzhZXKVkeVMvPDMuze21EhUvmaeohMi/bq@vger.kernel.org
-X-Gm-Message-State: AOJu0YzmDNRTOL+MYH1LHlpG9ur8usC8Ynyw1pz2JtpW3youWOXaoiuB
-	ePuA1ACLMVAubX54rtnd+PBBGVt2B6cme6vib2vSNIdyiu/LCNJuWducEgNrl2oQ25CMnQCc0dR
-	PkJ1YEAN+ofarsLePWon6A6/+7pn5yII=
-X-Gm-Gg: AeBDieu9HTApG/kPgttGrGMg1CWr4L9J0SGp3k4oGypAu301tLx/s39hu7qelgHICCy
-	7L9JNzhwoN9NAapK44OqGm6i/5xtV734QXy1+VPaI15zopLyDdIcNoq9EikDJ6jpABFQl2eHJv7
-	RriD+VRGD46yxQi4dHKyebHFTCRDDkUv/Ss0xUSi1sv6C5w7sQ1/k45ZUxUiz+D90Qjmz79gq+v
-	p6oBAkQGYQCEvX+K6gFPkZ9ANFm3MoH6BY/1Q5o1TsisO6IVVzuf7ZnEbqbWxa0BPnnxigZRt9M
-	SFhzW+4SjtgW6EzjtDI1u7yp39eIH4W8tV7+E0SJwEvuIMfXEnlZ8rHaEFioYmI=
-X-Received: by 2002:a17:907:d865:b0:b97:8503:8313 with SMTP id
- a640c23a62f3a-ba41a047014mr112613966b.27.1776421487057; Fri, 17 Apr 2026
- 03:24:47 -0700 (PDT)
+        bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
+        b=iax8wzn9o1AmJUPvxRuzbNOxAxfH6KjxEPV/+hpPjfcrT7Z+Q6aD8jUyRa/jmL1JOU
+         vEBN8JgVuWPlox+ZBQwUAepVB49Z1y+cdEfxsqlttCPDA8Ng2qreGxhrJQw/nYANUgZc
+         QsneG2aurmZGR90TFVR/SYEsB/MN2B8FB4PcMJ2LVkG+5+NBQTKccMbkYOCx2nSZZX46
+         XeZbUJ+yN94l7fR1RmeMQiDEK0XASmcnyHyy1hz0NyHkoc41whdynvdi5MbukZPomVLN
+         D5mpbJdT/SHUfwkokA7css4UgWpvBnaF9BhBpjyzexwjaYM9Z5NIub9Nplvu6YUVqopB
+         PjTg==
+X-Forwarded-Encrypted: i=1; AFNElJ+EIwqMFnLe1Lem4gmp1AfPZ9Kosoxey5JJHx8LXm7ygzDBleg2NTA21KuFOa1mTFiq+dJlG9H8w253jb0c@vger.kernel.org
+X-Gm-Message-State: AOJu0YyPZ+0CPRJV/vADWalDIFbv/ZSQyswZYLBIEd5cofxQ7C+03Dvs
+	MBkWbt4MFetFmUf9vPxjsZLPOWYHL3rqK8u3Dxn6wpzmkWPNDL+XYzbCXnEaZXGc22HNw2MjllR
+	ZkKa7387o/V+mCCRxi/soLxJXh/uPgg8=
+X-Gm-Gg: AeBDievunplfWzLTtZoKZDTWOmX9lm5PsvXPT1rl+wGwxD7zUA7fD+S5W7Kfuo24qPl
+	TlYvslbqVHUeD0xztASfi+faEvBwq0kzXiFfwyIXXtEA9+Neqh6x5h+S+jo9rwqyDYTPlZuPoEM
+	Hnb4C2QL44Dojh1gdQbYAbt7vy16IjFfwBFSOcrYx7j+7VPlVr7ZM5byVmTxji2CpL0iaG5+w3e
+	Zat417+L/u1eqOC4TxtEEETuVZdPYwZ6S9qJWt/tmxQbR1yv3avXjH4n6fjcmwMpucoIXXbPpM/
+	hO0++NWxUwbAuv/G/SWdk40KFwzDOUGtnUGkU3C5QFFh0vDE
+X-Received: by 2002:a17:906:fe45:b0:ba5:7cce:979f with SMTP id
+ a640c23a62f3a-ba57cce99dbmr117469966b.40.1776526800916; Sat, 18 Apr 2026
+ 08:40:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260417083736.95117-1-cuitao@kylinos.cn>
-In-Reply-To: <20260417083736.95117-1-cuitao@kylinos.cn>
+References: <CAHWLEDHfXZScF5jNDzgOxGXf-MBDcVNtqW0DbNz8Ra8rtcuL+w@mail.gmail.com>
+ <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com>
+In-Reply-To: <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 17 Apr 2026 12:24:34 +0200
-X-Gm-Features: AQROBzCB1KAt0WT221gMIiLwg545vLt7Fl1mOyt4viN13CTwOyd6-LpTOuJyk4g
-Message-ID: <CAOQ4uxh+wF6T9np25kqoxMPsiz4DCTofJ-4Xt4=1FNaspzh_rw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: skip ovl_file_modified() for dedupe operations
-To: cuitao <cuitao@kylinos.cn>
-Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+Date: Sat, 18 Apr 2026 17:39:49 +0200
+X-Gm-Features: AQROBzCvSbGA03ROsg6cVMJlbAynfy2yIZAnavXEgKUY8bnKpwlWeH4xlKzfKLE
+Message-ID: <CAOQ4uxhUn6oCBuVJqZu+FcMx8XeAQHZbXFAGon4Xeg2SPLJW_A@mail.gmail.com>
+Subject: Re: [REGRESSION] Return change in 6.12.80+ with volatile mounting
+To: Chenglong Tang <chenglongtang@google.com>
+Cc: Derek Taylor <ddtaylor@google.com>, stable@vger.kernel.org, 
+	regressions@lists.linux.dev, Kevin Berry <kpberry@google.com>, 
+	overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 17, 2026 at 10:39=E2=80=AFAM cuitao <cuitao@kylinos.cn> wrote:
+On Sat, Apr 18, 2026 at 1:33=E2=80=AFAM Chenglong Tang <chenglongtang@googl=
+e.com> wrote:
 >
-> DEDUPE only compares data blocks between two files without modifying
-> file_out,
+> CC Amir,
+>
+> For example, containerd 2.2.0 uses `volatile` instead of `fsync=3Dvolatil=
+e`:
+> https://github.com/containerd/containerd/blob/main/core/mount/temp.go#L91=
+C1-L92C1
+>
+> On Fri, Apr 17, 2026 at 3:41=E2=80=AFPM Derek Taylor <ddtaylor@google.com=
+> wrote:
+> >
+> > This change seems to have so far affected at least containerd in an
+> > issue reported here
+> > https://github.com/containerd/containerd/issues/13250.
+> >
+> > In stable versions 6.12.80+, commit
+> > 6c0cfbe020c0fcd2a544fcd2931fbc366ee3cd12 with the specific change
+> > being:
+> > [*] The mount option "volatile" is an alias to "fsync=3Dvolatile".
+> > In this scenario, code relying on checking "volatile" will now fail
+> > due to the return being "fsync=3Dvolatile".
+> >
+> > #regzbot introduced:v6.12.80
 
-Not accurate.
-It does not modify the data value.
-It definitely does modify the file's metadata as well as its ctime.
+Hi Chenglong,
 
-> so there is no need to call ovl_file_modified() to sync
-> attributes from the real inode. This aligns with the existing
-> guard at the top of ovl_copyfile() which already skips copyattr
-> and file_remove_privs for OVL_DEDUPE.
->
-> Signed-off-by: cuitao <cuitao@kylinos.cn>
-> ---
->  fs/overlayfs/file.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 27cc07738f33..f1829f425f45 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -572,7 +572,8 @@ static loff_t ovl_copyfile(struct file *file_in, loff=
-_t pos_in,
->         }
->
->         /* Update size */
-> -       ovl_file_modified(file_out);
-> +       if (op !=3D OVL_DEDUPE)
-> +               ovl_file_modified(file_out);
->
+Thanks for the report.
 
-This is wrong because ovl_file_modified() also copied ctime.
-You could update the comment above to say
-/* Update size/mtime/ctime */
-but this is not very important IMO.
+Is this problem in production containerd or in a test suite?
+I did not understand the purpose of WithTempMount().
+
+Is it possible to fix this function to use string.Contains() instead of
+exact match to the "volatile" mount option?
+
+If needed I can fix the kernel to show the legacy "volatile" option,
+but I would like to first understand how bad the impact of this regression
+is on real production workloads.
 
 Thanks,
 Amir.
