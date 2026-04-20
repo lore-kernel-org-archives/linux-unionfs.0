@@ -1,188 +1,233 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC40A2D6409
-	for <linux-unionfs@vger.kernel.org>; Mon, 20 Apr 2026 07:59:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.53
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776671962; cv=pass; b=j95wzI0Tt0+vIIhwOYS6afLc5o79T1xz6CSUJiv+MNFSD9RH1MASPfsZA1zuqrht3gYfItpOLxnOwLzqejqz75BYevmnAdQBlFn74slM0CHMs8hmD0TeuWUXvrOVOHiiwY4eFvMgS6z75V1S1ccYljatefHoyV2Zi1dGkvnre9I=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776671962; c=relaxed/simple;
-	bh=skJ5R+wFeOukZf+cjPX17CzqfeE4aSfaDg5kcm2isn4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rS3MM4lj7EIoh5EAZGIWUcXeABjCEAS2taQhEZbu8r07qINkD+C9WWLg0klbF8ZN/fMRjt7/TbgXVG70sX+z8iISyO2lZ6LOMQbOKLj1h8zmp9GsyVF5E9Fxf7hj0TiQo+bI6xmeQRddw3G4ptRIJa0kf8ndvnX0F65zU1nY1wU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SmCuiiLd; arc=pass smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 710A039935D;
+	Mon, 20 Apr 2026 11:47:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776685655; cv=none; b=Hi3sewQ5n81ymuswd3KpqNsUpijI6HVeYEwsRW8Gg3dRlG2LNgkSZEI4JKIt9mwhElajXQQPlfO1l+K5wDMKTu8cOJWh4iZgt2s8aDrUGOTNfnb0yF5ff98Gp6C5dTXKJYUNNrFScSqDvztrIEEMIssaIbtQL+CtovghnS3ANtc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776685655; c=relaxed/simple;
+	bh=U950hHS/KgrWm4Bdmh/uVIBdlmQ5hkp3KXne6HzG+qw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bdIpNhs6FWRzCvheoNNS1jtNkvkS8dzEei9baz3k2gTR0p6p0zJ4l2Qb5LW7h+s1KgQmJkqeVYu91ZuUTAOF6tvD5DBA7bFzw3Rbf7ZsNEfF69rcO1b77hsuKYVmgUEnG5AdozpayFs31a29bXtt5wnOGOQWC1P/wQW5zAHCpmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PrJWk7u0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SmCuiiLd"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b9358bc9c50so358455566b.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Apr 2026 00:59:20 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776671959; cv=none;
-        d=google.com; s=arc-20240605;
-        b=dV8ZENzixKoGt3AgcUV0/1ZF+sGkDVMIQO0CLEuVM3sx4XXAXwPcJGRlIewAv6uxHx
-         Nx8WnwLZu6gWGdbYtzMETcmnUHS7TMsY0kDI/3x0Y2H7yDhmNd3Gt1yavdvb+sGeEFPA
-         StLacY2vryHyMyCIJiT8MVTiH2mZS5fjvH+LcLg31ExhMguQkqepU3vZthxbMVATa0I6
-         a2Bt9Dl8iX61i+t74L+/vKwIWhae0r0R8bxtcgL/BKRBqUeKpcqNmAH2u2RGF/FV74sE
-         Rcbpg7fHYZdexQrR43dOVM8qHy7TRfqUB8m5OB2aNLWYujn7sZgiZ1J6287Nl7UqnlPw
-         jWUg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=qX8bL6820CZ5JwymJvdCU8o9V6FV5GdqfCje7/oI55k=;
-        fh=0yzybOnX92JUhxzfRQ+zv5+aY8C2k7VZ6nyEn/V1ZaY=;
-        b=Kp5909Xv0DCoU8a8VDMm5NOLQuu/CWUzRffEuhUWzrUluSDBa3Qn7VrQXIFe3anHjK
-         nMryjS2oybbDVHHZN7tTHESR8jDmkRBFb5NQZu0fwCtK6ShFWJxYuDHUlr91mPijQRxa
-         P+/LF9hUeL63Cs/1N1y9MEZLQvXU6RKyh3W6ZLu0v665/CPhR+Z5XPOkqLic8TBDE0wy
-         /4OiK7eepRfy3hzCCaiK+MUez1ZNepKvjOWoZYRswHE65Om4efJdk9gG3LFYM3Cu6Pj0
-         8NNV7TJiVxTRaneEdKUV9E3rwRi+/Km82tBj0U+U3rlMBe9+e4YZgK+x3pdBsU1ObxMz
-         XNhA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776671959; x=1777276759; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qX8bL6820CZ5JwymJvdCU8o9V6FV5GdqfCje7/oI55k=;
-        b=SmCuiiLdwNXbGdWDg/x04t78lVcyX5bGk4E4xxNO2HBb/LDafKhWIhZjPfCTkCpkCt
-         4U629ZeIPAOFtQ+OExNYoDizYy8QsrmLlmwjmnc3niWcWg9TyOt8qEVRGB9zSeyOCIZO
-         o9O7v/TGjnwehDnHfHDTdBwrXiEOPz9LTFjyy+AjMIGFI3A3HnI2qkslePLZMsgwg2Al
-         gPRD1ezTLBfDPpFPfrf6cGcGJFYNRjBrfXcjeoPGuFsIQlHZW0RMHORdu8orPJ3fDGtP
-         ZNbCeuHeJH8pxZznHir1bo74x8oEIWmQqTeSjJbB0bz+/D9EDFuHZ72hGTzlVzMTtbLk
-         j57w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776671959; x=1777276759;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=qX8bL6820CZ5JwymJvdCU8o9V6FV5GdqfCje7/oI55k=;
-        b=qLEU8+tdM+RWRRD3wWgqL8SOyID4Cmb61SLQK2f2U7dDTESM50fQC0C8AY133v21KM
-         +b4QPhfZ13UNresCWL59uUYpYENddghQ4B0bhk+TxQXR8RIRDXLk9yMHPEhlAcxNXLS5
-         HtETNHfTp5iNK0YwQBmKfaKGSs69x/tnxnn5t0cBGM+T0P9as5vJuUSszl1eBc4TcH3k
-         FstgAsXc+0zwyyrL2LwNdL/nDxMif4RI38clYFTYPDGXHy2A4wFRzm+jXnkQaoFXcVuO
-         zzmF416qZlx2Hjq45MceB5dgnvYiVtUKwtHcUAp9VR0lGo7OLtwfj2okO/b1uGMnpbfp
-         FC6Q==
-X-Forwarded-Encrypted: i=1; AFNElJ/K6l4RnfWEU3gRlizAgKa7t2O6x9TW7I2WW8SzBepzAdJSv9936qMR6Xca+YyxmcDG4qkovw05+4XjJ6MA@vger.kernel.org
-X-Gm-Message-State: AOJu0YxBnenOCFG+I6mmsK96DRwbkxAuHUXo+ZSMyCPcHba6Al8toBjH
-	usZAq8y//CAyVkYBZZWNxUFkCqv6obM+p0maPks0WCxSuH261RntkmoUJ7hdg8OgV9NB6xtjZFM
-	6Rpd6vJJYvSvKq4qoUkKUHorRNWiD7/ZCS6ad1yk=
-X-Gm-Gg: AeBDiev84V4N2Q+61c182Zs+rRlRMuc9lYszS8oA67ijYeobxyTj7xG+dkIdM92Synp
-	VDKcEMkDicoHZTwcwFpaOSLM+BoL25k7YgWnJDIaLshn7zxc+s7B7JbwQ5EbXWNaqd0RkuJ/s5F
-	M11MaTEm3lMcPJ548VbT2KkO3COrIuyIRBONHJKPe+SOVS4ocTqZRjTzsItlqFuDbzfK5LhQYLJ
-	Gz3SDUMuHSNQn9rZz+5mZ9FBRPY+75N7LUugHxd9jE/Yojd5i7FDmXoT6v2vMXH88N7NG8BQgam
-	BRwcvo1U9CSXNceaogQtLviemXu9kp9gx11Wx2X2uwAXObDdq35xU/UDi9vFmI8=
-X-Received: by 2002:a17:907:6a16:b0:b9c:2c55:3384 with SMTP id
- a640c23a62f3a-ba41adf9231mr607331666b.31.1776671958701; Mon, 20 Apr 2026
- 00:59:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PrJWk7u0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62D4EC19425;
+	Mon, 20 Apr 2026 11:47:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776685655;
+	bh=U950hHS/KgrWm4Bdmh/uVIBdlmQ5hkp3KXne6HzG+qw=;
+	h=From:To:Cc:Subject:Date:From;
+	b=PrJWk7u0le6cJhKeJDedoCTOx//2cDu6CNmKNHDsgt1MR0pU9CzQRaCyZ0VFigS3r
+	 OOizB7NkNkgsQRs9VBKnB4Pe73/TgJWlInLzOBHicIBILInycysMPFjpU95mMxtChl
+	 r9o60m+0ofvuK10eFFd7fzGnPIJzPBWYcbQPUh60CIGqyNIvEDJxrKKjSrC8rnVLsF
+	 t4g7/jhvW1eqgGOBX/KMIKT80sljajn3DGKWyfPGl5CpqJUZpMEOcQi/fnAwZFDNAG
+	 q/Z1Jh41PneOOEVVuP/lMCgIBUKS1HAcNKX3fbZ87tc+dpgcVUFvWEip15/sc/sT37
+	 fAmdtZjUVQSYg==
+From: Andrey Albershteyn <aalbersh@kernel.org>
+To: linux-xfs@vger.kernel.org,
+	fsverity@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org,
+	ebiggers@kernel.org
+Cc: Andrey Albershteyn <aalbersh@kernel.org>,
+	hch@lst.de,
+	linux-ext4@vger.kernel.org,
+	linux-f2fs-devel@lists.sourceforge.net,
+	linux-btrfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	djwong@kernel.org,
+	david@fromorbit.com
+Subject: [PATCH v8 00/22] fs-verity support for XFS with post EOF merkle tree
+Date: Mon, 20 Apr 2026 13:46:47 +0200
+Message-ID: <20260420114714.1621982-1-aalbersh@kernel.org>
+X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAHWLEDHfXZScF5jNDzgOxGXf-MBDcVNtqW0DbNz8Ra8rtcuL+w@mail.gmail.com>
- <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com>
- <CAOQ4uxhUn6oCBuVJqZu+FcMx8XeAQHZbXFAGon4Xeg2SPLJW_A@mail.gmail.com> <CAOdxtTaWWu_7eJWu68zf28zHQP3Y--vXTfbGFsceO47BpN3qxA@mail.gmail.com>
-In-Reply-To: <CAOdxtTaWWu_7eJWu68zf28zHQP3Y--vXTfbGFsceO47BpN3qxA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 20 Apr 2026 09:59:06 +0200
-X-Gm-Features: AQROBzDzAqpFjrbD5bTYNQHJCrGk2bhPT57K41uT-FxOcAInwVKNr2-vgwcmqn0
-Message-ID: <CAOQ4uxhCNhGinePrnkSfT9Mtf4o5FmBX7mTA2m4miCMOt3mJqA@mail.gmail.com>
-Subject: Re: [REGRESSION] Return change in 6.12.80+ with volatile mounting
-To: Chenglong Tang <chenglongtang@google.com>
-Cc: Derek Taylor <ddtaylor@google.com>, stable@vger.kernel.org, 
-	regressions@lists.linux.dev, Kevin Berry <kpberry@google.com>, 
-	overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Apr 20, 2026 at 8:31=E2=80=AFAM Chenglong Tang <chenglongtang@googl=
-e.com> wrote:
->
-> Hi, Amir,
->
-> Thanks for looking into this! To answer your questions:
->
-> 1. Production vs. Test Suite Impact
->
-> The immediate failure we encountered is in containerd's integration
-> test suite (TestImageVolumeCheckVolatileOption). The test explicitly
-> reads /proc/mounts and expects the exact string "volatile".
->
-> In default production, containerd passes the legacy "volatile" string
-> to the mount syscall, which your patch correctly handles under the
-> hood. So the standard "happy path" is not broken in production.
->
-> 2. The purpose of WithTempMount() / RemoveVolatileOption
->
-> Containerd regularly makes temporary overlay mounts (e.g., for
-> unpacking layers). Because overlayfs rejects reusing upper/work dirs
-> from a volatile mount, containerd uses RemoveVolatileOption to strip
-> the volatile flag before these temporary mounts.
->
-> Currently, containerd's RemoveVolatileOption does an exact string
-> match for "volatile". While it works for the default path, there is a
-> production edge case: if a user explicitly configures their container
-> runtime to use the new "fsync=3Dvolatile" option, older containerd
-> binaries will fail to strip it, and the temporary mounts will be
-> rejected by the kernel.
+Hi all,
 
-I need to challenge this specific argument because I do not agree
-that this edge case could be considered a regression at all.
+This patch series adds fs-verity support for XFS. This version stores
+merkle tree beyond end of the file, the same way as ext4 does it. The
+difference is that verity descriptor is stored at the next aligned 64k
+block after the merkle tree last block. This is done due to sparse
+merkle tree which doesn't store hashes of zero data blocks.
 
-An admin from the past could not have set an explicit
-"fsync=3Dvolatile" mount option.
+The patchset starts with a few fs-verity preparation patches. Then, a
+few patches to allow iomap to work in post EOF region. The XFS fs-verity
+implementation follows.
 
-Though experiment - overlayfs adds a new mode fsync=3Doff
-which is more loose than "volatile" because "volatile" can actually
-return error on fsync in some cases.
+The tree is read by iomap into page cache at offset of next largest
+folio past end of file. The same offset is used for on-disk.
 
-Overlayfs would also not allow to reuse workdir from such
-a mount.
+This patchsets also synthesizes merkle tree block full of hashes of
+zeroed data blocks. This merkle blocks are not stored on disk, they are
+holes in the tree.
 
-So would you then claim that adding the new mount option
-"fsync=3Doff" is a regression because of the edge case that an admin
-decided to explicitly add "fsync=3Doff" and RemoveVolatileOption()
-does not handle it.
+Testing. The -g verity is passing for 1k, 8k and 4k with/without quota
+on 4k and 64k page size systems. Tested -g quick for enabled/disabled
+fsverity. Also, overlay/080 overlay/089 with XFS as base.
 
-I don't buy it.
+This series based on v7.0 with Christoph's read ioends patchset [1].
 
-There is a more correct way to handle this situation and it is
-documented in overlayfs.rst:
+kernel:
+https://git.kernel.org/pub/scm/linux/kernel/git/aalbersh/xfs-linux.git/log/?h=b4/fsverity
 
-"When overlay is mounted with "volatile" option, the directory
-"$workdir/work/incompat/volatile" is created.  During next mount, overlay
-checks for this directory and refuses to mount if present. This is a strong
-indicator that the user should discard upper and work directories and creat=
-e
-fresh ones. In very limited cases where the user knows that the system has
-not crashed and contents of upperdir are intact, the "volatile" directory
-can be removed."
+xfsprogs:
+https://github.com/alberand/xfsprogs/tree/b4/fsverity
 
-containerd unpacking layers falls under this very limited case.
-containerd can syncfs() workdir after unpack & unmount of temp
-overlayfs and remove the "incompat/volatile" directory and then
-the upperdir/workdir are are free to be remounted.
+xfstests:
+https://github.com/alberand/xfstests/tree/b4/fsverity
 
->
-> Conclusion
->
-> While containerd could theoretically patch their code to accept
-> strings.Contains() or fsync=3Dvolatile going forward, there are many
+Cc: fsverity@lists.linux.dev
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
 
-Following the documentation advise would be better.
+Cc: david@fromorbit.com
+Cc: djwong@kernel.org
+Cc: ebiggers@kernel.org
+Cc: hch@lst.de
 
-> existing containerd binaries in the wild. Given that this patch breaks
-> containerd's CI tests and introduces an edge case for
-> RemoveVolatileOption, it might be safest to fix ovl_show_options in
-> the kernel to continue outputting the legacy "volatile" string to
-> strictly guarantee backwards compatibility with userspace.
->
+1: https://lore.kernel.org/linux-xfs/20260223132021.292832-1-hch@lst.de/
 
-Considering my comments above, I think we have not yet reached
-the point where the backward compat "volatile" string is called for,
-but with other reports from production workloads, we could get there.
+---
+Changes in v8:
+- Return fsverity_ensure_verity_info() errors from
+  ovl_ensure_verity_loaded()
+Changes in v7:
+- Move kerneldoc to fsverity_ensure_verity_info() definition
+- Drop patch adding XFS traces
+- Fix overly long line in the comment
+- Make order of fserror and fsverity_error consistent
+- Add overlay patch converting to fsverity_ensure_verity_info()
+Changes in v6:
+- Removed stub for fsverity_ensure_verity_info() as it's optimized out
+- Rename fsverity_folio_zero_hash() to fsverify_fill_zerohash()
+- Merge patches 8 to 10 into one
+- Merge patch gerating zero_hash and fsverity_fill_zerohash() into one
+- Add kerneldoc to fsverity_ensure_verity_info()
+- Add comments to iomap_block_needs_zeroing()
+Changes in v5:
+- Add fserror_report_data_lost() for data blocks in page spanning EOF
+- Issue fsverity metadata readahead in data readahead
+- iomap_fsverity_write() return type fix
+- Use of S_ISREG(mode)
+- Make 65536 #define instead of open-coded
+- Use transaction per unwritten extent removal
+- Fetch fsverity_info for all fsverity metadata
+- Revert fsverity_folio_zero_hash() stub as used in iomap
+- Extend cancel_unwritten to whole file range to remove cow leftovers
+- Drop delayed allocation on the COW fork on fsverity completion
+Changes in v4:
+- Use fserror interface in fsverity instead of fs callback
+- Hoist pagecache_read from f2fs/ext4 to fsverity
+- Refactor iomap code
+- Fetch fsverity_info only for file data and merkle tree holes
+- Do not disable preallocation, remove unwritten extents instead
+- Offload fsverity hash I/O to fsverity workqueue in read path
+- Store merkle tree at round_up(i_size, 64k)
+- Add a spacing between merkle tree and fsverity descriptor as next 64k
+  aligned block
+- Squash helpers into first user commits
+- Squash on-disk format changes into single commit
+- Drop different offset for pagecache/on-disk
+- Don't zero out pages in higher order folios in write path
+- Link to v3: https://lore.kernel.org/fsverity/20260217231937.1183679-1-aalbersh@kernel.org/T/#t
+Changes in v3:
+- Different on-disk and pagecache offset
+- Use read path ioends
+- Switch to hashtable fsverity info
+- Synthesize merkle tree blocks full of zeroes
+- Other minor refactors
+- Link to v2: https://lore.kernel.org/fsverity/20260114164210.GO15583@frogsfrogsfrogs/T/#t
+Changes in v2:
+- Move to VFS interface for merkle tree block reading
+- Drop patchset for per filesystem workqueues
+- Change how offsets of the descriptor and tree metadata is calculated
+- Store fs-verity descriptor in data fork side by side with merkle tree
+- Simplify iomap changes, remove interface for post eof read/write
+- Get rid of extended attribute implementation
+- Link to v1: https://lore.kernel.org/r/20250728-fsverity-v1-0-9e5443af0e34@kernel.org
 
-Thanks for the clear and honest explanations of the containerd situation!
-Amir.
+Andrey Albershteyn (20):
+  fsverity: report validation errors through fserror to fsnotify
+  fsverity: expose ensure_fsverity_info()
+  ovl: use core fsverity ensure info interface
+  fsverity: generate and store zero-block hash
+  fsverity: pass digest size and hash of the all-zeroes block to ->write
+  fsverity: hoist pagecache_read from f2fs/ext4 to fsverity
+  iomap: introduce IOMAP_F_FSVERITY and teach writeback to handle
+    fsverity
+  iomap: teach iomap to read files with fsverity
+  iomap: introduce iomap_fsverity_write() for writing fsverity metadata
+  xfs: introduce fsverity on-disk changes
+  xfs: initialize fs-verity on file open
+  xfs: don't allow to enable DAX on fs-verity sealed inode
+  xfs: disable direct read path for fs-verity files
+  xfs: handle fsverity I/O in write/read path
+  xfs: use read ioend for fsverity data verification
+  xfs: add fs-verity support
+  xfs: remove unwritten extents after preallocations in fsverity
+    metadata
+  xfs: add fs-verity ioctls
+  xfs: introduce health state for corrupted fsverity metadata
+  xfs: enable ro-compat fs-verity flag
+
+Darrick J. Wong (2):
+  xfs: advertise fs-verity being available on filesystem
+  xfs: check and repair the verity inode flag state
+
+ fs/btrfs/verity.c              |   6 +-
+ fs/ext4/verity.c               |  36 +--
+ fs/f2fs/verity.c               |  34 +--
+ fs/iomap/buffered-io.c         | 109 +++++++-
+ fs/iomap/trace.h               |   3 +-
+ fs/overlayfs/util.c            |  14 +-
+ fs/verity/enable.c             |   4 +-
+ fs/verity/fsverity_private.h   |   3 +
+ fs/verity/measure.c            |   4 +-
+ fs/verity/open.c               |  25 +-
+ fs/verity/pagecache.c          |  55 ++++
+ fs/verity/verify.c             |   4 +
+ fs/xfs/Makefile                |   1 +
+ fs/xfs/libxfs/xfs_bmap.c       |   7 +
+ fs/xfs/libxfs/xfs_format.h     |  35 ++-
+ fs/xfs/libxfs/xfs_fs.h         |   2 +
+ fs/xfs/libxfs/xfs_health.h     |   4 +-
+ fs/xfs/libxfs/xfs_inode_buf.c  |   8 +
+ fs/xfs/libxfs/xfs_inode_util.c |   2 +
+ fs/xfs/libxfs/xfs_sb.c         |   4 +
+ fs/xfs/scrub/attr.c            |   7 +
+ fs/xfs/scrub/common.c          |  53 ++++
+ fs/xfs/scrub/common.h          |   2 +
+ fs/xfs/scrub/inode.c           |   7 +
+ fs/xfs/scrub/inode_repair.c    |  36 +++
+ fs/xfs/xfs_aops.c              |  62 ++++-
+ fs/xfs/xfs_bmap_util.c         |   8 +
+ fs/xfs/xfs_file.c              |  19 +-
+ fs/xfs/xfs_fsverity.c          | 455 +++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_fsverity.h          |  28 ++
+ fs/xfs/xfs_health.c            |   1 +
+ fs/xfs/xfs_inode.h             |   6 +
+ fs/xfs/xfs_ioctl.c             |  14 +
+ fs/xfs/xfs_iomap.c             |  15 +-
+ fs/xfs/xfs_iops.c              |   4 +
+ fs/xfs/xfs_message.c           |   4 +
+ fs/xfs/xfs_message.h           |   1 +
+ fs/xfs/xfs_mount.h             |   4 +
+ fs/xfs/xfs_super.c             |   7 +
+ include/linux/fsverity.h       |  18 +-
+ include/linux/iomap.h          |  13 +
+ 41 files changed, 1017 insertions(+), 107 deletions(-)
+ create mode 100644 fs/xfs/xfs_fsverity.c
+ create mode 100644 fs/xfs/xfs_fsverity.h
+
+-- 
+2.51.2
+
