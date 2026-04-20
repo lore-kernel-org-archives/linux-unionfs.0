@@ -1,80 +1,80 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB86A242D84
-	for <linux-unionfs@vger.kernel.org>; Sat, 18 Apr 2026 15:40:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B552D8DB0
+	for <linux-unionfs@vger.kernel.org>; Mon, 20 Apr 2026 06:31:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.181
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776526804; cv=pass; b=lFKFe6McCIAG4Nws/OAm/9D9qFQ2nRMocwkPKImkwMipq3HNcVM7qVx+r4wtFuRe0pkWxnS3ZT2XAAfw2oP9b/hb+vbluVQKJ4dDkdx5Ml8GEc52OMQlaRLwm9tniZC6WU6pRajacjkihucnbaj4reVkK+8nJMmPxyOmQrH39Y0=
+	t=1776666678; cv=pass; b=AA3fdOuZfxstekARQRp/qiA43aIvhAoefjZsCVVsBdA8q8ydtnk0hxmdd4b076bfP4WMwufi5sowo21mksDdUS03zFgG2o59L9WNsVVTJTHcEngquSddfRTjNbKHIWiUZmb5dfrengll+DuktD8u9PfwmRj4wYsttC9Bl64WuZc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776526804; c=relaxed/simple;
-	bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
+	s=arc-20240116; t=1776666678; c=relaxed/simple;
+	bh=oWdHSX0eVcAgY4PHQuy8lYwoogzXG2T9LHnjRsCPmEQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MjeefHt4j/2aCWA8KGRMFqEY9QC4DaXvb0TMaC19Wk/sUuIIaXLJ2QgbPcb/GX02s5BVdRkoIjE3Gbw1x42TvFfFiY03Ai1KxyzkjKLQAuy7IvEZSpHorE5moBLLcXX7R2s5Wnkn/Sg61AO1RIKztL4KuChG+Fx22Xlwdi4LCaY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GmnlTe6G; arc=pass smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=jdIvDumNdZJa6TWj+hUGQOP4/9tOR6Vetit9pkq/xhriayzVb02ZLzRxQ8sb/gHAjKhmvEJsA1BGowizr8BTrwxIzyHimp4F4s7I4Inih/hA8Xpw8861TuUVKG8C59+3vfTbory4nf4Dxx8XpwsVIQwSrEsZPSVWcKun4aOGqYY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=LVKASRqA; arc=pass smtp.client-ip=209.85.160.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GmnlTe6G"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b9c1da7ac63so313231466b.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 18 Apr 2026 08:40:02 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776526801; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="LVKASRqA"
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-50d6b393d60so1252131cf.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 19 Apr 2026 23:31:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776666674; cv=none;
         d=google.com; s=arc-20240605;
-        b=RPVHZ/PFlCHj6yaShrkni03rTtRxiaYqv2UmbivpuOOpgqQ1REk53/2zejUXJ86vaZ
-         U1EknBVClNFEh6yajik/Mf2k9AJY23YRuRwx5LXURvwfrevfNOBpIhm3J4DiXIcuBdiI
-         PVje3Ddb5gnkqYS37x7tbq1ddr8AeQCRHfNSocBs4Pfhz1UnXt6QDtHZV3w4ZE7PxBS1
-         9fMuu1PAcHGwmketjOS1PXnX5SqpPWpYWd4B6Rja8ftO/8pwfN3TIzjMnUmGwM1nSO4M
-         wYF/N8eISQD75Nb7lZhJuJsGch7HuzWPPNBYQhiBIgczrbt2Qn9HwEsWZpLjuYLGWlR7
-         yz+g==
+        b=W2WH9plWIoF6/RwPowJzFMyUw0IL7WYpOABiAhCuP9ssF79K1jstIebiDC+msYp7tu
+         2hfq5C1m8xneNOVb/DrW0HkOQilsPg5HfruinLv3XNz4u17xqVCYC/nqgszxMNdu/eaC
+         2RO3Dqs+NLo4Ttuh7K0xeleT08Patlt7z0XNj02dKmJDgEy9CgMHIYNV9SyhNtVk4GEE
+         nIGH+fchwh+20l+XenIO+gbdMAFzZXcd9k2cXrzX+lfkXKvBo9iH/ubL2g+IIRJ6nt7O
+         6ji/1iYf/FDd8HWYITsVqZJtCdUKa7sdaixSZBE8iZBojDRjGaICewCDFfIqV82Xk6n/
+         Hspw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
-        fh=ovNvZ6sv5LLQIeIPL6jSgEns1EQoTOlBRxlQtHXRDMc=;
-        b=Qkow/IBo+2Nh3gGNR+OMBiBXQIJtCD5K82PCu+RMP+0/eKvQ7r01qmeu36DYGOkis9
-         EVrTqOkYVXD1VVZtFa2fzMrOLgf4cFg8YHmkb6gK3DHLK6WPiztLG4/GEZXp5jBKa98q
-         Y40xWcCvJcDf7cCqpKrTtaXPV9c+9tahBxoOS/q3saCX6/LbzTgqN46oyFgucH66MFet
-         CZcRq5nh06LFHQTOk5nkk/OWx//ZOlgeYc7oQhi6HJvkhEEWg8BgoYeidvXAdfmZpATO
-         j1QAUrFwG17/+pnV4yRIawzxN4nH+7jNcne1QlBW5CujYnU/PYQnpf+h4YzPeAeWzZdm
-         ESaw==;
+        bh=oWdHSX0eVcAgY4PHQuy8lYwoogzXG2T9LHnjRsCPmEQ=;
+        fh=ybyIdtK/ZDeNON0iWVWkRIeRLI/wnXszk4UTU+OdITs=;
+        b=DCJi7jfh/4mBaLZziPj4Qmm/3tPpEVD6bi5Pt++srfRcD/KEeeU1ZYNO6QdyrVKvyc
+         AiGVZCxcXAiKjLQBS8dSKeX3qq53GV5/V3Ao8zmPhmVxOYeYM7nvS4gLps61iqMx4CWh
+         7XDiQEc0XRPh6oHIkS0yxRLj4iAmCUxDlRvhuR9XRjyBRdu8PK3Gp4Yhd8tQFtVs0Ep4
+         Ursmg0cM+CuiBrUM1s9xXSmyct8Oam/5GZUHo914xJ9OJ7vLHyz/tK5CX9hdtr3tUfi3
+         pKJmJomMbnoJEhMTpvLe3JspBJNTRlkN6JISVVc/S/JVv52bfLzElN3e6YyS0+Vf3qoV
+         GAfQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776526801; x=1777131601; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1776666674; x=1777271474; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
-        b=GmnlTe6Gt7g3mzOQJ3eMbzSphORZe47kZXX05KSaCBXAkhnxOaW6lpXZMabnSySTC2
-         S6PzjSDN7oViDfAES1IdHkJ6Gkg74uEIu9BTRqtgAFww/ILi5Shag42ZjiEeZyoMMrMv
-         GT6gNnKPyP6Ly8xBjQ+sUIgA/z3MeEhbzsr3KNxP5FAq+KUK5nxQu8vStidreIWEkUTS
-         0cP7ewpgut8blDQ76qVl+sSap+wFHWaSe7gqfFGVeRBHvTEoeG8tUv7+Fte4o954cyWU
-         NBEVmhh2DF3MZxVVD4AUoGunI8KPRZWg11narsSYaG3qXUmg3Z9dq6tcSqoUr4WcSIQw
-         zFjQ==
+        bh=oWdHSX0eVcAgY4PHQuy8lYwoogzXG2T9LHnjRsCPmEQ=;
+        b=LVKASRqAjkmZ993zw7TsQBz66QcHWIrlR+4jLYhyTEapGTgh5o4CUxBvb3Wduss/Mm
+         BHWKMV7iWQ9X2Jm86GCMbHwhUSdQy4JrJJkO4jn2GXQHSCHGZ49uk1zbQ0neu9WNS991
+         fXsPGT1kWf1PsA4FEdxNe6bMPNiFsCzl3ommh097g8YqDNul+Py7gDsCwq7ZVjBt8rGT
+         HhLGRh7afaN95qJW5eANMEBD2nrJnIpnKD8+TWFJO7xk0o2kOfY6eszC8hNN9BAGzRqu
+         +TPClF+5+FM3I35S6TMH8SbIz9k342NyQ49/5TVifSaHfe3PghqSxLkpinAzUrFCVu2w
+         tJQA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776526801; x=1777131601;
+        d=1e100.net; s=20251104; t=1776666674; x=1777271474;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=cEvYDuFXuVic9scYpdvaU/f/zI61Ha5D07vebOF2hUA=;
-        b=iax8wzn9o1AmJUPvxRuzbNOxAxfH6KjxEPV/+hpPjfcrT7Z+Q6aD8jUyRa/jmL1JOU
-         vEBN8JgVuWPlox+ZBQwUAepVB49Z1y+cdEfxsqlttCPDA8Ng2qreGxhrJQw/nYANUgZc
-         QsneG2aurmZGR90TFVR/SYEsB/MN2B8FB4PcMJ2LVkG+5+NBQTKccMbkYOCx2nSZZX46
-         XeZbUJ+yN94l7fR1RmeMQiDEK0XASmcnyHyy1hz0NyHkoc41whdynvdi5MbukZPomVLN
-         D5mpbJdT/SHUfwkokA7css4UgWpvBnaF9BhBpjyzexwjaYM9Z5NIub9Nplvu6YUVqopB
-         PjTg==
-X-Forwarded-Encrypted: i=1; AFNElJ+EIwqMFnLe1Lem4gmp1AfPZ9Kosoxey5JJHx8LXm7ygzDBleg2NTA21KuFOa1mTFiq+dJlG9H8w253jb0c@vger.kernel.org
-X-Gm-Message-State: AOJu0YyPZ+0CPRJV/vADWalDIFbv/ZSQyswZYLBIEd5cofxQ7C+03Dvs
-	MBkWbt4MFetFmUf9vPxjsZLPOWYHL3rqK8u3Dxn6wpzmkWPNDL+XYzbCXnEaZXGc22HNw2MjllR
-	ZkKa7387o/V+mCCRxi/soLxJXh/uPgg8=
-X-Gm-Gg: AeBDievunplfWzLTtZoKZDTWOmX9lm5PsvXPT1rl+wGwxD7zUA7fD+S5W7Kfuo24qPl
-	TlYvslbqVHUeD0xztASfi+faEvBwq0kzXiFfwyIXXtEA9+Neqh6x5h+S+jo9rwqyDYTPlZuPoEM
-	Hnb4C2QL44Dojh1gdQbYAbt7vy16IjFfwBFSOcrYx7j+7VPlVr7ZM5byVmTxji2CpL0iaG5+w3e
-	Zat417+L/u1eqOC4TxtEEETuVZdPYwZ6S9qJWt/tmxQbR1yv3avXjH4n6fjcmwMpucoIXXbPpM/
-	hO0++NWxUwbAuv/G/SWdk40KFwzDOUGtnUGkU3C5QFFh0vDE
-X-Received: by 2002:a17:906:fe45:b0:ba5:7cce:979f with SMTP id
- a640c23a62f3a-ba57cce99dbmr117469966b.40.1776526800916; Sat, 18 Apr 2026
- 08:40:00 -0700 (PDT)
+        bh=oWdHSX0eVcAgY4PHQuy8lYwoogzXG2T9LHnjRsCPmEQ=;
+        b=P4ESKBvQTS9WZHdrkbIRxjWM90ETtcZ2phnGMlljLsW6CdjrtQOynQXgt3iHIb4Y1U
+         36awJ5pUKAVXCUyqyJej+5LbJbExwHs0hp7laQ01z7Tr5cEya0I/ggLCdPjRbC5tJ+lt
+         +SypshiNo8l4QHghTPy+bmemBFXIlxYHq526Q5akWCwt2IpsrMfdheDst0KxFKZBYacW
+         ilx/p3guCve3oLlR/k+6KghS7RaDXpa7bGfahwPds2+iH8gKM8cKGvkUVt8KKSL63un9
+         nbJlcpWf/jER6Xeho6wnO6aq/ZONfojAxMB6UMe3pw72D82XyIK0YsTYqd6kDlWuwMy0
+         F3Eg==
+X-Forwarded-Encrypted: i=1; AFNElJ9eM/ruBQJpLGGlDkRYel/mX3bD6wwaKoCBYD29YkcfZoUOrk5Kfge5rIvPJf2/Y+JUG/MJK5K22oZMHM1Y@vger.kernel.org
+X-Gm-Message-State: AOJu0YzQo2dJJNVO+dssShCltzX4oFTzsOLoLvGKZO6xZ1x3s8rpmQZ8
+	GKJMd7/N/a5p4WZLgIMKntM29I9BkDbdfJ2BQ281lc2h8TksgIo1kVzS8f/F57aYKT16L3LGwv/
+	ZwhFQcmTEuFvoAke5EoBAB7ObcjlaSHldJTYWV2iQ
+X-Gm-Gg: AeBDievSlC2NRrymZ3W4QIkpzB5Lg34lcFQaQXiBvEFDRUrn3A4pUqhZaEjyr4hBvnP
+	Fl4S2GHZCxbTa3WfhsUYsRTMItCU3jxjoTlK+OYbZclUcE0x4AlTn4/IE2r2VKuIkhTWLVpz5uH
+	oa+1DSJjqfpA2/0kxDqS7VIbMEy0DtVbR6StGV7zln2CIDaHZkBcYeGoSwFwyseZI4x9VjepfPU
+	XhoZWN/3lHCSXJyWDnJAyYtd5wKKyFBWJT7OmghQQQlmkKlra7VvdkELgvilZ8d7prz6aEJBZz5
+	4mAXVFQilckJZbrf9D2lgQOoxzmR
+X-Received: by 2002:a05:622a:4a0b:b0:50e:38f0:ccb2 with SMTP id
+ d75a77b69052e-50e441d1391mr22856791cf.15.1776666673848; Sun, 19 Apr 2026
+ 23:31:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -82,59 +82,104 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <CAHWLEDHfXZScF5jNDzgOxGXf-MBDcVNtqW0DbNz8Ra8rtcuL+w@mail.gmail.com>
- <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com>
-In-Reply-To: <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 18 Apr 2026 17:39:49 +0200
-X-Gm-Features: AQROBzCvSbGA03ROsg6cVMJlbAynfy2yIZAnavXEgKUY8bnKpwlWeH4xlKzfKLE
-Message-ID: <CAOQ4uxhUn6oCBuVJqZu+FcMx8XeAQHZbXFAGon4Xeg2SPLJW_A@mail.gmail.com>
+ <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com> <CAOQ4uxhUn6oCBuVJqZu+FcMx8XeAQHZbXFAGon4Xeg2SPLJW_A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhUn6oCBuVJqZu+FcMx8XeAQHZbXFAGon4Xeg2SPLJW_A@mail.gmail.com>
+From: Chenglong Tang <chenglongtang@google.com>
+Date: Sun, 19 Apr 2026 23:31:02 -0700
+X-Gm-Features: AQROBzDX4AAYXOOslqCZs98JMxceUov0-GNl39rBWIuX_y_Te2pwHmhQJ7fdw3g
+Message-ID: <CAOdxtTaWWu_7eJWu68zf28zHQP3Y--vXTfbGFsceO47BpN3qxA@mail.gmail.com>
 Subject: Re: [REGRESSION] Return change in 6.12.80+ with volatile mounting
-To: Chenglong Tang <chenglongtang@google.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Derek Taylor <ddtaylor@google.com>, stable@vger.kernel.org, 
 	regressions@lists.linux.dev, Kevin Berry <kpberry@google.com>, 
 	overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Apr 18, 2026 at 1:33=E2=80=AFAM Chenglong Tang <chenglongtang@googl=
-e.com> wrote:
->
-> CC Amir,
->
-> For example, containerd 2.2.0 uses `volatile` instead of `fsync=3Dvolatil=
-e`:
-> https://github.com/containerd/containerd/blob/main/core/mount/temp.go#L91=
-C1-L92C1
->
-> On Fri, Apr 17, 2026 at 3:41=E2=80=AFPM Derek Taylor <ddtaylor@google.com=
-> wrote:
-> >
-> > This change seems to have so far affected at least containerd in an
-> > issue reported here
-> > https://github.com/containerd/containerd/issues/13250.
-> >
-> > In stable versions 6.12.80+, commit
-> > 6c0cfbe020c0fcd2a544fcd2931fbc366ee3cd12 with the specific change
-> > being:
-> > [*] The mount option "volatile" is an alias to "fsync=3Dvolatile".
-> > In this scenario, code relying on checking "volatile" will now fail
-> > due to the return being "fsync=3Dvolatile".
-> >
-> > #regzbot introduced:v6.12.80
+Hi, Amir,
 
-Hi Chenglong,
+Thanks for looking into this! To answer your questions:
 
-Thanks for the report.
+1. Production vs. Test Suite Impact
 
-Is this problem in production containerd or in a test suite?
-I did not understand the purpose of WithTempMount().
+The immediate failure we encountered is in containerd's integration
+test suite (TestImageVolumeCheckVolatileOption). The test explicitly
+reads /proc/mounts and expects the exact string "volatile".
 
-Is it possible to fix this function to use string.Contains() instead of
-exact match to the "volatile" mount option?
+In default production, containerd passes the legacy "volatile" string
+to the mount syscall, which your patch correctly handles under the
+hood. So the standard "happy path" is not broken in production.
 
-If needed I can fix the kernel to show the legacy "volatile" option,
-but I would like to first understand how bad the impact of this regression
-is on real production workloads.
+2. The purpose of WithTempMount() / RemoveVolatileOption
+
+Containerd regularly makes temporary overlay mounts (e.g., for
+unpacking layers). Because overlayfs rejects reusing upper/work dirs
+from a volatile mount, containerd uses RemoveVolatileOption to strip
+the volatile flag before these temporary mounts.
+
+Currently, containerd's RemoveVolatileOption does an exact string
+match for "volatile". While it works for the default path, there is a
+production edge case: if a user explicitly configures their container
+runtime to use the new "fsync=3Dvolatile" option, older containerd
+binaries will fail to strip it, and the temporary mounts will be
+rejected by the kernel.
+
+Conclusion
+
+While containerd could theoretically patch their code to accept
+strings.Contains() or fsync=3Dvolatile going forward, there are many
+existing containerd binaries in the wild. Given that this patch breaks
+containerd's CI tests and introduces an edge case for
+RemoveVolatileOption, it might be safest to fix ovl_show_options in
+the kernel to continue outputting the legacy "volatile" string to
+strictly guarantee backwards compatibility with userspace.
 
 Thanks,
-Amir.
+Chenglong
+
+On Sat, Apr 18, 2026 at 8:40=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+>
+> On Sat, Apr 18, 2026 at 1:33=E2=80=AFAM Chenglong Tang <chenglongtang@goo=
+gle.com> wrote:
+> >
+> > CC Amir,
+> >
+> > For example, containerd 2.2.0 uses `volatile` instead of `fsync=3Dvolat=
+ile`:
+> > https://github.com/containerd/containerd/blob/main/core/mount/temp.go#L=
+91C1-L92C1
+> >
+> > On Fri, Apr 17, 2026 at 3:41=E2=80=AFPM Derek Taylor <ddtaylor@google.c=
+om> wrote:
+> > >
+> > > This change seems to have so far affected at least containerd in an
+> > > issue reported here
+> > > https://github.com/containerd/containerd/issues/13250.
+> > >
+> > > In stable versions 6.12.80+, commit
+> > > 6c0cfbe020c0fcd2a544fcd2931fbc366ee3cd12 with the specific change
+> > > being:
+> > > [*] The mount option "volatile" is an alias to "fsync=3Dvolatile".
+> > > In this scenario, code relying on checking "volatile" will now fail
+> > > due to the return being "fsync=3Dvolatile".
+> > >
+> > > #regzbot introduced:v6.12.80
+>
+> Hi Chenglong,
+>
+> Thanks for the report.
+>
+> Is this problem in production containerd or in a test suite?
+> I did not understand the purpose of WithTempMount().
+>
+> Is it possible to fix this function to use string.Contains() instead of
+> exact match to the "volatile" mount option?
+>
+> If needed I can fix the kernel to show the legacy "volatile" option,
+> but I would like to first understand how bad the impact of this regressio=
+n
+> is on real production workloads.
+>
+> Thanks,
+> Amir.
