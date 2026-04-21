@@ -1,49 +1,39 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-178.mta0.migadu.com (out-178.mta0.migadu.com [91.218.175.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C7AA1ADFE4;
-	Mon, 20 Apr 2026 11:48:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B420A227BB9
+	for <linux-unionfs@vger.kernel.org>; Tue, 21 Apr 2026 09:24:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776685721; cv=none; b=of35MV49ky9H2hGlRQjXRFQbUI1L/FlCcFglH161Y5SIgEdLlhv9ZUOY8SXv+A429XaKD7tZUKC5h80nybH0fMdiIbFlq1G/VsEr4SlQUwPpW7JU/2/X3fDr2e3QVmncteJof33uTMOYbGCbGfhveVB/FrtLzRVcrJrik9dSNRw=
+	t=1776763490; cv=none; b=W+6aG+XwrhKglN8BY1kMUznUDumswSW9pV3RB4BflFp3gZOwUJP7CopL3ri2/4Wbs/+GYqf34xI3N41TInuZ+jMIqV9POneRX1KA59Ns3gOuX07pOBrJLpZ5YcRE9p9hJB+pvzRPOv5cfQHghW7Tcba0KMbClG8fL0LWWAqx6OY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776685721; c=relaxed/simple;
-	bh=ED63hkK8etbxautcxx1u5AO9FSZT6ssFdgXiGIlo5Yc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oEWh3NJ8B9Ct6SYbkoEx0dQLAnQy+tD66y4DMp2LU75zOY1Tl1++lr8pcDkAjE011ckqRc+mqD5MMlJHE1NKFICsrzIpXUKpjpHg2YrW+3OhO3JvrxPzfFCV+jpd0/SPTX2Lo3Up3AksejajJfGS5/IHvMWNaqLF2xsTKsRxuC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ai4tBxXn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776763490; c=relaxed/simple;
+	bh=Veg603++04a4fI/yjvEyxIJqvWDUP5efJnLCMaX/2Ac=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=PF41ch+YTuMgAF9zy2CiqOKM+PgAB8No43AD7vXeWPujDLdU71rIE3Po6RDVK1UaJB0M5ah5iXaY0w0FGss03I+eSmTNho9sHRJiF8cJgphYuAnk0QwOWLUCWVHWz89lMwo/5HK9eGJrnwLA+XwwIt95yIMjKddBclmj+90UHBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=sDKPqO15; arc=none smtp.client-ip=91.218.175.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ai4tBxXn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74534C19425;
-	Mon, 20 Apr 2026 11:48:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776685720;
-	bh=ED63hkK8etbxautcxx1u5AO9FSZT6ssFdgXiGIlo5Yc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ai4tBxXnb6Q6Om3Wf03DLZiYeJtpsj3GdIe4hKff147JbjcXEwG/YKMilPtSU0UZT
-	 0/rYTN6KoGve8Cgs3AMzx3epjYZFxnkZCmoMI4NJ4luuSouWzwODtMq9YHbStv6DL4
-	 BQkYFPw2sGhUMjWUy/yCjscKDu6lPopcsleW02Mln5LDpfnAea2t6jb2qItutCU1uA
-	 c2lKEdjspn+mzm9cyklKx8G//fkxEKAdA3N29udK7f6l9lpBBH88beFmKxdAP7CCW8
-	 R+jDOuenLkl+ujGhelgXOQQB1IoHFqaCa6pksNeWmJ7ttHPlbUYHQgobYcUQS7IzBw
-	 STYeXI/Q896yA==
-From: Andrey Albershteyn <aalbersh@kernel.org>
-To: linux-xfs@vger.kernel.org,
-	fsverity@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org,
-	ebiggers@kernel.org
-Cc: Andrey Albershteyn <aalbersh@kernel.org>,
-	hch@lst.de,
-	linux-ext4@vger.kernel.org,
-	linux-f2fs-devel@lists.sourceforge.net,
-	linux-btrfs@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	djwong@kernel.org
-Subject: [PATCH v8 22/22] xfs: enable ro-compat fs-verity flag
-Date: Mon, 20 Apr 2026 13:47:09 +0200
-Message-ID: <20260420114714.1621982-23-aalbersh@kernel.org>
-X-Mailer: git-send-email 2.51.2
-In-Reply-To: <20260420114714.1621982-1-aalbersh@kernel.org>
-References: <20260420114714.1621982-1-aalbersh@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="sDKPqO15"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1776763476;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=HiP8U7iGEUV5KD2PR2peIpyqYDO8dPS6Jb55P5tW2xQ=;
+	b=sDKPqO15yxDQDgq29M/FJJcQagAX05sQkWB524huZmWB2TQOYvPwLVQIW2jeaaJarQ6Fh8
+	Upf4q3ez6j0yQohn3f0cgiB2yWcbQGuv/QfZbRh5Jczh0zkdB4va5y0U/yiUI+Jeiqjy11
+	L3dl2yeB8/OZNZrjqAICty6CU+SVg2I=
+From: sunliming@linux.dev
+To: miklos@szeredi.hu,
+	amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	sunliming <sunliming@kylinos.cn>
+Subject: [PATCH] ovl: Fix possible NULL pointer dereference in ovl_destroy_inode
+Date: Tue, 21 Apr 2026 17:23:49 +0800
+Message-Id: <20260421092349.148002-1-sunliming@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -51,35 +41,32 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-Finalize fs-verity integration in XFS by making kernel fs-verity
-aware with ro-compat flag.
+From: sunliming <sunliming@kylinos.cn>
 
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-[djwong: add spaces]
-Signed-off-by: Darrick J. Wong <djwong@kernel.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrey Albershteyn <aalbersh@kernel.org>
+In the ovl_destroy_inode function, a variable reference oi->lowerdata_redirect
+that might be NULL is directly freed. Add a non-null check, and only free
+the space when it is not NULL.
+
+Signed-off-by: sunliming <sunliming@kylinos.cn>
 ---
- fs/xfs/libxfs/xfs_format.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/overlayfs/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/xfs/libxfs/xfs_format.h b/fs/xfs/libxfs/xfs_format.h
-index 4dff29659e40..0ce46c234b9c 100644
---- a/fs/xfs/libxfs/xfs_format.h
-+++ b/fs/xfs/libxfs/xfs_format.h
-@@ -378,8 +378,9 @@ xfs_sb_has_compat_feature(
- #define XFS_SB_FEAT_RO_COMPAT_ALL \
- 		(XFS_SB_FEAT_RO_COMPAT_FINOBT | \
- 		 XFS_SB_FEAT_RO_COMPAT_RMAPBT | \
--		 XFS_SB_FEAT_RO_COMPAT_REFLINK| \
--		 XFS_SB_FEAT_RO_COMPAT_INOBTCNT)
-+		 XFS_SB_FEAT_RO_COMPAT_REFLINK | \
-+		 XFS_SB_FEAT_RO_COMPAT_INOBTCNT | \
-+		 XFS_SB_FEAT_RO_COMPAT_VERITY)
- #define XFS_SB_FEAT_RO_COMPAT_UNKNOWN	~XFS_SB_FEAT_RO_COMPAT_ALL
- static inline bool
- xfs_sb_has_ro_compat_feature(
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 60f0b7ceef0a..4b8b5fd4ab59 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -218,7 +218,7 @@ static void ovl_destroy_inode(struct inode *inode)
+ 	ovl_stack_put(ovl_lowerstack(oi->oe), ovl_numlower(oi->oe));
+ 	if (S_ISDIR(inode->i_mode))
+ 		ovl_dir_cache_free(inode);
+-	else
++	else if (oi->lowerdata_redirect)
+ 		kfree(oi->lowerdata_redirect);
+ }
+ 
 -- 
-2.51.2
+2.25.1
 
