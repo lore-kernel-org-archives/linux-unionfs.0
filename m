@@ -1,93 +1,93 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D663BF685
-	for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 08:58:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 239F83CAE95
+	for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 09:59:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776848288; cv=none; b=AEUG98RwuG4d5fkAKCJe4VlCn3pAqsosTua0w7rhCVs2JD1fLOhyA98mnudbnRAbAKxF2dTrSwHgZ39ZUpakW2VzeakYjs1Z7AsuVIV1/LMjNdLf7Lr5uUVGxomyMdeS8SgCsGvYtVRo1OlW7f7UoAIi+k2BhoPErFDgXQZrCOY=
+	t=1776851958; cv=none; b=IF8h6k3V4plIVVCpkUFAZNT+Zf90eToK9lgGewcwaXU5rMOtPtrczhvOSXSfYvRKdFJO7MqLRDJa91E+Kk2JjnUd3kiNpJX1bsPUNqFOTpTQizdxSZmEmjY37+Hcnv+Bc45GSAQ3Vn6LVwm7qoSot5mVWvt/Ni7xLiu28K84JMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776848288; c=relaxed/simple;
-	bh=uF63Ms8AACR/oFWxgd+uFy3hlr2NIcQ7At05T0KyQug=;
+	s=arc-20240116; t=1776851958; c=relaxed/simple;
+	bh=qdTdoKTlhVu86bDuyPkOaG5VtZiyVVLX9VSgFPv2CkI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V9F4vXq71lfSDhOrFNpXCKf8GpEA4TvCgI7ln3mUvNYuWkJdghx0TJcENc8q3Z05SbqikbABMDhUSibt+CWz7wca+L/gIqanDR7zoNGjE/i6ro0Ivr07L6bYwddG+SOIYIZarZAjXyxXcYzAdXdpmckqld4wy6LcMmqZkI3FCYU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=cHQHEGn4; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=cxPgpXd1; arc=none smtp.client-ip=170.10.133.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=K8otd3NeHbgfK7jzVHUdVyDWDf5tekMfN21gP85xy0LAVfHiCnWDapSbZ66lVlSU31p4GgdViUTU1qcOocwwrGT4K6qOaiLM//eFV1K9dBaFzqRdiXh2mg26H4AoKm8Vfqgh7KiRr++/PjbzCjtmNcEoKls+w7ZUaLou0AM/rsY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=QOu1lDi6; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=JBE8rlhG; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cHQHEGn4";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="cxPgpXd1"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QOu1lDi6";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="JBE8rlhG"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1776848286;
+	s=mimecast20190719; t=1776851956;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=FFaygBUBXXsgixj3eSOd6CMo0lj7K6zPcakxuhrDzd4=;
-	b=cHQHEGn4d65uGcHveSIfcaCYX+F8OuoMacUm1MAOmqirZSK4FaBJJv5JD4WXXd/psgrLV4
-	AyeNE1L6dGikldh6xPKHp9tapFPxBEeg5jZczq2A419pFkp0K5EdnG6cEGSDAAe63btKjy
-	0tAeHahRUjaQ4pK45Cde+QMyNuzt6lE=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=QVpt6cL/XFUpoSbUgEFsp9E/b8gj4ghVTxVOycpPEPQ=;
+	b=QOu1lDi6VUFBgOsXhgnJG+Df4lJek8huCUy/k3Qh9pCXS+3ZUh/+cwNQ3X5qJRWw6TJYHn
+	uWi9XX6eTozNyQFR8VshXHDw90Oc9b611BG/TKQqMECUGC+An/bshBFsC6M/NtoAvr505j
+	bsUpA1Hk0uUiuUpv7YBycMCbfRvswbg=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-554-8DtnieBmO8Gi2IPzNFUhJw-1; Wed, 22 Apr 2026 04:58:05 -0400
-X-MC-Unique: 8DtnieBmO8Gi2IPzNFUhJw-1
-X-Mimecast-MFC-AGG-ID: 8DtnieBmO8Gi2IPzNFUhJw_1776848284
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-43ff0eb2b2aso2763689f8f.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 01:58:05 -0700 (PDT)
+ us-mta-231-518OnJSFNGausN_9FO0sIw-1; Wed, 22 Apr 2026 05:59:14 -0400
+X-MC-Unique: 518OnJSFNGausN_9FO0sIw-1
+X-Mimecast-MFC-AGG-ID: 518OnJSFNGausN_9FO0sIw_1776851954
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-488c2a4e257so38915945e9.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 02:59:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1776848284; x=1777453084; darn=vger.kernel.org;
+        d=redhat.com; s=google; t=1776851954; x=1777456754; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=FFaygBUBXXsgixj3eSOd6CMo0lj7K6zPcakxuhrDzd4=;
-        b=cxPgpXd1U2be8oz6XUshGUwOibc9axYIPHrFBQMSuZiwknsMCpp4TPaR8V7HmHlTAY
-         /dCsgZVFDwyccB3y60KfRvoGnvNlg2iIqUs25ma3UOS+vz/Zsg2LlbyetF/NjsQvTjys
-         aJuVv7sS9y+rpV64vhwHsfrlc4dqmdxrJWV1l4wJrJpAQhYrfJcu/hMHFG5ggFE775LB
-         W+UX1yNE383mH/kP7SWPY7TcZmnlXH43S7rc0l7ZvA4bsx2363D3RxTy9WLYClkKW2eM
-         LCp79CUbrLb03Zm4ngKEbKKygpkSgf9aAmySoGIq7OXDFIImQGBZnG2jEb8jKTcln3vQ
-         Z9vQ==
+        bh=QVpt6cL/XFUpoSbUgEFsp9E/b8gj4ghVTxVOycpPEPQ=;
+        b=JBE8rlhGQ2Hn4b93hBQ0u+xvUXg7aktY146nU8sbznDNmGI/U3W9R6KdzTpt+HUQ+v
+         ZmCiz1ZgCnF83ZpCpZv3rUv8hsEX5urJfoRqrwD5Jfn7z+jSbCac4tw6GS83t+6zp5Ma
+         YRMz4cAJ72xeX1cipWl94+KEVEs1mrvFu+dTMvASA983NrKgUbHtCzWsz/9ZzB0ZpI7S
+         V8PGt5PBA2zwQGpyU+EAxnTVtUs9hVP48K9hNuY/t7LqSM2sXrJ0aneYavkM1CIQz89C
+         Rl49gZKRgoT0e51Qo2OhZel+tw4T115rwkpSnA+Gk+3wHhNIh839Vqfc+u0I/gAPqeJU
+         rslQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776848284; x=1777453084;
+        d=1e100.net; s=20251104; t=1776851954; x=1777456754;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=FFaygBUBXXsgixj3eSOd6CMo0lj7K6zPcakxuhrDzd4=;
-        b=KJKuCq/jyOsKtSBbBtO3iU/QBqZ7496BxjXAhTRIz7vY5bynXqguDX0sx+j65r875z
-         lQuY2zlYU7tq9bQeDFLm9gBdNVuw1qoFdxcrvv/FSPy9haXfp1oObsg14uPR3ziMyhtl
-         /NiWuTHsit6pFwaXzKDkSCnJeewS8XSX7cK3747ZYDz/xzzNRhcIWCKSkYVnmHg05HFH
-         oSsJ/Jwj0ZJND3kgGpWE/wpGZtfLc9bvHKlcHZQEEHNW279TW2zSdbRjyj8GboplcfCf
-         I50sre3IZAqm9chas4pMA/rV2xcKTi/eTuWtvvt1zf243w0ToI7W3/ALRtdgDQ4aAlsj
-         KRqQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8LbfTNnpazcZjRrZ9LAO0otOxfTy6FamDkiSEvXZeM8m+rIEye5MxC2qlEv7lzQmR10joWUk9ibAKI6pVL@vger.kernel.org
-X-Gm-Message-State: AOJu0YwS6HsJ5PXotU5I2GsE2+kNhJR//sy/kpWJkqosE4stlF+fTzSZ
-	oKVqfKh4RzsbVc8rngq4MNPSfZs0g1yJwpQn//NeMQwgH0MNazfgFki8oNEncCTJv6AgoDnY6BG
-	24+p5QSxirgo7yTSaWXjjKH4EnNFVJT/zPpxuUPBYS7O8sDki3L267xf+61+tn5q8bQ==
-X-Gm-Gg: AeBDieuEgcNzOzR3LmErDBwm2T91d+bnoLJaJqD6JWqgMfuLC0f/vExhmr6l1sBdhXF
-	aOCJ+6L3wlxP1rU+nbCq29Ftn91gl+m82Ig2/M9lVI5gmFtcnB+giM5LdTsg8CJ+Au5+4uVkLhY
-	YZkg9fWrh3qu6aM3VxAGtQIEBOzSXqgzMGjNE8Gq9cCFa2FZwb2H4isemjV0IsN4ZkHQiZRuLdx
-	tneyRrbdNeK7a0yddNrDf9HVc9UfFmSyKtNpUOlDJmdR384WlM9fPxiOzzZAOGHr/IH6X4tbytt
-	acI4xviT7eydK/0KMuj5/CgNgt5DluPWbKQSCjVKIgw9PlUpNqOAXvo6oPs8c7pAwxWKcwIrhY4
-	iVfEqP7w6uH6IbPm1uXrIYg==
-X-Received: by 2002:a05:6000:4022:b0:441:2439:bef2 with SMTP id ffacd0b85a97d-4412439befdmr4594382f8f.24.1776848283790;
-        Wed, 22 Apr 2026 01:58:03 -0700 (PDT)
-X-Received: by 2002:a05:6000:4022:b0:441:2439:bef2 with SMTP id ffacd0b85a97d-4412439befdmr4594342f8f.24.1776848283286;
-        Wed, 22 Apr 2026 01:58:03 -0700 (PDT)
+        bh=QVpt6cL/XFUpoSbUgEFsp9E/b8gj4ghVTxVOycpPEPQ=;
+        b=JPveSIzg4Tt78MmAMNZDRwG6Pk5OGMWPpn5E3syMhTt1jxFtii4i/xQRmSASR/GSTp
+         /Ow0MHu78kxGbfJJZjb+7LRZ58RyQjsnZHylWGE88IgeqciDU+M5JQN614G5kQzElfbh
+         HvecrRRLXrQZ/FwYCCB3LBNOFkEWzbulF1RVRttG5wV6yvAAY+m7MC65w4npGfoNLJKf
+         x+ixe4F+i4agzA8W32jlwR6u8XQ+gj0ajPTNTnRYXJcnEpy3oMLyJPzYHRw2tteKXSvk
+         FwKhYZemV20cvq44gygRTQqthI4H7CNy2grGA09f0QmTAgDwNRjbsrCcwtUtNf+Md8KG
+         m+BQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8nN84S/obNAIPnzxmyukofbmbRtW2FbohbqfmUVfJj7AvnhVrlhtg0lYwE9Dx5TflDLvmOGlNnOKFifUaL@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLub2/Tiz841nWqq2gRq5CpyH+ulDZJEyA6poQYLV79XomXELe
+	53XG2fddTMIM9Aa+HEj2lzPVNvk97BIYv5Y4FvLS7IVYvgKMJl3SPuwxSf8PDfBoUAguQBwasfM
+	bZeyGyiNwTmB5+X9NbtBcNrWmFRx6NH8bTQAZPlplCkJVQ72cRoee3rZnkiHq5mRgOg==
+X-Gm-Gg: AeBDietGh13xq00Epilbs/UQLcs8uv2dr+o213rF9DTvHMaxVnvXyWAti1/gReWVpJ8
+	BrI6JaUIUiezQdTzVWjnyBNjvod3YVG5hhtJiTxJg3JNxgDXtT+IQjbqidWbl9PAm4HvvkynwpR
+	BpXmUcV6JTZpGuTE7DXrVnuwjgJKn2GqsC6I1LBOP7TkIT9iFapUHdc3oQJ/vaI+6s6ZE9USO+b
+	LaHs3aU4cqKx+9z2MxlY/P/aDP7RGPKyIxA1ltCBWliaLjrzsZkxA2JOjHsY/9C0YSLhIkwIjT7
+	5MrM2wzSea1IVd2t+/IRg3qufvDJwduxIiZICO5rJgVUFuTACJhyzDLNaVe+U13Quz/NTF7iYhu
+	QIEigQToPLrm7cxftli+kaA==
+X-Received: by 2002:a05:600c:8b8a:b0:489:149a:f9e7 with SMTP id 5b1f17b1804b1-489149afa2bmr214250905e9.27.1776851953565;
+        Wed, 22 Apr 2026 02:59:13 -0700 (PDT)
+X-Received: by 2002:a05:600c:8b8a:b0:489:149a:f9e7 with SMTP id 5b1f17b1804b1-489149afa2bmr214250425e9.27.1776851953134;
+        Wed, 22 Apr 2026 02:59:13 -0700 (PDT)
 Received: from thinky ([217.30.74.39])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43fe4e3a341sm47712138f8f.24.2026.04.22.01.58.02
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488ffc5e3f4sm222129625e9.2.2026.04.22.02.59.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Apr 2026 01:58:02 -0700 (PDT)
-Date: Wed, 22 Apr 2026 10:58:02 +0200
+        Wed, 22 Apr 2026 02:59:12 -0700 (PDT)
+Date: Wed, 22 Apr 2026 11:59:11 +0200
 From: Andrey Albershteyn <aalbersh@redhat.com>
 To: Eric Biggers <ebiggers@kernel.org>
 Cc: Andrey Albershteyn <aalbersh@kernel.org>, linux-xfs@vger.kernel.org, 
 	fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org, hch@lst.de, 
 	linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, 
 	linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, djwong@kernel.org, 
-	david@fromorbit.com
-Subject: Re: [PATCH v8 00/22] fs-verity support for XFS with post EOF merkle
- tree
-Message-ID: <iads77qkk2wjkqfezd4vtqsga6btlkqdyephqojyv76herp6by@l24e2hm2ebas>
+	Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v8 03/22] ovl: use core fsverity ensure info interface
+Message-ID: <gpmgtg2wkoo4vozzaaouhdp2df6zlifwi6gy4jvq7xc22zo7om@t3f2bl374nlr>
 References: <20260420114714.1621982-1-aalbersh@kernel.org>
- <20260421214316.GB37143@quark>
+ <20260420114714.1621982-4-aalbersh@kernel.org>
+ <20260421214457.GC37143@quark>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -96,24 +96,46 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260421214316.GB37143@quark>
+In-Reply-To: <20260421214457.GC37143@quark>
 
-On 2026-04-21 14:43:16, Eric Biggers wrote:
-> On Mon, Apr 20, 2026 at 01:46:47PM +0200, Andrey Albershteyn wrote:
-> > This series based on v7.0 with Christoph's read ioends patchset [1].
-> > 
-> > kernel:
-> > https://git.kernel.org/pub/scm/linux/kernel/git/aalbersh/xfs-linux.git/log/?h=b4/fsverity
+On 2026-04-21 14:44:57, Eric Biggers wrote:
+> On Mon, Apr 20, 2026 at 01:46:50PM +0200, Andrey Albershteyn wrote:
+> >  int ovl_ensure_verity_loaded(const struct path *datapath)
+> >  {
+> >  	struct inode *inode = d_inode(datapath->dentry);
+> > -	struct file *filp;
+> >  
+> > -	if (!fsverity_active(inode) && IS_VERITY(inode)) {
+> > -		/*
+> > -		 * If this inode was not yet opened, the verity info hasn't been
+> > -		 * loaded yet, so we need to do that here to force it into memory.
+> > -		 */
+> > -		filp = kernel_file_open(datapath, O_RDONLY, current_cred());
+> > -		if (IS_ERR(filp))
+> > -			return PTR_ERR(filp);
+> > -		fput(filp);
+> > -	}
+> > +	if (fsverity_active(inode))
+> > +		return fsverity_ensure_verity_info(inode);
 > 
-> FYI: the git repository doesn't match what was actually sent out.  For
-> example the patch "ovl: use core fsverity ensure info interface" is a
-> bit different.  The version in git (incorrectly, I think) ignores the
-> error code, while the patch returns it.
-> 
-> - Eric
-> 
+> Not sure whether I should review this version or the version in git, but
+> both seem wrong.  
 
-Thanks, you're right, I forgot to push
+Sorry, I forgot to push, this one is the latest, the one on git is
+v7. I will push v8 now.
+
+> The 'if (!fsverity_active(inode) && IS_VERITY(inode)) {' condition
+> should stay
+
+Why? With recent changes, the fsverity_active() now checks for
+IS_VERITY() instead of verity_descriptor.
+
+> , but fsverity_ensure_verity_info() will need to
+> gain a !CONFIG_FS_VERITY stub to fix the build error.
+
+With "if (fsverity_active(inode))" I think this is not necessary as
+this fsverity_active() will be always false, and this if-case is
+optimized.
 
 -- 
 - Andrey
