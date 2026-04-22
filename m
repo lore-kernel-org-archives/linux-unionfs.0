@@ -1,130 +1,120 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2C732D97BB
-	for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 04:52:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.49
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776833576; cv=pass; b=DNYbs+q1RUqAjb1GC1dgnqEuajd+2dpndBnsLaqTa2LSSflkVBxmEABFp+QtKcxCpWgl69Jer0ZBtdVL9cY1YM71mSRFRg5vvZ2ePR1V9BS4I0GHY+7heO2TysQZvUCXXhG5QhB94/Sp1usOe+6aXPzj/MeEsfk7U53GSpOb3nc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776833576; c=relaxed/simple;
-	bh=q0Y5z69t7EnwFRmoQuriHXgrdZschTXv+jqPXtob9f4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=j25kKe2igaGdV6fYdb+ydaUXMQdMcSdCB7mrXEiTykUEmk0pQksCIzHAUEak5Mmv7C1i4K4wbUdXCcPLGyXriqOeZFa93SiFB4ZWGEIqsJlCO6r8ZKz3nCNere+jFmF8F6Xsroh+2SM6cX9JkHcc8rZOTjFCP1NoKIMTaZtPbL8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=tCP3d4lr; arc=pass smtp.client-ip=209.85.218.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D663BF685
+	for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 08:58:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776848288; cv=none; b=AEUG98RwuG4d5fkAKCJe4VlCn3pAqsosTua0w7rhCVs2JD1fLOhyA98mnudbnRAbAKxF2dTrSwHgZ39ZUpakW2VzeakYjs1Z7AsuVIV1/LMjNdLf7Lr5uUVGxomyMdeS8SgCsGvYtVRo1OlW7f7UoAIi+k2BhoPErFDgXQZrCOY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776848288; c=relaxed/simple;
+	bh=uF63Ms8AACR/oFWxgd+uFy3hlr2NIcQ7At05T0KyQug=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V9F4vXq71lfSDhOrFNpXCKf8GpEA4TvCgI7ln3mUvNYuWkJdghx0TJcENc8q3Z05SbqikbABMDhUSibt+CWz7wca+L/gIqanDR7zoNGjE/i6ro0Ivr07L6bYwddG+SOIYIZarZAjXyxXcYzAdXdpmckqld4wy6LcMmqZkI3FCYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=cHQHEGn4; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=cxPgpXd1; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tCP3d4lr"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-baa8c78ac7fso125168266b.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 21 Apr 2026 21:52:54 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776833573; cv=none;
-        d=google.com; s=arc-20240605;
-        b=VjCaiTAs8C0i6fKDRbtHBs9ZsxNhcnOEMh2AYQ5EzdBOUgRmmditj3wPUrSJvYlvpg
-         DS6YWsuC+eLtXgHdJGtdlM9pXpSSrSh3u7TcjkZ+japoNmHI0p3+1XXwtf0Su6Eu+kkQ
-         5TQmGQExVFL0TTzhsQ8p7F5XuZGtW8meZXRs7rlcUrNSfy4UXbmfREPpCmlEMOTVIv7a
-         +C7GcCeiAZ2RppttCM9Ktd/5CogwtQGb+7vg6NofbEdZ7iRyWQT4WPEjVdxg5VxXY8w6
-         aPkigquu71o8V7dUlnBLlzKwCkjCQ4xSLag8spB3tvVffNA250mvAV1bsSN/2gD0x6/1
-         Q7pA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Htvix0mRwzhVxf5R0Kf0KLjebkh+Pa0xXAtyZO4Zg+Y=;
-        fh=NxRbilUe39DSrPZfOrnwUFWO9LbmebWVHyZCNOCCIxM=;
-        b=epR8u/VsxH7y9dy/SPMecXgCT2ih/9VylR4z1o9NpV6vca0YiPgLE1VDvf84d4OZSh
-         YkdSxyrjgDrV4/gV+048M38BJETrddaZYCs0NpOgmYoZAzODS3nKjQopmxetKuGRlFA6
-         5/MIbQedKDwoyn5SlJIPIARvuNup/Wnn11m+T/4AszS3YPIvqkwcYziWUIdipKTJ0y3L
-         fBygft+zTxFAMMD4RWZp29VAhSjxYee12ZRePB9hulJOVaqbkmjKK01LvhDRrgbeCx+d
-         +UeZ0/5h+7eGT3aUEPBAQiZABbAInkDqAUEQM7RUQIc0t1aABn+R+D3UWs7P17D8hqZZ
-         W/xQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cHQHEGn4";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="cxPgpXd1"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1776848286;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FFaygBUBXXsgixj3eSOd6CMo0lj7K6zPcakxuhrDzd4=;
+	b=cHQHEGn4d65uGcHveSIfcaCYX+F8OuoMacUm1MAOmqirZSK4FaBJJv5JD4WXXd/psgrLV4
+	AyeNE1L6dGikldh6xPKHp9tapFPxBEeg5jZczq2A419pFkp0K5EdnG6cEGSDAAe63btKjy
+	0tAeHahRUjaQ4pK45Cde+QMyNuzt6lE=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-554-8DtnieBmO8Gi2IPzNFUhJw-1; Wed, 22 Apr 2026 04:58:05 -0400
+X-MC-Unique: 8DtnieBmO8Gi2IPzNFUhJw-1
+X-Mimecast-MFC-AGG-ID: 8DtnieBmO8Gi2IPzNFUhJw_1776848284
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-43ff0eb2b2aso2763689f8f.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 22 Apr 2026 01:58:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776833573; x=1777438373; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Htvix0mRwzhVxf5R0Kf0KLjebkh+Pa0xXAtyZO4Zg+Y=;
-        b=tCP3d4lrYB+N6n9YLoONNGOzhjcyb0pRbOc3cMgVjAYsaFF2vLnSnSBP701tsAJbjj
-         n4tuB13JcqV93ygi23WPz7zf+5gjpUyvJZpoy6IGj1hCG18DqNHlw8VFtY38148D6cBq
-         rj+DUepD+WqTAtqPxXM5CK7lhmn6dZNi5gR6lRlsX3Ix8F2JmeTFFdPzzze2DupXECBZ
-         KsSStF4FxJB1nfKa/VcqhyqEjIoqphPQ7tS7X5kXACdw92eQFXjriRZWkNumLTd6gTyt
-         5YKIP4YREKgV2fxj5NWalDsqeFPzbmr6U1s1Mz4CxtNVbOldqQCLhodJSCvBE6FmL+4l
-         XjrQ==
+        d=redhat.com; s=google; t=1776848284; x=1777453084; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=FFaygBUBXXsgixj3eSOd6CMo0lj7K6zPcakxuhrDzd4=;
+        b=cxPgpXd1U2be8oz6XUshGUwOibc9axYIPHrFBQMSuZiwknsMCpp4TPaR8V7HmHlTAY
+         /dCsgZVFDwyccB3y60KfRvoGnvNlg2iIqUs25ma3UOS+vz/Zsg2LlbyetF/NjsQvTjys
+         aJuVv7sS9y+rpV64vhwHsfrlc4dqmdxrJWV1l4wJrJpAQhYrfJcu/hMHFG5ggFE775LB
+         W+UX1yNE383mH/kP7SWPY7TcZmnlXH43S7rc0l7ZvA4bsx2363D3RxTy9WLYClkKW2eM
+         LCp79CUbrLb03Zm4ngKEbKKygpkSgf9aAmySoGIq7OXDFIImQGBZnG2jEb8jKTcln3vQ
+         Z9vQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776833573; x=1777438373;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=Htvix0mRwzhVxf5R0Kf0KLjebkh+Pa0xXAtyZO4Zg+Y=;
-        b=EluvGlyVAuKWCSnUM3NDtyX4aDmZssbT/icST7aKCMVkSh3JuO8CDD5uIqLwP4pWvG
-         ZFj6gyp1O6gn7PuPCT8UrGm9m+EowwnnD0PDzMVePosFkQ8yD/t6MH8whSwLuH0tCRHc
-         jsbV6sob05vQSx2WCClqBz8PCMyqSCHJdji3p7lF39SFaxbObmqIMkmNHNex7fI0P8S7
-         zuTEd7uJX1C0cOqXATMlL3YwKxahNvnV7I7e14IRskqU4nH5oWVNwVtvxH6gAv16CzTm
-         Z2cX21M5v48ibmK0pEmW2jj8lhn6C4+qve9yAeY8xgqLach+EvJslcjuSMYdOQm3WbIW
-         hOcg==
-X-Forwarded-Encrypted: i=1; AFNElJ+2avw0F/a/fiR2P+j2qBnJCO6qu9hEMGo8s8mTv/Pk6SFWJExPVTzXauxs5s0j9OVgE9VZK/ZxxAfFzVVt@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx7MKqNN03oxiClQXYIGsxpejEmZBqCD9chif08jEukuToEMctM
-	prmSJZcKokwNXdPCrm2Vzk9gVcmXjdXiGUTja1sp9vYrko130F0sRpmc7bEHX9g2OyOezGkW1Oi
-	Ha6t8GwQssNFHxSoCsXLXSx0E0AJmpe0=
-X-Gm-Gg: AeBDies6eSdh4aJR3eWeB/LShXt7J+y9r28a4m+ZQWZPJpSyJmwIfkeJbrcbRJd7rNr
-	qrKpi3CY0Nfdq6lvF3UUbXE2Tw8VdAL59X4kl1vVDKvFwJKKUhWm0waTx9A5TjX9gX8gn3pHPHU
-	8Rvzb28GdUdgp8z4tJ3kyJwvvHBLbl5uSYpFHZaEdaWYJIb8hO0zTenpQHCOh9RNYeAd6VGT61M
-	G+ULhoptZrlbB4suk7zacfkZIeM6fwRwJK0ogwhkoj8v7JgAu7fPsECBGL3UJ0MsyXwN4GaUJuR
-	bTnwOFefqvOwAr04APa1R5KHCZ5Ec9tzIgR5uLUxVz7REEJaGI58Lk499/XXcdY=
-X-Received: by 2002:a17:907:1c27:b0:ba7:c8bf:dd94 with SMTP id
- a640c23a62f3a-ba7c8bfe835mr543875066b.33.1776833572885; Tue, 21 Apr 2026
- 21:52:52 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1776848284; x=1777453084;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=FFaygBUBXXsgixj3eSOd6CMo0lj7K6zPcakxuhrDzd4=;
+        b=KJKuCq/jyOsKtSBbBtO3iU/QBqZ7496BxjXAhTRIz7vY5bynXqguDX0sx+j65r875z
+         lQuY2zlYU7tq9bQeDFLm9gBdNVuw1qoFdxcrvv/FSPy9haXfp1oObsg14uPR3ziMyhtl
+         /NiWuTHsit6pFwaXzKDkSCnJeewS8XSX7cK3747ZYDz/xzzNRhcIWCKSkYVnmHg05HFH
+         oSsJ/Jwj0ZJND3kgGpWE/wpGZtfLc9bvHKlcHZQEEHNW279TW2zSdbRjyj8GboplcfCf
+         I50sre3IZAqm9chas4pMA/rV2xcKTi/eTuWtvvt1zf243w0ToI7W3/ALRtdgDQ4aAlsj
+         KRqQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8LbfTNnpazcZjRrZ9LAO0otOxfTy6FamDkiSEvXZeM8m+rIEye5MxC2qlEv7lzQmR10joWUk9ibAKI6pVL@vger.kernel.org
+X-Gm-Message-State: AOJu0YwS6HsJ5PXotU5I2GsE2+kNhJR//sy/kpWJkqosE4stlF+fTzSZ
+	oKVqfKh4RzsbVc8rngq4MNPSfZs0g1yJwpQn//NeMQwgH0MNazfgFki8oNEncCTJv6AgoDnY6BG
+	24+p5QSxirgo7yTSaWXjjKH4EnNFVJT/zPpxuUPBYS7O8sDki3L267xf+61+tn5q8bQ==
+X-Gm-Gg: AeBDieuEgcNzOzR3LmErDBwm2T91d+bnoLJaJqD6JWqgMfuLC0f/vExhmr6l1sBdhXF
+	aOCJ+6L3wlxP1rU+nbCq29Ftn91gl+m82Ig2/M9lVI5gmFtcnB+giM5LdTsg8CJ+Au5+4uVkLhY
+	YZkg9fWrh3qu6aM3VxAGtQIEBOzSXqgzMGjNE8Gq9cCFa2FZwb2H4isemjV0IsN4ZkHQiZRuLdx
+	tneyRrbdNeK7a0yddNrDf9HVc9UfFmSyKtNpUOlDJmdR384WlM9fPxiOzzZAOGHr/IH6X4tbytt
+	acI4xviT7eydK/0KMuj5/CgNgt5DluPWbKQSCjVKIgw9PlUpNqOAXvo6oPs8c7pAwxWKcwIrhY4
+	iVfEqP7w6uH6IbPm1uXrIYg==
+X-Received: by 2002:a05:6000:4022:b0:441:2439:bef2 with SMTP id ffacd0b85a97d-4412439befdmr4594382f8f.24.1776848283790;
+        Wed, 22 Apr 2026 01:58:03 -0700 (PDT)
+X-Received: by 2002:a05:6000:4022:b0:441:2439:bef2 with SMTP id ffacd0b85a97d-4412439befdmr4594342f8f.24.1776848283286;
+        Wed, 22 Apr 2026 01:58:03 -0700 (PDT)
+Received: from thinky ([217.30.74.39])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43fe4e3a341sm47712138f8f.24.2026.04.22.01.58.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Apr 2026 01:58:02 -0700 (PDT)
+Date: Wed, 22 Apr 2026 10:58:02 +0200
+From: Andrey Albershteyn <aalbersh@redhat.com>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: Andrey Albershteyn <aalbersh@kernel.org>, linux-xfs@vger.kernel.org, 
+	fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org, hch@lst.de, 
+	linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, 
+	linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, djwong@kernel.org, 
+	david@fromorbit.com
+Subject: Re: [PATCH v8 00/22] fs-verity support for XFS with post EOF merkle
+ tree
+Message-ID: <iads77qkk2wjkqfezd4vtqsga6btlkqdyephqojyv76herp6by@l24e2hm2ebas>
+References: <20260420114714.1621982-1-aalbersh@kernel.org>
+ <20260421214316.GB37143@quark>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAHWLEDHfXZScF5jNDzgOxGXf-MBDcVNtqW0DbNz8Ra8rtcuL+w@mail.gmail.com>
- <CAOdxtTbwipkyAfDakLAB6aVp6YkPWtKpDdVDUTz88WDB-18HXQ@mail.gmail.com>
- <CAOQ4uxhUn6oCBuVJqZu+FcMx8XeAQHZbXFAGon4Xeg2SPLJW_A@mail.gmail.com>
- <CAOdxtTaWWu_7eJWu68zf28zHQP3Y--vXTfbGFsceO47BpN3qxA@mail.gmail.com>
- <CAOQ4uxhCNhGinePrnkSfT9Mtf4o5FmBX7mTA2m4miCMOt3mJqA@mail.gmail.com>
- <CAOdxtTZGFxaayJpqsiFQrWBqXvDn7oyxSL3_9TWP919k0FhWTg@mail.gmail.com> <CAE6nXrPes8T9Cn4ihTt43qmtgCCZvmMwYXo-yG_HJgNO7y+vVg@mail.gmail.com>
-In-Reply-To: <CAE6nXrPes8T9Cn4ihTt43qmtgCCZvmMwYXo-yG_HJgNO7y+vVg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 22 Apr 2026 06:52:41 +0200
-X-Gm-Features: AQROBzA7_yt5-Xb5zZQao-gRyDtlaRD1k1RwPo-4_dBxDZOooY6wSqAWKd1j_dA
-Message-ID: <CAOQ4uxhfwOU7O_vEQsAvRGV-v3_Dk1RcMnwGx-xOpx-FYjoKcg@mail.gmail.com>
-Subject: Re: [REGRESSION] Return change in 6.12.80+ with volatile mounting
-To: Samuel Karp <samuelkarp@google.com>
-Cc: Chenglong Tang <chenglongtang@google.com>, Derek Taylor <ddtaylor@google.com>, 
-	stable@vger.kernel.org, regressions@lists.linux.dev, 
-	Kevin Berry <kpberry@google.com>, overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260421214316.GB37143@quark>
 
-On Wed, Apr 22, 2026 at 1:54=E2=80=AFAM Samuel Karp <samuelkarp@google.com>=
- wrote:
->
-> We can fix the test case for the "volatile" option and expect either
-> "volatile" or "fsync=3Dvolatile". Existing use within containerd beyond
-> the test code involves us producing the "volatile" option and passing
-> it to the mount syscall (or _not_ passing it, depending on the
-> situation). This seems like it should still work if "fsync=3Dvolatile"
-> is an alias rather than a replacement.  However, containerd is not in
-> full control of the mount options; as part of snapshot (layer)
-> management external snapshotter implementations can provide mount
-> options to containerd which containerd then passes to the kernel.  The
-> protection in RemoveVolatileOption will break if a newer snapshotter
-> produces "fsync=3Dvolatile" and provides it to an unpatched version of
-> containerd.  I think the breakage scenario then becomes new kernel +
-> new snapshotter (producing the new option) + old containerd.
->
+On 2026-04-21 14:43:16, Eric Biggers wrote:
+> On Mon, Apr 20, 2026 at 01:46:47PM +0200, Andrey Albershteyn wrote:
+> > This series based on v7.0 with Christoph's read ioends patchset [1].
+> > 
+> > kernel:
+> > https://git.kernel.org/pub/scm/linux/kernel/git/aalbersh/xfs-linux.git/log/?h=b4/fsverity
+> 
+> FYI: the git repository doesn't match what was actually sent out.  For
+> example the patch "ovl: use core fsverity ensure info interface" is a
+> bit different.  The version in git (incorrectly, I think) ignores the
+> error code, while the patch returns it.
+> 
+> - Eric
+> 
 
-Even if kernel always shows "volatile" in show mount options
-the scenario you described will break containerd but that would be
-a snapshotter regression (w.r.t. containerd) not a kernel regression.
+Thanks, you're right, I forgot to push
 
-As I explained before, overlayfs could add a new mount option
-fsync=3Doff which has similar "do not reuse this workdir" semantics.
-I explained the correct fix to this situation.
+-- 
+- Andrey
 
-Thanks,
-Amir.
