@@ -1,71 +1,99 @@
-Received: from mail-dl1-f51.google.com (mail-dl1-f51.google.com [74.125.82.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fout-a3-smtp.messagingengine.com (fout-a3-smtp.messagingengine.com [103.168.172.146])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E27C19C553
-	for <linux-unionfs@vger.kernel.org>; Fri, 24 Apr 2026 04:59:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13AB246768;
+	Mon, 27 Apr 2026 03:36:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.146
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777006797; cv=none; b=Fn+8UVV9LDq+i42WovYxsW7cyK8VCs7cZa8PpvPiSRwXkZBcobJqT/IUfRECXBwmIV98qqIgFuXEUWw+PZTbYbQLq/yRi/hKdp0LhssNjAUapJKmfoa7bNMDtxzM0tTpYbrXIJotrXvEtRlEgDu3d8df53TprCq+EQWnSCmK3iY=
+	t=1777260979; cv=none; b=GQr1lWIqdfiuOZl1DNft5JTH22otRlNvRs52L+JiJ1w6uQnYmuKqBMEqvLceF16kUm3QyNhMxHZxzdwHeqAt//YIPlBOT0sCpkHRSHjxUcYhCURQXLnZzq/poJoM+MSoVsWEU2bIUBslAuuSIa86p+qq1EgEw7yH9N9hLE9mc64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777006797; c=relaxed/simple;
-	bh=H76pr8QL8DeaJlUDeQNSFXNmjPwwq2Dacl8m2cQjA5c=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Pv8h6BDeilX6SvV5RPe1otqOs4IVJCzxb2vkx6i5N/Goh1wUPxJ9nIj5VozCIg61lf3KKUJtzG9aP9A8km/M0GOXC+NpAbyI2dU7B7JT2qMR9+Y1rC7QoCHULTBH+I+/i1UZOYsAPwcUT5rJzbQFhbpNiwHZXtql/0FHEVnNEEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=deK/0Ae0; arc=none smtp.client-ip=74.125.82.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777260979; c=relaxed/simple;
+	bh=qSiA65OlAkTnkbcTeNV7mR1EhobDVI0BoCP/VRJI/W4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uVs1SkM5N5KA4DsvyKVBuEtEzrrqnCI7CyV+hk1cTK+iDnnUoDZwyVyPpk4+f+N70O+wS/gi+zc78lDCWYO4QXJDoKh6wIIr8+DFlVzRedFSse13uASuZ/rgfvY5hz1FGPFonNLmRQlD2q9FwuDpWu7PJ4sDzMjI137N3QC2VtM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=EV/B7sz6; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=VBhN6xtx; arc=none smtp.client-ip=103.168.172.146
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="deK/0Ae0"
-Received: by mail-dl1-f51.google.com with SMTP id a92af1059eb24-12c8cc7a77eso3478231c88.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2026 21:59:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777006795; x=1777611595; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=978EVbvW3ZLh1wlVJiw2Zg9e6G5YwocerOhloqcIejc=;
-        b=deK/0Ae02DIYKFvLq+bHjcfhwrG9NcDWzEpe/JZxNB7kLMtWKPwVzdErzcQB9gj4UE
-         PUsb8yPMEYm8Juq71j82FSUJuouPe7ntaR6xa5R76Pw6jlGRiP0/GhQrjmik/sTPwqvX
-         1/u4txsYVIrZNyNIAlUt5+1NNF555koARSQ8gOAUCaZ6ZFy6QUrzCBmH2ku/xhTIL2JQ
-         aCqzAQMOuFLdTIvyYQB3L2BKc5vylWbucme0jORmsidBWOxCBlqNXyf4//8zPupemOg9
-         W+QrsrkBicc+H5jl3SJ8rk54aD915iqJOwr7unztaGX+GCVHVx2zfzzZIk9EjDuAO5mr
-         gJww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777006795; x=1777611595;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=978EVbvW3ZLh1wlVJiw2Zg9e6G5YwocerOhloqcIejc=;
-        b=WhiVZfCYx6L484Pxfe0I4HyB2j6PFXU028sS6PXCMqAtDJuPcQeLYmhn/VQbOf90+Z
-         L7pFYF5zPSqc+tRsj9XphdaDTQIqeNsw/9r7oLWjiYDePioGSYrUkpi54ugz9g+nWKA0
-         P6mm3lTHIsxNPL7pNIQmT7y1KzYLLZZ45x/bMBDy0+7MnAv5l/KghHnNV2Orb2g84Qbb
-         kzPPqOxalSE3r42oOIgK9kjnQVWltuZWKJKk1HT5oJKkzsnoQWonKSynjk25jotzYHSZ
-         pKVkoGkz+KxCerPNheBQLm/ianH//u7fSRkJJO5whyBavsdVhbBpNsiADMLPJFiigUG/
-         r3lg==
-X-Gm-Message-State: AOJu0YxwitU9mRsa2FKVY4Mu6YIHecSDcfkszZGZdV5bVnDO0TvZF5Xt
-	JjAL3V2bLeV8l7qvQNvJe//ecfHuuTg6SFtkHJQ8fiV2lERE8ZrYIHli
-X-Gm-Gg: AeBDieuq1sOP5l0Uix3usn8FM0te4dRDwrQPSlNeST1jbpUntJjN/YErJzG4rjAid/t
-	K/K0qJV1lPb2OclXTIOaexnVaNJlJ5YPaDe4csMuU1yW9hYx9WA4g7pSR8FwEB1MkP+ZW0whh3d
-	O/z9L6tyuHdJtVM8LGxca+E0pQLkqE/pKKEd6QBHwYNx49+DuvKhmLXQpsFsnb59fbGYNVylcHm
-	7j2zcXe8EJfjQRfrGYYTYXEP1qadPHdAhl/ztWGgiZPIOuF/OxWVm0BojW29An9NLiJd3iEH8ZA
-	pZ7rEXXIKwUI5qPai8JY4u5SrWughqLvH5dvOvMZ6A4ltfOJnAaLz9q8b5KJ9/lGmRKesnjwl0O
-	R3WyPrusxnmGqRm3i416/R4rmwT7DW+spOnTKIfR79CptwrRi2l48o1p4rIj27Pwv+6iYBqzLOJ
-	v62AFAB+8V4bRB2CEvICH4HHE43FYVMg91SHQBDK6XJgN4Z2Gev/5CS3x+Dv2w5zqamKJMZfGhO
-	jhkxzf27oBnPgf9m+RLKxNZlrj8Equ4jrmVank=
-X-Received: by 2002:a05:7022:b8d:b0:119:e569:f86d with SMTP id a92af1059eb24-12c73b26cc5mr13053682c88.10.1777006795446;
-        Thu, 23 Apr 2026 21:59:55 -0700 (PDT)
-Received: from localhost.localdomain ([2600:8802:c01:ca00:45b2:2071:1eb4:e2ce])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12c919266f6sm24955876c88.1.2026.04.23.21.59.54
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 23 Apr 2026 21:59:55 -0700 (PDT)
-From: Tamil Mathi <9tamilmathi@gmail.com>
-To: paullawrence@google.com
-Cc: linux-unionfs@vger.kernel.org,
-	kernel-team@android.com,
-	syzbot+75ff1aecfbeeefb78736@syzkaller.appspotmail.com,
-	Tamil Mathi <9tamilmathi@gmail.com>
-Subject: [PATCH] incfs: validate rlog_pages mount option against MAX_ORDER_NR_PAGES
-Date: Thu, 23 Apr 2026 21:59:54 -0700
-Message-Id: <20260424045954.3187-1-9tamilmathi@gmail.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="EV/B7sz6";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="VBhN6xtx"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.phl.internal (Postfix) with ESMTP id 107DCEC01BC;
+	Sun, 26 Apr 2026 23:36:16 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Sun, 26 Apr 2026 23:36:16 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:date:date:from:from
+	:in-reply-to:message-id:mime-version:reply-to:reply-to:subject
+	:subject:to:to; s=fm2; t=1777260976; x=1777347376; bh=+AfzVtcFdv
+	bs3O1oT5LWwepSI/hImgSuRlsSjxTGP/g=; b=EV/B7sz6hnO1bI52+uUOZIoI2w
+	SUjLidWwP3E1D9uD07z74T0evdJmmxhFR8WbD4d9dyQPj+DUhF/x39qqg43ebUNR
+	I4Wef9lmIPKl3dHt6AIb3VbLfrXhyOp0wSul4eDMrmiyNXpPSOyDgrvpNlDcDgNm
+	nukvwX4q4PSpXlBVG23d9i74pFJiOPXGs6SQtWme58kPen26xlw6X1C21Vn+XycH
+	1wMjVsFWDwM3JAHISzGbAZGTAZ//2L8CGbeEOChlJzQiLyQ21I2C7C/1ymltEBgJ
+	p2HEFltuEscBugWNV+7mGkdqVvkdS3WS92UV0XM30KHhjNnTCRzorqeTmNQg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:date:date:feedback-id:feedback-id:from:from
+	:in-reply-to:message-id:mime-version:reply-to:reply-to:subject
+	:subject:to:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm2; t=1777260976; x=1777347376; bh=+AfzVtcFdvbs3O1oT5LWwepSI/hI
+	mgSuRlsSjxTGP/g=; b=VBhN6xtxnCpxe9/yuUCvdU1CamGy9W7c17XKEFs3d5yE
+	3LMVehRo/WRGKdqclzc1Mli0lRdJbzUPtZESrl36prLtNFDnWiYt2tcL+n/I4lyN
+	gBMX+iSspfEfl6UeAP6ygM6+1QAOpcHT6YGh8tX/afxGxbNC6BA3qhXhao093+J2
+	siQdZMSHJOuW/9JEjGJ13QgugIMvYUiTj3pDSJrhFptcKBiI5q0zdHbGf8vAAnvB
+	anXhr1bvoHkisUCp0LHEK9haoSrnY1qjOS/5jz+jsQeLm1azUABbE6nh89SFiT+s
+	KbDXFSgtSGJSMkSUp4ywu92bg5ELAB04V+ugRkARSA==
+X-ME-Sender: <xms:rtnuabyEcl926lDXoQ05S3AkJLRXR-e0T3QWn1ReOYTwwd36FeCV6g>
+    <xme:rtnuad9E-Q4DRg7VTp2ryPlpNb-RQLEVYWbXG2Qb6gAxJ5BLi6IfBzl7q-tLVj9MK
+    2zazQQPyCS4VxuiyrTsbP_UTb9y1oJ9f6nBQXyj8UUtkbE>
+X-ME-Received: <xmr:rtnuab9fVkCi4NjnXJIpOT35S9BdWO4B9QL7o9ju9qKDLj_Dxf1lAPiYC8xBBHGX_KIv1VFegNCKgJRM4nBnxyVNNH76WUg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdejjeeivdcutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
+    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
+    hrpefhvfevufffkfforhgggfestdekredtredttdenucfhrhhomheppfgvihhluehrohif
+    nhcuoehnvghilhgssehofihnmhgrihhlrdhnvghtqeenucggtffrrghtthgvrhhnpeegte
+    efgedttddviefggeeuveefleellefgjeeufeeukedtleeiieekvedtleevleenucevlhhu
+    shhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehnvghilhgssehofi
+    hnmhgrihhlrdhnvghtpdhnsggprhgtphhtthhopedujedpmhhouggvpehsmhhtphhouhht
+    pdhrtghpthhtohepvhhirhhoseiivghnihhvrdhlihhnuhigrdhorhhgrdhukhdprhgtph
+    htthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhr
+    tghpthhtoheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtph
+    htthhopehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhr
+    tghpthhtoheplhhinhhugidqvghfihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtph
+    htthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdprhgtphhtthho
+    pehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtohepjhgrtghksehsuhhsvg
+    drtgiipdhrtghpthhtohepjhhksehoiihlrggsshdrohhrgh
+X-ME-Proxy: <xmx:rtnuaQf6CIJXgs7MwtyqLd5Rs5vj3APCdsQ3lyLN3Ba3xVDaEPWXvQ>
+    <xmx:rtnuaXveh0lQ8aESqcfzMz4E0dA0aNeSXBNjtwbzbJzEl6a68QKS4g>
+    <xmx:rtnuaZ3TOobK0NBGaMUCiO0HVtXYQ1rLEB9dZ3AwIqNXjc0Dy8vzMQ>
+    <xmx:rtnuaUDnndcrJU6ecu5lEXRMD0n6opFReSunJGtE961ZUTcQwDrj4Q>
+    <xmx:sNnuaQxDW4zaamrwn1UR_gAq5SLznvyiUdMBRbJuGUxUzKE_yfc4RvQr>
+Feedback-ID: i9d664b8f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
+ 26 Apr 2026 23:36:09 -0400 (EDT)
+From: NeilBrown <neilb@ownmail.net>
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jeff Layton <jlayton@kernel.org>,
+	Trond Myklebust <trondmy@kernel.org>,
+	Anna Schumaker <anna@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Jeremy Kerr <jk@ozlabs.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Christoph Hellwig <hch@infradead.org>
+Cc: linux-efi@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel
+Subject: [PATCH v2 00/19] Prepare to lift lookup out of exclusive lock for directory ops
+Date: Mon, 27 Apr 2026 13:29:33 +1000
+Message-ID: <20260427033527.773006-1-neilb@ownmail.net>
+X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
+Reply-To: NeilBrown <neil@brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -74,40 +102,68 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The rlog_pages mount option is parsed from user-supplied mount data and
-used directly to compute the read log ring buffer size:
+This patch set progresses my effort to improve concurrency of
+directory operations and specifically to allow concurrent updates
+in a given directory.
 
-  new_buffer_size = PAGE_SIZE * options->read_log_pages;
-  new_buffer = kzalloc(new_buffer_size, GFP_NOFS);
+It is a selection of patches from the 53-patch set I posted in March
+which got relatively little response.  Maybe a shorter set will be more
+approachable.
 
-kzalloc() for a contiguous allocation larger than MAX_ORDER_NR_PAGES
-pages triggers WARN_ON(order > MAX_ORDER) in __alloc_pages_noprof().
-A user can pass rlog_pages=22472 (~88 MB) to reliably trigger this
-WARNING during mount.
+This set:
+ - prepares the VFS in various ways
+ - make use of these preparations in ovl and NFS (the most challenging
+   filesystems for lookup as they do the most interesting things)
+ - make use in efivars and shmem which for different reasons need a small 
+   change that seemed worth including here.
 
-Fix this by rejecting rlog_pages values that exceed MAX_ORDER_NR_PAGES
-at parse time, returning -EINVAL for out-of-range values.
+The goal that these patch work towards is moving lookup out of i_rwsem
+on the directory - except for the actual ->lookup call.  This is itself
+a step towards allowing broad concurrency of operations in a given
+directory.
 
-Reported-by: syzbot+75ff1aecfbeeefb78736@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=75ff1aecfbeeefb78736
-Signed-off-by: Tamil Mathi <9tamilmathi@gmail.com>
----
- fs/incfs/vfs.c | 2 ++
- 1 file changed, 2 insertions(+)
+There are two particular requirements before lookup can move outside the lock:
+1/ d_drop() mustn't be used before an operation completes: the dentry being present
+   in the dcache becomes part of the locking protocol.  This in turn requires
+   d_splice_alias() to work with hashed negative dentries.
+2/ d_alloc_parallel() mustn't be called while i_rw_sem is held, as this would
+   result in a lock inversion.  So d_alloc_noblock and others are introduced
+   to handle the various cases.
+   In a few cases we need to drop and re-take i_rw_sem inside ->lookup.
+   As lookup might be called with a shared or exclusive lock this requires
+   a new LOOKUP_SHARED flag which is ugly but can be removed after the
+   lookup is moved out of the lock (then ->lookup will only ever be called
+   with a shared lock).
 
-diff --git a/fs/incfs/vfs.c b/fs/incfs/vfs.c
-index b45533b..4eaf890 100644
---- a/fs/incfs/vfs.c
-+++ b/fs/incfs/vfs.c
-@@ -270,6 +270,8 @@ static int parse_options(struct mount_options *opts, char *str)
- 		case Opt_rlog_pages:
- 			if (match_int(&args[0], &value))
- 				return -EINVAL;
-+			if (value < 0 || value > MAX_ORDER_NR_PAGES)
-+				return -EINVAL;
- 			opts->read_log_pages = value;
- 			break;
- 		case Opt_rlog_wakeup_cnt:
--- 
-2.39.5 (Apple Git-154)
+The full set of patches including these 19 and the rest to complete the
+lifting of lookup out of the exclusive lock can be found at
+   github/neilbrown/linux in branch pdirops
 
+Significant changes since last time are:
+ - use wait_var_event for d_alloc_parallel() rather than effectively
+   duplicating that infrastructure - as suggested by Christop
+ - changes to ovl_readdir handling as discussed with Amir.
+
+Thanks,
+NeilBrown
+
+
+ [PATCH v2 01/19] VFS: fix various typos in documentation for
+ [PATCH v2 02/19] VFS: enhance d_splice_alias() to handle in-lookup
+ [PATCH v2 03/19] VFS: allow d_alloc_name() to be used with ->d_hash
+ [PATCH v2 04/19] VFS: use wait_var_event for waiting in
+ [PATCH v2 05/19] VFS: introduce d_alloc_noblock()
+ [PATCH v2 06/19] VFS: add d_duplicate()
+ [PATCH v2 07/19] VFS: Add LOOKUP_SHARED flag.
+ [PATCH v2 08/19] VFS/xfs/ntfs: drop parent lock across
+ [PATCH v2 09/19] ovl: stop using lookup_one() in iterate_shared()
+ [PATCH v2 10/19] VFS/ovl: add d_alloc_noblock_return()
+ [PATCH v2 11/19] efivarfs: use d_alloc_name()
+ [PATCH v2 12/19] shmem: use d_duplicate()
+ [PATCH v2 13/19] nfs: remove d_drop()/d_alloc_parallel() from
+ [PATCH v2 14/19] nfs: use d_splice_alias() in nfs_link()
+ [PATCH v2 15/19] nfs: don't d_drop() before d_splice_alias()
+ [PATCH v2 16/19] nfs: don't d_drop() before d_splice_alias() in
+ [PATCH v2 17/19] nfs: Use d_alloc_noblock() in nfs_prime_dcache()
+ [PATCH v2 18/19] nfs: use d_alloc_noblock() in silly-rename
+ [PATCH v2 19/19] nfs: use d_duplicate()
