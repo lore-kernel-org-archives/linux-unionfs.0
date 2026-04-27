@@ -1,93 +1,93 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C72112701CB
-	for <linux-unionfs@vger.kernel.org>; Mon, 27 Apr 2026 09:40:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656883B47CF
+	for <linux-unionfs@vger.kernel.org>; Mon, 27 Apr 2026 10:10:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.44
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777282825; cv=pass; b=Uu9ZuzrgK5VXGsSwReFAXT8ErgnhIcSXICq/z1y6uzKiAmAZnmBaZo7p9m9dcj+82kcpumszzD4mzOSUAu4EndDL+k6pASeN8gAHOQxKfq1O0Lk9DYfXZbd+H57jHVRnzpfx/sK2e3p486DEVvW6cgl6qU7H1N4MZL89U+l7INQ=
+	t=1777284644; cv=pass; b=Cq3ya/AK3J6EwxmRQQWp9jKFKpfJA7qq/shOht1Rra4skpXpNE9Zxc9arNRCbpyPLyMViW+BNDv85EX092RttCsK0sx8uGfXBTIBdMwu/xq2FRqjbfPkw69GayAVvM2uxc2Cm9Znv0l/F/ts1MLBRAw7/h8BsmtiBrs8+n5Knd4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777282825; c=relaxed/simple;
-	bh=QxjxYdcjttugdX8q9bsC/IDcAbQVs1MJeJaBjC5gmvI=;
+	s=arc-20240116; t=1777284644; c=relaxed/simple;
+	bh=UE+DJnE2oj0vFOXp+m3XTb9AY/fwBqMnmmO9cLxXoJE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qpPu0UIPi0fG2ckQndwmo6ik/h5Ej6zSFngG5dmuNbBhp2wXDj+/4MS6z/I/Vce//5WCYQeYu5efcC2cMLc434O+GDfWcdQN5P4mXmhSqQuXu6gBlNhGMyK9HCfnK+iMET+cp9DT40QjVFrCkW4Zvsm4lLBEHbzTBKYghbXCmPA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qR7926+g; arc=pass smtp.client-ip=209.85.218.41
+	 To:Cc:Content-Type; b=DpgPCwBAGNWeXiJ4GZINDMZy/ROHx8c72bfABsE4XscDYyyjdqAp4q0UMiWoyCUanodsWpwugMSXbgzD1qI7Cv8zQ4sbbW7t+/0jqLgAWMnTDSyMD8giWFsm/N9Y9Ly782+mcjt2DfyEGC3yU+5Ygx+hoLhmc56BX0G/NKnHjXw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XWxtLhyu; arc=pass smtp.client-ip=209.85.218.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qR7926+g"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-bb3c4d8cc29so111717166b.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 27 Apr 2026 02:40:22 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1777282821; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XWxtLhyu"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-b9d9971d059so1418667166b.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 27 Apr 2026 03:10:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1777284641; cv=none;
         d=google.com; s=arc-20240605;
-        b=CxPWseI4Z8omPlaLlB+BQ25M/54FdlDd/BuMPc/UOZnhjoqqpSjUxlSNTCITtAKzXa
-         xtcKhDufH/iIzaVN5UVJRrzC3dBCLmMusWf7SPtJBAi9NffScMxhx2zovIYxSq0+lmCz
-         ZX/Q/HNXei4J5YQzt3it5jLLVfntYdEHu5bzg6smEsmp/4YBZSXpHRSby8qFDlmdbpz5
-         9fspYsNBAGYIkYQJotLcuppKiKo2LMeG13zMQAP9N46XVvNVyGyUrqNIg74qxjo1Tsdr
-         DZQsR0pWJTGvKxFxxrG3zvF3NZd6PgR0pCR1Ckx0W0BUWCc2pPClEZy1lCpkvCRErE+X
-         yzRA==
+        b=Eu5tbRmPiJXL4luLXVyRLUYHr15FAEMLXZ+WEz5PYIc2XHtVxp3fFqbP7NjI+SJsv/
+         eSfyZhy4yvRGoJfWqj6b9U+hr6VICaWJr8zP6r6RSjgSt2IZaSJRoVMvqTONJqTCeSEZ
+         spDteHV9ps3Kq0ZUg+7HgwJ1DxP9ggdBBIgNaf3c1Ag6DgjKTp2qhU5Kc85mRHRO2chs
+         cJ+rDE73DvL7iY1RJrRIWDqeCKRSnkrZvrJn8fi9+O1xe2np3XgyptjmbanffWrTmo4r
+         Bya2vCi7wogwnnFZ1bbkAvHM2hzq10Bi6hr4kqsgZRzimQxQdrgAiEPigh3I5yCDoPO2
+         uJ+Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=eJPntPFRD6O40TV+kw1mFLfFz9WnpFXdrxU/541rVbo=;
-        fh=VPJhiug2ikxKtT7wKNQdjapiM4hizyOuTMWzTGcSSKE=;
-        b=aeD0PoX1ZrCgvlAFzumQtr72kdI9kNgIcWkjyKOiSiKU9IlbMKUzANV2IfMgqbFcS2
-         uvgMWY2uxPB84E5ak9EV5gIGOyyGn0xhQ+tvNMCpxUGclsX/FHWIeGlfRWqqP2Grg5Hn
-         P5LOBYmOHlxRJV3sepUUhMExLUN4gSIVhqZ0Oe4lClGKUuMcO8oLtM3r3qw98mY0Qk63
-         inwYRtX1RfQGFHWeTFfoQfebucnQTNjUQmpLeGGGzCR9rc17bqIyho6vFbHszYxBluu/
-         kl8eesbPmJxbStkJwuUDDSZQUTx8J0OBiCfh6B3+Lop0zaVCdS2J8Ox+jqB8/lKBrF5J
-         gexw==;
+        bh=iKRwDoHSf2+oXdi49CMbzE7n/0K7hTCuX9atPHgXxI0=;
+        fh=AIY0PNnc7w8iY4N0VdQmFepOvRNbIyyshPOoRHZT6pM=;
+        b=U9H9ORKRKxt/GRCmotRvi+CuD6yqw/fLScCAbSuvYGIr/twOUF+2holq5misE9TwU5
+         Docu0Vo00KY3GObGPRd1FxGfv/o6VM9bEpq+W1AEochWXHjnofbvymbt/6ZhxRZ++bmF
+         FT6V7utcJydgMN+7/pzoCgt28PTNal6PW9n9XEzGXzCFjg+lFBjpFKUyO3eaP4hvgyEe
+         q0oY6WFfKPbzkcgYiH0ppWk4wTTKRkP4Rndc3OtV2/afOScJcUTYgMbKNtgLqLxL9oRj
+         h/KcGekvvCY1DsO8hcw8MVsUtkGhwjm0ik92sZ0Hl6/BtMuzjvhXTHO0A7ic7lFrr2+Y
+         WUAw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777282821; x=1777887621; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1777284641; x=1777889441; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=eJPntPFRD6O40TV+kw1mFLfFz9WnpFXdrxU/541rVbo=;
-        b=qR7926+gI5Rjc3lstYAMzrMjqGywpZ3iiFQbJLJV7dAmZe1DujXErD9OxX7uW/So+8
-         rC2iIBoSUvCuij+eDq7H/oC+lkn4irs3U2K1facE3XR/kU+zhANhJ/nJkqAs4wc7Y4EX
-         Sgc7pdtLUoMsZrRFyc073idnYPJhXupV5uF3mMp7xROI/MYeJxLePoF0BE/pmdOf/40y
-         HbqBxcKIWGLHVlW4LXMSRJw2ik6wMvpd+iDAXnxYN3+GxtxVWS5FTIVm+k64VjxOBHDd
-         WsY8F859X/+oEfi0VNnn8+vNxVL8z4MsEom/vpT64M5hLGa/rOwAR9Gvp5x+Lz03DRq4
-         IeDA==
+        bh=iKRwDoHSf2+oXdi49CMbzE7n/0K7hTCuX9atPHgXxI0=;
+        b=XWxtLhyuTrbLekIie5/rVrfuMytoMDSx8Qf7TMBgHSgE8ZB91RgoGWETMZ048CaOvO
+         zRby5VgYxvDRqlC0slSCp3xUOQxKpIpyraTPDWyx4j7pKgMz+X4AIJe9p9bu/QmT0pa9
+         hWMF6BwqTU/VU8Qve9jQjiWu/fAcHnNguwdWLxWqzOTTdVOjgaX1HfSfYCuK9xKuMoKW
+         TSVHQqM/r/E2cJF/sJ/iEgAEQ5Z7dK9oi20/j53FD/iTBpQflplhY8FzOHUYOXm/lfyI
+         oK+uT/qR4V0TA1NmHHiYV+LB9zaCzZbTvgs80IfFEkkhO0kMwcoE6NYUbd1kO3Jljq2V
+         u1bA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777282821; x=1777887621;
+        d=1e100.net; s=20251104; t=1777284641; x=1777889441;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=eJPntPFRD6O40TV+kw1mFLfFz9WnpFXdrxU/541rVbo=;
-        b=rb/4uKXDixZrmwjreE85EER9voI4/6eJWd9/1/im0l16gkfaU3ZK+haxGhKSv0AAIG
-         otk3/9bwQm6lD0D+hRKt73VMBq1mzmzmHbNTwtf+i32XiU90t3lnAphcNyOvXb7FaOyT
-         UAc3Rkuynl3H7ip4jC5ARI8Z83RrfrEGMKLl5pxQMcRfQkn1uWht/Ikh8Z2pDaOYPqMz
-         FV5PQpEb0vC/gFuWXy5trRepxxoOC0lCnuUTOME3KS01xDH+kIEKci0eGWDxgJAjAR0F
-         sjF8c/saEXdt5Jq2tsLf56b2nDDa/MSXqgiMtzNjkdemkVAaS3Y38sijC9cDCELKgw7y
-         b3dw==
-X-Forwarded-Encrypted: i=1; AFNElJ88joVR99lq2WnVKLxeKTZH4vd9/Tip7RoIKldoMC3ZaaDPOvQY7u0vznbHR+plS633b+v9eYteozqXZczn@vger.kernel.org
-X-Gm-Message-State: AOJu0YzDPb8VnzFKQ9srovF90NgKPs3WMqJAa1XvYEFngVAWPUFCOWfT
-	ThmNPd/JUBicuCDOBOFSzPH9xABZrpnJx1LjMo8XAbi2v7S1pS96/EFf0dDHDpcNmRyGhexEa5/
-	Jj9j6L+58qky6Cn61RcNbgLMzR0S4BO0=
-X-Gm-Gg: AeBDiesHNRgCPnhf1aMTvdEnZum/IFG31u/G0Zkxqaialgm5F9zLAc6/NnZNKZxePzG
-	ZuCHWKyubP9+6ORoRHdPv6UEqLMwNPIQFy/C/aX3NwXfcyaOLst/sMyJaczYWbIGXfP9JRoZPnk
-	0CP2JBuBYcmAlr2oqLcLzp8cy2hSwgjbaEYNUTgH7T7i2IOKmWwLdERRy24V1DgnJdnrrRBfKWg
-	CL16pPsFWrWY5ILzP55w0oKiH7GgWNGZ0biXXvzLaJ1BGHARIRl1deOYXmBTpEK/87sNM5i+98W
-	NMv5RbyQ+Bpc4NY/nQOWvs/GEWfUERWlKmFCsVz1hX/S9kckXeMv
-X-Received: by 2002:a17:906:794a:b0:bae:642a:8712 with SMTP id
- a640c23a62f3a-bae642a8acamr610964266b.26.1777282820632; Mon, 27 Apr 2026
- 02:40:20 -0700 (PDT)
+        bh=iKRwDoHSf2+oXdi49CMbzE7n/0K7hTCuX9atPHgXxI0=;
+        b=I/4jDDHuCikvSKoRMyspS+6An2fqh6uQdx4ycNAS1Wik+l0tBeL+Zf2PNVpWK1mCYb
+         ibNcWS6Tchv21M9nmko3MaL2i/FWdgOXITuEUgXY1xwhRThs31gvJWZhTOqG3q+W//U5
+         /6XOKOEiDiZDuL73UjFuEBuJKogCxGcCtcCZlL79/aRWIKQzN23clco/IgoTVdX+9xaO
+         1Ij/7y0JuhM63Ts3HIhcrjQ23MrVmJY8T8oxc7RoQ62Hk0RnZJ+8YATsY4raxLzbI8hK
+         zIzcP46L+aEBdOgHYzdbmoAZhD279eqvUEf6ZcSAMtHzTDHd9fQ6KZyyO/V7tEiZzteb
+         fwOw==
+X-Forwarded-Encrypted: i=1; AFNElJ+UOARTevJV4Z/xJul6q5JRL7yqNaoatSPAZRm7r1MK4/sgWeldzdY8v0lzSu5FmlRedOufDGqFCOGIpR7y@vger.kernel.org
+X-Gm-Message-State: AOJu0YzsqDv2lXMunk+n8ZM1N/ZO3fVW//y95nDRmeJjLP8xtAgnbndj
+	cq7XBDlW51q1qaOrvTheQCTr7KGNT034gK4ccqBTpypCkFetJ4qK9/Wp1ffbksBXFWd521LO36p
+	+6CFrN15yET49AR9Hvy06+wRCUfC5YJY=
+X-Gm-Gg: AeBDiet6hmGpmVb7h/cmbKiRKawfM2/8e/txFOELahzZJnTNoX6x+Vck1tuzYQ7XDFB
+	mKEk50Nd1LIko2iHvzT9t8DnVgsAYe8+uuMHTnj+lrWGeHoh8b95HczftLTX2EV+ijz31wGeLcv
+	kM5gU+acVXuPSJyc4LULX0I1JN/CxXPRrgIERSTTBZUlLwfwXai1kzHcOZ8TpES2jB8Sj3CJF2q
+	tmH7BrffxZfqVIZFQlcQtiinfJ69ja42uQKaCKdJ4yrVMG0GHOtIMyNbmRKxWojJ9AXpA/WH4wP
+	zPeHofVaFUvUZ0/RQSr5JwOWgo1htCaNdJT8jO39yE5RTSBZkwqqDsFwIBW8854=
+X-Received: by 2002:a17:907:806:b0:b9b:4519:7914 with SMTP id
+ a640c23a62f3a-ba41a82618emr2176151966b.33.1777284640148; Mon, 27 Apr 2026
+ 03:10:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260427040517.828226-1-neilb@ownmail.net> <20260427040517.828226-11-neilb@ownmail.net>
-In-Reply-To: <20260427040517.828226-11-neilb@ownmail.net>
+References: <20260427040517.828226-1-neilb@ownmail.net> <20260427040517.828226-10-neilb@ownmail.net>
+In-Reply-To: <20260427040517.828226-10-neilb@ownmail.net>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 27 Apr 2026 11:40:09 +0200
-X-Gm-Features: AVHnY4J3KNER9PTYdOScy1O62XxZbu1ceyhpVX-P8SPS4H3ApKZi7SEKX41AuMQ
-Message-ID: <CAOQ4uxiZF0_dGtHY0x7T0oh=3jhDC7-THH_ANt-Ha5kfdRe4QQ@mail.gmail.com>
-Subject: Re: [PATCH v3 10/19] VFS/ovl: add d_alloc_noblock_return()
+Date: Mon, 27 Apr 2026 12:10:28 +0200
+X-Gm-Features: AVHnY4JedWd56CMn-KycBPWg0ncqD2_jbR4uqG29qEFrdNMohyhNrM6UW-jNm2o
+Message-ID: <CAOQ4uxidCcGpABkCtkn94i3U_u3OWK16zeAVDG2xuhh5e+ws9g@mail.gmail.com>
+Subject: Re: [PATCH v3 09/19] ovl: stop using lookup_one() in iterate_shared() handling.
 To: NeilBrown <neil@brown.name>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
 	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Jeff Layton <jlayton@kernel.org>, 
@@ -103,239 +103,147 @@ On Mon, Apr 27, 2026 at 6:07=E2=80=AFAM NeilBrown <neilb@ownmail.net> wrote=
 >
 > From: NeilBrown <neil@brown.name>
 >
-> ovl_lookup currently needs to check if a dentry with the same name has
-> already been added to the dcache as readdir might need to do.  This
-> is an unnecessary performance cost to manage a rare race.
+> lookup_one() is expected to be removed as it does not fit well with
+> proposed changes to directory locking.
+> Specifically d_alloc_parallel() will be ordered outside of i_rwsem
+> and as iterate_shared() is called with i_rwsem held it is not safe
+> to call d_alloc_parallel().
 >
-> If ovl could know which in-lookup dentries raced with readdir, it could
-> limit the extra lookup to just those.
+> We can instead call d_alloc_noblock() and then call the ->lookup, but
+> that can fail if there is a lookup attempt concurrent with the
+> readdir().
 >
-> So add d_alloc_noblock_return() which provides the in-lookup dentry when
-> it returns -EWOULDBLOCK.
+> ovl cannot afford for the lookup to fail as that could produce incorrect
+> results, and it cannot safely drop i_rwsem temporarily and that could
+> introduce races with handling of the directory cache.
 >
-> ovl_readdir() can use this this and flag the dentry such that
-> ovl_lookup() and easily check if a repeat lookup is needed.
+> Instead we rely on the fact that ovl_iterate() has an exclusive lock on
+> the directory, so any concurrent lookup will wait for the ovl_iterate()
+> call to complete.  We allocate a separate dentry and if the lookup is
+> successful, it is hashed with the result.
+>
+> When the concurrent lookup gets i_rwsem it mustn't do its own lookup -
+> it must use the existing dentry.  This is found, if it exists, using
+> try_lookup_noperm().
+
+Hi Niel,
+
+One nit about the subject -
+Please change it to "ovl: stop using lookup_one() in ovl_iterate()"
+
+Apart from that, I let Claude do the review, because it has surpassed
+my abilities in reviewing such subtle api changes.
+
+I will copy its output verbatim, if for nothing else, to encourage you
+to start applying Claude review before sending out your patches...
+
 >
 > Signed-off-by: NeilBrown <neil@brown.name>
-
-Very nice!
-
-One nit about the API
-
 > ---
->  fs/dcache.c              | 50 ++++++++++++++++++++++++++++++++++++----
->  fs/overlayfs/namei.c     | 23 ++++++++++--------
->  fs/overlayfs/overlayfs.h |  2 ++
->  fs/overlayfs/readdir.c   |  7 ++++--
->  include/linux/dcache.h   |  2 ++
->  5 files changed, 68 insertions(+), 16 deletions(-)
+>  fs/overlayfs/namei.c   | 12 ++++++++++++
+>  fs/overlayfs/readdir.c | 24 ++++++++++++++++++++++--
+>  2 files changed, 34 insertions(+), 2 deletions(-)
 >
-> diff --git a/fs/dcache.c b/fs/dcache.c
-> index a2ddfe811df3..2f11257b725b 100644
-> --- a/fs/dcache.c
-> +++ b/fs/dcache.c
-> @@ -2749,7 +2749,8 @@ enum alloc_para {
->  static inline
->  struct dentry *__d_alloc_parallel(struct dentry *parent,
->                                   const struct qstr *name,
-> -                                 enum alloc_para how)
-> +                                 enum alloc_para how,
-> +                                 struct dentry **dentryp)
->  {
->         unsigned int hash =3D name->hash;
->         struct hlist_bl_head *b =3D in_lookup_hash(parent, hash);
-> @@ -2836,7 +2837,10 @@ struct dentry *__d_alloc_parallel(struct dentry *p=
-arent,
->                         case ALLOC_PARA_FAIL:
->                                 spin_unlock(&dentry->d_lock);
->                                 dput(new);
-> -                               dput(dentry);
-> +                               if (dentryp)
-> +                                       *dentryp =3D dentry;
-> +                               else
-> +                                       dput(dentry);
->                                 return ERR_PTR(-EWOULDBLOCK);
->                         case ALLOC_PARA_WAIT:
->                                 wait_var_event_spinlock(&dentry->d_flags,
-> @@ -2899,7 +2903,7 @@ struct dentry *__d_alloc_parallel(struct dentry *pa=
-rent,
->  struct dentry *d_alloc_parallel(struct dentry *parent,
->                                 const struct qstr *name)
->  {
-> -       return __d_alloc_parallel(parent, name, ALLOC_PARA_WAIT);
-> +       return __d_alloc_parallel(parent, name, ALLOC_PARA_WAIT, NULL);
->  }
->  EXPORT_SYMBOL(d_alloc_parallel);
->
-> @@ -2931,11 +2935,49 @@ struct dentry *d_alloc_noblock(struct dentry *par=
-ent,
->
->         de =3D try_lookup_noperm(name, parent);
->         if (!de)
-> -               de =3D __d_alloc_parallel(parent, name, ALLOC_PARA_FAIL);
-> +               de =3D __d_alloc_parallel(parent, name, ALLOC_PARA_FAIL, =
-NULL);
->         return de;
->  }
->  EXPORT_SYMBOL(d_alloc_noblock);
->
-> +/**
-> + * d_alloc_noblock_return() - find or allocate a new dentry
-> + * @parent - dentry of the parent
-> + * @name   - name of the dentry within that parent.
-> + * @dentryp - place to store the blocking dentry
-> + *
-> + * A new dentry is allocated and, providing it is unique, added to the
-> + * relevant index.
-> + * If an existing dentry is found with the same parent/name that is
-> + * not d_in_lookup() then that is returned instead.
-> + * If the existing dentry is d_in_lookup(), d_alloc_noblock()
-> + * returns with error %-EWOULDBLOCK and the blocking dentry is passed
-> + * in @dentryp.  The dentry must be dput() by the caller.
-
-This contract is a bit subtle.
-We have plenty of contracts where the caller must dput() in case of success
-or in case of error, but must dput in case of a specific error that
-sounds fragile.
-
-How about:
-* If the existing dentry is d_in_lookup(), d_alloc_noblock()
- * returns with error %-EWOULDBLOCK and the blocking dentry is passed
- * in @dentryp. Regardless of the returned error, if @dentryp is set by thi=
-s
- * function, the returned dentry must be dput() by the caller.
-
-Thanks,
-Amir.
-
-> + *
-> + * Thus if the returned dentry is d_in_lookup() then the caller has
-> + * exclusive access until it completes the lookup.
-> + * If the returned dentry is not d_in_lookup() then a lookup has
-> + * already completed.
-> + *
-> + * The @name need not already have ->hash set.
-> + *
-> + * Returns: the dentry, whether found or allocated, or an error
-> + *    %-ENOMEM, %-EWOULDBLOCK, and anything returned by ->d_hash().
-> + */
-> +struct dentry *d_alloc_noblock_return(struct dentry *parent,
-> +                                     struct qstr *name,
-> +                                     struct dentry **dentryp)
-> +{
-> +       struct dentry *de;
-> +
-> +       de =3D try_lookup_noperm(name, parent);
-> +       if (!de)
-> +               de =3D __d_alloc_parallel(parent, name, ALLOC_PARA_FAIL,
-> +                                       dentryp);
-> +       return de;
-> +}
-> +EXPORT_SYMBOL(d_alloc_noblock_return);
-> +
->  /*
->   * - Unhash the dentry
->   * - Retrieve and clear the waitqueue head in dentry
 > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index 69032eb2b1e2..524e661c3c8d 100644
+> index ca899fdfaafd..69032eb2b1e2 100644
 > --- a/fs/overlayfs/namei.c
 > +++ b/fs/overlayfs/namei.c
-> @@ -1400,16 +1400,19 @@ struct dentry *ovl_lookup(struct inode *dir, stru=
-ct dentry *dentry,
+> @@ -1385,6 +1385,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
+ dentry *dentry,
+>         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
+>         struct ovl_entry *poe =3D OVL_E(dentry->d_parent);
+>         bool check_redirect =3D (ovl_redirect_follow(ofs) || ofs->numdata=
+layer);
+> +       struct dentry *alias;
+>         int err;
+>         struct ovl_lookup_ctx ctx =3D {
+>                 .dentry =3D dentry,
+> @@ -1399,6 +1400,17 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
 >         if (dentry->d_name.len > ofs->namelen)
 >                 return ERR_PTR(-ENAMETOOLONG);
 >
-> -       /*
-> -        * The existance of this in-lookup dentry might have forced
-> -        * readdir to do the lookup with a new dentry.  If so we must
-> -        * return that one.
-> -        */
-> -       alias =3D try_lookup_noperm(&QSTR_LEN(dentry->d_name.name,
-> -                                           dentry->d_name.len),
-> -                                 dentry->d_parent);
-> -       if (alias && !IS_ERR(alias))
-> -               return alias;
-> +       if (ovl_dentry_test_flag(OVL_E_RACED_READDIR, dentry)) {
-> +               ovl_dentry_clear_flag(OVL_E_RACED_READDIR, dentry);
-> +               /*
-> +                * The existance of this in-lookup dentry might have
-> +                * forced readdir to do the lookup with a new dentry.
-> +                * If so we must return that one.
-> +                */
-> +               alias =3D try_lookup_noperm(&QSTR_LEN(dentry->d_name.name=
-,
-> +                                                   dentry->d_name.len),
-> +                                         dentry->d_parent);
-> +               if (alias && !IS_ERR(alias))
-> +                       return alias;
-> +       }
->
+> +       /*
+> +        * The existance of this in-lookup dentry might have forced
+
+"existance" should be "existence" in the namei.c comment
+
+> +        * readdir to do the lookup with a new dentry.  If so we must
+> +        * return that one.
+> +        */
+> +       alias =3D try_lookup_noperm(&QSTR_LEN(dentry->d_name.name,
+> +                                           dentry->d_name.len),
+> +                                 dentry->d_parent);
+> +       if (alias && !IS_ERR(alias))
+> +               return alias;
+> +
 >         with_ovl_creds(dentry->d_sb)
 >                 err =3D ovl_lookup_layers(&ctx, &d);
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index b75df37f70ac..bd6f1a25aca1 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -71,6 +71,8 @@ enum ovl_entry_flag {
->         OVL_E_CONNECTED,
->         /* Lower stack may contain xwhiteout entries */
->         OVL_E_XWHITEOUTS,
-> +       /* dentry was found in-lookup during readdir */
-> +       OVL_E_RACED_READDIR,
->  };
 >
->  enum {
 > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index e03b32491941..e483bd939a8c 100644
+> index 1dcc75b3a90f..e03b32491941 100644
 > --- a/fs/overlayfs/readdir.c
 > +++ b/fs/overlayfs/readdir.c
-> @@ -553,7 +553,7 @@ static int ovl_cache_update(const struct path *path, =
-struct ovl_cache_entry *p,
->  {
->         struct dentry *dir =3D path->dentry;
->         struct ovl_fs *ofs =3D OVL_FS(dir->d_sb);
-> -       struct dentry *this =3D NULL;
-> +       struct dentry *this =3D NULL, *in_lookup;
->         enum ovl_path_type type;
->         u64 ino =3D p->real_ino;
->         int xinobits =3D ovl_xino_bits(ofs);
-> @@ -574,7 +574,8 @@ static int ovl_cache_update(const struct path *path, =
-struct ovl_cache_entry *p,
+> @@ -574,8 +574,28 @@ static int ovl_cache_update(const struct path *path,=
+ struct ovl_cache_entry *p,
 >                 }
 >         }
 >         /* This checks also for xwhiteouts */
-> -       this =3D d_alloc_noblock(dir, &QSTR_LEN(p->name, p->len));
-> +       this =3D d_alloc_noblock_return(dir, &QSTR_LEN(p->name, p->len),
-> +                                     &in_lookup);
->         if (this =3D=3D ERR_PTR(-EWOULDBLOCK)) {
->                 /*
->                  * Some other thead is looking up this name and will
-> @@ -583,6 +584,8 @@ static int ovl_cache_update(const struct path *path, =
-struct ovl_cache_entry *p,
->                  * lookup gets a turn it will find and return this
->                  * dentry.
->                  */
-> +               ovl_dentry_set_flag(OVL_E_RACED_READDIR, in_lookup);
-> +               dput(in_lookup);
->                 this =3D d_alloc_name(dir, p->name);
->         }
->         if (!IS_ERR(this) && !d_unhashed(this)) {
-> diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-> index 662b98185337..db7cdcbac775 100644
-> --- a/include/linux/dcache.h
-> +++ b/include/linux/dcache.h
-> @@ -258,6 +258,8 @@ extern struct dentry * d_alloc(struct dentry *, const=
- struct qstr *);
->  extern struct dentry * d_alloc_anon(struct super_block *);
->  extern struct dentry * d_alloc_parallel(struct dentry *, const struct qs=
-tr *);
->  extern struct dentry * d_alloc_noblock(struct dentry *, struct qstr *);
-> +extern struct dentry * d_alloc_noblock_return(struct dentry *, struct qs=
-tr *,
-> +                                             struct dentry **);
->  extern struct dentry * d_splice_alias(struct inode *, struct dentry *);
->  struct dentry *d_duplicate(struct dentry *dentry);
->  /* weird procfs mess; *NOT* exported */
+> -       this =3D lookup_one(mnt_idmap(path->mnt), &QSTR_LEN(p->name, p->l=
+en), dir);
+> -       if (IS_ERR_OR_NULL(this) || !this->d_inode) {
+> +       this =3D d_alloc_noblock(dir, &QSTR_LEN(p->name, p->len));
+> +       if (this =3D=3D ERR_PTR(-EWOULDBLOCK)) {
+> +               /*
+> +                * Some other thead is looking up this name and will
+
+"thead" should be "thread" in the readdir.c comment
+
+> +                * block on i_rwsem before it can complete the lookup.
+> +                * We will do the lookup in a new dentry and when that
+> +                * lookup gets a turn it will find and return this
+> +                * dentry.
+> +                */
+> +               this =3D d_alloc_name(dir, p->name);
+
+Claude suggests this as the simplest fix to NULL deref bug below:
+                    if (!this)
+                            this =3D ERR_PTR(-ENOMEM);
+
+> +       }
+> +       if (!IS_ERR(this) && !d_unhashed(this)) {
+> +               /* Either we got an in-lookup or we made our own unhashed=
+ */
+
+The condition should be d_unhashed(this) (without !), matching the comment
+which says "Either we got an in-lookup or we made our own unhashed".
+
+d_alloc_name() calls d_alloc() which returns NULL on allocation failure.
+The original code checked IS_ERR_OR_NULL(this), but the new code only
+checks IS_ERR(this). A NULL this would pass the !IS_ERR(this) check and
+then crash on !d_unhashed(this) (or d_unhashed(this) with the fix).
+
+> +               struct dentry *alias =3D ovl_lookup(dir->d_inode, this, 0=
+);
+> +
+> +               if (alias) {
+> +                       d_lookup_done(this);
+> +                       dput(this);
+> +                       this =3D alias;
+> +               }
+> +       }
+> +       if (IS_ERR(this) || !this->d_inode) {
+>                 /* Mark a stale entry */
+>                 p->is_whiteout =3D true;
+>                 if (IS_ERR(this)) {
 > --
-> 2.50.0.107.gf914562f5916.dirty
->
+
+Claude (Opus 4.6) review summary:
+
+The patch has a critical condition inversion (!d_unhashed vs d_unhashed)
+that would break impure readdir entirely and cause use-after-free corruptio=
+n
+in the dcache. It also has a missing NULL check for d_alloc_name() failure.
+
+Thanks,
+Amir.
