@@ -1,158 +1,90 @@
-Received: from fhigh-b4-smtp.messagingengine.com (fhigh-b4-smtp.messagingengine.com [202.12.124.155])
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393FE3B2FD6;
-	Tue, 28 Apr 2026 11:44:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.155
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB8D3D5227;
+	Tue, 28 Apr 2026 14:22:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777376653; cv=none; b=im4VPJuMd7Zayv6LUTj8qotxSgUQ7MrmlyZ8i0HExtbOwlclXVXygItgCEcbwytLAs1yxHWdo0h8i+MUwO+skFnNh3oKyJW2KPubFCqPGYOlWyCApPBJq0pkH2c4XHrNr9GeuPr6/M6PoU9SJpXNEgtrTuVTM9PczRjZ1P0gl4M=
+	t=1777386147; cv=none; b=nWirvew7GheVj9XoKjVX9pVDmdE1wG7E4STvUFXRsVUdpb9OFgNPMgmf2X+q2UTu9RsTJbccaZcYPcIbqngNZQZVWE0HeqVizT7hJzc2JiYDhMu+GrpNQqW14Rnqu96v/i8fvo3BDww+KrdY8SXh5IfUZ4fw1/q+NHjkAMkwX50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777376653; c=relaxed/simple;
-	bh=PL8UHmWrQoXJLGqqAY6Lc/MVZPItciZEYbR4i6YeEDc=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=b/a5opyKGZ0htwC/AP5Qg3/Z4If3tzjhZIQ0recfng+qoSJmTb3Gx3jV3Q3sLs57RfPROy2xppn7EiN9rFJx0GlOBHVIFgQsHL9SUoAbONax3ff5HnoUHZ9cQZOAsxg4F2k0aZI8d0dmBOulPCjkD8L076T8h8Q6AdLNQJoQffI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=dzHWJGYN; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=L7Ua+u9s; arc=none smtp.client-ip=202.12.124.155
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+	s=arc-20240116; t=1777386147; c=relaxed/simple;
+	bh=sl1fqLImGDcEEKCBCo2L/+ljN9uGeACIGU4eqA8valA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ap74bTGjQsdg8Xe3g1V/JqBv/gKYb4yjtlVB10JWVnImhhTJWvTVshrXlTWxZzgdwG5BKGztYizRTcA87+HRFf+BCDlYa2BvIrhkLn/MzPXafJU8/xCp/C2Hu4un2L1QD4NkhKMEbb1/vODQ+kAVFQwKQqW+X9zcPciZHgBOUPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=mSJdFBE9; arc=none smtp.client-ip=62.89.141.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="dzHWJGYN";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="L7Ua+u9s"
-Received: from phl-compute-03.internal (phl-compute-03.internal [10.202.2.43])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 8437F7A01A6;
-	Tue, 28 Apr 2026 07:44:08 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-03.internal (MEProxy); Tue, 28 Apr 2026 07:44:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
-	1777376648; x=1777463048; bh=hNvCDZbxO3ENbBCMR1/00f1PQ5HW0ZeSNyw
-	OZeKHXEs=; b=dzHWJGYNLjXo+VhYfMC3Hshlt89PskdbIzlnO57mFwI+nU0fiGT
-	AJVZcH5TerOJOEYHm2K2lBd9FA4eHYOT3nBLqpUeDIyhfR8bfieITfOC+KTc9c5K
-	pqrlk7BWmlVEVtKKWzGVdAnM8vrW+zWGh+VDgREZj28bqDs9g9YWBEh4iYq2IFHV
-	cs0KCBWP4Mnn5ASFiim3WGsTDpvwRXqIRaMGuMk99unTDdYkdWm7dMLRA/HQa7Od
-	JldcDkxPxbQZhXxb0zfJliivhyFirSczSL/GXp467CRwef71SfDmOwG3t1k9TJcy
-	9VObzDdkLAnTbJ8uOu3v0fhyZtXMNDuvEfA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1777376648; x=
-	1777463048; bh=hNvCDZbxO3ENbBCMR1/00f1PQ5HW0ZeSNywOZeKHXEs=; b=L
-	7Ua+u9sU3TUD7Im/Y87/e1Z3bINkQHulNDLlHJgdSN9jfnAi6PBPkgwsk5XNJjwI
-	+40RHke2SBUljCNJTXv3sJQOUQx6nCnmG0ISuVDfTSVbTB2dItYFb/xjO+5f4Qbf
-	EXqtt9wSBSKIR4ZZurverHL3gVOrIRCUxzVMIVoytDmFRpiTT2lzOPoWBXW+dWiF
-	Bjr38evKxEH92unUChrxro28jqYihp8COrBhfiXAVYA4l1e+Z83FpghC7zby1EMI
-	lOQJaA8VfVnALgiKnoqy+lqutGZ3i5blan+Ag1NNrn0PHbQq/Vbx68FKW7q+OxLw
-	FVTrosr4AMLnMc2C6pnzw==
-X-ME-Sender: <xms:h53wacUnQmJWDuqzPo89pKGPBH9mqgcUEVdzK2iY8HNxNyUt_7W_aA>
-    <xme:h53wac62A3M8vpxS_JlsevvAVE_EXVZgk4ZGay_zBC3OzLkxo_7Ytqugw66TJYryX
-    LCgjHF5HzniwoKsTGFPkWeOmxZwQeBVezVzFkhgRJYYXA1xfA>
-X-ME-Received: <xmr:h53waSCMrzJ7UBSXDspxHYdocoMj75rx6livtAC7XWZ4wseuaESGkhzaI60IQPql8u6LISLJHym6hmUHP-mFKX8nI0Ao0uQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdekudegjecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpegtgfgghffvvefujghffffkrhesthhqredttddtjeenucfhrhhomheppfgvihhluehr
-    ohifnhcuoehnvghilhgssehofihnmhgrihhlrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    eljedtfeegueekieetudevheduveefffevudetgfetudfhgedvgfdtieeguedujeenucev
-    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehnvghilhgsse
-    hofihnmhgrihhlrdhnvghtpdhnsggprhgtphhtthhopeduiedpmhhouggvpehsmhhtphho
-    uhhtpdhrtghpthhtohepvhhirhhoseiivghnihhvrdhlihhnuhigrdhorhhgrdhukhdprh
-    gtphhtthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhg
-    pdhrtghpthhtoheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprh
-    gtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
-    rhgtphhtthhopehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorh
-    hgpdhrtghpthhtoheplhhinhhugidqvghfihesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
-    rhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtohepjhgrtg
-    hksehsuhhsvgdrtgiipdhrtghpthhtohepjhhksehoiihlrggsshdrohhrgh
-X-ME-Proxy: <xmx:h53waYcoaIP7cbrdzBGwmC6q3tTWo1DFf9m6ibsaFIIKh_JkRqlPaw>
-    <xmx:h53wabsnGLnldwuylEfVZWJTkIF3LS_W4Gj1DJo9bmBMOtbmazoRsQ>
-    <xmx:h53waXLFBHC1zKRWwuE1GQR5RHFDpDxc5MhUL1w-A9OFtDU0mviLtw>
-    <xmx:h53waVYwROlDIaxs6VgmAfOHbhCXY5Hwvxmjr-v7XJXZBe53YTfv1g>
-    <xmx:iJ3waXEeVraZ0UHqrOiAo7gf9N96YlzcgsspYUCSGUNW8Lh2PyES3QKB>
-Feedback-ID: i9d664b8f:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 28 Apr 2026 07:44:03 -0400 (EDT)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="mSJdFBE9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=r9Hup9E3/oT6Fka4DsUaI6wjWjOX8izftWYyjO/QbNY=; b=mSJdFBE9ahFIrl6ZrqyL0VQTJt
+	+HNrR+hnMC33kG0BDUrznpRNac4VLuKJ4jBHg2SWoV9cChvQQl5dmfCyFqK9qtSzedBDKT4jEQlWi
+	Pf/+80uv80xoyV2dE/1vYukGEoqB9DB3AqC2ei2nZGmQy3exf4KpbFfDjeAWjHS85acg/PkNuMWoP
+	uNfpusC6O6ynrKoCsGE1Z/Ic2pARN5i0Kej0bgHBaaYAWRro38zzoLmh0ql9x+ffpAYW111RKEZZ4
+	RTdyWhnPEfIuHZV79U8goabOKFh/l4OeYbTWJieXjFbf/S2ahgR4l7OZpfeZM8vMX/uKNOh3k/emv
+	ihXe8tFA==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wHjKT-000000011sv-3ldP;
+	Tue, 28 Apr 2026 14:22:27 +0000
+Date: Tue, 28 Apr 2026 15:22:25 +0100
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: NeilBrown <neil@brown.name>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Jeff Layton <jlayton@kernel.org>,
+	Trond Myklebust <trondmy@kernel.org>,
+	Anna Schumaker <anna@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>, Jeremy Kerr <jk@ozlabs.org>,
+	Ard Biesheuvel <ardb@kernel.org>, linux-efi@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 04/19] VFS: use wait_var_event for waiting in
+ d_alloc_parallel()
+Message-ID: <20260428142225.GX3518998@ZenIV>
+References: <20260427040517.828226-1-neilb@ownmail.net>
+ <20260427040517.828226-5-neilb@ownmail.net>
+ <20260428033738.GV3518998@ZenIV>
+ <177737511992.1474915.1952404144121931523@noble.neil.brown.name>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: NeilBrown <neilb@ownmail.net>
-To: "Al Viro" <viro@zeniv.linux.org.uk>
-Cc: "Amir Goldstein" <amir73il@gmail.com>,
- "Linus Torvalds" <torvalds@linux-foundation.org>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- "Jeff Layton" <jlayton@kernel.org>, "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Miklos Szeredi" <miklos@szeredi.hu>,
- "Jeremy Kerr" <jk@ozlabs.org>, "Ard Biesheuvel" <ardb@kernel.org>,
- linux-efi@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 10/19] VFS/ovl: add d_alloc_noblock_return()
-In-reply-to: <20260428043511.GW3518998@ZenIV>
-References: <20260427040517.828226-1-neilb@ownmail.net>
-  <20260427040517.828226-11-neilb@ownmail.net>
-  <CAOQ4uxiZF0_dGtHY0x7T0oh=3jhDC7-THH_ANt-Ha5kfdRe4QQ@mail.gmail.com>
-  <177733649056.1474915.2313612194633470905@noble.neil.brown.name>
-  <20260428043511.GW3518998@ZenIV>
-Date: Tue, 28 Apr 2026 21:44:01 +1000
-Message-id: <177737664116.1474915.2913290838767301303@noble.neil.brown.name>
-Reply-To: NeilBrown <neil@brown.name>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <177737511992.1474915.1952404144121931523@noble.neil.brown.name>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Tue, 28 Apr 2026, Al Viro wrote:
-> On Tue, Apr 28, 2026 at 10:34:50AM +1000, NeilBrown wrote:
->=20
-> > > This contract is a bit subtle.
-> > > We have plenty of contracts where the caller must dput() in case of suc=
-cess
-> > > or in case of error, but must dput in case of a specific error that
-> > > sounds fragile.
-> > >=20
-> > > How about:
-> > > * If the existing dentry is d_in_lookup(), d_alloc_noblock()
-> > >  * returns with error %-EWOULDBLOCK and the blocking dentry is passed
-> > >  * in @dentryp. Regardless of the returned error, if @dentryp is set by=
- this
-> > >  * function, the returned dentry must be dput() by the caller.
-> >=20
-> > That is sensible, though I've used slightly different words.
->=20
-> I would add "dentry reference stored in *dentryp may be in any state -
-> the only thing promised is that the reference is counting one;
-> do *NOT* expect it to be in-lookup or in the same directory or
-> hashed at any point or anything whatsoever, really.  Users beware."
->=20
-> In case it's not obvious from the above, I don't think it's a safe API to h=
-ave -
-> there's very little you can do to that dentry other than dput() it and it d=
-oes
-> change things in a fairly subtle way: right now in-lookup dentry is *not*
-> visible to any thread other than caller of d_alloc_parallel() that has crea=
-ted
-> it.  In particular, d_in_lookup(dentry) can only change due to actions of t=
-he
-> same thread.  With this primitive added this is no longer obviously true.
->=20
+On Tue, Apr 28, 2026 at 09:18:39PM +1000, NeilBrown wrote:
+> > d_must_wait() conditional, though - ->d_flags and ->d_lock are in different
+> > cachelines and there's no need to dirty both every time we are called.
+> > IOW, have d_must_wait() do this:
+> > 	if (!d_in_lookup(dentry))
+> > 		return false;
+> > 	if (!(dentry->d_flags & DCACHE_LOCK_WAITER))
+> > 		dentry->d_flags |= DCACHE_LOCK_WAITER;
+> > 	return true;
+> 
+> The only time that DCACHE_LOCK_WAITER will already be set is when there
+> are two (or more) waiters as well as the thread they are waiting on.
+> That means three (or more) threads all accessing the same name at the
+> same time.  How often does that happen?  Is the micro-optimisation worth
+> the small increase in code size?
 
-Maybe we could require the caller to hold an exclusive lock on the parent
-inode (which the only proposed use case does).  Then we can promise that
-the dentry will remain in-lookup as the owner will not proceed with the
-lookup until it can get a shared lock.
+Depends upon the load, obviously - a bunch of threads hitting the same
+pathname at the same time... not impossible.
 
- * The caller MUST hold an exclusive lock on the parent inode and can
- * be certain that if a dentry is provided in @dentryp, then it is
- * in-lookup and will remain in-lookup while the lock is held.
+More to the point, why not set DCACHE_LOCK_WAITER as soon as we grab ->d_lock
+there?  Then waiting becomes simply "wait until !d_in_lookup()".  Sure, we
+might end up setting DCACHE_LOCK_WAITER on a dentry that has just dropped
+DCACHE_PAR_LOOKUP - who cares?
 
-I don't have the patches to prove it yet but I expect this to be a
-short-lived interface.  Once ovl has full control of the locking context
-it should be able to allow lookup to always proceed while readdir is
-active, so readdir will be able to use a regular d_alloc_parallel()
-call.
-
-Thanks,
-NeilBrown
+While we are at it, do we need to drop it when we clear PAR_LOOKUP?  Because
+if we do not, the whole "what do we return from __d_lookup_unhash()" thing
+disappears - we simply pass the dentry to end_dir_add() and have it check
+->d_flags & DCACHE_LOCK_WAITER to decide whether to bother with wakeup.
