@@ -1,101 +1,153 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fhigh-a6-smtp.messagingengine.com (fhigh-a6-smtp.messagingengine.com [103.168.172.157])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB9B03AC0F8
-	for <linux-unionfs@vger.kernel.org>; Wed, 29 Apr 2026 21:09:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 306BD3D904E;
+	Thu, 30 Apr 2026 23:51:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777496960; cv=none; b=d5lWNM9kpBQ8jttIC6tKXHbOygKnwsHy4HyuOYdbNkwMqcPJ5Y+GKAUByqU0D7QKl5kR9u8xmyBMsvwruKtChjIua3GyiKdWFax2rApBr7babN9RSKjmf8rg6q0R+0SNFGSIoNNELIG9siFCyXmN4f0DzTyJd0Y3CvYmLuvUcCc=
+	t=1777593101; cv=none; b=jjBJUzJUdmNY1MitSVH+a60If6dTcabygig/6nvU8WBil/10iiqrolqgIFG5xHSi6Fv+rfVySHz7y2F3ooz0+tlxLriCH35CadtGAmRcbX90SDdLFDxN6gbJwxJXY1k51GY2ixZwKahjoF056AsCWbTGB9BTTmWpKtrrJTC594w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777496960; c=relaxed/simple;
-	bh=tKD1kZoqphx/1IqZo+FxuGf68uivswEb8Ml+8Wv6abw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ORnpRWdZ1OWs4VGi2PoxUex3VlH2Ln9BSm6iTpud8dYs/L7Fk0kbCxHzdD8Ec8M+y1yMDLe3rLa6W9TltIKYia4aqXd9YWnXp/AuBQ+tBThCz66BGd3gHOoVpzpNg+rappLX9/ozL2T5HYZfgNvUpe2mdCs0CVhakjbr5SnN6eY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AEF87eG1; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1777593101; c=relaxed/simple;
+	bh=aO6LLC8o1CRIM0rP3dZEQagY+ByLjZzuWf3NiqNRKN4=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=IScjOwmJ7uiMgPJIJAgKAA5TSPRmmI9bUDBmynukULPGfUrYxVd4B3GD42r/7y2AFMrwgqLbEsCmor2a9f5bwdXEY/X5ANAWrHK9bjjDRfQSyHhTqdCSCP2ohgRyrC25UcYeVhPeGUjSpKHKDXWt9t/bE6SSrGjxGqKUiiFlHs8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=M08qftXn; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=cHS/FKj/; arc=none smtp.client-ip=103.168.172.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AEF87eG1"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-ba8472c1613so34237066b.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 29 Apr 2026 14:09:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1777496957; x=1778101757; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=HnqVnLYxhZQkXEJ+qyCw2Y174F/Hy99oiICnSXcEeRc=;
-        b=AEF87eG10q/L8bjxMLWgsKvK06PQmL5YaztirwoHi/TD/ejuHIzl9SnQlEE2jZuHnR
-         PTJAEKBmz0eFUlcilkcmYSuDuVVKQO68f/ysU3Tqroam/oZ8/1dolCiFZwCcvL8xMrYa
-         kIIcienwZpy9P3FfB3iOuqiQS0vaTK9GfFNNM=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777496957; x=1778101757;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HnqVnLYxhZQkXEJ+qyCw2Y174F/Hy99oiICnSXcEeRc=;
-        b=NaSAUWsN3Chi1q+8NMEJD1gGBr0sSkhXtX0TsviCuVwOZvPFOs6sGIPZcZ0fjx5MGX
-         COthyqiv1y0eC6tAaCAnDVd8uuQO70wEydtckz3DZRB3vvXT+uw3Q+RGa6FvtBBxagER
-         fZvKax+5KtUXkODMfup+Gj4PWWsXUjzV4htsCEsoR7io8Efg+FOq045xuSiglmNzWWE+
-         tRwKjmHkmjTJkdvvUowzD2yNpMCRe9y8FHS3EMJrrxKAYZzuzV7RrgblcSZLBCdPjG2l
-         zC6uL5VDwhaZ7oo44Tsjqn/vB2OLcy1ZdzCOb9BvxqM0puzGn6VTzcXxzVKG+Dg2xen7
-         waUA==
-X-Forwarded-Encrypted: i=1; AFNElJ9PottVhwrt9PQa19VJMwv+9ZhyHktFcXt3N1ow0qYB2aIWPmDE/SPgRdxZHITHGCHCSMjiwpG3wfXzc+aq@vger.kernel.org
-X-Gm-Message-State: AOJu0YwyHt30AomD2GlkPXuO3DcUqY+X1FuK8oiU/a/dVgbktimW0oXu
-	w78lb4/xIQvls2rmq1JdNE9fwA13b5qqdtpiq+GbxVBZs06hJvICay4p3H8lJHNuqPQ6gb4gm2L
-	zi0viThY=
-X-Gm-Gg: AeBDievM9WkajWbO8TRL2uO2Wpgmesaw5c2QC0Ihe/S/IHohlUBdR9jRhSeotipoI66
-	oGOwqw2wHwu5GwEJ9psQ3izh3kve/pv+RSlHB3NNdbND94v2glmD+z9sDDq5wjWHWZs8CPJp3G9
-	B8fFte5FdEpEBjbr9rOBezTRWFkI+GJQxS+9BMWV1x6hofznjEgydiYnmB6Ok7e7YABSmGlSqNN
-	bMrtugru+RC03v8uPYJ/z4oluKgd8amlywpP8ZyCXK/n5WzhDGclgrsNxHCteY/X6HFV8RGDUoU
-	Uiww6ysCshIfVBaWzd4AcMi1dYW1GqkTQhR1pnID6VfmxNxE7p3iVR2ZYRVfG6lBngo25+rin4k
-	GXIOi+wQd2LM4RDqpA9QXS6/wheHSCZ2SpzEuu+KsYQ+tz4BL+jZrtJZlNBJ4Fw2wXj0RZBq2IL
-	DECpPuJmzR5xsQQgWmy2Smisw4qx+Zx7HpVAg5QcUe/ekEh7DfhBrksIzoatKcQxk/+E+/+AEs5
-	FL9M6Hus5c=
-X-Received: by 2002:a17:907:8746:b0:bae:c57e:d192 with SMTP id a640c23a62f3a-bbac74a8bfamr25784466b.41.1777496953084;
-        Wed, 29 Apr 2026 14:09:13 -0700 (PDT)
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com. [209.85.218.53])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-bb980a6fe30sm134908366b.5.2026.04.29.14.09.12
-        for <linux-unionfs@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 29 Apr 2026 14:09:12 -0700 (PDT)
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b9c3e2cf3c0so29079766b.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 29 Apr 2026 14:09:12 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/S+BHgp+tGfwgkP0YxmVMiTeZLyq/Z8mRfLk/37kaJl6Sj5E7UK0X6h4MkViiJ4CZ85nfbDJ5SVvKrXigg@vger.kernel.org
-X-Received: by 2002:a17:907:5cb:b0:bad:dfe1:6a56 with SMTP id
- a640c23a62f3a-bbac6ac310emr20951866b.30.1777496634502; Wed, 29 Apr 2026
- 14:03:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="M08qftXn";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="cHS/FKj/"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id DF5961400159;
+	Thu, 30 Apr 2026 19:51:36 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Thu, 30 Apr 2026 19:51:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm2; t=
+	1777593096; x=1777679496; bh=SoFsYwQGnMtWMKIme69DRpXKTM5BZO5qLvs
+	+ZUwxrZY=; b=M08qftXnutctKSp/G5u74axo0GjWhCsfpUK8OR0I5JoXIsK02md
+	GiF94elNIV5izQfaImQyXcjJxMiQ5vH10wEuiUhx5QfvlDUEkY8uA5EeaGGu6y+2
+	gAjCQGBuCojrG1LOeN4uZh5uYzxmFIbqQYUeiFg7Tf8RyNqSm6NL9G7jAQxKyPNW
+	QNtGsB+dRpcNI7j63tpUoLKAGBhqC76/DSv3np4Qh8AE4fgYsoGILHCgczB91qWR
+	wLQAwSutU9pAP3Eai2KCtbD8daSepCOWLivGXIgVpx+5hXxsBTFavos+o2klHjb6
+	BYf73Bf2AJg9SdSkJ15uwrTYFD1ZhSzb6ZA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1777593096; x=
+	1777679496; bh=SoFsYwQGnMtWMKIme69DRpXKTM5BZO5qLvs+ZUwxrZY=; b=c
+	HS/FKj/qUnZDVmrRSZbqMiCoXRSyjiFOeEI4XuYSkzhzd5WQfAoHStf/4yQbOddR
+	OGiZN9PPpf2Fm6wguVKI0qK1Ky25cvSEzKXt4yXnkt7ZT4H50TXSh+HDKCnw0O+b
+	nmAPB1NqfWxedDuXNN3uQYpOmJ5HUau3NvrNMuVLTD5Z8DmyInuF4KjTnGsGr8sv
+	UzHwj+JjGomgMM4PMSlh6z31YlobHPTyEfozbctDIQqWdhe4D1BVDJiSy57PDlIm
+	S+c5VTFJmit6DKsnMRRT3yyws4pwDHl85nXgFbVO2gpDnO4PM1sP+zofVE4Fi2YW
+	Y3bCTA4J0f7C/bEK4ytdw==
+X-ME-Sender: <xms:COvzacsHaUgvHpBxoA1OhSFr9Wf26BmVYRIe39YqVxdglpLEboWRHA>
+    <xme:COvzadlV0iQN0V0jQClf8pQZEkSyB7NoMiMv0L1_i-7pfy1nyq358ORdA3zM1Psx4
+    Vb0CnX53nGLWxdsLxuQTERe_fTxvwZItCWtt98lqNdLMd8nFuo>
+X-ME-Received: <xmr:COvzaUxCAEL5Mf3NKO22kS1vBdTAOPgi6QASYkmmHRdfFUeau8oQal_PKpu5c_SgIyKmKfgTw1NRTk4Wdtvr_O5PWU2nM84>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdekkeeilecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
+    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
+    hrpegtgfgghffvvefujghffffkrhesthhqredttddtjeenucfhrhhomheppfgvihhluehr
+    ohifnhcuoehnvghilhgssehofihnmhgrihhlrdhnvghtqeenucggtffrrghtthgvrhhnpe
+    eljedtfeegueekieetudevheduveefffevudetgfetudfhgedvgfdtieeguedujeenucev
+    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehnvghilhgsse
+    hofihnmhgrihhlrdhnvghtpdhnsggprhgtphhtthhopeduiedpmhhouggvpehsmhhtphho
+    uhhtpdhrtghpthhtohepvhhirhhoseiivghnihhvrdhlihhnuhigrdhorhhgrdhukhdprh
+    gtphhtthhopehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhg
+    pdhrtghpthhtoheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprh
+    gtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
+    rhgtphhtthhopehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorh
+    hgpdhrtghpthhtoheplhhinhhugidqvghfihesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
+    rhgtphhtthhopehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtohepjhgrtg
+    hksehsuhhsvgdrtgiipdhrtghpthhtohepjhhksehoiihlrggsshdrohhrgh
+X-ME-Proxy: <xmx:COvzaZwenh6wP_KcPPyALOYQqiRbbfuVFESj5E3gfsRmrtnQc9m6sA>
+    <xmx:COvzaT8JSbuduUt2JjHnZ1w6jWVjQNYd82tMcte0ktZ7u89KAHEqwQ>
+    <xmx:COvzaZ88O5H2atcHOVuYrCZtgYPAT3cAUQ_adXn18y9gOBiVIXddkg>
+    <xmx:COvzaWdFbHBD4NPLaBYmJBw0-FR20uOY0RW0LZ_1ugTgsY9Et525hw>
+    <xmx:COvzaeCsiVKPAdC-rXvJ_YY_N5ldgTPvgJQPXf2mA48_juqBMN-zwSdy>
+Feedback-ID: i9d664b8f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 30 Apr 2026 19:51:31 -0400 (EDT)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260427040517.828226-1-neilb@ownmail.net> <20260427040517.828226-5-neilb@ownmail.net>
- <20260428033738.GV3518998@ZenIV> <177737511992.1474915.1952404144121931523@noble.neil.brown.name>
- <20260428142225.GX3518998@ZenIV> <177741881482.1474915.12527082398060370192@noble.neil.brown.name>
- <20260429052626.GY3518998@ZenIV> <20260429170731.GZ3518998@ZenIV>
-In-Reply-To: <20260429170731.GZ3518998@ZenIV>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 29 Apr 2026 14:03:36 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wgs8yAfaQYmeKWab7KES0jU46TvdBfQ3Q9+6+=E=vrx=w@mail.gmail.com>
-X-Gm-Features: AVHnY4JtG_9GDiz56QzrtD5BrZqKcsiFlr8t2n0kWXJmeuX800NGv4Qx6DLxhBo
-Message-ID: <CAHk-=wgs8yAfaQYmeKWab7KES0jU46TvdBfQ3Q9+6+=E=vrx=w@mail.gmail.com>
-Subject: Re: [PATCH v3 04/19] VFS: use wait_var_event for waiting in d_alloc_parallel()
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: NeilBrown <neil@brown.name>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jeff Layton <jlayton@kernel.org>, Trond Myklebust <trondmy@kernel.org>, 
-	Anna Schumaker <anna@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
-	Jeremy Kerr <jk@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, linux-efi@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+From: NeilBrown <neilb@ownmail.net>
+To: "Al Viro" <viro@zeniv.linux.org.uk>
+Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ "Jeff Layton" <jlayton@kernel.org>, "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, "Miklos Szeredi" <miklos@szeredi.hu>,
+ "Amir Goldstein" <amir73il@gmail.com>, "Jeremy Kerr" <jk@ozlabs.org>,
+ "Ard Biesheuvel" <ardb@kernel.org>, linux-efi@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 04/19] VFS: use wait_var_event for waiting in
+ d_alloc_parallel()
+In-reply-to: <20260429170731.GZ3518998@ZenIV>
+References: <20260427040517.828226-1-neilb@ownmail.net>
+  <20260427040517.828226-5-neilb@ownmail.net>
+  <20260428033738.GV3518998@ZenIV>
+  <177737511992.1474915.1952404144121931523@noble.neil.brown.name>
+  <20260428142225.GX3518998@ZenIV>
+  <177741881482.1474915.12527082398060370192@noble.neil.brown.name>
+  <20260429052626.GY3518998@ZenIV>  <20260429170731.GZ3518998@ZenIV>
+Date: Fri, 01 May 2026 09:51:28 +1000
+Message-id: <177759308866.1474915.9708613530229799376@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-On Wed, 29 Apr 2026 at 10:07, Al Viro <viro@zeniv.linux.org.uk> wrote:
->
-> Something like patch below (on top of -rc1, completely untested).
+On Thu, 30 Apr 2026, Al Viro wrote:
+> On Wed, Apr 29, 2026 at 06:26:26AM +0100, Al Viro wrote:
+>=20
+> > with obvious adjustments in end_dir_add().  That's it.  Outside of fs/dca=
+che.c,
+> > same as in the patch you've posted, modulo renaming you've suggested for =
+new flag.
+>=20
+> Something like patch below (on top of -rc1, completely untested).  I've lif=
+ted
+> the wakeup part out of end_dir_add() into its callers - less confusing that=
+ way.
+> Note that in __d_move() the dentry you've ended up passing to end_dir_add()=
+ was
+> *NOT* the one added - it was the one replaced with existing one spliced in =
+its place.
 
-This looks like a clear improvement to me.
+I saw this comment the first time I read this email, but I didn't
+process it properly.  That code is wrong.  It only makes sense to=20
+__d_wake_in_lookup_waiters() a dentry that we know was in-lookup, and in
+d_move, that is target.
+This can only happen (I think) in nfs where nfs_lookup() skips the lookup
+for LOOKUP_RENAME_TARGET and leaves the dentry in-lookup.  Other threads
+looking up that name will then block.
+After the rename completes that in-lookup dentry will now be unhashed
+but we need to wake it up so other threads can continue (and repeat the
+lookup).=20
 
-... but I obviously didn't test it either. But just looking at the
-patch I went "Make it so".
+So we need
 
-             Linus
+		__d_wake_in_lookup_waiters(target);
+
+in d_move.  target, not dentry.
+
+Thanks for flagging this,
+
+Also my testing has hit a problem with some sort of deadlock in the nfs
+server (so accessing and XFS filesystem).  They are tring to unlink a
+file and are waiting in d_alloc_parallel() under reconnect_path.
+This is running generic/467.
+
+So better hold off this patchset until I have that understood.
+
+Thanks,
+NeilBrown
