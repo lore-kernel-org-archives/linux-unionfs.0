@@ -1,223 +1,171 @@
-Received: from fout-b5-smtp.messagingengine.com (fout-b5-smtp.messagingengine.com [202.12.124.148])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f97.google.com (mail-qv1-f97.google.com [209.85.219.97])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C36A4192590;
-	Fri,  1 May 2026 10:46:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656D537F8A0
+	for <linux-unionfs@vger.kernel.org>; Fri,  1 May 2026 23:27:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.97
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777632393; cv=none; b=QKYghovPwmgBobjQtNhOvHjs+PT2di+m3pJFBQJy7xVsuIZ2JD9nSRj5KY142PmET7Ps5Sjj+DT5n9DtQjJ/JKNammiXanJ+McsfWhK/95seu+fA0RfZRM7P44cpbzta/HHpptJWth5Qx7D6FS8q2+4dbpXzaaViJuFlq7AG0T4=
+	t=1777678069; cv=none; b=CUFdhJqtFLUc/M5GcTDSflLW9mbIRnapKg3TjoSDCwMBwC++R3Vr+55E/2xoMV1dSOftheKiZW3oJK7gUklxexW3IWSmxDhvI5U87z5cyB6W8FeWwJhztslcC6j0iAopcC2rTmEbAgPSXS1xjnTI059F0v3bZRAba+KZLv0VEm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777632393; c=relaxed/simple;
-	bh=prCaRoSYmj64MXpiId8tjYxP/D+Dyae/L+g+QGh/VWY=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=RyTYMry1tOI4X5IUMr36ckSCAxTcX4DGV9y7hyT5WFS3Ko0DLPhtzzOkPHBfWApJItVbN4yKvtHBCx3VPi6T0ynyzHF0sPLcwY491SW8hbkANk/Nwm4/Zl5sJdE6ugYwHdTi25LkDu2J7iubj4fgs+hrlv05FArBuhj1ymMJ1b0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=Mg3A221i; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=fiXPo2Xi; arc=none smtp.client-ip=202.12.124.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+	s=arc-20240116; t=1777678069; c=relaxed/simple;
+	bh=IzsHTZd6P6eYxd9Efo/a+pL4VeFLJKPvFGqGLptMSas=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=btTY/A0zSE1nCDGqhLBjDcaCWNQrCJw8TOT0fXgOBdkvlqoTeJHley+7FEv2L1BBA0Z1aPRAtFnrBlIzr4aqkDtbnSFR0smgZ8CsqUzAXhRWG0Gd79P7eXd8QlcELH2Sk6d2u58uSxl8HDRWQmqyZEWpti39cJDBPrnk007rH1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amlalabs.com; spf=pass smtp.mailfrom=amlalabs.com; dkim=pass (2048-bit key) header.d=amlalabs-com.20251104.gappssmtp.com header.i=@amlalabs-com.20251104.gappssmtp.com header.b=a5rLOY7H; arc=none smtp.client-ip=209.85.219.97
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amlalabs.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amlalabs.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="Mg3A221i";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="fiXPo2Xi"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfout.stl.internal (Postfix) with ESMTP id 8CC551D00129;
-	Fri,  1 May 2026 06:46:29 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-05.internal (MEProxy); Fri, 01 May 2026 06:46:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to; s=fm3; t=
-	1777632389; x=1777718789; bh=ik5a7MC4PBdLeM/Fa2W8c64dptvpYcrqCSM
-	lKFZOCU8=; b=Mg3A221izmR6XpCipCPeEw92O+KB92I18eGJnfauHSC9QNiODu2
-	MnXYfhW8uYi8cdAlSCjawrEiW2DwApqG9cgWQuduZDrYfXc18MRhXE94zJ4gzKVG
-	Xdi/092djiTVH2sfNQ5QiOR9hU+KWyhZ7S6AjflsVO0IZm1qeOXVVOX7F6aF9b6K
-	tsM+zGJHyGq8I2Q3T2b68vJd6NYkR2hzAjjIwIz6tX4hoUYiM9OKCHEdI7hD6bEe
-	3RRgb95nF7/PhVBFW7XLHWFa/G0NyqTzfFes9VbqpKM9hQJXNl/gaLPDK79+hIzp
-	JmppLM/tYEsqX/v4cyISzAGASIy+m3Coctg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1777632389; x=
-	1777718789; bh=ik5a7MC4PBdLeM/Fa2W8c64dptvpYcrqCSMlKFZOCU8=; b=f
-	iXPo2XiZZUG98T73ELuqH7RyJUHVpBovynnjsAY7fSQKSE+xNM5oiMWhtyq9LHNO
-	uGANhrZheYanmy78SrB+9pbsuIx03zKHI3DYmIcuRKs2NaQ3K/s3THEdSFVeTJfV
-	Q1TZkrgrTtt3dnQZ/awLmNBuwzlAnuLNBTia9l651hnfKoUiB2ncKBc//SBCF9ng
-	W7ABFPdNS1hQtsEZu8sGjvObpJyPsVGMzIpldvYnPfVkn4IFdeq2yTtHdX4GW8eo
-	gyI4HW3+7nHJ4y5/sL5VWJMeIgS7jutO39wJwW39/utTcf2XP0lnsjHC2G7tfvaz
-	X7F9NXIJ9oXzRRGvb1zVg==
-X-ME-Sender: <xms:hIT0aZ7phXdO1JK38gb9wAgGto3QBwFVcFs1GNYocP2epzN7vsygoQ>
-    <xme:hIT0aTM2EkONopqck_hESu7BAyHAx8lo6IScQr5cGKCL-Pzup9aYZXJ8EnfxWOQJc
-    CLUvdTwpmkPiLspXDtB_p6A6JzE6fdKb2AL8VC59qB9KntsvsQ>
-X-ME-Received: <xmr:hIT0aSGIbNbSvADXnt6EDLL-VieUdHnC4JICehp0zl32fVFb_ctzRYgWdxMnMGh8amP1BA4Az6So71MX5fFRSl-z59YrcL8>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdeltddttdcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpegtgfgghffvvefujghffffkrhesthhqredttddtjeenucfhrhhomheppfgvihhluehr
-    ohifnhcuoehnvghilhgssehofihnmhgrihhlrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    ffveejleejheeujeegheelleeuveduheejkeegveeuffetvefhfeevtdeuuefgjeenucff
-    ohhmrghinhepghhithhhuhgsrdgtohhmpdhkvghrnhgvlhdrohhrghenucevlhhushhtvg
-    hrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehnvghilhgssehofihnmhgr
-    ihhlrdhnvghtpdhnsggprhgtphhtthhopeduiedpmhhouggvpehsmhhtphhouhhtpdhrtg
-    hpthhtohepvhhirhhoseiivghnihhvrdhlihhnuhigrdhorhhgrdhukhdprhgtphhtthho
-    pehlihhnuhigqdhunhhiohhnfhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
-    htoheplhhinhhugidqnhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthho
-    pehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtth
-    hopehlihhnuhigqdhfshguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghp
-    thhtoheplhhinhhugidqvghfihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtth
-    hopehmihhklhhoshesshiivghrvgguihdrhhhupdhrtghpthhtohepjhgrtghksehsuhhs
-    vgdrtgiipdhrtghpthhtohepjhhksehoiihlrggsshdrohhrgh
-X-ME-Proxy: <xmx:hIT0afRaNDT70brM-V7_HHfAGsqViYZMQpCwm_6ik3ZHpjj6ZY0-xQ>
-    <xmx:hIT0aSSO03eU9OjjPmXDUiRS0D8FVkfJrAej62GBTzJiHcWxi0iUng>
-    <xmx:hIT0aSe2nXpIyFptkoNQjWH3NYjqgpe63vHxb7tCeYuMoWJBy9-ytA>
-    <xmx:hIT0aWdLgbEJLs1L-NzYWpLxwXstwGzqnKqGenc0KreoSEPEmJ8TPA>
-    <xmx:hYT0aYIkXlxHehQK3w3ouyX9BTgop2r3PZBy6DkyKL0AOoYIzqErcVHf>
-Feedback-ID: i9d664b8f:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 1 May 2026 06:46:24 -0400 (EDT)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=amlalabs-com.20251104.gappssmtp.com header.i=@amlalabs-com.20251104.gappssmtp.com header.b="a5rLOY7H"
+Received: by mail-qv1-f97.google.com with SMTP id 6a1803df08f44-8b4aeddfacaso18187156d6.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 01 May 2026 16:27:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=amlalabs-com.20251104.gappssmtp.com; s=20251104; t=1777678067; x=1778282867; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=PIMoo2xEXf7dASzi8yK3wgyb6uWnPH179QZ1IGul6o0=;
+        b=a5rLOY7HOyhrAzO/IcTwgTXnfYNKbOHSJHVEwCg7pLMv16Ta78Ore9X4ROM6qd/XAB
+         bJeQW21ljJAWVs1ALYJZ+Q14T2ERUiiyRKWmNnY1xv1Jw59RJkvraYM15mXIQPZeSDDJ
+         9SYUHeuQQetbvww8XuoBMBIpsWNvYtV8XHdBDByzDCpykLRDqK60tyO0yF1o87eZJaYo
+         5eKeUz0BTaxi/Irs/xnjzE3MP9MuV5oHPSYc4ZmLReW2joVYvLJ4zmJwtKvfKSiQn224
+         oxA3oejr3qmPR5eUf9qe7FS4kXCmDV5MJnOgd6qSjZRxPxxi+46SYj2K0EpOUBPHNbF/
+         NqKg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777678067; x=1778282867;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PIMoo2xEXf7dASzi8yK3wgyb6uWnPH179QZ1IGul6o0=;
+        b=Bbzc46PudpwkZvOTbLRmX7aP5x4I//v1sk/haVxY0byhOf3ylCdXA4qMpLjZONn3CV
+         VlVlKxaC5pzxUHIU6x0jFkC3ofIkD/knf8TOvSvXA5pNTvpaKKKKpHaC+ykyQzFEF3PS
+         pP5ldwOsuz6Kaij5rJ6XqoR0/gFlFtzX84oAr8IAZ/SDjeqV4x3Lc7gsnrC5xgy2CkER
+         XS4gY7BpKr1F/Myfd+c6ZIPPa3HYsG9Kkik+MuoNkkIRO0zwpxLrFxwc3S/Brfy/G3YZ
+         K1OvVUa6OGXJ7Wos9aeqFYpQbkeI1SM156VnGrjXvDHzDiaQhEtRa41105i7c0rPdVNM
+         fVxg==
+X-Gm-Message-State: AOJu0Yw+4FfDzi95gwqsIhRMxw3e/282M14Fj1xPCsaD5vzFVv53+Agz
+	kzW/DC8eY7m7pakckM9B//joxYOXhEuvmdptLeN7Pivn+QNzG+aTjIEYenSJw2wt+1lKCmRRl+2
+	IjjJZBCdqcRvC3ZOLkrVz+Iqps7dF9hS/0B5ZpcE=
+X-Gm-Gg: AeBDiesL1YBuBeQg24oDKlVmXsho8F0XDDeRhTHXtmIimY9R6vnkUQjPeNEzLFm4xo2
+	pbajQss/SIfcb22YPJwgDZ93m8jGLRag62OFO/hnRE4p65VG1Y/4e7Cv+BAo0mdjBVFH9QyRoA6
+	ENMVtsv1LA6Yhj9+a9CEEIx3D1c7pHtr3vs3SFq2MszB3tnGp2MDEnr/3ntn65kO5ufH6i36/Mz
+	iTrnjhznMIEYVN36BP54crc/Hfn39kROHa65Jcpiw2DPXnRKPwwxd/KErhtkm/ic+JTBHh96OoN
+	jILNiDbFEO+LefzJq7XVFFHhdFrk3/yLKOQ6cJmGHjbcZytlDki7ebtDUem16O2cvM+LiXIs9Po
+	LrU4qhxIbAmGmXj4R/e+SF8eFEkskujFsnZw5sactCOwJiYyMisrhPFMfwmVS+TPxpZJNVJRtpx
+	+9i7OY7Fym
+X-Received: by 2002:a0c:e001:0:b0:89c:d50e:b57 with SMTP id 6a1803df08f44-8b6665f1489mr23648016d6.15.1777678067303;
+        Fri, 01 May 2026 16:27:47 -0700 (PDT)
+Received: from amlalabs.com (104-10-255-95.lightspeed.sntcca.sbcglobal.net. [104.10.255.95])
+        by smtp-relay.gmail.com with ESMTPS id 6a1803df08f44-8b53b918281sm3200306d6.19.2026.05.01.16.27.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 01 May 2026 16:27:47 -0700 (PDT)
+X-Relaying-Domain: amlalabs.com
+From: Souvik Banerjee <souvik@amlalabs.com>
+To: miklos@szeredi.hu,
+	amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Souvik Banerjee <souvik@amlalabs.com>
+Subject: [PATCH] ovl: use linked upper dentry in copy-up tmpfile
+Date: Fri,  1 May 2026 23:27:35 +0000
+Message-ID: <20260501232735.2610824-1-souvik@amlalabs.com>
+X-Mailer: git-send-email 2.51.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: NeilBrown <neilb@ownmail.net>
-To: "Al Viro" <viro@zeniv.linux.org.uk>
-Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- "Jeff Layton" <jlayton@kernel.org>, "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Miklos Szeredi" <miklos@szeredi.hu>,
- "Amir Goldstein" <amir73il@gmail.com>, "Jeremy Kerr" <jk@ozlabs.org>,
- "Ard Biesheuvel" <ardb@kernel.org>, linux-efi@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
- linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 04/19] VFS: use wait_var_event for waiting in
- d_alloc_parallel()
-In-reply-to: <20260501033715.GB3518998@ZenIV>
-References: <20260427040517.828226-5-neilb@ownmail.net>
-  <20260428033738.GV3518998@ZenIV>
-  <177737511992.1474915.1952404144121931523@noble.neil.brown.name>
-  <20260428142225.GX3518998@ZenIV>
-  <177741881482.1474915.12527082398060370192@noble.neil.brown.name>
-  <20260429052626.GY3518998@ZenIV>  <20260429170731.GZ3518998@ZenIV>
-  <177759308866.1474915.9708613530229799376@noble.neil.brown.name>
-  <20260501011132.GA3518998@ZenIV>
-  <177759959922.1474915.14496442965390503813@noble.neil.brown.name>
-  <20260501033715.GB3518998@ZenIV>
-Date: Fri, 01 May 2026 20:46:21 +1000
-Message-id: <177763238102.1474915.1506201584306941315@noble.neil.brown.name>
-Reply-To: NeilBrown <neil@brown.name>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Fri, 01 May 2026, Al Viro wrote:
-> On Fri, May 01, 2026 at 11:39:59AM +1000, NeilBrown wrote:
->=20
-> > I dislike them too.  I doubt I can find solutions that either of us
-> > like, but they should be relatively short-lived.  Once we push the
-> > locking down in the the inode_operations the filesystem will be in a
-> > position to hold the lock only when it actually needs it (if at all).
->=20
-> ... or we'll end up with hard-to-formulate constraints on what a filesystem
-> may do with its internal locking to use the APIs provided by fs/{dcache,nam=
-ei}.c
-> safely.
->=20
-> Note that e.g. "->iterate_shared() wants to know the synthetic inumbers
-> a concurrent stat(2) would inject into dcache" (which is the original
-> reason for dcache preseeding in that thing) is not uncommon.  In procfs
-> you are lucky to have no mkdir() and friends; the same is not true in
-> general and we'd better have a sane answer to "what could a filesystem
-> like that do with its internal locking".  Or that thing will get blindly
-> copied, with predictable results.
+ovl_copy_up_tmpfile() stores the disconnected O_TMPFILE dentry as the
+overlay's upper dentry reference via ovl_inode_update().  vfs_tmpfile()
+allocated this dentry via d_alloc(parentpath->dentry, &slash_name), so
+d_name is "/" and d_parent is c->workdir.  Local upper filesystems
+(ext4, btrfs, xfs, ...) immediately rename it to "#<inum>" via
+d_mark_tmpfile() inside their ->tmpfile() op; FUSE and virtiofs do
+not, so both fields stay that way.  Neither identifies the destination
+directory and filename where ovl_do_link() actually linked the file.
 
-You say "not uncommon" but I can only find it in procfs and overlayfs.
+When the upper filesystem implements ->d_revalidate() (e.g. FUSE or
+virtiofs), ovl_revalidate_real() calls it with the dentry's parent
+inode and a snapshot of d_name.  The server tries to look up "/" inside
+c->workdir, fails, and overlayfs reports -ESTALE.
 
-You only need this if there is a backing store that doesn't provide
-anything usable as inode numbers.
-If there is no backing store, then you'll populate with
-d_make_persistent() and provide inode numbers at that time.
-If the backing store provides inode numbers - you use them.
+This causes persistent ESTALE errors for any file that was copied up via
+the tmpfile path, breaking dpkg, apt, and other tools that do
+rename-over-existing on overlayfs with a FUSE/virtiofs upper.
 
-For procfs the backing store is various kernel data structures (e.g. the
-process table).  For overlayfs the backing store is a blend of 2 or more
-other filesystems.
+Before commit 6b52243f633e ("ovl: fold copy-up helpers into callers"),
+the tmpfile copy-up path used a dedicated helper ovl_link_tmpfile()
+that captured the linked destination dentry returned by ovl_do_link():
 
-In either case, the backing store has its own locking protocol to manage
-create/remove/iterate, so the filesystem likely doesn't need to provide
-one.=20
+    err = ovl_do_link(temp, udir, upper);
+    ...
+    if (!err)
+        *newdentry = dget(upper);
 
-For procfs I imagine that once we push parent parent-locking down in to
-the filesystem, we'll simply remove it all from procfs.  Then there will
-be no problem calling d_alloc_parallel() in iterate_shared as the thread
-which owns the in-lookup dentry will never try to lock the parent.
+and published it via ovl_inode_update(d_inode(c->dentry), newdentry).
+The fold inlined ovl_do_link() into ovl_copy_up_tmpfile() but dropped
+the dget(upper) capture, and rewrote the publish line as
+ovl_inode_update(d_inode(c->dentry), dget(temp)) — where temp is the
+disconnected O_TMPFILE dentry.
 
-For overlayfs I *think* there is no need for parent locking in ->lookup
-so it is possible the same approach will work, though more careful
-analysis will be needed.
+Fix by keeping a reference to the linked destination dentry after
+ovl_do_link() succeeds, and publishing that dentry at the existing
+ovl_inode_update() call site.  The non-tmpfile/workdir path continues to
+publish the renamed temporary dentry.
 
-The current code to drop and retake the lock is only transitional code
-to get from here to there is manageable steps.
+Reproducer:
+  - Mount overlayfs with virtiofs (or a FUSE fs whose server advertises
+    FUSE_TMPFILE) as upper
+  - Run: dpkg -i <any .deb>
+  - Observe: "error installing new file '...': Stale file handle"
 
->=20
-> > I'm confident that dropping the lock is safe.  If there was some way to
-> > tell the VFS that the lock has already been dropped, then we wouldn't
-> > need to reclaim it, but I cannot see a clean way to do that.
->=20
-> FWIW, I'm more concerned about ->iterate_shared() - d_add_ci() is garbage
-> that isn't used on a sanely configured kernel; ls -lR is not going away,
-> no matter what, and exclusion requirements are going to be a lot more
-> interesting for that one anyway.  It might be worth teaching iterate_dir()
-> that in such-and-such conditions it ought to save position, drop the lock,
-> do a lookup on name stashed in dir_context, retake the lock and call back i=
-nto
-> ->iterate_shared() from saved position.  With helper callable by ->iterate_=
-shared()
-> instances if they run into failing d_alloc_trylock() in a situation where t=
-hey
-> can't just shrug and move on...  Not sure.
->=20
-> What kind of exclusion do you have in mind for foo_iterate_shared() in the
-> long run?  Assuming that filesystem has directory-modifying operations, as
-> well as lookups, and its inumbers are synthetic.
+Fixes: 6b52243f633e ("ovl: fold copy-up helpers into callers")
+Cc: stable@vger.kernel.org # v4.20+
+Signed-off-by: Souvik Banerjee <souvik@amlalabs.com>
+---
+ fs/overlayfs/copy_up.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-I think the VFS will still be taking a shared lock on the parent when
-calling ->iterate_shared.  This is the easiest way to block rmdir while
-a readdir is happening.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 13cb60b52bd6..e963701b4c87 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -853,7 +853,7 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
+ {
+ 	struct ovl_fs *ofs = OVL_FS(c->dentry->d_sb);
+ 	struct inode *udir = d_inode(c->destdir);
+-	struct dentry *temp, *upper;
++	struct dentry *temp, *upper, *newdentry = NULL;
+ 	struct file *tmpfile;
+ 	int err;
+ 
+@@ -889,6 +889,14 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
+ 	err = PTR_ERR(upper);
+ 	if (!IS_ERR(upper)) {
+ 		err = ovl_do_link(ofs, temp, udir, upper);
++		if (!err) {
++			/*
++			 * Record the linked dentry -- not the disconnected
++			 * O_TMPFILE dentry -- so that ->d_revalidate() on
++			 * the upper fs sees the real parent/name.
++			 */
++			newdentry = dget(upper);
++		}
+ 		end_creating(upper);
+ 	}
+ 
+@@ -903,7 +911,7 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
+ 
+ 	if (!c->metacopy)
+ 		ovl_set_upperdata(d_inode(c->dentry));
+-	ovl_inode_update(d_inode(c->dentry), dget(temp));
++	ovl_inode_update(d_inode(c->dentry), newdentry);
+ 
+ out:
+ 	ovl_end_write(c->dentry);
+-- 
+2.51.1
 
->=20
-> BTW, do you have AFS and CIFS counterparts of your stuff from back in 2022
-> that killed d_rehash() uses in fs/nfs?  I would love to kill d_rehash();
-> exfat use is an easily removable junk, but fs/afs and fs/smb/client ones
-> are trickier and the reasons why it needed to be killed in fs/nfs apply
-> to those as well.
->=20
-
-For fs/afs:
-
-  https://github.com/neilbrown/linux/commit/7d074238b7674245308bb482d29f8b2eb=
-10a6598
-  https://github.com/neilbrown/linux/commit/a1ab4d991e1cbf02b7ae493798067db75=
-d88ef48
-
-or on lore.kernel.org
-  20260312214330.3885211-20-neilb@ownmail.net
-  20260312214330.3885211-21-neilb@ownmail.net
-
-
-for fs/smb/client
-
-  https://github.com/neilbrown/linux/commit/1df67fbccd424aaaf03a4dfeda07cd8f9=
-e3bc682
-  https://github.com/neilbrown/linux/commit/3c4f603881db16984b0b44e38a634d951=
-7b9be84
-
-or
-  20260312214330.3885211-26-neilb@ownmail.net
-  20260312214330.3885211-27-neilb@ownmail.net
-
-I don't suppose you have any memory of
-   Commit: a00be0e ("cifs: don't use ->d_time")
-from 10 years ago.  Maybe you didn't even see it.
-
-NeilBrown
