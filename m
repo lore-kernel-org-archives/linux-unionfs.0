@@ -1,120 +1,219 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6602B36E46E
-	for <linux-unionfs@vger.kernel.org>; Mon, 11 May 2026 11:15:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778498146; cv=none; b=YYqaRmui3zalEHHFLjVfmEsOGojn4iO1I4yKwSSbMhrpfDK4aG9FsxmTr89pjtrlSeyaSlDkIU8JibsThaVHkoKFrT6xLGn/Vvh9nM9G9rTF4xafnKiaAQInPMq/Wl4xSjJIGHB7l2EEHZ60YjwCcDHrrodrvtkrgdTN1yXs/e8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778498146; c=relaxed/simple;
-	bh=RR1NenBgrAYdu1c55iySbUR6WPCvJPcX8MV/1pGj/Aw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LrjEMR/Z2XeS0TcGZwzzNBG56uQqQVDfOXaHv6Zx0VYYugMPenO2XbUxhTugcdeFBDicXRKZUvpZ1vH01A+hTcLufgxTVYYIL7eYzbpxiuk7mhABL4d/1euyQdti3tYarIiLjtpqdtSWsQ683w3qSQVO/hERsFC87kffWcunsFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=eiOXnVzB; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=JD7RYlZU; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 186882E22BD
+	for <linux-unionfs@vger.kernel.org>; Mon, 11 May 2026 20:54:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778532881; cv=pass; b=luPaUOxJHIbaTYiVfL8l1HJ5j1LdcLg5kf3b3my4v09nJIQgsT1uXkmSL+jdkC6H0kqTiEr9bH7PjuMwQbnT1gsr5lcixs6QeWPTE2ZcsCvA0dORZhN/x6jvBsgD7idj1o0M0MFYeVg24qrLoawGDMv3jBAI2yfhyn/t6gIktDk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778532881; c=relaxed/simple;
+	bh=QuY2STuJL3aNnFDJ9qVJfllim/W8KT7FW60LYM8hqIQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Zvb2O4dYZnnwzcJTY0qyCjWGo7fMFmbSGaTGhXIghhR1PYr3fB7VxxzaT9xxVGisurlUs/1WUKxI3XQxZwrWHXA2jKGXEl7+xBXWZVU9J/r+/GlS6VTs8qF8RygzmvT1w6asxno9qHdeR7+qOfYnOALgKe90ml7/SvzKpOOXXBw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Jt2d566W; arc=pass smtp.client-ip=209.85.208.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eiOXnVzB";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="JD7RYlZU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1778498144;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yQi40JXMVWHDZRjke+rHrQlcRrLFkKa2WRv/wpGjnDg=;
-	b=eiOXnVzB/pI21G1epMBuoDXb6oNlBBDexTMU4Pa0JCBceD31HbvlXiXC/IZQa1Fj8l9LKV
-	pw5PgOlAYz+3TPAX39WKLM4LkRWOgM1cChU19NATJtSHTy8eIWrTpo/2dvzXU9R2NFykm3
-	lwEojr5JQKwtDDdhTXGyrl+BoIaiuCg=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-73-fSTMOdysNluxrAqvHGEgLA-1; Mon, 11 May 2026 07:15:43 -0400
-X-MC-Unique: fSTMOdysNluxrAqvHGEgLA-1
-X-Mimecast-MFC-AGG-ID: fSTMOdysNluxrAqvHGEgLA_1778498142
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-48d0889c1ecso26355475e9.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 11 May 2026 04:15:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Jt2d566W"
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-67b6da5a618so6677420a12.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 11 May 2026 13:54:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778532878; cv=none;
+        d=google.com; s=arc-20240605;
+        b=PHcpeUAqvzvCFSbqwVWB4YaRMC1GOrzfHMTCC2Q7L2bhsFV95FNYKjjt615SxRDq1v
+         lvChOWwGQfH/X2g+0wXajYFJBzzt0P/7/SXo6t+YXRSJcrjSczlqrAk/QWMmcpCjCYkM
+         KcXI2O2niWZ2F0hi65QIlEXY4QIb2Ebqa+Q9eYllx6OqnLRtCAlJ8E+AvpA/iOSB5HAV
+         JvdGmD7ZXa0x0e2lV5P5f3qBrTCfCC18ts7fy3xHCn9KISflWFgiRjapcHHNahOHM9I+
+         7jZlWYJMdqrEZbfumJOTv25jpouW61Ug1AMEuynkpQCTtt5WVSdsg7lHMj4JtmWD28qj
+         bjDw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=vbGxWhCGo6MT9gx6YLsYVcFjvVG3ClWUZ4M2dJPCwuA=;
+        fh=9ZVkmOWYxB6Sw5Se1KSfRd6OfJZ9lZUMvxAi+fUcS6k=;
+        b=H8MBht9vs42kIXumW7bZb0rZPihBSZIqs1FWWWkOEpdThcPLSOtl0iFds4mlNRq0dY
+         fmCqkng8WWdW+Q1Ed9vqJQ4d1oyTgXOuHmKz2gBQOf+EbFxgl/CvfRTuGTL4ML9aXfeB
+         divcydL2Zx1l6HcijOU1q9K/gUeKHZYv/JyFdk8dIxopUE9bR9l4fuOC/CS3ggasoAUk
+         2w9Ht/YIfriXOOw0nHY5sMtNbMw14F7X/9T0fZKsscjcqYdRTdwi4oFV4J+d85GWq7wQ
+         N9my5hM48xX/xGUTIGCJ3LayZfB09AzfkMj8shgZA18+fmDUjmfCD2B3asm6HeGsdO/v
+         50IQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1778498142; x=1779102942; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=yQi40JXMVWHDZRjke+rHrQlcRrLFkKa2WRv/wpGjnDg=;
-        b=JD7RYlZU6EskBY0iebQXhrP6fG75D84nXogDPu32FfcEw63rnM1IikbMUF2W/1X4Dt
-         vZt+Wq8PziYB+4Hp7ysslCShy8FNO/Ok6TcQ4mFZ6m0CiQTd60l6VyvOfoqewkkfBYYQ
-         FkZf3iCfI+5BBlhha7ptXvQZyNtIxwStyV/4KlGARJYEQYkV5SXdLGUxd+I4kXg7z+vB
-         r/CeTPBzHD4KfQFNbu0VqhuEplLProVADaEeS+0jmKCpu725WyJezz2C61yDE0sToe9q
-         lDw3yxAMwWPWjke4qYIA79uVQLaRPgr0bJBWYyFBaIo/2EAZGrKxl8U4V5UuHvErYF9T
-         vgyw==
+        d=gmail.com; s=20251104; t=1778532878; x=1779137678; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=vbGxWhCGo6MT9gx6YLsYVcFjvVG3ClWUZ4M2dJPCwuA=;
+        b=Jt2d566WvXZJBaSdD2QmX77B8lmjc7/sXXxv1HN7eLWhzieChT27vmp3QkpqO6mtCT
+         oFIoNU715sKtCTkNMAFsss/XAgHC01IMTqRrtriKWlMuQJc7bIh/FxlnoOwewdLCL/qQ
+         iGruEzby5uOOyfCuXhJmLrr+Jqf/l2MHppnAEjkA03LvoziUA72XrR41PIC9LdZvTTdD
+         7GDSCQNu/K1DVccoalvRgexpOB+R++q1+9O1lX7xXGBx5OYkiso7P4kKVd5vIPjs8OE+
+         bheB0Xnl2iAIZXCeL+nupcvvy9Z/GXpgToqWp2CPy7ZWKFSOd1RZgkDH29Qf6LT6kPDs
+         zGFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778498142; x=1779102942;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=yQi40JXMVWHDZRjke+rHrQlcRrLFkKa2WRv/wpGjnDg=;
-        b=sQVCv5OO0wKJbXLf3VVRJ0l6NghYh5SPiKQ4EM3jdeI/kjKpCHNFooZ39yTU2thBcS
-         Vw/VclmU7etfKwLvSDJsIc6rzTZILeW2zVRNYg4XhHFGiWsUZj+R8bhwIMuhFaKsvERw
-         ejn6DqAh3b8JTE9DMvkm4FCJuDw1GfPunCu7Bi39aIxrWhI6WGO7RTQrJ1yme8kExdO8
-         RoxI+h6zdhJTQgEejOX4T7mxvWywaxyCvVSE6sRFkANe/jnCgor4J3JxEhmGixic3TY+
-         dpr817YiMKqMLP4zBpPLTub2JliTL3u2oOLVWK7IkzI1uuiTA1/63ZOY/eA9wGXnWqoK
-         0gjQ==
-X-Forwarded-Encrypted: i=1; AFNElJ/MgDTRAo7aL/PXdxLu3QFq59Pl9LTCPiuwiXqdBBK8gTiP5eJMWTqfepwm007JNu7SjnYIu8jT6bxITBpa@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw4YlRb0C5pqs7qb7AIAHlhyctHvFbT8eVQlH6Yf+lGVo6y+cWE
-	EY8qO3LKqalnYKTKlCtp9aTjKXAF9E80MCkPocNXewsbHIL10qbDgjdbTbVPpkcv/Qu3WlwZeIt
-	CZ/3nk5cHkrO0/m9kbuGFu0NT5fR9j8AU0Q6yxkDiWzaVpHLd4kg/Fa3ySw2M3JiMog==
-X-Gm-Gg: Acq92OE37O8WxCA/kWKc1chVzexFVK7SCQmadT+Tk82QLlFCQxXlIQq+tRHkHixrlfn
-	oVPPAlLujPjcEIC9dJbVbr1h83u7BVmnm5pxF7xdiOEh9Q7SXSBg+2exqqiQaAHpHGoNQ0ApEzX
-	MHXT1B/Xb92j3tB95saoQoKTXrck/G/qF+Iuq07vHSpj6Iw4BfERanhHcMopJge6dc8q5mAtPOc
-	uGBmKdRQ+AEtazE9qJQ+f9McRG7zzTuukPsq2TmLEO7Q20L33+RfOfigc9W0oes1TgVBij5i2nK
-	ej3jB7ysCZpy0jHeVWRvJtOBl4b/6j+AInoh7ykSAmDE6g8JO/Z/zfb5ykRSgkGB577CEiFY24z
-	rLI33CBs5P6g=
-X-Received: by 2002:a05:600c:1f89:b0:48e:8741:fd4c with SMTP id 5b1f17b1804b1-48e8741ff98mr21083635e9.18.1778498141653;
-        Mon, 11 May 2026 04:15:41 -0700 (PDT)
-X-Received: by 2002:a05:600c:1f89:b0:48e:8741:fd4c with SMTP id 5b1f17b1804b1-48e8741ff98mr21082605e9.18.1778498140980;
-        Mon, 11 May 2026 04:15:40 -0700 (PDT)
-Received: from thinky ([217.30.74.39])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e7040a9a9sm309872515e9.9.2026.05.11.04.15.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 May 2026 04:15:40 -0700 (PDT)
-Date: Mon, 11 May 2026 13:15:39 +0200
-From: Andrey Albershteyn <aalbersh@redhat.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrey Albershteyn <aalbersh@kernel.org>, linux-xfs@vger.kernel.org, 
-	fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org, ebiggers@kernel.org, 
-	linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, 
-	linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, djwong@kernel.org, 
-	david@fromorbit.com
-Subject: Re: [PATCH v9 00/22] fs-verity support for XFS with post EOF merkle
- tree
-Message-ID: <hnsxzymuydf5evoxw4chao7rkixm4eafolebxfjtsqschgfazh@nll3fdfnsigx>
-References: <20260428083332.768693-1-aalbersh@kernel.org>
- <20260507055217.GA19888@lst.de>
+        d=1e100.net; s=20251104; t=1778532878; x=1779137678;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vbGxWhCGo6MT9gx6YLsYVcFjvVG3ClWUZ4M2dJPCwuA=;
+        b=sWA96kYOxtU0sjzO1nDwGzB89oPuPRBKqEEt6Uy9jl/2QZLqTngCf61xxh/xTXOnH6
+         5fwgv1R8Sl90ZJZ5nwfJEwVTYsdD57LAiVtsw72QAo53VG+sRxUAlZwKo+50yn9tgDW+
+         QqKZKiPvOFcsRdow9EwPs42XjfRrDp2jPNmQ0OtXEP4TL1yd7dXDLT9DbdJhyKisEsQe
+         abO5B2N0XKUrjD9K6oZP/VBPmXe3+nNyNigEhIxUhYpP7KAIvZWSIK8euBcsyEx/7Ln8
+         P2JlFsn7yS9lnwjbqxX69mDrfQ39QdOfPztR65A9AZvcrxnYX+UisAW/H1GkIJ4STi+o
+         HDQA==
+X-Forwarded-Encrypted: i=1; AFNElJ94qfH2R/gMtPmp8CDVSuwFFk7ChQdOXir8K8AxvUzOSCfE2J/9fH1gPQYKeJZexQv+7xRnf496y42PncCU@vger.kernel.org
+X-Gm-Message-State: AOJu0Yww7rCHWBbraG+U0OW7p6HnOi1JskXmr5MB/x5xpvjJaIQQn4/h
+	PLwSh9AHBf4OIPszDBl4CwVsTbL40/Byr5qdcTyhSUIN3Iamsjo5+E94nC3nEaqr1rQTq7DUjdB
+	DwAtYx87yuENY7LJjwHqQG3KoRZaMJfk=
+X-Gm-Gg: Acq92OGARiLgvk3AXdpUgPwpi/Znga8TpYo/PDfC9xPvu25smvCXvBJ7lYL9+pql/2r
+	QmdCevblV4AAInqtQdj7uE+z6Y8KkRZfnylW2iAAXhamGzJ1ejvbwcuNNJB5q/OHhBgoLmZOTzq
+	aqXQmFX1FBwbjKbfzerAKEz6ZYWatvvY4GSwKRpDfmCccbeoipVh5MzhVddTCQLxGXjOz5ziD3E
+	KGS29H6w8a895BF7kq3qabUA9V3Ifpr4yO6iTV38qvJw0FgMmdJOBh4IYNChGnn08YGtr0DchI1
+	SVZrlKYyFOQ/kd9EqKhyMuSVnkqjTooSw1/7EEvk
+X-Received: by 2002:a05:6402:5288:b0:67e:43a7:1764 with SMTP id
+ 4fb4d7f45d1cf-67f716e0b40mr5688118a12.26.1778532878285; Mon, 11 May 2026
+ 13:54:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260507055217.GA19888@lst.de>
+References: <20260511062057.2365769-1-nirmoyd@nvidia.com>
+In-Reply-To: <20260511062057.2365769-1-nirmoyd@nvidia.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 11 May 2026 22:54:26 +0200
+X-Gm-Features: AVHnY4KPVjR_K_-AdPTCXrgCLyHhB-t0Bn6vkKXWQXlfqlSBmI9va-U-4UMo2D0
+Message-ID: <CAOQ4uxh-1J2OBjnDVbrrrjy1puSOW0kABvghN85ih6dtKUBTyA@mail.gmail.com>
+Subject: Re: [RFC PATCH] ovl: keep merged and impure readdir caches separate
+To: Nirmoy Das <nirmoyd@nvidia.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, 
+	syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
+Content-Type: multipart/mixed; boundary="0000000000006ee545065190f4b6"
 
-On 2026-05-07 07:52:17, Christoph Hellwig wrote:
-> On Tue, Apr 28, 2026 at 10:33:06AM +0200, Andrey Albershteyn wrote:
-> > This series based on v7.0 with Christoph's read ioends patchset [1].
-> 
-> That's not a good baseline.  We'll need it on the -rc that has everything
-> from the current merge window at least.  It might also interact with
-> the fsverity fix that just went in.
+--0000000000006ee545065190f4b6
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Sure, I will sent v10 with a latest master and that fix soon.
+Hi Nirmoy,
 
-> 
-> This might also be time to come up with a merge plan to figure out through
-> what tree(s) to merge it as there don't seem to be any maintainer
-> objections.
-> 
-> 
+Thanks for the patch.
 
--- 
-- Andrey
+On Mon, May 11, 2026 at 8:21=E2=80=AFAM Nirmoy Das <nirmoyd@nvidia.com> wro=
+te:
+>
+> Overlayfs uses one inode cache slot for two readdir cache users with
+> different lifetime rules. Merged directory iteration pins the cache from
+> open directory files with cache->refcount. Impure real-directory iteratio=
+n
+> uses the inode cache as an unrefcounted lookup table.
+>
+> Those caches cannot be reused interchangeably. If merged iteration finds
+> an impure cache in the inode slot, it can pin and seek through a cache
+> that was not built for merged iteration. If impure iteration finds a merg=
+ed
+> cache, it can walk an object whose lifetime is controlled by open directo=
+ry
+> files. Either direction can leave ovl_iterate() using stale cache entries=
+.
+>
+> Add ovl_dir_cache_drop() to detach the inode cache before freeing it. Kee=
+p
+> refcounted merged caches alive until ovl_cache_put(), stop publishing new
+> merged caches through the inode slot,
 
+This is unacceptable - invalidating merged dir cache to paper over
+another root bug, which was not really fixed.
+
+> and let impure iteration reuse only
+> unrefcounted caches.
+
+All those guards are nice, but how does a directory inode change from
+being merged to impure or vice versa?
+This should never happen.
+
+It took a lot of arguing with Sonnet about wrong leads to find the real bug=
+.
+
+Real bug was introduced by:
+b79e05aaa1667 ("ovl: no direct iteration for dir with origin xattr")
+
+It changed the test from:
+
+od->is_real =3D !OVL_TYPE_MERGE(type);
+od->is_upper =3D OVL_TYPE_UPPER(type);
+
+to:
+
+od->is_real =3D !ovl_test_flag(OVL_WHITEOUTS, d_inode(dir));
+od->is_upper =3D OVL_TYPE_UPPER(type);
+
+But there is a race window in copy up of a directory where
+upper is set and published before the OVL_WHITEOUTS flag
+is set.
+
+an opendir() observing this state inside the race window will
+wrongly start to iterate_real and another opendir later will
+observe the flag and start iterate_merged - boom!
+
+Attached is what I think is a correct fix.
+WDYT?
+
+Thanks,
+Amir.
+
+--0000000000006ee545065190f4b6
+Content-Type: application/x-patch; 
+	name="0001-ovl-fix-race-between-copy-up-and-open-of-a-directory.patch"
+Content-Disposition: attachment; 
+	filename="0001-ovl-fix-race-between-copy-up-and-open-of-a-directory.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mp1nqg2r0>
+X-Attachment-Id: f_mp1nqg2r0
+
+RnJvbSA5NGQ3NTk0OGNlYjcwZDVkYzQ5ZTkxODdhNzQyYjlhMmU0MmMzM2MwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDExIE1heSAyMDI2IDIyOjI1OjE4ICswMjAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
+OiBmaXggcmFjZSBiZXR3ZWVuIGNvcHktdXAgYW5kIG9wZW4gb2YgYSBkaXJlY3RvcnkKCkNvbW1p
+dCBiNzllMDVhYWExNjYgKCJvdmw6IG5vIGRpcmVjdCBpdGVyYXRpb24gZm9yIGRpciB3aXRoIG9y
+aWdpbiB4YXR0ciIpCnJlcGxhY2VkIHRoZSBzdHJ1Y3R1cmFsIE9WTF9UWVBFX01FUkdFIGNoZWNr
+IGluIG9kLT5pc19yZWFsIHdpdGggdGhlCk9WTF9XSElURU9VVFMgZmxhZywgYnV0IHNldCB0aGF0
+IGZsYWcgYWZ0ZXIgb3ZsX2lub2RlX3VwZGF0ZSgpIHB1Ymxpc2hlZAp0aGUgdXBwZXIgZGVudHJ5
+IHZpYSBzbXBfd21iKCkuICBBIGNvbmN1cnJlbnQgb3BlbigpIHRoYXQgb2JzZXJ2ZXMKX191cHBl
+cmRlbnRyeSB2aWEgdGhlIHNtcF9ybWIgcGFpciBtYXkgbm90IHlldCBzZWUgT1ZMX1dISVRFT1VU
+UyBhbmQKZ2V0cyBvZC0+aXNfcmVhbD10cnVlIG9uIHdoYXQgaXMgbm93IGEgbWVyZ2VkIGRpcmVj
+dG9yeS4KClRoYXQgc3RhbGUgb2QtPmlzX3JlYWwgY2F1c2VzIGEgc3Vic2VxdWVudCBnZXRkZW50
+cygpIHRvIGNhbGwKb3ZsX2NhY2hlX2dldF9pbXB1cmUoKSwgd2hpY2ggZnJlZXMgdGhlIG1lcmdl
+ZCByZWZjb3VudGVkIGNhY2hlIHN0b3JlZApieSBhbm90aGVyIGZkLCByZXN1bHRpbmcgaW4gYSB1
+c2UtYWZ0ZXItZnJlZS4KCk1vdmUgdGhlIGZsYWcgc2V0IGludG8gb3ZsX2lub2RlX3VwZGF0ZSgp
+IGJlZm9yZSB0aGUgc21wX3dtYigpIHRvIGNsb3NlCnRoZSByYWNlIHdpbmRvdy4KCkZpeGVzOiBi
+NzllMDVhYWExNjYgKCJvdmw6IG5vIGRpcmVjdCBpdGVyYXRpb24gZm9yIGRpciB3aXRoIG9yaWdp
+biB4YXR0ciIpClJlcG9ydGVkLWJ5OiBzeXpib3QrYTE2ZmIwY2NlMzI5YTMyMDY2MWNAc3l6a2Fs
+bGVyLmFwcHNwb3RtYWlsLmNvbQpDbG9zZXM6IGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29t
+L2J1Zz9leHRpZD1hMTZmYjBjY2UzMjlhMzIwNjYxYwpTaWduZWQtb2ZmLWJ5OiBBbWlyIEdvbGRz
+dGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgotLS0KIGZzL292ZXJsYXlmcy9jb3B5X3VwLmMgfCAy
+IC0tCiBmcy9vdmVybGF5ZnMvdXRpbC5jICAgIHwgOSArKysrKysrKysKIDIgZmlsZXMgY2hhbmdl
+ZCwgOSBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2ZzL292ZXJs
+YXlmcy9jb3B5X3VwLmMgYi9mcy9vdmVybGF5ZnMvY29weV91cC5jCmluZGV4IDEzY2I2MGI1MmJk
+NmUuLmY2MTJjZWFiMzBhZjkgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMKKysr
+IGIvZnMvb3ZlcmxheWZzL2NvcHlfdXAuYwpAQCAtODM1LDggKzgzNSw2IEBAIHN0YXRpYyBpbnQg
+b3ZsX2NvcHlfdXBfd29ya2RpcihzdHJ1Y3Qgb3ZsX2NvcHlfdXBfY3R4ICpjKQogCWlmICghYy0+
+bWV0YWNvcHkpCiAJCW92bF9zZXRfdXBwZXJkYXRhKGlub2RlKTsKIAlvdmxfaW5vZGVfdXBkYXRl
+KGlub2RlLCB0ZW1wKTsKLQlpZiAoU19JU0RJUihpbm9kZS0+aV9tb2RlKSkKLQkJb3ZsX3NldF9m
+bGFnKE9WTF9XSElURU9VVFMsIGlub2RlKTsKIG91dDoKIAlvdmxfZW5kX3dyaXRlKGMtPmRlbnRy
+eSk7CiAKZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy91dGlsLmMgYi9mcy9vdmVybGF5ZnMvdXRp
+bC5jCmluZGV4IDdiODZhNmJhYzY0NDkuLjdjZDMyMDFhZTc0OTcgMTAwNjQ0Ci0tLSBhL2ZzL292
+ZXJsYXlmcy91dGlsLmMKKysrIGIvZnMvb3ZlcmxheWZzL3V0aWwuYwpAQCAtNTk1LDYgKzU5NSwx
+NSBAQCB2b2lkIG92bF9pbm9kZV91cGRhdGUoc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGRl
+bnRyeSAqdXBwZXJkZW50cnkpCiAKIAlXQVJOX09OKE9WTF9JKGlub2RlKS0+X191cHBlcmRlbnRy
+eSk7CiAKKwkvKgorCSAqIEZvciBhIGRpcmVjdG9yeSBiZWluZyBjb3BpZWQgdXAsIHNldCBPVkxf
+V0hJVEVPVVRTIGJlZm9yZSBwdWJsaXNoaW5nCisJICogdGhlIHVwcGVyIGRlbnRyeSwgc28gYSBj
+b25jdXJyZW50IG9wZW4oKSB0aGF0IG9ic2VydmVzIF9fdXBwZXJkZW50cnkKKwkgKiB2aWEgdGhl
+IHNtcF93bWIvcm1iIHBhaXIgaXMgZ3VhcmFudGVlZCB0byBhbHNvIG9ic2VydmUgT1ZMX1dISVRF
+T1VUUworCSAqIGFuZCBvdmxfZGlyX2lzX3JlYWwoKSByZXR1cm5zIGZhbHNlLgorCSAqLworCWlm
+IChTX0lTRElSKGlub2RlLT5pX21vZGUpKQorCQlvdmxfc2V0X2ZsYWcoT1ZMX1dISVRFT1VUUywg
+aW5vZGUpOworCiAJLyoKIAkgKiBNYWtlIHN1cmUgdXBwZXJkZW50cnkgaXMgY29uc2lzdGVudCBi
+ZWZvcmUgbWFraW5nIGl0IHZpc2libGUKIAkgKi8KLS0gCjIuNTQuMAoK
+--0000000000006ee545065190f4b6--
