@@ -1,209 +1,120 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013033.outbound.protection.outlook.com [40.93.196.33])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60A902C0299;
-	Mon, 11 May 2026 06:21:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.33
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778480497; cv=fail; b=XoNKb0yQ9b5cl+ON+3wObzYX10mMtN5AiJ2yxP/OgqDzK1PGZ9YUCGfyrxxVRcW3sHCvI5y1kGnOiCSTDA4yYYVTec0zFtes/NTSm9QtU03FwJAc9tYrNDOGbeiOTj2El6QNy7fAiGVAmX71kF+AZEF+dPQjBCqtS8f1zTFuQ6w=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778480497; c=relaxed/simple;
-	bh=4x4Md5VljQ4LFIeTv4RC7aYOS0L+pvhLr/yihtMo9KQ=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=m/Iu2Pb0OtntZSNTqEl8UpfDXT7p4VDfOfhdsIRGwUp4aqZ6km/DmctvKhKwPtrVpYsvZ12XhULB3sramCs9thhyAPSIM/NuE0sOucpiK4PF1Twdd8rdm86Og1jDEGbSG7VcKa73FyY+er+QbQBgOg0LEYhSHFycAtwIcjseI2Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=eLtKVVcf; arc=fail smtp.client-ip=40.93.196.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6602B36E46E
+	for <linux-unionfs@vger.kernel.org>; Mon, 11 May 2026 11:15:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778498146; cv=none; b=YYqaRmui3zalEHHFLjVfmEsOGojn4iO1I4yKwSSbMhrpfDK4aG9FsxmTr89pjtrlSeyaSlDkIU8JibsThaVHkoKFrT6xLGn/Vvh9nM9G9rTF4xafnKiaAQInPMq/Wl4xSjJIGHB7l2EEHZ60YjwCcDHrrodrvtkrgdTN1yXs/e8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778498146; c=relaxed/simple;
+	bh=RR1NenBgrAYdu1c55iySbUR6WPCvJPcX8MV/1pGj/Aw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LrjEMR/Z2XeS0TcGZwzzNBG56uQqQVDfOXaHv6Zx0VYYugMPenO2XbUxhTugcdeFBDicXRKZUvpZ1vH01A+hTcLufgxTVYYIL7eYzbpxiuk7mhABL4d/1euyQdti3tYarIiLjtpqdtSWsQ683w3qSQVO/hERsFC87kffWcunsFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=eiOXnVzB; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=JD7RYlZU; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="eLtKVVcf"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=T0kbY/6Z9cRDwn09B+u7ssWnLz2PR4dFVb99dougN+Fhn9Mr1pLEzrGANZko8POWGC2QZyNHC0HxFm84L2toeIukS7c0mfg/8h2Q3/7bWSw5adirkUPLGAtx+M73etEEb5FWOrtLWxrVvG+7YLgXxUK8kEHiVg8hz68Tam2LFJCnY/MERUMyDHwW+JwgxLShBULOf0uTDeh+V3r1UORDtpPeutxyIbE1PYJ1w5Cc6YkEskEG5/siasckhe+NqpOM7fa+oF+mPp+F2lkv7C/jk8567n92q7Rm30mPyAZRkU97w73sJCOigpp2Bo2ek9a0h5+jDB1Oz7dq8yvjF8XffA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=PcmVVnjiexBQ1xCxKszsoFtM5LFtYtsKk9s2L2cw5eA=;
- b=r5//GxKZFid4INz6TDGq4onrGMeEDm3cttt33kbCVeu0lhnz44LCHfjtptXu15Tn022Ep+tVfnryel8S58cPuapDDf10Wk4Nc4HWjTSP0Wr3TdHhtUzUAgMrX9vMMZEqmAh5zVzZTIBCy5ofdh8e4jqnu+cr9/JogNslm8CiwXXPkM02LuxRQZAPfl6x6AWGerUkc5kKfPgxVQhhB0dR18TDfY59va0gW1QkJXJZJ8tCp65OkFDi5nc848JxIfqqVGV8LteaUqVFoi7y+BrxisZXEnFRmmDBi/cwoQJ6B/g1Gtnq3DK52sPl8FPPqpOXfDUnsHL9kJcvTHcF+nleRg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=szeredi.hu smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=PcmVVnjiexBQ1xCxKszsoFtM5LFtYtsKk9s2L2cw5eA=;
- b=eLtKVVcfObqpsfeSAARBUaKWP4grmltSzeXW1db7/cGJL1WoiVKnt+MxGM0Fbl/lExLWgw0jTkAPc2jcMcivnmHzupLzKvXf+oBFMI9pyXigdW/hGphHOghcjYx9oF8qP54DxNd/01W5vfCtD6f4L0rQOurALGeQFPPK5k1EQVuTsGUB4UL7ksEucdcEXIplzl9PpWN0EeqnTMv7vHyTwOHCmsBtfx5W1Wts7KCYSPUEByGjB8ICCuhHGYvP6uvi2qG+5vemn3lqFN3NPN9SCEqW8g8wm2wcX9aFnIzd0P9p/tMOcXDaleBha4+G6jEkbHPwQfWFITz0rMDAfOs2Xw==
-Received: from DM6PR07CA0118.namprd07.prod.outlook.com (2603:10b6:5:330::31)
- by SJ5PPF28EF61683.namprd12.prod.outlook.com (2603:10b6:a0f:fc02::98e) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.23; Mon, 11 May
- 2026 06:21:30 +0000
-Received: from DM2PEPF00003FC8.namprd04.prod.outlook.com
- (2603:10b6:5:330:cafe::bb) by DM6PR07CA0118.outlook.office365.com
- (2603:10b6:5:330::31) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9891.23 via Frontend Transport; Mon,
- 11 May 2026 06:21:30 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- DM2PEPF00003FC8.mail.protection.outlook.com (10.167.23.26) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.25.13 via Frontend Transport; Mon, 11 May 2026 06:21:30 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 10 May
- 2026 23:21:16 -0700
-Received: from 82875d6-lcedt.nvidia.com (10.126.230.37) by
- rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Sun, 10 May 2026 23:21:15 -0700
-From: Nirmoy Das <nirmoyd@nvidia.com>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
-CC: <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Nirmoy
- Das" <nirmoyd@nvidia.com>,
-	<syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com>
-Subject: [RFC PATCH] ovl: keep merged and impure readdir caches separate
-Date: Sun, 10 May 2026 23:20:57 -0700
-Message-ID: <20260511062057.2365769-1-nirmoyd@nvidia.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eiOXnVzB";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="JD7RYlZU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1778498144;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=yQi40JXMVWHDZRjke+rHrQlcRrLFkKa2WRv/wpGjnDg=;
+	b=eiOXnVzB/pI21G1epMBuoDXb6oNlBBDexTMU4Pa0JCBceD31HbvlXiXC/IZQa1Fj8l9LKV
+	pw5PgOlAYz+3TPAX39WKLM4LkRWOgM1cChU19NATJtSHTy8eIWrTpo/2dvzXU9R2NFykm3
+	lwEojr5JQKwtDDdhTXGyrl+BoIaiuCg=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-73-fSTMOdysNluxrAqvHGEgLA-1; Mon, 11 May 2026 07:15:43 -0400
+X-MC-Unique: fSTMOdysNluxrAqvHGEgLA-1
+X-Mimecast-MFC-AGG-ID: fSTMOdysNluxrAqvHGEgLA_1778498142
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-48d0889c1ecso26355475e9.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 11 May 2026 04:15:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1778498142; x=1779102942; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=yQi40JXMVWHDZRjke+rHrQlcRrLFkKa2WRv/wpGjnDg=;
+        b=JD7RYlZU6EskBY0iebQXhrP6fG75D84nXogDPu32FfcEw63rnM1IikbMUF2W/1X4Dt
+         vZt+Wq8PziYB+4Hp7ysslCShy8FNO/Ok6TcQ4mFZ6m0CiQTd60l6VyvOfoqewkkfBYYQ
+         FkZf3iCfI+5BBlhha7ptXvQZyNtIxwStyV/4KlGARJYEQYkV5SXdLGUxd+I4kXg7z+vB
+         r/CeTPBzHD4KfQFNbu0VqhuEplLProVADaEeS+0jmKCpu725WyJezz2C61yDE0sToe9q
+         lDw3yxAMwWPWjke4qYIA79uVQLaRPgr0bJBWYyFBaIo/2EAZGrKxl8U4V5UuHvErYF9T
+         vgyw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778498142; x=1779102942;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=yQi40JXMVWHDZRjke+rHrQlcRrLFkKa2WRv/wpGjnDg=;
+        b=sQVCv5OO0wKJbXLf3VVRJ0l6NghYh5SPiKQ4EM3jdeI/kjKpCHNFooZ39yTU2thBcS
+         Vw/VclmU7etfKwLvSDJsIc6rzTZILeW2zVRNYg4XhHFGiWsUZj+R8bhwIMuhFaKsvERw
+         ejn6DqAh3b8JTE9DMvkm4FCJuDw1GfPunCu7Bi39aIxrWhI6WGO7RTQrJ1yme8kExdO8
+         RoxI+h6zdhJTQgEejOX4T7mxvWywaxyCvVSE6sRFkANe/jnCgor4J3JxEhmGixic3TY+
+         dpr817YiMKqMLP4zBpPLTub2JliTL3u2oOLVWK7IkzI1uuiTA1/63ZOY/eA9wGXnWqoK
+         0gjQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/MgDTRAo7aL/PXdxLu3QFq59Pl9LTCPiuwiXqdBBK8gTiP5eJMWTqfepwm007JNu7SjnYIu8jT6bxITBpa@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw4YlRb0C5pqs7qb7AIAHlhyctHvFbT8eVQlH6Yf+lGVo6y+cWE
+	EY8qO3LKqalnYKTKlCtp9aTjKXAF9E80MCkPocNXewsbHIL10qbDgjdbTbVPpkcv/Qu3WlwZeIt
+	CZ/3nk5cHkrO0/m9kbuGFu0NT5fR9j8AU0Q6yxkDiWzaVpHLd4kg/Fa3ySw2M3JiMog==
+X-Gm-Gg: Acq92OE37O8WxCA/kWKc1chVzexFVK7SCQmadT+Tk82QLlFCQxXlIQq+tRHkHixrlfn
+	oVPPAlLujPjcEIC9dJbVbr1h83u7BVmnm5pxF7xdiOEh9Q7SXSBg+2exqqiQaAHpHGoNQ0ApEzX
+	MHXT1B/Xb92j3tB95saoQoKTXrck/G/qF+Iuq07vHSpj6Iw4BfERanhHcMopJge6dc8q5mAtPOc
+	uGBmKdRQ+AEtazE9qJQ+f9McRG7zzTuukPsq2TmLEO7Q20L33+RfOfigc9W0oes1TgVBij5i2nK
+	ej3jB7ysCZpy0jHeVWRvJtOBl4b/6j+AInoh7ykSAmDE6g8JO/Z/zfb5ykRSgkGB577CEiFY24z
+	rLI33CBs5P6g=
+X-Received: by 2002:a05:600c:1f89:b0:48e:8741:fd4c with SMTP id 5b1f17b1804b1-48e8741ff98mr21083635e9.18.1778498141653;
+        Mon, 11 May 2026 04:15:41 -0700 (PDT)
+X-Received: by 2002:a05:600c:1f89:b0:48e:8741:fd4c with SMTP id 5b1f17b1804b1-48e8741ff98mr21082605e9.18.1778498140980;
+        Mon, 11 May 2026 04:15:40 -0700 (PDT)
+Received: from thinky ([217.30.74.39])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e7040a9a9sm309872515e9.9.2026.05.11.04.15.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 May 2026 04:15:40 -0700 (PDT)
+Date: Mon, 11 May 2026 13:15:39 +0200
+From: Andrey Albershteyn <aalbersh@redhat.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Andrey Albershteyn <aalbersh@kernel.org>, linux-xfs@vger.kernel.org, 
+	fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org, ebiggers@kernel.org, 
+	linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, 
+	linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, djwong@kernel.org, 
+	david@fromorbit.com
+Subject: Re: [PATCH v9 00/22] fs-verity support for XFS with post EOF merkle
+ tree
+Message-ID: <hnsxzymuydf5evoxw4chao7rkixm4eafolebxfjtsqschgfazh@nll3fdfnsigx>
+References: <20260428083332.768693-1-aalbersh@kernel.org>
+ <20260507055217.GA19888@lst.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM2PEPF00003FC8:EE_|SJ5PPF28EF61683:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7293db62-ebed-41d1-7bcc-08deaf258a6d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|36860700016|82310400026|56012099003|18002099003|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	OHVnDYynzBoW1As49SE3SwG0dSVevSbgmXPfhZ5KUPoe/Sd7SyquziGXHqLLde5w9swWCfqEWdFyjdy/DDGalqP3f4vLSMvLd9PXqce23zr370tt8rtDxjuDMb4VLAUqNh56KgcrddosL6JKLF1+sf38d91yZhssF8YyFDNt5eMeWktmYWxQIiUmxWH9n6K0pr+n1KriCg3S6zCx3kW/A1SjCM2ZDGSdVZlDg/bGEQl3C2uWTq9aMBg3ciUbBG3bpR7AJ/lELZIH24gyY4v+tL3RNW6pvPQFDcesHiv8nmnSlY7/DCpXw/cqBwgu9wsn23JS8MWHp2BfrbYw2v9wAyjyfrojtbpcBchCobVCIwJ6Q6ny57LBHA0b7pZSVbYNskEc6CfO7bfZJYBYzsbI8LdVW8RPUrlS60EU6kMADmIK4Y/F/VpVjvFY7qHDpC5DgogX/7eCtnI7wQBwpKkjheUU0TmJN33/EUIDHp801fA27P9p1nm2IjBTfKnUwkHc4+GLFfW+H2L28dAWbvFvC8nMvyIlDLeq0PsiXCvWhsfKePx+EdTpqO78HXFNBOlgxyhOZya0RL/xK20nqN/7w0AHtHhkU/Y9tCeMSzdZhBUwWM5kmH6WEkLJcXnl8FOSYC9RIKdL/y1LsDICQe/I/fJhjbemwDbApArClHR4G0Tib89QC8yO6f7yR5lwyI67bV899nj1dGX/+rLZiw34xbasA6hhPm/JvxB2TYDTes8=
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(1800799024)(36860700016)(82310400026)(56012099003)(18002099003)(13003099007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	M35upXwmfnmhpZ6RYeApunTH6n/oO8AAHF5lEwToDxbxa7LCiYXVFOWWsc4iULq3sdhDFlWPAVkj1+Zv7wKk3sMoXmhkzBPjh84fDJ7+lKCxUry7ZXA3yRV+0qI6Ec25fnWCLrgMb2AoS1QdKaH/fmWuM+B0qNqEPRE92gdKoXzxsEtKiGLCPAnNHy4rQBcEfP48yhthgMRoIoERcQrEkuHoN53I/rxLVdcok9Yvs5rPyeaN3O+ukEWim+FqpHN6HJ8ohaBaIpVCPpD6IbXCY95SOBwr448p0ivuRwATRoACZIjkGauIxA7/pQR8b7gHg2Dw4MZh0fWdIRoTTBRDsxJiArCJQFCzuVJ5mmEEuYqfTWaioBdut8rsxEE7+VZesJ6A9hpb5oXFTUdTbltkUc8GCutJQFfjAby6d9SS+el7wPW++Bwf9zKN8Tghv0pN
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2026 06:21:30.2833
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7293db62-ebed-41d1-7bcc-08deaf258a6d
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DM2PEPF00003FC8.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPF28EF61683
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260507055217.GA19888@lst.de>
 
-Overlayfs uses one inode cache slot for two readdir cache users with
-different lifetime rules. Merged directory iteration pins the cache from
-open directory files with cache->refcount. Impure real-directory iteration
-uses the inode cache as an unrefcounted lookup table.
+On 2026-05-07 07:52:17, Christoph Hellwig wrote:
+> On Tue, Apr 28, 2026 at 10:33:06AM +0200, Andrey Albershteyn wrote:
+> > This series based on v7.0 with Christoph's read ioends patchset [1].
+> 
+> That's not a good baseline.  We'll need it on the -rc that has everything
+> from the current merge window at least.  It might also interact with
+> the fsverity fix that just went in.
 
-Those caches cannot be reused interchangeably. If merged iteration finds
-an impure cache in the inode slot, it can pin and seek through a cache
-that was not built for merged iteration. If impure iteration finds a merged
-cache, it can walk an object whose lifetime is controlled by open directory
-files. Either direction can leave ovl_iterate() using stale cache entries.
+Sure, I will sent v10 with a latest master and that fix soon.
 
-Add ovl_dir_cache_drop() to detach the inode cache before freeing it. Keep
-refcounted merged caches alive until ovl_cache_put(), stop publishing new
-merged caches through the inode slot, and let impure iteration reuse only
-unrefcounted caches.
+> 
+> This might also be time to come up with a merge plan to figure out through
+> what tree(s) to merge it as there don't seem to be any maintainer
+> objections.
+> 
+> 
 
-Fixes: 4edb83bb1041 ("ovl: constant d_ino for non-merge dirs")
-Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=a16fb0cce329a320661c
-Assisted-by: Codex:GPT-5 [lore] [checkpatch]
-Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
----
- fs/overlayfs/readdir.c | 38 ++++++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
-
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 1dcc75b3a90f9..326d8ad173881 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -292,6 +292,27 @@ void ovl_dir_cache_free(struct inode *inode)
- 	}
- }
- 
-+static void ovl_dir_cache_drop(struct inode *inode)
-+{
-+	struct ovl_dir_cache *cache = ovl_dir_cache(inode);
-+
-+	if (!cache)
-+		return;
-+
-+	ovl_set_dir_cache(inode, NULL);
-+
-+	/*
-+	 * Merged dir caches are refcounted by open directory files.  If the
-+	 * inode cache is replaced while such a file still references it, keep
-+	 * the old cache alive until ovl_cache_put().
-+	 */
-+	if (cache->refcount)
-+		return;
-+
-+	ovl_cache_free(&cache->entries);
-+	kfree(cache);
-+}
-+
- static void ovl_cache_put(struct ovl_dir_file *od, struct inode *inode)
- {
- 	struct ovl_dir_cache *cache = od->cache;
-@@ -485,13 +506,7 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	struct ovl_dir_cache *cache;
- 	struct inode *inode = d_inode(dentry);
- 
--	cache = ovl_dir_cache(inode);
--	if (cache && ovl_inode_version_get(inode) == cache->version) {
--		WARN_ON(!cache->refcount);
--		cache->refcount++;
--		return cache;
--	}
--	ovl_set_dir_cache(d_inode(dentry), NULL);
-+	ovl_dir_cache_drop(inode);
- 
- 	cache = kzalloc_obj(struct ovl_dir_cache);
- 	if (!cache)
-@@ -509,7 +524,6 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	}
- 
- 	cache->version = ovl_inode_version_get(inode);
--	ovl_set_dir_cache(inode, cache);
- 
- 	return cache;
- }
-@@ -699,12 +713,12 @@ static struct ovl_dir_cache *ovl_cache_get_impure(const struct path *path)
- 	struct ovl_dir_cache *cache;
- 
- 	cache = ovl_dir_cache(inode);
--	if (cache && ovl_inode_version_get(inode) == cache->version)
-+	if (cache && !cache->refcount &&
-+	    ovl_inode_version_get(inode) == cache->version)
- 		return cache;
- 
--	/* Impure cache is not refcounted, free it here */
--	ovl_dir_cache_free(inode);
--	ovl_set_dir_cache(inode, NULL);
-+	/* Drop stale or incompatible inode cache before building impure cache */
-+	ovl_dir_cache_drop(inode);
- 
- 	cache = kzalloc_obj(struct ovl_dir_cache);
- 	if (!cache)
-
-base-commit: e98d21c170b01ddef366f023bbfcf6b31509fa83
 -- 
-2.43.0
+- Andrey
 
