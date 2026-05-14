@@ -1,80 +1,80 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2DC2427A0A
-	for <linux-unionfs@vger.kernel.org>; Thu, 14 May 2026 15:26:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A15863AE198
+	for <linux-unionfs@vger.kernel.org>; Thu, 14 May 2026 19:20:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.43
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778772392; cv=pass; b=pCANEO4uky/imY0nfg3QYnK/21yK0tFMuE5GBL7vHRRmQdyrHh2lTeDBgxpDPfCCI2rf5gc1R1LwGDjSAkdshzTb82lJnjo0kfkRhcuf/w4ayWWHaCR0pASXPgfHPLu+RQ+V9z0w1H4nkH77MlXgA1spKU2/OQCcMd6LDwurnHc=
+	t=1778786412; cv=pass; b=uVifZxgclpm8uCK+i7p7k5VMy1iTsWIfhLBy8YWq4s/3IJo7+XBWrX1DwHKsaYw8cmuRA/a7dzOsUaIplCB7leezV6QQ80SZHcstsMsNmysI+SFUzdQahx7/+2ASOcn7oqYuENG6EoiJOiRMd1BAe1PdPS4FtMFjdUElNwMhg64=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778772392; c=relaxed/simple;
-	bh=wSqKrrrDJv6S24jh7HYsIvkQ509CP2H8PTcBm6YTBUY=;
+	s=arc-20240116; t=1778786412; c=relaxed/simple;
+	bh=e6KtqKPSII+2k+r3QLZqYaFAU+QrZ8o+lfNtmMMOV70=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=l778Pn4kH9Ae5e7yjXZUqacxDqXtvAsf6jFF/N8ksf8NPux4xmxFzmCeae3Ocq0qFrgNeqoOG++NvTb+0Wks4Omf7t7joDQc/3Fp3nGjTEJosJffs48qv9MmjY27EciXOks1nwU2PIAeCe2OBksLFWmbl3v8pZqvg9j6l3diryI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CNXNmTSb; arc=pass smtp.client-ip=209.85.208.45
+	 To:Cc:Content-Type; b=sCbL1kC5pq26IDEGiw3HHxQAMPC1RYejAl1ZR4hYgppj5/lkCIeQdE1MLu6BFAhuhh5xunPk++jbjxDnH8lOPDdqLZuHqnQDIsVejI04QPNqZ4phlm6sGkzhEikESnl64cnkBx6D/vRerBryf/4BYTVSNYINLoHoYJ202h6yJIc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BIlv6W5l; arc=pass smtp.client-ip=209.85.208.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CNXNmTSb"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-676a89de629so2215044a12.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 May 2026 08:26:30 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778772389; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BIlv6W5l"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-67b8d9c26bbso15292875a12.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 14 May 2026 12:20:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778786408; cv=none;
         d=google.com; s=arc-20240605;
-        b=TT5Re346d6mSemtczuES3eu5OyVsUC4OxP2evAsDM2PGH4tnCRWqWuEIAYEyhNZgTA
-         AJPmeLVClNL3uT5Oa7m5hDzkI58h0BMPEAqKR34xQUtsmLikdZifdoSLR3wqNjW7JNq/
-         5K8nngJezvomzXautqlk3t0/Vgnpf19SNnUfz1KvCwRG1SubGU9Utxhn5XWfpXCKoEPA
-         iSC4ZnpjntHst71Qi/4Hw6a89wP/Ra/+27gN9AYcDoN/Ciiwbx8EMeEmoIxtVRxmFoPh
-         dgAEQXAW53o/z+UBhbvPYqVJyZPIeQuNDwpSVKnVBQwBdkw6YwHNEyW762H4lfmiAQPB
-         L2Jg==
+        b=Xa+IvxI2HUtc+FdPfHhtcbdlC17/lDuME1EBZ7Hs51UPHmVE6zpZBDvHu3eNXZfq6Z
+         BcUGWUeeYYBp4CVCm84gpD9Wd3ihd+sYGm5dV+jTKDTmbYewa3x+E9oFadwOafySJdi9
+         ZWVre70M1DED4SAwbZ6cGCFIie1BWW+1wlGdL1u0w2nCIVmIVxz9gr27mKw5DDG46KaC
+         cB4/mKD3lI2uuTwHnpDQN9GE0jlS6fCUMcIGhjhngIJthp5XSwdcu1M3ucCQyL62/KfX
+         vD3Lr6RfOrBML4FD5RWvT2Efd7iZCLvm0v/mQQJWhW1Un+3Je4QQwzQD2eCz+B2kEB4J
+         9wVA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=et82wCJVpQm7zm0J7X2OOILXIBLEXqjgb7LZdRr5Uno=;
-        fh=dVaAOYM9oKff3C/KR7Vs9FfZVNzPQGz2ZdShfFoZ8UA=;
-        b=Y0oPSDVHu/ZtpIUcIgIpAa0cBGN1zKEbB1hRsuqGkLLn10IQ/gaLItAa387OGpPNMs
-         U1/VrXaUF1ve85eGxwxudQym7CNjZwh4BTfzZDo1poZyB9moWSdmbp+/Rq4fu+hQSAX7
-         5wTgroGU5Dj2T+TgNckNDL+0CZi0Rd+gvxz48NnQgzwrqpTFkKo0FU85aG5Eejfwx+NL
-         f3EkYbxfgGXBdYetuNo9IjEOj5Sk166L6jYVSqetKYPgLOMFC6Mpn+NntmF7yqp2dNuD
-         gvZ6z0edcYZO+XTW6uN79Optibo9C44yo7NuDb3QVvTk1iVShG6VrsD+PmUWJ7eWnMtN
-         uhUw==;
+        bh=UAZPl5Y6JvA88LVsf4Tu9u93qMcWBnxHmeUwtC+v/yQ=;
+        fh=U7+R2kMMp8zg9/LeUC7rtnaOGel2+df9hPYs+vxadGk=;
+        b=OfZ9td8bG2Y/E1aQQt5aYfAQP0BzVe6FoVUrfJLeJ2EZBKMwOSK8Dct8zQ2H0CM8xp
+         44VsTb+azKkIUg0BTTz5EXoxKoPR7oSHaegmzh6YAIU3fi3YixdR3d8sn/73TPJT7UGi
+         N2hcg8lZlcTIbjZNuN2/hFJEeYddMF4r2l7IYNfU+WmQg4T+fKhVsRAIFvs//CygcURW
+         Q9PW4vYTTjny1wBQZMrLc2MTcusIieFiRyxe39axAupKzdkaNjX3YbdabdYxK0WEF7+9
+         npMAZvAGph8BmN/XIHcismW9krLXbB/nmln1D+pdhRiVxUgmXUDFJeUb2R3ymfp7BXPn
+         0QoA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778772389; x=1779377189; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778786408; x=1779391208; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=et82wCJVpQm7zm0J7X2OOILXIBLEXqjgb7LZdRr5Uno=;
-        b=CNXNmTSbF7bRd7gWeBWIlgln3SNTpY+ITfLZzQ63tcG0dOn6TQeDejr6doSqVGjrNr
-         9uPTeVL72ObndkyHXCT7IUXD4spHZAPudoz0mvUS4Er10iPrXNV9n2vxLANxWHJKYR3A
-         ijYhLQDWcmhkIPsecsZSjpEIgj7GnBms2RE0jfw3uCCKUkSoGQM41LBKxHGF6foxqiqC
-         UXSYDm7qWpMKT5VCg75YlIrW7WkOlzX1MCblvl20ZJpR9U3gSGuTDpnVgeA0VdOZJ48x
-         As4HJjC7Q2GvhWcwTlLRj/85h2duJIEivBijF6bWn4SpaxL4eqyaHRvV+h2/4HU8yJuX
-         LD2w==
+        bh=UAZPl5Y6JvA88LVsf4Tu9u93qMcWBnxHmeUwtC+v/yQ=;
+        b=BIlv6W5lE+RyEWaF0HCzCB4Q4c+nEHWu41JxuIBmcUuPIPxmqLwcdgZCgiBqwwhW1v
+         kfEDbN3yj6/czFHBN3zwRSdxrbOcrLZOktThXq+ttTkos89rJVibgQkq3Utc2UsxT69e
+         yum8v7wRade6GU+CyON+uU7FAeCgFM1J3MNNbDFjcUsswIjrmR7DVDaIulv3dV6uXcZW
+         nQXSGBPbEZ9WWGaBshayD7FU/HqePVhx0HNU5DkW+I877HNboEYjip9vIQ10FJYzTsFZ
+         y5rRSnIRe5qD6oete0a1X4yfJG6tRE9R1Q6wOjcXQG9Q1MkES7JwLFFIjMncXgB6xvrf
+         qO6Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778772389; x=1779377189;
+        d=1e100.net; s=20251104; t=1778786408; x=1779391208;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=et82wCJVpQm7zm0J7X2OOILXIBLEXqjgb7LZdRr5Uno=;
-        b=LyQzm8Sw3P4rdzoAav9c+DgM36bNu93t31FJ6p6MdLLF1NS+wfVJfWGfHAVLPH6E8u
-         kaViuyBdpgRrtGjipAr+ysxvzly5OTdH0H0tzfymKcejUuFfpkhZSCugjNJ1wO9nYZrG
-         K2medF8lZxHc+PDHYxyevfwbssfZG/ayHwvSXgk1qET0fSzu5BbgnJrorQT8TgW9p0gO
-         2YSakbUwVWkiY5092V7BFTe+eab7GyoQMPwnDRLUcIBTMN3+x3DZM/D1r67rEf+ra5Y3
-         avupKFUeJHE5Fj9F31varrMRlUN0xReUqK+YsfQIjFP9oDaeq2sl10Q01gXMHcRrRpni
-         tfxQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8QwW/jJGGcIIBnr0LHbvfCXnY/xBCCORIGshE0IM1FoNnXL9YP/R144ZkkpbVnDAawKbLzqvvg0VNY6mQc@vger.kernel.org
-X-Gm-Message-State: AOJu0YzQR/pBB6HUBhEpByCnhhF/BbR9CkT77wEmmyhowdvpVEfyzIZH
-	OzINWtHDHXN6qIkuqgWmOSv/s46JvpG+5CErbozshB3d3Gll3VUh0xXSStnS3DRa0AOi0TGaSWF
-	15tahjTuiVCozpczu4PDciDzaLH9bPBk=
-X-Gm-Gg: Acq92OGUn/XRmYsycnbs3pEflEDVBSwqBB/ej7zgz4Ewiy8d1RJAo+eTE/110GQY2k2
-	o+afockxhu2Otu3HApjMFzvksIoBV45KEE6JocrSKuaSgoJ9MJq7L0l+1iashVT4duWs+869/HZ
-	cN2u1Fo+LUCdQlos1Q4yRBuSgF1t+7PZI5vIKoWE1MlxCJA89jHDrj8ainOMU7EhRlNq89CG1Jo
-	NYWWG4Y5ExT10M4p2iMv4k+MhvT7MIZjCedF+cowAaCl6u37nkYMIQIrBxJIvmidZPrtIiis6ro
-	Ltotwy4+WCYHyqqD49fQi/6SawbiSiddKOfMifCT9Q==
-X-Received: by 2002:a05:6402:1f47:b0:67f:99d8:868 with SMTP id
- 4fb4d7f45d1cf-682a7602ccdmr4453157a12.16.1778772388900; Thu, 14 May 2026
- 08:26:28 -0700 (PDT)
+        bh=UAZPl5Y6JvA88LVsf4Tu9u93qMcWBnxHmeUwtC+v/yQ=;
+        b=SrBcQ2Wt3iuytmZ6wfE9ExDIBR25I+DKnEc6XynJ3LK5i70OlMoUmJuZisg7TTvowK
+         atxQ1Mh/bUaQHrONKxZb0bFQ0OBbVPNaxh3P+Z/1YvRvhp49LViX2HWuUGka9NWJnFwK
+         KT4qQ8pTEWQq0AMNfVbrB8oU7szS53WE+IAJpAtR3IFtN56ZaN9Kap8e2RpgIHuUEv/f
+         4G6W23Mc8Ckhlik7sa6mtCGxBguzph5b6pnbdLd8oDDGKtWMsbewRysyDWk4PI3HTFTP
+         XiOY+6CBil4MIxzVZ6fU++JXoIXbVZwjK1mtmsTI9T/x5ywrgUlC5OsgcpEzCQl+3Uh+
+         q9QA==
+X-Forwarded-Encrypted: i=1; AFNElJ+/zPKuTovCHhLEocggcDzUJvxB40pVofOpmlGXRyXksRnxw/FHA/3Y5rhEJCmHQphE89XjGd5tuVzX/wc3@vger.kernel.org
+X-Gm-Message-State: AOJu0YyNjWnbqooJBe4dKiThcb1JF+ChmJiAS8Bz3U0qZaq8/qj51grk
+	c7Awe13LcIefrG87xTPdNsCBZ+9M//pRu6o8XzWOsznZaY2SPHzAOq6WYWaUTbRj/QpzIuvOrOl
+	tpO48J6UAvUG0iLNTMq1nS+tUK6I/q6Y=
+X-Gm-Gg: Acq92OFHNVqmFYi6Fct6A0J0xsy9H9Od5fqiLZYkb3VjHFltcC/Jh1EtpFoxkNQre42
+	KvPCWc3U4ubuSLE5HDtng9ahoLHhkIGHkih7e3fRTYoekGH3bxk0L0SMq+AxHBdTME8s+kgI2h3
+	MdzBHTY/G6Cwx+oLNEuoJihc+b2tPBjEdnFFEW3jzAazS0BMRPdDMn/TykbRECauip1zbPvCyoh
+	H0mTJWIRkKG6562Oc6J3pdwNm8lSiX7PQcNU0yO9uNK2zlxUcv945w7t3p9lDUXy/FfsLMtD+ty
+	+KyEOzW4RFygjKC0ePrwdeZuBLveeWozrhOLIrNSzw==
+X-Received: by 2002:a05:6402:3494:b0:683:c72:44c9 with SMTP id
+ 4fb4d7f45d1cf-683bc8ac2f4mr409600a12.11.1778786408274; Thu, 14 May 2026
+ 12:20:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -82,11 +82,12 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260514111354.3552538-1-nirmoyd@nvidia.com> <20260514144258.3068715-1-nirmoyd@nvidia.com>
-In-Reply-To: <20260514144258.3068715-1-nirmoyd@nvidia.com>
+ <CAOQ4uxjGhRLnuU_=m=P-omUMM=0F+Mxs1O=zTasVnLdLz8ut3A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjGhRLnuU_=m=P-omUMM=0F+Mxs1O=zTasVnLdLz8ut3A@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 14 May 2026 17:26:16 +0200
-X-Gm-Features: AVHnY4L-JBFwFIdc3-A0BeyC6XBW6KDz4ezIcvKQvqzLS1_LBW__OFjiX3LlQNE
-Message-ID: <CAOQ4uxjGhRLnuU_=m=P-omUMM=0F+Mxs1O=zTasVnLdLz8ut3A@mail.gmail.com>
+Date: Thu, 14 May 2026 21:19:57 +0200
+X-Gm-Features: AVHnY4LPcqU0kwgtnerwPZsHb0UxBwYXdw7YvL4NvATth1Qw5XCaHuPDkFFLv0g
+Message-ID: <CAOQ4uxgad=DE9wMAS6Wn9rrEkOX3p0S8jEhsjnj=Or=_7HsqyA@mail.gmail.com>
 Subject: Re: [PATCH v2] ovl: keep err zero after successful ovl_cache_get()
 To: Nirmoy Das <nirmoyd@nvidia.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org, 
@@ -95,84 +96,59 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 14, 2026 at 4:43=E2=80=AFPM Nirmoy Das <nirmoyd@nvidia.com> wro=
-te:
+On Thu, May 14, 2026 at 5:26=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
 >
-> ovl_iterate_merged() stores PTR_ERR(cache) in err before checking
-> IS_ERR(cache). On success err holds the truncated cache pointer and
-> can be returned as a bogus non-zero error.
+> On Thu, May 14, 2026 at 4:43=E2=80=AFPM Nirmoy Das <nirmoyd@nvidia.com> w=
+rote:
+> >
+> > ovl_iterate_merged() stores PTR_ERR(cache) in err before checking
+> > IS_ERR(cache). On success err holds the truncated cache pointer and
+> > can be returned as a bogus non-zero error.
+> >
+> > The syzbot reproducer reaches this through overlay-on-overlay readdir:
+> >
+> >   getdents64
+> >     iterate_dir(outer overlay file)
+> >       ovl_iterate_merged()
+> >         ovl_cache_get()
+> >           ovl_dir_read_merged()
+> >             ovl_dir_read()
+> >               iterate_dir(inner overlay file)
+> >                 ovl_iterate_merged()
+> >
+> > Only compute PTR_ERR(cache) on the error path.
+> >
+> > Fixes: d25e4b739f83 ("ovl: refactor ovl_iterate() and port to cred guar=
+d")
+> > Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
+> > Closes: https://syzkaller.appspot.com/bug?extid=3Da16fb0cce329a320661c
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
+> > ---
+> > v2:
+> >  - Drop the now-redundant 'int err =3D 0' initializer and the trailing
+> >    'return err' in ovl_iterate_merged(); err is only used inside the
+> >    loop's update-check, so the function can just return 0 on success.
+> >    (Amir Goldstein)
+> >  - Link to v1:
+> >    https://lore.kernel.org/all/20260514111354.3552538-1-nirmoyd@nvidia.=
+com/
+> >
 >
-> The syzbot reproducer reaches this through overlay-on-overlay readdir:
->
->   getdents64
->     iterate_dir(outer overlay file)
->       ovl_iterate_merged()
->         ovl_cache_get()
->           ovl_dir_read_merged()
->             ovl_dir_read()
->               iterate_dir(inner overlay file)
->                 ovl_iterate_merged()
->
-> Only compute PTR_ERR(cache) on the error path.
->
-> Fixes: d25e4b739f83 ("ovl: refactor ovl_iterate() and port to cred guard"=
-)
-> Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=3Da16fb0cce329a320661c
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
-> ---
-> v2:
->  - Drop the now-redundant 'int err =3D 0' initializer and the trailing
->    'return err' in ovl_iterate_merged(); err is only used inside the
->    loop's update-check, so the function can just return 0 on success.
->    (Amir Goldstein)
->  - Link to v1:
->    https://lore.kernel.org/all/20260514111354.3552538-1-nirmoyd@nvidia.co=
-m/
->
+> I queue this up and will work on fortifying patches.
 
-I queue this up and will work on fortifying patches.
+Nirmoy,
 
-Thanks for the thorough investigation and for nailing this!
+I pushed fortify patches to ovl-fixes on my github [1].
+
+Can you verify that the assertions trigger if you revert your fix
+and run the reproducer?
+
+I imagine they would trigger much more frequently than the KASAN
+warnings do.
+
+Thanks,
 Amir.
 
->  fs/overlayfs/readdir.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
->
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index 1dcc75b3a90f9..e7fe29cb6028b 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -838,15 +838,14 @@ static int ovl_iterate_merged(struct file *file, st=
-ruct dir_context *ctx)
->         struct ovl_dir_file *od =3D file->private_data;
->         struct dentry *dentry =3D file->f_path.dentry;
->         struct ovl_cache_entry *p;
-> -       int err =3D 0;
-> +       int err;
->
->         if (!od->cache) {
->                 struct ovl_dir_cache *cache;
->
->                 cache =3D ovl_cache_get(dentry);
-> -               err =3D PTR_ERR(cache);
->                 if (IS_ERR(cache))
-> -                       return err;
-> +                       return PTR_ERR(cache);
->
->                 od->cache =3D cache;
->                 ovl_seek_cursor(od, ctx->pos);
-> @@ -869,7 +868,7 @@ static int ovl_iterate_merged(struct file *file, stru=
-ct dir_context *ctx)
->                 od->cursor =3D p->l_node.next;
->                 ctx->pos++;
->         }
-> -       return err;
-> +       return 0;
->  }
->
->  static bool ovl_need_adjust_d_ino(struct file *file)
-> --
-> 2.43.0
->
+[1] https://github.com/amir73il/linux/commits/ovl-fixes/
