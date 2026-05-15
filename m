@@ -1,138 +1,203 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010064.outbound.protection.outlook.com [52.101.46.64])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBCC631E852
-	for <linux-unionfs@vger.kernel.org>; Thu, 14 May 2026 21:16:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8F3847A0C7;
+	Fri, 15 May 2026 11:16:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.64
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778793405; cv=pass; b=swWiKH6o1o8XDcDjucsyzLfNDJhtA+5dibNENFtDG/BZIMqwESc7uUMMVNm3t9FXmx6c0k0qC8H6dQYukPNmVp/ie11Zt26XomYzKHhmIvMQu7+u3jj3foqRB218m/f/lXWNgdRjWDGoUloWBRnDzmzCgDDgfwjxkNZaQD1OdjA=
+	t=1778843773; cv=fail; b=hNq1ho0QNed3TYYd2lHFGbjHvRXO2xUWXbaAzkBxz268UD8IoPoOyp9GdhUdNqZ8/jj1z56RNQBkPXnADW4lnLsngJtDp52sbzWBwa/C2UxzzIlAsV22vqlk1Q3RpD9ZOM9+U6TKj8LNjSzMODhQp/vNEhUfbX0Qk969Ydhhan8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778793405; c=relaxed/simple;
-	bh=ZMRAcpOeHLaYMTDX+ddAEB2Dl27TP/9xuourH8BZK5o=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fW4eAHkDoJoJWFSZa4w1CwdjGcfUqllj2gxPLGM6/zV55AvXxi0PmQNKK7TCMSlD1hIohk69WhXerIhp1zfeVXslvKFuCo9pG2gMXd+ZZ9jEh4xXpIj56qYK8u4PoL8zrHUKDz3bcB55dzAmq+AjkpA1Xd2MpRgv1p1dK3LPPnk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YHM9WVnV; arc=pass smtp.client-ip=209.85.208.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778843773; c=relaxed/simple;
+	bh=Qwy81pdOxSmrz276VfsiO0kjO8INJjgBF3XBswtowlE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=YkP503OXMe9+j+m5eX4jCi70ATjPesqh9JivTgrLP7+M2LYbSYaSYNtMriygCVNMgTILzSvP1e3uxL/kXFQmer69GFG4/ctuyHsrBUfXPMBXq6ZznrYEPs5N/LIL/5nYOC2GNRNx2TsFvqreRXIKwoqF66nv5QGnGaIRSiQ6SxQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=kw2FRBMO; arc=fail smtp.client-ip=52.101.46.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YHM9WVnV"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-67b8d9c26bbso15468543a12.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 May 2026 14:16:43 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778793402; cv=none;
-        d=google.com; s=arc-20240605;
-        b=TMHx32gVkgLEOdbcLtQvJXMXAPUL3DKSo7aNENHbEOyuJgEO/qxvWjmvAQJRV3eIVq
-         uShxjbV6E68utzXESI+ePOaxifp1IUHmsY3Unlk8AF2ibVeEf4PHinrn9m+GZOHJBdu2
-         Hs5nKAD0HRq4o1LkL0Ylw7RnTT3uGTQ8xj3US++gmXccI5kJo9Junn9cZGD78+MDbSl0
-         AuIy+uzDO/zK2aVffprwAAn2mGrPGqjwuYhrwouBncHNo+tsurRga7ZBIyWhd+x4vm8W
-         FtBCU0nvTBE8w9ONfwQM5AY9XiXnYU4FRskXlaEUfWb8yJxQwDkpQ1zP/+KRCqbkQNbB
-         XDNw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=ZMRAcpOeHLaYMTDX+ddAEB2Dl27TP/9xuourH8BZK5o=;
-        fh=h3tfFwqYm+WNaQcMva9C6CK2xpaH/TDhp2sBISYjubU=;
-        b=HnM6IzgrjxVWQEviYChGsKccLMd52/X0b9Fp+UakTlODQKXspsOdMrLvYnKLWW+Gfs
-         MOgCLrBvgr5hUPG/tW4vLFbqn/VVkRhOSEWg95qGHEybUgDxKwK2JYfy40utklZBBt6L
-         B7rYasrUJkg+xYXvQQM1NuHDrx0xp3odlb5ppb+T87ZFHSt7er3iV61vpYImOvnMQbKR
-         2jTVlucxhgS8j+hygUPbWha3J3/p5val0RH+WZgfi5rSUH30peyQf2ZD1bwemtGp1Znq
-         oum2XMQb0CgfmT94Zij3GlZ9b2CrsIZYqycv7m8qNIgknYepphzR1wdQIahPY78bVkBH
-         gBZw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778793402; x=1779398202; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZMRAcpOeHLaYMTDX+ddAEB2Dl27TP/9xuourH8BZK5o=;
-        b=YHM9WVnVGnb4ofbvJsM5FBFVxrpjWp/bmqCEbqUtHrmLUozMif2FLBrZtvC2p2ziYH
-         ZEmHGF65zXIJyrU6pMKCwUwiupaZxMQuehPoL7ZI4C7oZqVLDiPyFmy/NWdrvuFEdkZD
-         8/xu6OmUm92/vZXvYeAjeDCpvfXL53/4/w1Un2Nf3nsUeT2ELBOjJ8roSMATXV0rsfIE
-         0qrxQ4r9MTOXDoe3ye5iNMp3yaRtf40RNJkoyLk76e0+urwNb92SPLKP25FDT/kqoStH
-         2uGbKa552ZfBqamcXmKtvFxdHGdbpic6a7GJ+3+PhRUHJATHAxXZHa7TwOIA8YCn9E/b
-         SvKw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778793402; x=1779398202;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=ZMRAcpOeHLaYMTDX+ddAEB2Dl27TP/9xuourH8BZK5o=;
-        b=ZIq1nSbERt/1PloRdr8N/dpqy4ETl1ZkrNvWZDi9NpX+0GGf7dqazppgxHLM1alJkg
-         0/NM5Dz/oaj33U5Wre/QH2k3+IWsH0qmu/W9BFw7EKa4MnEpOM5oLO3A7GZkHgodsNEb
-         QurkPVnZ8UZjfyHhQnLVRCHltzr+q9ooKgAkJ77cyIARVgdE/+XDNPMYOZv2XUvJXHHY
-         4yGLh9PKEEhzXBdSbaOOgIpCZ6aQ0M2Oak6pSdHrolkH3A3PNXcBJ0qONwg6aBdL3+N0
-         pMejpw9Q5DOiidhM0nho1PjqISUjpJz2tsF/mBL+q7zXW9KZicrsKcv/w7HxTpvOy5Xc
-         BmMw==
-X-Forwarded-Encrypted: i=1; AFNElJ8eb3oWEmBjWrkOKBbLQnUUG/vIJTv2s3pBEwHbUSLmLJDx+33ZuYa5xt4cTtWDjmPGqqAUWodCCw5rSZXH@vger.kernel.org
-X-Gm-Message-State: AOJu0YyzceLsu7eQirZx6GiGfAX2bkXo5lYTEQgNv/FkqHh8XZ1URBxT
-	rJIGYmXhjPOB9jeRZVVdLE82z/2Qgb0ZYViCUmslW1u0aSB09bEOkOSkBokRQWro0+rAapHITTv
-	qHX9pcu6XDHTAy1YT4sc8wzvwnui4p5Q=
-X-Gm-Gg: Acq92OEPRei7c/FxYS3mNY+Y26B4dKZaMN8gUVX8KvnMcdGgzvrVr3PjPXtRj9H/Xdk
-	fWnMrUmqJguFcCmSCjBCCP2hbTZd9R/Rjnb+Y/8rNx0QM4HwDd8PwEuALfvRyQfPHlPzBMsqE2o
-	0VhnCOJ/8292lMGihtUF4WOaPrhUHkubKFpomYhO7iHyae44n+jNwtBXEU4kjUc8bsIfvgYuWTE
-	X7uWGZ3w7uNHK1XebSeU+LJtWjju69TwwleBIytHxa2JJoJD0To45TASTnAAveAYtNQsIi0AW+N
-	wBSJSyarPAiH5H4KccnZWA10rZuDXDxDmstbW1scdzuXIE0+kj0Q
-X-Received: by 2002:a05:6402:13c2:b0:67c:7ffc:c4b with SMTP id
- 4fb4d7f45d1cf-683bd384cdbmr499066a12.19.1778793402002; Thu, 14 May 2026
- 14:16:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="kw2FRBMO"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=bC8e5u+9GwyPASSnzikXpBgaVcdUU8qglr2uOzqi+f1gqm2afQ/t+mSwrq3O37QqkTSIlKE/kVTsIxGMrUlqwPpw1xlfvgClj2Zj9BwKbTmCCg+DhoXBYlFBQlWp4Ww3LFG7KDZwPbkaJ/rUlhBlkyRyxViDJYpJKgrs0I+SuzN8hQiVv/y6AAh8vDQn534RF4t1N2yGbz8C5CmYJ6mL7l7Tkkg/YaHkng2g+U/TYGWs3drGMTomkRw8A9cDqE+zQRRykHLQZXG8z6WC3cWJomBaxDLf3yEbklNgyY6UAMggUBy3NQEOkTywJVSXDzEOv5wZjwkt59ClEJ9Nehxiww==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=To4DNKOgUC/s4g+9Jw0a3SwPYaz1j0fhHgC9ZH+Tu5Q=;
+ b=ksk3TPbxALOcb54yXKK4ubkFaff2969/2kxdIv7sxBsHGtzekxj2qgi4TGlCbbIUtckPGhhIpp7hIq5loUZAwnUqQ4RpFQpJAc6+PYw7sK6AtZudMlQdLqZyR/gnLPSqtW02GD+5qYKd4IuAz7ra4eLO75Flny4Y6iBZ6RvMulliU/XApQufW8UcPWoFz6z9H+ERMEBCgIm0vrzRDgt0HtOyg+SyUGJTSv9JQWdsO98oh0evQrc4T7YF5hFPBV2I1sJOgbFjrAB7tgeB7AwfiuMWUuE/I9Fh28c55zWTro31NTrCrt3edw6Ba3czQ3z+/y+B9+CzX7/asrUzb3N/zA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=gmail.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=To4DNKOgUC/s4g+9Jw0a3SwPYaz1j0fhHgC9ZH+Tu5Q=;
+ b=kw2FRBMOO5rY3iQ0FJci8kv3fKGmSO9PkQoXilAtFgTjt4IpmYEssTvY94zUC44BG3LaxCNgi7EnCrN4yeq8BFPKVVtBLE1IAGmkUwZcmjRhfZQvxLpoCJU6O6X6I96U6PvgKoXD/nMoCIK0/Y2o25noD/qAYo62lrasohWEJqT2urpTmslUnvOMaGde5jfiXCcDh51efsCHKkmt3naR5Bc63d3H7JX4v/fc04DoEnWZMwaybL6/RwYaYfnQn0lQwvvliNZltnVRgnCQcIz5CdlPiboeU515SNt0KqxoL+iZ0B8qFm1nXaIPEkg9/J/tlGU+e03N7xnDfaaq8z0RzQ==
+Received: from CY5PR19CA0011.namprd19.prod.outlook.com (2603:10b6:930:15::13)
+ by DS7PR12MB5839.namprd12.prod.outlook.com (2603:10b6:8:7a::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9913.11; Fri, 15 May
+ 2026 11:16:03 +0000
+Received: from CY4PEPF0000EDD5.namprd03.prod.outlook.com
+ (2603:10b6:930:15:cafe::cf) by CY5PR19CA0011.outlook.office365.com
+ (2603:10b6:930:15::13) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9913.14 via Frontend Transport; Fri,
+ 15 May 2026 11:16:02 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ CY4PEPF0000EDD5.mail.protection.outlook.com (10.167.241.201) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.25.13 via Frontend Transport; Fri, 15 May 2026 11:16:02 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 15 May
+ 2026 04:15:45 -0700
+Received: from [10.64.160.70] (10.126.231.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 15 May
+ 2026 04:15:43 -0700
+Message-ID: <20be39e1-8da7-4f81-9134-d748841b3611@nvidia.com>
+Date: Fri, 15 May 2026 13:15:41 +0200
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxg+DkTuinnf9AMR6gdHqAydbD88+oBkTtQtABJfdC0vVw@mail.gmail.com>
- <20260514121336.439565-1-nirmoyd@nvidia.com> <CAOQ4uxg=gONUh5QEW5KJcyXLDF15HbLnc9Ea7RKPcgtyfPasTA@mail.gmail.com>
- <f9f0e951-a52d-4272-a44e-890d7e7555fa@nvidia.com> <CAOQ4uxgRzcSCWWq=eGfSc=iUOs8k_eD1_OKCB_sh9Vc9nSQuOg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgRzcSCWWq=eGfSc=iUOs8k_eD1_OKCB_sh9Vc9nSQuOg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 14 May 2026 23:16:30 +0200
-X-Gm-Features: AVHnY4JAjZIv4zYK3fb7Yl987hx_8Ytprfl8aPYKwzNxqJJ6lw0ZD_07Hvc9l44
-Message-ID: <CAOQ4uxjSUufiFpU1JuTNEq7vHejCRVZL1huBPQ5ZqbtZAjKS0Q@mail.gmail.com>
-Subject: Re: [RFC PATCH] ovl: keep merged and impure readdir caches separate
-To: Nirmoy Das <nirmoyd@nvidia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, 
-	syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] ovl: keep err zero after successful ovl_cache_get()
+To: Amir Goldstein <amir73il@gmail.com>
+CC: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner
+	<brauner@kernel.org>, <linux-unionfs@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com>,
+	<stable@vger.kernel.org>
+References: <20260514111354.3552538-1-nirmoyd@nvidia.com>
+ <20260514144258.3068715-1-nirmoyd@nvidia.com>
+ <CAOQ4uxjGhRLnuU_=m=P-omUMM=0F+Mxs1O=zTasVnLdLz8ut3A@mail.gmail.com>
+ <CAOQ4uxgad=DE9wMAS6Wn9rrEkOX3p0S8jEhsjnj=Or=_7HsqyA@mail.gmail.com>
+Content-Language: en-US
+From: Nirmoy Das <nirmoyd@nvidia.com>
+In-Reply-To: <CAOQ4uxgad=DE9wMAS6Wn9rrEkOX3p0S8jEhsjnj=Or=_7HsqyA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EDD5:EE_|DS7PR12MB5839:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2fb4250e-597e-4718-030b-08deb27359be
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700016|376014|1800799024|18002099003|22082099003|4143699003|13003099007|56012099003|11063799003;
+X-Microsoft-Antispam-Message-Info:
+	NQyEd8VbH3rBpc0I+Gd+j80NEQCgHNSxhXiVEEcX8ZAxKXh7CMWta5E1dpa2ZgPOcYRsvqiqtupiK3m534Ba9NevUVwE1fznIX0YJRk19Wod6UdIAmBDd0x9Zia2fj/f8lEaIidPXLjEAUN55fhFP7y+KyndH0VYAuhz7yk139okPAHz/Sa/1c0Hs5A8D4ouKL7qGqmzvpejA9Qd8yJZjiQ6oba7ZNMYDD99jcNQkgvyocWlNbPcDhE1W0Rk69LLzrSOmSQexsBXa+g8XSjEa9gYJA93+C5JRde9HqDtupVDg2O+Cyyz1hAO9Xea/mdBaXPF0eIs4H4yWxGbSit1gA2jmimJ4c8eLVncqQmxBvs31fydZzdIATJ49fY324hZmmxj9iO86OYuBzLDRMNeg0gH9dP9ivRUcMT7XLakOpzHkEloXYPwDdY13GaH4HrsGVS4Outn8BEKScU1PdXxqbLafnPruhPpMa0h1+egjU/dNzez9klvlXAairQ26po03gVzNWNfXL3O36004SqcPM6OIR3ft1nIwXhYGOJUfnDHi0ZgCTottz4fBzualgrk54Y83MGlTYxSDcrOyqAq4ChWPVedN2zh9bVnB4nmzJwWX+bmdemCrq9AjV+3HuddqQwm9rfDvhlIC07IphZ1ItJxAWyx4c4WvzWkZUHlP5jnkAWN2ygAab2N59bA6xOqry7lSMgAe3P9ClWSGjkI14H6c+uqW1nQDRGaXJLoqDE=
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(376014)(1800799024)(18002099003)(22082099003)(4143699003)(13003099007)(56012099003)(11063799003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	sezpQHO02kjOEYKL6LYSe/WmfCH2BEIA+r+hTrbVg08fZ2hU1uVke47g2FabryaxdYV5cS1jFyPOltuJKwta8CuIn9ARVC3oVt1bM9BWOdNHDeoJCNvrQdKZk0VETTb24A3zSQlCbssRWBupvKotdIICRidZjJvlujWa5/7WzLyuRDBovaLaEA82tYZIHeEPSkxOzh+YBLTCuWNc/1+JVVexm8DRxVHq695l+/fk6CszUZWtck25DZ7Xj44PivufBRJWK+N0ppop7I9noPdKOstFqXromInYXAlb9//Ohr33Biw4gNzz8wKGDyKV6lQPyFgh7q9zFVnwEGaU5ch6MhWGwzRv+bKN7+2zSN9fgf5of9EIZedM6ZQeoM5ka5DdRmCsoCmlIKxM5R+VG2EDsO7oeUlRPgn/sfezNWvchCt1S3zG87fVjBGHbfvDCw8C
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 May 2026 11:16:02.8287
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2fb4250e-597e-4718-030b-08deb27359be
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CY4PEPF0000EDD5.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB5839
 
-On Thu, May 14, 2026 at 5:16=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+Hi Amir,
+
+On 14.05.26 22:19, Amir Goldstein wrote:
+> On Thu, May 14, 2026 at 5:26 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Thu, May 14, 2026 at 4:43 PM Nirmoy Das <nirmoyd@nvidia.com> wrote:
+>>> ovl_iterate_merged() stores PTR_ERR(cache) in err before checking
+>>> IS_ERR(cache). On success err holds the truncated cache pointer and
+>>> can be returned as a bogus non-zero error.
+>>>
+>>> The syzbot reproducer reaches this through overlay-on-overlay readdir:
+>>>
+>>>    getdents64
+>>>      iterate_dir(outer overlay file)
+>>>        ovl_iterate_merged()
+>>>          ovl_cache_get()
+>>>            ovl_dir_read_merged()
+>>>              ovl_dir_read()
+>>>                iterate_dir(inner overlay file)
+>>>                  ovl_iterate_merged()
+>>>
+>>> Only compute PTR_ERR(cache) on the error path.
+>>>
+>>> Fixes: d25e4b739f83 ("ovl: refactor ovl_iterate() and port to cred guard")
+>>> Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
+>>> Closes: https://syzkaller.appspot.com/bug?extid=a16fb0cce329a320661c
+>>> Cc: stable@vger.kernel.org
+>>> Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
+>>> ---
+>>> v2:
+>>>   - Drop the now-redundant 'int err = 0' initializer and the trailing
+>>>     'return err' in ovl_iterate_merged(); err is only used inside the
+>>>     loop's update-check, so the function can just return 0 on success.
+>>>     (Amir Goldstein)
+>>>   - Link to v1:
+>>>     https://lore.kernel.org/all/20260514111354.3552538-1-nirmoyd@nvidia.com/
+>>>
+>> I queue this up and will work on fortifying patches.
+> Nirmoy,
 >
-> On Thu, May 14, 2026 at 4:55=E2=80=AFPM Nirmoy Das <nirmoyd@nvidia.com> w=
-rote:
-> > On 14.05.26 16:09, Amir Goldstein wrote:
-> ...
-> >> Patch looks great - real root cause, gave you minor comments.
-> >>
-> >> IIUC, as far as you know, the repro never triggered the theoretic
-> >> OVL_WHITEOUTS race?
-> >>
-> >> It was always just this ERR_PTR(PTR_ERR()) black magic?
-> >
-> >
-> > Yes, with this particular syzkaller reproducer, it was always this blac=
-k magic. I tried with and without your suggested changes and saw no differe=
-nce in the crash behavior.
-> >
-> > But I think we should also have the fix for OVL_WHITEOUTS race as well.
-> >
+> I pushed fortify patches to ovl-fixes on my github [1].
 >
-> Yeh maybe.
-> I don't like making fixes to theoretical races without reproducers.
-> I'll think about it.
-> Maybe I'll try to reproduce synthetically.
-> Or maybe I'll just do a fortify patch.
+> Can you verify that the assertions trigger if you revert your fix
+> and run the reproducer?
+>
+> I imagine they would trigger much more frequently than the KASAN
+> warnings do.
 
-FYI pushed readdir cache fortify patch to ovl-fixes in github.
-It is based on the idea of your first patch, but implementation
-is different.
 
-Feel free to review.
-I will post it later after testing and deciding what to do about the
-"race fix" patch.
+Yes, the assertion triggers with your ovl-fixes branch after reverting 
+my fix.
 
-Thanks,
-Amir.
+9541f25af774 Revert "ovl: keep err zero after successful ovl_cache_get()"
+1c067d912e47 ovl: add assertions in dir cache code
+98e3a2d258e9 ovl: fix race between copy-up and open of a directory
+4f80bb375112 ovl: keep err zero after successful ovl_cache_get()
+18de6460b6bd ovl: opt-in for fortified ERR_PTR()
+690bd87e1fef err_ptr.h: introduce ERR_PTR_SAFE()
+7fd2df204f34 Linux 7.1-rc2
+
+Running the syz reproducer with panic_on_warn=1 triggered:
+
+[   55.404636] ------------[ cut here ]------------
+[   55.404646] WARNING: fs/overlayfs/readdir.c:511 at 
+ovl_iterate+0x4c0/0x5bc, CPU#2: syz-ovl-iterate/14575
+[   55.406875] CPU: 2 UID: 0 PID: 14575 Comm: syz-ovl-iterate Not 
+tainted 7.1.0-rc2-g9541f25af774 #1 PREEMPT
+[   55.408328] pc : ovl_iterate+0x4c0/0x5bc
+[   55.408632] lr : ovl_iterate+0x4b4/0x5bc
+[   55.413504] x2 : 0000000000000000 x1 : 0000000000000000 x0 : 
+ffffffffc152db40
+[   55.414036] Call trace:
+[   55.414209]  ovl_iterate+0x4c0/0x5bc (P)
+[   55.414503]  wrap_directory_iterator+0x60/0x90
+[   55.414809]  shared_ovl_iterate+0x18/0x24
+[   55.415125]  iterate_dir+0x10c/0x3a4
+[   55.415365]  __arm64_sys_getdents64+0xe0/0x1e4
+[   55.417312] Kernel panic - not syncing: kernel: panic_on_warn set ...
+
+Regards,
+
+Nirmoy
+
+>
+> Thanks,
+> Amir.
+>
+> [1] https://github.com/amir73il/linux/commits/ovl-fixes/
