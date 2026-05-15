@@ -1,196 +1,179 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20CF6331214
-	for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 16:39:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778863190; cv=pass; b=UcxM5X9gV/SD19aJLKwQvEK+8IEkg1PS1//IWPLxYi7LbZAtYieooC0lFB4JVM5Ou7rUu+vqZUyJocvw9ZAv45rQJtrusQMRhSDg3Uv1AQuVu6r3zOAbn6a/3VWtZhHhpVbZH38CwnkJyK/9NTWtBPYYcT3x1E13HX3J5uzVjP8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778863190; c=relaxed/simple;
-	bh=X0/FYBGL2UFez5gMIokAoweUxT0r42Cl4VVd+nHXcgY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=n4cxxFz5XWxdY72+dfWKO3eB6pNW+lgDMOJZIn2iRQk+WYHk+Ne7nL3YhUvFjn2UmqvLntczXdM8Oz3f8801pQRlNNaId7AkGtkM5ND83bTPOZLGEtuDNsMjb7F+dCfs2L40A9G/z3J7Wx59vmwtodVNY/3U3QcmoI951ay0E9Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Q1vsM7yZ; arc=pass smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E23C3D75AF
+	for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 18:30:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778869826; cv=none; b=YdE1lSu2EofTrb0U9vwOcZJqTvoYsPC2dQ2nvXb7DVQv8KDz8DakbuBlpSwdy1QH/pugJ9XyUtItjFZRfr68Q8qiMev48B20uSFuyUI03bf4reABX/DqjxXGf04yNGBY1nO0cDPbw6iDSXj00e4/u7+ALlE5+qnTqm7BOCyIThE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778869826; c=relaxed/simple;
+	bh=FJ1CmlQ6zsQ+MAOInKPXJ7AX6bhdHoCN86zCtwhXZnk=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=rPIv64FuXaZkrsKcUo8Tv0BJMbCkm7OFKm26DkqsaF8p/xzWiKbLaDx9oEmwHoO+6iFgvytQRNIptiZhU6BJH2Oh1tYp/T6OFBoQDmzpSNEeJwe2+IYq6jVq6qzZmVrZCP/p7n4O4NO0Wva6p1cBiKA7alD+/XjuLv+HvzW4xOw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eF8KJQqi; arc=none smtp.client-ip=209.85.128.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q1vsM7yZ"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-bd21ffaca79so245525566b.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 09:39:48 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778863187; cv=none;
-        d=google.com; s=arc-20240605;
-        b=Pyjf9NZPALoGKRoJ1Su2PywicuLvD/nA+0FrzooxeWVmcVgLLIDRxUXZI9BjJApZQd
-         IP6R1+5C1Y4VJAjVv8v2a0tmpaIFsuDA364OiGd1d0UN0+u82WeHCZm+eSJuLO7FbRdV
-         w8fWjqx19pd9pJPJEKzWKBzMhLZ3nQXEY/J9lCbmzSRhwWk1+X5WyWhgEohPQWlOQ78m
-         84xeMlrhOwxNQXptI+LQ+fe0niHTK4GZwscGg8xNsKKlwZKTn7kOctrVd+uMCfaQAHzn
-         XEfVWDOSWpdxLqth5KsjbQKztEipj2DnWngD2ujcVbBTPtciuRQGMrgWr/vU3QF4VhV/
-         UAfA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=HlWb6KwLW1iKWT50I5UpGmZm4onihoatH6gRlOACLtE=;
-        fh=/Vt7uRkYHMrORTOmtw32UrcIT4bmOjrKmMEzgn6a7Po=;
-        b=iS4gwn98Qb0xwxyxxHU7q6IItdgDvpc9wSgpICfB8NTEDPeOtX7Hh1G00Nymk1g+9O
-         N9oGGtn4jC3tsDHQjqFNE17Pb+/htiXORjryiMg3emkm2LQM4xbaDmmLJyOh5l/Qr5DH
-         TuMgLlMNqMeapC27T7z8RTtESHIK76+0DBIyWjjJ2frM3UQXYdautbkmCknl5sl9SbJh
-         MgJBX70v8nA0/gu/HEmyQOAhD99ohujsNhL5fXbqHfqxzCGIZh2KW7Zv9MV1TbGcP3yY
-         Fm2nMJSDlIOKFTk9/Y2GBYy/6D0fyVtDWYguzwIR3K7/SFgSpwXinEXW0Wex75G2BkEn
-         z8sA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eF8KJQqi"
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-48fe26a177cso945195e9.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 11:30:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778863187; x=1779467987; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1778869815; x=1779474615; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=HlWb6KwLW1iKWT50I5UpGmZm4onihoatH6gRlOACLtE=;
-        b=Q1vsM7yZxLHYEQv3w/EEOAQww65tVjgvfXPr9rpionyxK6P+si+5j4AtNsk+DHq/C/
-         1fliqDaK1XJVeVzsRRGOxFRwQC0SywQTz/GLBRqyVf/LNyK0XSWit7kidBEgPxK0Xtgv
-         u9bZR7Pjon98keI+sXblB49vzznxT/QCJOTDJ15rI605la83nN7nONnqzT1VvVEPUQuo
-         tabedoD9/FY/lki55kCt/3gOwfSVDu+GRCvcWy+vpF4fjfwfJ/8TZHUTM14jbuDwZgL+
-         YzSL//uYQ0TH1CGkd0WUna/lYBKO4wNzcWY2b081z91sna/vjyx2jKsgVBp19eZBqk8C
-         zgPw==
+        bh=bGg9AfFIHCQMhNpGBqKuAPyLtBd2s31DOya6UeJpRsE=;
+        b=eF8KJQqibjj74DPejC5OBynfnjR13KWslNh0CwKYoHa99ltu7nt6/f4QFm/W7bms4D
+         925Z381ODL1h1aCG3XxuEcprQ5hpfVGneAzV2tEWPsbcsYgL3oEyUnDOVPWrc0hBoAOD
+         yUcTbd0+MEoVwU5ANvicxAl9V3/USqIq+3XjjuLr1hDx3gak7ny2y7P7cpVMojVz1z/9
+         3bZkb3e8dMiCsB8KkD+q2f0pU41bnPMQHoyCADztJzYfS8AAgtnfJSUCQhLMZo040Apk
+         RqlICK5NXkmB7MGbkgcLvTcl/XHghtverAuj/aByUmGrYUn5Hv51il0Smapio6Cgel0O
+         qiuw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778863187; x=1779467987;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20251104; t=1778869815; x=1779474615;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=HlWb6KwLW1iKWT50I5UpGmZm4onihoatH6gRlOACLtE=;
-        b=oh1ZpOdj5dIMWPePcUPwXBhgYYc4HWDdOeQnKgRsAq/PdDuj6cGNhbhO4Uc32La7cP
-         uPXOvaGfMz4n9jU5c5hYNKt0Jyvbx7smUwNOmlZfmD2iaNFBA2imfNq+4TX6rUn+bP2L
-         dlhA7S3Iza+x+l7qxmo5Wz0F6BWTmK53A9H7VZWd67QSIyJkHVR9aBHkCeKK9+DlOn1X
-         zJBUUlyG3CnsQiGY2+d0BfUfapzcMWveJYV8f9FT3YgIQKjEpR1ynjtO58gTP56QupUr
-         f3xvdwJGkBTgD9xxLwTTvYQJq0bosVJlhoAw0Mdu8qIp1q0VkLrsgjrGWZ+pwUmi3npx
-         Ijfw==
-X-Forwarded-Encrypted: i=1; AFNElJ/2V4Lgu53mpHh9tQezolMgtvejeHltyZ105slMYS9K61vZ0Aj/oBezqG44bPVE5v1gCvZMyDNBoNLsKzIN@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzvo0Z6X37k8Fj0IBkK+cMAY0GiAbhlyNKGhTFqAskKsnYKk3G/
-	9V0H08/cn1bfBjECXoOeuldwcKUMd8c8rDzibiHe00UM6i44Znm2SqpWhiIlfizN7arZG7qlg++
-	b569r5cYaWS0gmlwtdaTizwYSAvAlMEA=
-X-Gm-Gg: Acq92OGSDJ7thGoi+K2rKPDujfTBROenTAFp9bbguU7rkziOZxo4dMX7JjocyaLCrrS
-	rQPySjK7piaoKwQ+PezbuG2dquOGsB6TkypEjidg4mXTAJrDtjlICCFsBR10jy13z0tnna/KQEj
-	PqtFP8djWaMQQf0ODPn6aHGd/zaiqI4jYvGK8zcqQVAq1HUsdr4tYu2GRudZ/V44jzdr5FOtid8
-	Aj1bPPCcDwd2qmKeKdcOMMVoCXD0x/UxMQigaYwkwobMo5CM8aoKPXiKuCk7ontAJ+yJqxwSNPm
-	aCaU5u/2/DibAJW6MPUWc55KD2Zg1zRxMiAg+m7thg==
-X-Received: by 2002:a17:907:9347:b0:bc7:6336:6947 with SMTP id
- a640c23a62f3a-bd4f32fe846mr479049466b.4.1778863187379; Fri, 15 May 2026
- 09:39:47 -0700 (PDT)
+        bh=bGg9AfFIHCQMhNpGBqKuAPyLtBd2s31DOya6UeJpRsE=;
+        b=tRrgRU5j4PNjT7g9tlMurH9uNQpZ3LzoTyimauQBMSXLeUGXrWeq7gnZjR2V5JgJR0
+         bebtDJq5XL1WeXHKPFI1yEvjpdfJgnb/FMfjmQxjhefhict8Ar1OhjFFlu0tiwAIkiCe
+         FPa6ULVr+PCX3HRPH9SxgI6Goa/CvMIgLbdlhzIgP//c3nKhxlzjkdmwS/BgYmS3FtQm
+         s8EvmhdOATOjs1Sy2PJotzNCSi+HX+pPmzyMRK6qa5GC0l0QF7bKFrDkTnt3Z1FOSJIs
+         2FgcueV2U7YfkMWo3s7llfxKjcLYcLJ+e1jOjV0UmmN8zO7aoYIxhNL4QRO20+Cq7IJs
+         XlZw==
+X-Forwarded-Encrypted: i=1; AFNElJ+Tm7sBQA0sShNTfJm5LF/F7+ytjH6RcxjW5vXC8F7igmFweAtpf6wfHGS2tjpp89D91Yc7T9jzo1O5N2/P@vger.kernel.org
+X-Gm-Message-State: AOJu0YxfsGoHqACMvHBojnzDIMbxOTzN6ZdqspH7o5QWQCRorvTKzVSe
+	E4q/kwWO/l26g7A0u7BiZRBXUVahdAbZfAvVSNuF7iKvDbIIVW9rxWlT
+X-Gm-Gg: Acq92OFo9+Hd9wQ06zTOQDgmR/FZHdcm+EOtzDLzmHnCrQIqRk8OuFHazCnuqJVf420
+	nvzzS5KnXfBkQN6jv/nGg0cWXSwpmf6TGrStLAoi7tKDab/36QPpws18/a1D49nnwGFd5WJEEib
+	0rPvszBu/MUFMWzY51rDMtSco+8nvq3rUz/9ueDgMy3qpM3UyHd8Gcv6mIv8JAepzVAkG6LDKr7
+	XpWzCmH//Od6VPEiizeyELmhw3I8363nHfL5V4qIFoZhSqdoVEHulzsHOG9HDU+1Np2P+dhBQlV
+	FmZ30joVfiSa2V936vDbaopsat2Hktm8b6+Q23sHoFSLcwTE2ltIB0zl3IgLYGKlJ6bQ4SXmNTV
+	1RtLRTpfmFV7ygFcqYLECjL+8ZmjhyhK4obz258qn0mdKE76g1yP6AHRAGT+4AdG47PWkFq76Le
+	A+PtGoLdG9geYeELCinNqt1zruEPPeqXgahaDEyTtIuAq3vpuPjDA8Uaw+4gMW
+X-Received: by 2002:a05:600c:470e:b0:489:201c:dc46 with SMTP id 5b1f17b1804b1-48fe60ea590mr70278195e9.12.1778869814718;
+        Fri, 15 May 2026 11:30:14 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48fe4862209sm78901635e9.0.2026.05.15.11.30.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 15 May 2026 11:30:14 -0700 (PDT)
+Date: Fri, 15 May 2026 19:30:10 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner
+ <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Al Viro
+ <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>,
+ Nirmoy Das <nirmoyd@nvidia.com>, linux-unionfs@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] err_ptr.h: introduce ERR_PTR_SAFE()
+Message-ID: <20260515193010.056ef472@pumpkin>
+In-Reply-To: <20260514200129.94862-1-amir73il@gmail.com>
+References: <20260514200129.94862-1-amir73il@gmail.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260514111354.3552538-1-nirmoyd@nvidia.com> <20260514144258.3068715-1-nirmoyd@nvidia.com>
- <CAOQ4uxjGhRLnuU_=m=P-omUMM=0F+Mxs1O=zTasVnLdLz8ut3A@mail.gmail.com>
- <CAOQ4uxgad=DE9wMAS6Wn9rrEkOX3p0S8jEhsjnj=Or=_7HsqyA@mail.gmail.com> <20be39e1-8da7-4f81-9134-d748841b3611@nvidia.com>
-In-Reply-To: <20be39e1-8da7-4f81-9134-d748841b3611@nvidia.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 15 May 2026 18:39:35 +0200
-X-Gm-Features: AVHnY4Lq6JVsCpgqykJC2yfUGTMMoHPOa_7PG3ScFKZu8EN8Pa8ub2vRTeloplc
-Message-ID: <CAOQ4uxifua9RvEGJfU0ho28Lkdn_oqS8fBYiyxBC0Q8PWc2nJA@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: keep err zero after successful ovl_cache_get()
-To: Nirmoy Das <nirmoyd@nvidia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, 
-	syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, May 15, 2026 at 1:16=E2=80=AFPM Nirmoy Das <nirmoyd@nvidia.com> wro=
-te:
->
-> Hi Amir,
->
-> On 14.05.26 22:19, Amir Goldstein wrote:
-> > On Thu, May 14, 2026 at 5:26=E2=80=AFPM Amir Goldstein <amir73il@gmail.=
-com> wrote:
-> >> On Thu, May 14, 2026 at 4:43=E2=80=AFPM Nirmoy Das <nirmoyd@nvidia.com=
-> wrote:
-> >>> ovl_iterate_merged() stores PTR_ERR(cache) in err before checking
-> >>> IS_ERR(cache). On success err holds the truncated cache pointer and
-> >>> can be returned as a bogus non-zero error.
-> >>>
-> >>> The syzbot reproducer reaches this through overlay-on-overlay readdir=
-:
-> >>>
-> >>>    getdents64
-> >>>      iterate_dir(outer overlay file)
-> >>>        ovl_iterate_merged()
-> >>>          ovl_cache_get()
-> >>>            ovl_dir_read_merged()
-> >>>              ovl_dir_read()
-> >>>                iterate_dir(inner overlay file)
-> >>>                  ovl_iterate_merged()
-> >>>
-> >>> Only compute PTR_ERR(cache) on the error path.
-> >>>
-> >>> Fixes: d25e4b739f83 ("ovl: refactor ovl_iterate() and port to cred gu=
-ard")
-> >>> Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
-> >>> Closes: https://syzkaller.appspot.com/bug?extid=3Da16fb0cce329a320661=
-c
-> >>> Cc: stable@vger.kernel.org
-> >>> Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
-> >>> ---
-> >>> v2:
-> >>>   - Drop the now-redundant 'int err =3D 0' initializer and the traili=
-ng
-> >>>     'return err' in ovl_iterate_merged(); err is only used inside the
-> >>>     loop's update-check, so the function can just return 0 on success=
-.
-> >>>     (Amir Goldstein)
-> >>>   - Link to v1:
-> >>>     https://lore.kernel.org/all/20260514111354.3552538-1-nirmoyd@nvid=
-ia.com/
-> >>>
-> >> I queue this up and will work on fortifying patches.
-> > Nirmoy,
-> >
-> > I pushed fortify patches to ovl-fixes on my github [1].
-> >
-> > Can you verify that the assertions trigger if you revert your fix
-> > and run the reproducer?
-> >
-> > I imagine they would trigger much more frequently than the KASAN
-> > warnings do.
->
->
-> Yes, the assertion triggers with your ovl-fixes branch after reverting
-> my fix.
->
-> 9541f25af774 Revert "ovl: keep err zero after successful ovl_cache_get()"
-> 1c067d912e47 ovl: add assertions in dir cache code
-> 98e3a2d258e9 ovl: fix race between copy-up and open of a directory
-> 4f80bb375112 ovl: keep err zero after successful ovl_cache_get()
-> 18de6460b6bd ovl: opt-in for fortified ERR_PTR()
-> 690bd87e1fef err_ptr.h: introduce ERR_PTR_SAFE()
-> 7fd2df204f34 Linux 7.1-rc2
->
-> Running the syz reproducer with panic_on_warn=3D1 triggered:
->
-> [   55.404636] ------------[ cut here ]------------
-> [   55.404646] WARNING: fs/overlayfs/readdir.c:511 at
-> ovl_iterate+0x4c0/0x5bc, CPU#2: syz-ovl-iterate/14575
-> [   55.406875] CPU: 2 UID: 0 PID: 14575 Comm: syz-ovl-iterate Not
-> tainted 7.1.0-rc2-g9541f25af774 #1 PREEMPT
-> [   55.408328] pc : ovl_iterate+0x4c0/0x5bc
-> [   55.408632] lr : ovl_iterate+0x4b4/0x5bc
-> [   55.413504] x2 : 0000000000000000 x1 : 0000000000000000 x0 :
-> ffffffffc152db40
-> [   55.414036] Call trace:
-> [   55.414209]  ovl_iterate+0x4c0/0x5bc (P)
-> [   55.414503]  wrap_directory_iterator+0x60/0x90
-> [   55.414809]  shared_ovl_iterate+0x18/0x24
-> [   55.415125]  iterate_dir+0x10c/0x3a4
-> [   55.415365]  __arm64_sys_getdents64+0xe0/0x1e4
-> [   55.417312] Kernel panic - not syncing: kernel: panic_on_warn set ...
->
+On Thu, 14 May 2026 22:01:29 +0200
+Amir Goldstein <amir73il@gmail.com> wrote:
 
-Thanks for testing!
+> Code using ERR_PTR() is almost certainly intending to produce a value
+> which qualified as IS_ERR_OR_NULL(), but this is not the case when
+> code calls ERR_PTR(err) with positive or large negative err.
+> 
+> Introduce a fortified variant of ERR_PTR() whose return value is
+> guaranteed to qualify as IS_ERR_OR_NULL().
+> 
+> We add this in a new header file err_ptr.h which includes bug.h
+> for the build/run time assertions.
+> 
+> Subsystems may opt-in for fortified ERR_PTR() for specific call sites
+> or by #define ERR_PTR(err) ERR_PTR_SAFE(err).
+> 
+> Link: https://lore.kernel.org/r/CAOQ4uxg=gONUh5QEW5KJcyXLDF15HbLnc9Ea7RKPcgtyfPasTA@mail.gmail.com/
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Guys,
+> 
+> Please follow the Link to see the sneaky bug that Nirmoy tracked down.
+> syzbot has complained about this a while ago, but neither me nor my AI
+> helpers were able to track it down from code analysis.
+> 
+> Honestly, with AI review, this class of bugs (return a stale err value)
+> should not be happening anymore, but it annoyed me that ERR_PTR() can
+> return a value which is not an IS_ERR(). It messes with code flow
+> analysis.
+> 
+> What do you think about this macro?
+> 
+> I intend to #define ERR_PTR(err) ERR_PTR_SAFE(err) in overlayfs.h
+> to fortify all of the ERR_PTR() in overlayfs code.
+> 
+> What do you think about this opt-in method?
+> Any reason to make this more widespread by default?
+> 
+> Thanks,
+> Amir.
+> 
+> 
+>  include/linux/err_ptr.h | 29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+>  create mode 100644 include/linux/err_ptr.h
+> 
+> diff --git a/include/linux/err_ptr.h b/include/linux/err_ptr.h
+> new file mode 100644
+> index 0000000000000..829ec5f771528
+> --- /dev/null
+> +++ b/include/linux/err_ptr.h
+> @@ -0,0 +1,29 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +#ifndef _LINUX_ERR_PTR_H
+> +#define _LINUX_ERR_PTR_H
+> +
+> +#include <linux/err.h>
+> +#include <linux/bug.h>
+> +
+> +/**
+> + * ERR_PTR_SAFE - Create an error pointer, with validation.
+> + * @error: An error code to encode as an error pointer.
+> + *
+> + * Like ERR_PTR(), but validates @error:
+> + * - For constant @error: fails the build if the value is not a valid errno
+> + *   (zero is allowed, producing NULL).
+> + * - For variable @error: warns and clamps to -MAX_ERRNO if out of range.
+> + *
+> + * Subsystems may opt in for all ERR_PTR() call sites by adding after includes:
+> + *   #undef ERR_PTR
+> + *   #define ERR_PTR(err) ERR_PTR_SAFE(err)
+> + */
+> +#define ERR_PTR_SAFE(error) ({						\
+> +	long __e = (error);						\
+> +	if (__builtin_constant_p(__e))					\
+> +		BUILD_BUG_ON(__e && !IS_ERR_VALUE(__e));		\
+> +	__builtin_constant_p(__e) ? (void *)__e :			\
+> +		(void *)(WARN_ON(__e && !IS_ERR_VALUE(__e)) ? -MAX_ERRNO : __e);\
 
-Did it trigger faster than the KASAN warning?
-I'd imagine that it would?
+The object code bloat would be noticeable if this were used everywhere.
+But you could make it a bit simpler:
+	if (__builtin_constant_p(__e))
+		BUILD_BUG_ON(__e && !IS_ERR_VALUE(__e));
+	else if WARN_ON(__e && !IS_ERR_VALUE(__e))
+		__e = -MAX_ERRNO; // Or maybe -EINVAL to stop and other boundary errors
+	(void *)__e;
+ 
+The check for constants may be fairly pointless.
+One of the static checkers may already detect the obvious fubar ERR_PTR(EINVAL).
 
-Thanks,
-Amir.
+-- David
+
+> +})
+> +
+> +#endif /* _LINUX_ERR_PTR_H */
+
