@@ -1,209 +1,180 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16199384CD5
-	for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 19:26:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 356F330C144
+	for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 19:49:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.42
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778873180; cv=pass; b=HSCKTfTP+J0dqpeG5G4GYTVRDypQq9xmyEnzhkb4A6sGZL2AhdOmx6uauk+vyEaY7bIkw8EkqYwMZ55L/eNU7skZJIPoJJ5asrz7/dhb8y9CYFD+wBRlFxfD+ss1bg2sHe2nGZyI2BAGdEizR7HJJTND1U0ML2O6q+ARVWNyd+g=
+	t=1778874592; cv=pass; b=WO00RLwemshu+gtIpVfe2VbNZtaAdVx3rAhgqjSAZcBC2GdurUB9MtYkJDK4rmycWejOHCpohcEB/5X4iVI4dyTAriQLa8xl5C7se0uJhORz4WDCA6tWHLM6NW8gbZE7y/sXjW5R0siB+idLy2TyIdtnh8izcAuDfzbPiHt7KrI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778873180; c=relaxed/simple;
-	bh=Jtgk4bHY8pKuFBHiUXn1hiwti3fQNpoFd2aLiayn518=;
+	s=arc-20240116; t=1778874592; c=relaxed/simple;
+	bh=7GxTdDyRZn8E+iKjGgyBFLAj2qAgtyJ3AFZlUlQjvac=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pys1t+esIjp3IGbRnXcEz2liHDhemIurDRuwlWDHqpYwN9FSZ8d+d9k2Ww5L6lpN4x49vx5Zsx50qtmBmcIZeoSee8CPzihzkxu+/37CQvBovDMenUppGUeYMILuiu+/frLRaQk/kq+YQogHclZFWl3fjSbjNDeY5TAqDpOm41E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KNEOZhV3; arc=pass smtp.client-ip=209.85.208.49
+	 To:Cc:Content-Type; b=c7UG8dUfzHaTvdUmfnKmioot341rJurKOziPlEz/zHeNZx9va0WxoJCByAbsHkEhTzflbf7zz4AL91bBTRfQqW5IPXMpW2ZMv3qisP7Ogh7DpC/ZFO16fiyROJ4ZRn3Ohoa576W4Oj2DplnwZHqWUUcUnt6yKcG2Hbf7lTVMOeg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=P+0VULYB; arc=pass smtp.client-ip=209.85.218.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KNEOZhV3"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-67e9b3037dcso468907a12.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 12:26:18 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778873177; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P+0VULYB"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-bcd3c190f71so27179666b.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 12:49:50 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778874589; cv=none;
         d=google.com; s=arc-20240605;
-        b=KfxHBv5AyNlbZnyDL4o3LRIMa+OE6AhzM38vSfyJ/A0VDuEp3WX9QqdQLS4OKDjhRH
-         4IbumVc0/vaIB7hsUKsZj3pMIlKas5eOToMMnI2Jk2TXHMe3r4x8XMyWSem6fubJINaf
-         sLRpqMPxFDY0zrnzofaepItSdgy8tOLQOWo9crF3aRAByNozCcSUftQXmwOY4/kYWvR0
-         tIKOuLTVxW3SR8e4tHrRzGGAvTrasKdbO/zUjFND6FETpI43gTrs6Y3NkAGLrmsade9d
-         ByoQY/VT62eJUoXbMZ5QREhcfhgydzkN8AFn+KnG/VB4WJ0owQqmaX0GqKNfikSh6SMz
-         L62w==
+        b=GHQqGBbXztlw6OsmKaJ80YQgq3JiQ++IyDU3KAEGTLPnq3WlIJhpYWUXQrT4ZS4Scb
+         CPKZDiaRnBL38MdeSP9AlWoBUleScoXgsLumvdJ2GeNu+B2QN3laJgtIdlhOGTzZtDoX
+         WezEjbPgVzjv+lVEtEFN1u95fLjwX+7OHheIlLdOI8KkHcJ89xKtCyLlVup30uU8I14C
+         4QuwPTpyfwdnXFMHmJhobLvKaHs1bHDgkcX9gVT871MgDOGy2hyzCjZJyAWmKaeudMOy
+         tN1y9YUSuvjnlrXMn/pY2Xw2tD9vyRRxT6zBgwXxrwjg+I5UDA64wOZECK6+c6PV2PCT
+         kN8g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=jiIo+3Wea/nIZVC1zA+sluKhGCgnPapnZDBPldsE1Bg=;
-        fh=yOLuNjYXe9FCBV6K55wN2KkqP/GzMLAy/7/DiZuSeSQ=;
-        b=SKK0wY+8NZfy25JwBpttELumq64HexDQ8HUfpUiZnVvvM2r503d58B2adIqZ+oVgtI
-         YE5VUn+BWHAmRfSFMVLsieqwPxfzhg2T9qVzCcI7Tda9d3P3mKkA8QJPp6t4IvDYaoT2
-         FGsCfpmmsaIJL1sVJSJRdOLSipH1GYBuyLwK3b6oj6+Ye/96WjP6fzgigiaI6La7OsXf
-         QH6MXhUslJ/mwFINpTJw4MEAhtqtr+N+uSPm4DpC3BKs9/q4WqvEgbd5DS+urnvuoqvp
-         JGJdNOZ1f5qLqQU1vnV2s7UY6U71RFod+B9IoRsU3LgANMCcWJzhx6yMamsPvcA/Vf7h
-         roCA==;
+        bh=Pkgl8ZnS3HS5+fJnS7bmbyJkmLbqIPNkR/OfPnxajBs=;
+        fh=tLoFEP7JjB88RuKh8QVdGNxO2NRAh+XMZlrjklZ+jvA=;
+        b=ibokGV/QFZmq5g7H7YmXUiVIubnjdnLdn1IpMTU2SKdiiAzaib8hb3N39ZwOFAjI8j
+         fLxhSB+d31/NmeREzNDpqvrK8TiZ06SsRFkCKWHMKJQFlYNyBeh1XUEFfzY3pKxt3gnf
+         B3BBMXNvohE8EGON5YnOZAb5yXmuDvQLVRU6UlPmRW2b/4UmB1yAivongdBsyZTd29qa
+         3TH/8hmklkK8ztmqrue+1qutYosCYyyqmyyySPrd06Vu9mwAMUl9a59zEHJoYjKW5W3q
+         /JYhXCjKKAtGlcPYhcGeonZwllh7NiWx/VQrWd550aar/AhxTNz83bJdUdyKuo0mW0Dl
+         MRng==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778873177; x=1779477977; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778874589; x=1779479389; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=jiIo+3Wea/nIZVC1zA+sluKhGCgnPapnZDBPldsE1Bg=;
-        b=KNEOZhV3vckTHGPSL3T0pkLMJmzkD4dwVdJjEGhZJXUiWmF/94ElGUFyWobYFZFy5E
-         Qc3jh92SoocE5UJLywIeNzVcOoUsedHIVN0jGYzPi4aCgD1hZ934FIC7IY4bJqsDRhVj
-         jHrgGhWnAyUoFqzYEDTPlg3FcKep4Zi8SGL7cczwtd4YgYWPQiApcqVscJxYCC8EkZkR
-         Jn3DzLZXZFUITVBLdvgthrTNZtHC6qXWDUIxaE8azwPOzJze23NBJAji5rbjtgQsa9Nt
-         UNbwz2wm3yFsDQqO60rc877ln7IyRkZ9BWaqL16Ezp/N8n+9US/zmkYZ6Bhcus3kCeaZ
-         VsbA==
+        bh=Pkgl8ZnS3HS5+fJnS7bmbyJkmLbqIPNkR/OfPnxajBs=;
+        b=P+0VULYBrh/oy+EVn+WklzZLXw43V7hgoLD5YjhGn88lN3fDzIZbs4LTx7I4mlht8U
+         xcRibuZwtEznG4yhhu+16696KgXz1vTBr45+OfjtcqxyuMF2f6oV4gBwiIULAR5TYokt
+         LrBDxS1xP84FhxUHXc6zim1/bY61PXvnL5+qOabpWaLnmsCclSthR39qabdB8TaDtJjx
+         +wHqGjwAUQMYZSwotRw3ynvnLGLTwFKxq9P2/AHmr8MRxa9VgMKzaxargE9bbKBuQUOZ
+         iNaLjfzR6osEGYBJ+OeZ+2Ohn2spegsZ9tHDmJRRstjgP8FoWcrWdzsbGZvD1iY70E6l
+         2m6A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778873177; x=1779477977;
+        d=1e100.net; s=20251104; t=1778874589; x=1779479389;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=jiIo+3Wea/nIZVC1zA+sluKhGCgnPapnZDBPldsE1Bg=;
-        b=DzhszMbgW0OUiA4HLEVCjVBg5+7/rZOENPlXjwEeCVo1UfE25DLHUO/zsmeYEDHRa6
-         82hfIlW6owoatGHwHNCjcMcO2b6+jj/2NI9OMsIWHc0yuejWDA4QQ6ZcwUUT/CBfa14b
-         XaaWr+BOksXvbXuh1cIj/umhrbEagCnh0nNkbH93ilDYe4ZcJV62vvDNhJ7MNXz9mWQH
-         ZpbaIVB7hnIDI5zLRgbRUuDBsajm8PX7uQCdA+6Jv1h8jhPKfOPOF7OZ/L6U4PoDu6Ko
-         wASvi5Z2c5fHBe/mL4V+iWO+jtZh0lFkHCU/TeGUptWYw1AgDa4nmgixCgZXifL5kaL9
-         ++9Q==
-X-Forwarded-Encrypted: i=1; AFNElJ/SrxTmchcN/vVKT/mSmxE6VHB2xlZSUQLZLiFhUSLOhCpcLB2yvOCsH3rgTsSSCjP0k/osShNA/UN35gIY@vger.kernel.org
-X-Gm-Message-State: AOJu0YzjLWEsyNjqMCJJYZD669+2ll8MqqP/g6AD0fdENTsVvt/CCeoc
-	OBFcvhIFkDmN+E2GNdo1CBduyoiWELUXsgd1hM9A+vfzVT92tlsa/+L9YMUxod7ciUyUG2bkG1e
-	2GoETz2drMFLq6tKSgrQ03xeOJgQ/iCr3ux8O
-X-Gm-Gg: Acq92OHaw19k986gw0tFd7g+iLUNMDN98Tren5+P+upMLjn38DkE/8FIr4vvsZT+LU5
-	pRn0qxnl5Xz6l33NXIE9UmOKQkjy1f7hNQtYQwva1pTJHCCO3QGXpVS8DvtuWtWlzBXPHjDUUrI
-	Q2GDTYQ73uPoekyMsFo8XyiCqOjv6IECZjtFhTggW08yyaPo97kEMO5XLiPIXPZ2fWx10w85DAl
-	WI5GTSPy3Rh9OnDEBocyJCZ00jXlvEFc3iHidKhaVGoO9U+juO1yxSyvpxCH713I3Q7Opp4YtIA
-	F7+kY2ozL+JoMhGFY8i2g50V50F08FDl+g04D0WOiq6jcVEOU9KL2DvKofkhZRY=
-X-Received: by 2002:a05:6402:4307:b0:683:ac2c:c9d4 with SMTP id
- 4fb4d7f45d1cf-683bc1baaffmr3088704a12.5.1778873177226; Fri, 15 May 2026
- 12:26:17 -0700 (PDT)
+        bh=Pkgl8ZnS3HS5+fJnS7bmbyJkmLbqIPNkR/OfPnxajBs=;
+        b=ZDsVzmKgswYIBuwy5He731YkUVysvSZI8FvJnh+n6BvG7vJ+8kuG3QGjtzovm0RwxP
+         MhTVj8Q4J4tToW0vDlWMncPaXW7VBq29KlON78i1Mg98q8DaW1k/bQJ6E/7fX/86gN6H
+         QSuzkd6MrjWOFhEigUaMCZ1A0H2dRfK03Z8zYYH9bcIFrsHnIjvhs1EZRYyT8xvvthrj
+         VFAkLQjuzhi9fsYlh94+fYof5v+Y2CkvngCKldcav5kZ+IEG7wMPTC1iBRPg8yemOqQO
+         8L2gqKANHCdj9h8gHPufZ88c5X+FLUiqBwKUxIFGZsI0Zps4F94L2V0D6qG0I3PTIWLK
+         3R7w==
+X-Forwarded-Encrypted: i=1; AFNElJ8NzcC9m3E7Rrz087Tq8UXsAGDXULRAnICYwk9S5Fa2y/VkhLSKkeqCyi4RqzQF/j88BSgd78R6U3KLG35V@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzktebuf9O90Kl3ebYKMqtKPXTYNTuupXsGuHNmmoH6IIjIN1HG
+	WrpX635ygHoVHlhTUA/C6xA2r3mY8mTl1S065FOeRDJHuhwxgQe3t8sXg0TEYB3RhVGl8k/OjBF
+	xnSSFJHRIh8IuZISYPhRdPLU04b9MR9Q=
+X-Gm-Gg: Acq92OGWQuUAqnuzxUvOPZEuFGqOQhZnAUfus+aKlGDTArUiFylSuweAmq3gehlJLEo
+	OyTvqPnRWfnSk/vDYi7u17EFhwGnPS2KH/jaFQGktDRjnzDfk/cGkt2fJO93A2++nBZdYUCkMQp
+	6l4yqSURQ+XdIMD6BaeNNUe1pWVnleBXEBxuNLnYJ+qT09FdrYHJKZGFXhdWnaBAVPYZyCtohEP
+	lxWmTIL8j+2twG+f6jEzwUjLYlvGrdw0gDxCepieMYCVOzgngQkbbt9ZEihuJUE0A5Eg3kynmvG
+	/UwAualWAFcFSw/Nrxo1gW+DtYObXoLMlkekQqAzxg==
+X-Received: by 2002:a17:907:97d2:b0:ba6:e18f:1568 with SMTP id
+ a640c23a62f3a-bd51797076dmr296076966b.32.1778874588611; Fri, 15 May 2026
+ 12:49:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260514200129.94862-1-amir73il@gmail.com> <20260515193010.056ef472@pumpkin>
-In-Reply-To: <20260515193010.056ef472@pumpkin>
+References: <20260514111354.3552538-1-nirmoyd@nvidia.com> <20260514144258.3068715-1-nirmoyd@nvidia.com>
+In-Reply-To: <20260514144258.3068715-1-nirmoyd@nvidia.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 15 May 2026 21:26:04 +0200
-X-Gm-Features: AVHnY4KfupsRDCYO_GrvkrSFtkgr4LmPQOfCXSSMuhckYtDQtaSoNxEd8px8-G8
-Message-ID: <CAOQ4uxjDeF3uDe=OTVZ3fK65dF148FRUvPx5fOqZpoFuGUsmJQ@mail.gmail.com>
-Subject: Re: [PATCH] err_ptr.h: introduce ERR_PTR_SAFE()
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, 
-	Nirmoy Das <nirmoyd@nvidia.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Fri, 15 May 2026 21:49:37 +0200
+X-Gm-Features: AVHnY4L8qm9R6-_mhbzvddNr_Ax06itGXdxnNHato15ItBX6CxiYSHsayaZCoRc
+Message-ID: <CAOQ4uxjEZzy3wOM9pm6BKB9v8862LjHbPT8SwU5TKx3wHsnwSw@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: keep err zero after successful ovl_cache_get()
+To: Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, 
+	syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com, stable@vger.kernel.org, 
+	Nirmoy Das <nirmoyd@nvidia.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 15, 2026 at 8:30=E2=80=AFPM David Laight
-<david.laight.linux@gmail.com> wrote:
+On Thu, May 14, 2026 at 4:43=E2=80=AFPM Nirmoy Das <nirmoyd@nvidia.com> wro=
+te:
 >
-> On Thu, 14 May 2026 22:01:29 +0200
-> Amir Goldstein <amir73il@gmail.com> wrote:
+> ovl_iterate_merged() stores PTR_ERR(cache) in err before checking
+> IS_ERR(cache). On success err holds the truncated cache pointer and
+> can be returned as a bogus non-zero error.
 >
-> > Code using ERR_PTR() is almost certainly intending to produce a value
-> > which qualified as IS_ERR_OR_NULL(), but this is not the case when
-> > code calls ERR_PTR(err) with positive or large negative err.
-> >
-> > Introduce a fortified variant of ERR_PTR() whose return value is
-> > guaranteed to qualify as IS_ERR_OR_NULL().
-> >
-> > We add this in a new header file err_ptr.h which includes bug.h
-> > for the build/run time assertions.
-> >
-> > Subsystems may opt-in for fortified ERR_PTR() for specific call sites
-> > or by #define ERR_PTR(err) ERR_PTR_SAFE(err).
-> >
-> > Link: https://lore.kernel.org/r/CAOQ4uxg=3DgONUh5QEW5KJcyXLDF15HbLnc9Ea=
-7RKPcgtyfPasTA@mail.gmail.com/
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >
-> > Guys,
-> >
-> > Please follow the Link to see the sneaky bug that Nirmoy tracked down.
-> > syzbot has complained about this a while ago, but neither me nor my AI
-> > helpers were able to track it down from code analysis.
-> >
-> > Honestly, with AI review, this class of bugs (return a stale err value)
-> > should not be happening anymore, but it annoyed me that ERR_PTR() can
-> > return a value which is not an IS_ERR(). It messes with code flow
-> > analysis.
-> >
-> > What do you think about this macro?
-> >
-> > I intend to #define ERR_PTR(err) ERR_PTR_SAFE(err) in overlayfs.h
-> > to fortify all of the ERR_PTR() in overlayfs code.
-> >
-> > What do you think about this opt-in method?
-> > Any reason to make this more widespread by default?
-> >
-> > Thanks,
-> > Amir.
-> >
-> >
-> >  include/linux/err_ptr.h | 29 +++++++++++++++++++++++++++++
-> >  1 file changed, 29 insertions(+)
-> >  create mode 100644 include/linux/err_ptr.h
-> >
-> > diff --git a/include/linux/err_ptr.h b/include/linux/err_ptr.h
-> > new file mode 100644
-> > index 0000000000000..829ec5f771528
-> > --- /dev/null
-> > +++ b/include/linux/err_ptr.h
-> > @@ -0,0 +1,29 @@
-> > +/* SPDX-License-Identifier: GPL-2.0 */
-> > +#ifndef _LINUX_ERR_PTR_H
-> > +#define _LINUX_ERR_PTR_H
-> > +
-> > +#include <linux/err.h>
-> > +#include <linux/bug.h>
-> > +
-> > +/**
-> > + * ERR_PTR_SAFE - Create an error pointer, with validation.
-> > + * @error: An error code to encode as an error pointer.
-> > + *
-> > + * Like ERR_PTR(), but validates @error:
-> > + * - For constant @error: fails the build if the value is not a valid =
-errno
-> > + *   (zero is allowed, producing NULL).
-> > + * - For variable @error: warns and clamps to -MAX_ERRNO if out of ran=
-ge.
-> > + *
-> > + * Subsystems may opt in for all ERR_PTR() call sites by adding after =
-includes:
-> > + *   #undef ERR_PTR
-> > + *   #define ERR_PTR(err) ERR_PTR_SAFE(err)
-> > + */
-> > +#define ERR_PTR_SAFE(error) ({                                        =
-       \
-> > +     long __e =3D (error);                                            =
- \
-> > +     if (__builtin_constant_p(__e))                                  \
-> > +             BUILD_BUG_ON(__e && !IS_ERR_VALUE(__e));                \
-> > +     __builtin_constant_p(__e) ? (void *)__e :                       \
-> > +             (void *)(WARN_ON(__e && !IS_ERR_VALUE(__e)) ? -MAX_ERRNO =
-: __e);\
+> The syzbot reproducer reaches this through overlay-on-overlay readdir:
 >
-> The object code bloat would be noticeable if this were used everywhere.
-> But you could make it a bit simpler:
->         if (__builtin_constant_p(__e))
->                 BUILD_BUG_ON(__e && !IS_ERR_VALUE(__e));
->         else if WARN_ON(__e && !IS_ERR_VALUE(__e))
->                 __e =3D -MAX_ERRNO; // Or maybe -EINVAL to stop and other=
- boundary errors
->         (void *)__e;
+>   getdents64
+>     iterate_dir(outer overlay file)
+>       ovl_iterate_merged()
+>         ovl_cache_get()
+>           ovl_dir_read_merged()
+>             ovl_dir_read()
+>               iterate_dir(inner overlay file)
+>                 ovl_iterate_merged()
+>
+> Only compute PTR_ERR(cache) on the error path.
+>
+> Fixes: d25e4b739f83 ("ovl: refactor ovl_iterate() and port to cred guard"=
+)
+> Reported-by: syzbot+a16fb0cce329a320661c@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=3Da16fb0cce329a320661c
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
+> ---
+> v2:
+>  - Drop the now-redundant 'int err =3D 0' initializer and the trailing
+>    'return err' in ovl_iterate_merged(); err is only used inside the
+>    loop's update-check, so the function can just return 0 on success.
+>    (Amir Goldstein)
+>  - Link to v1:
+>    https://lore.kernel.org/all/20260514111354.3552538-1-nirmoyd@nvidia.co=
+m/
+>
+>  fs/overlayfs/readdir.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+>
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 1dcc75b3a90f9..e7fe29cb6028b 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -838,15 +838,14 @@ static int ovl_iterate_merged(struct file *file, st=
+ruct dir_context *ctx)
+>         struct ovl_dir_file *od =3D file->private_data;
+>         struct dentry *dentry =3D file->f_path.dentry;
+>         struct ovl_cache_entry *p;
+> -       int err =3D 0;
+> +       int err;
+>
+>         if (!od->cache) {
+>                 struct ovl_dir_cache *cache;
+>
+>                 cache =3D ovl_cache_get(dentry);
+> -               err =3D PTR_ERR(cache);
+>                 if (IS_ERR(cache))
+> -                       return err;
+> +                       return PTR_ERR(cache);
+>
+>                 od->cache =3D cache;
+>                 ovl_seek_cursor(od, ctx->pos);
+> @@ -869,7 +868,7 @@ static int ovl_iterate_merged(struct file *file, stru=
+ct dir_context *ctx)
+>                 od->cursor =3D p->l_node.next;
+>                 ctx->pos++;
+>         }
+> -       return err;
+> +       return 0;
+>  }
+>
+>  static bool ovl_need_adjust_d_ino(struct file *file)
+> --
+> 2.43.0
+>
 
-Yeh that's nicer thanks.
+Christian,
 
->
-> The check for constants may be fairly pointless.
-> One of the static checkers may already detect the obvious fubar ERR_PTR(E=
-INVAL).
-
-True, but I figured it didn't add much overhead if we are placing
-the runtime assertions anyway?
+Would you mind picking this one via vfs-fixes?
 
 Thanks,
 Amir.
