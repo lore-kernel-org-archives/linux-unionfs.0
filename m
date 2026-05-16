@@ -1,153 +1,215 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3700634250D
-	for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 15:35:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C109B3E5A25
+	for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 16:11:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.52
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778945747; cv=pass; b=aozvHQ54CdjQrsgehefPxD4CccBqp+kuPRYuHXT+/y2xp0h/60nB0Ni7I9MteRDzm1mURW9Y6a3dZzW7yzq+D5YLADURbWqTPDqAScD7jIohJ2fmo9NcAIX4uubxpSoAVTvBcl22jEI43gJDNW8kDVsfGh9YJDtScwDDhsYuUDM=
+	t=1778947913; cv=pass; b=R69g+JyiKpV1LX91pSgmvPxbyxA6nh98tPVLTz+vWPS9qkVdyOfCBZlYwsPRjQki3F4FNV5F4FrDbZQ5bkRas8OuyIIdsplXs5aSjckxpFvOzeiplrh75s6B1IyL1KcLjnmsNyUJjYA4SaK7YxweCR2S9edHMCn+nubJAz518RQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778945747; c=relaxed/simple;
-	bh=fpwS1NISlMl4eRyrN9kTF1MNlwgsDu4mXgeWlhdxKrU=;
+	s=arc-20240116; t=1778947913; c=relaxed/simple;
+	bh=Q7nlBd/BqBQHvksCEGaenGOCteLulS+SgKiHUiSNSEA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FuHtl8PVTwVtXNNpuBQRV5IUfIBVDJXZAe/FaNL5w7k6UBwcQjmBPV5+NJQTCRveY6vALhytKD9LGOz787RZHE2M0ek93l5ydcYFGz7XBT4mrgoa6pfsGzq6cbWjNFbpfhyinLpmbgFu/CV0u4PCvuzkU21kEGIYySg+ah3x1Ls=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aUGybiO+; arc=pass smtp.client-ip=209.85.218.48
+	 To:Cc:Content-Type; b=CsgUEJkpGUuZRd4gDwRlNjtB8nb4do4ymOOcXU0DFu5PPkZk/GVMwusIh1a9WdLV0aY8M/DsaE9HjtWVtVD9q96fBMWpwsEFIrs6TBVqLqWlxTcQGVSEMzvVLnXz7w67bAM5oKoB6ppJveZpMplYOPCdFEhaphxlTeMEyk4OjQY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UHKjgESu; arc=pass smtp.client-ip=209.85.218.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aUGybiO+"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-b9d9971d059so124850566b.2
-        for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 08:35:43 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778945742; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UHKjgESu"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-bcd3c190f71so165039366b.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 09:11:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778947910; cv=none;
         d=google.com; s=arc-20240605;
-        b=g0Wwao6kJ02BMygZV0LujdhJb4tIvWiUPNdiDeYGeTO6XEAG+aADIOb5H4KggXeV6z
-         dOXX8Re4GpwK7TkXCeZrqx8fhjkZhMEZQhyZmuPwcQZi56VSn3IYQ2meD3IfSHIUZTLq
-         hwvL689ok5wycClULEmz2dvrll1Rcr3i/vYIUoVN4nV5PYEtiSZj+Xlk8lZyz/NvvTDs
-         orA83i6PLRvW/lpI34tw6WyXL802Yp4M+QKM/zPDz7YYB8VSaCIztfSxgP+oXqzgYg0i
-         1VskTDi+ICJlu8E7VjGD53tIHZ5IIV/OXdBOuw55fIF3nnccgnGovwBI1IYAyIKad6WU
-         KTWg==
+        b=QR89po4lPLyhUt0FHOBuhZGxwJ5ISRejtuYCKn+B/QMxuPBYlKs/73LzbqPlgaCCYR
+         5apOmiu/k/yXxMYPLjjaEo1PXNr0wKyw1q1nRxs++TOTe/sg7na18r0zMgciCuh4fR73
+         qXG7nNiJB34SUuq8EnAdt0VC7Y7t+iL9XVghrLehBGJCxssvnqHntQEZ+Hers9PCOcYa
+         JQ816BBV5tNSw5xA0a0NoDL05b6ct1/aXfjX29nwXsOwYpVMgUKpFSugzwee8G1YWOPj
+         bNA75zRdaYAHzJOnhcUHzzm0XUqPlI0knQErSUVMivb8MTBqZcrkB8ZF7EFXJY04FtX0
+         JsCg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=zA9VjGoCdws4GITccriUwfqMhrSo1TzaklLYoRAlCIQ=;
-        fh=4JSuOsI1PkPVPyOc7Rjh3EIdeH3aZbM39t7btfCLiDs=;
-        b=lRFY4hfLx+LX8JcsDCLQSxEwFMiqYksDyVDRBGM2L1a3hfFFQmWQbu8s+IDrFNvzyJ
-         8cSzOKoexMbpqP2vfQnXCUA5Gc5NeqJ6OikQ2rBXnHf83TYXZlCr5Optzqmd7X3W0MNQ
-         BBCQqVaP6QBa7cb5EgAGGyIESLke64zv8yQxdLlWuoXDvymU34BQKoyBj3Zay21nSvx1
-         NlMAMYDfok2J2FlXpSfuhA1vksXOsvAD7Jewbve/sELarDjE1HrOBfyFMxscs3JgTAYr
-         JvG7rEoYippCyijwWpCfMq1UDqd1Mf9MxzaZ3IESZndu4slCxMBV41tDFmjP5qew32p6
-         Uw9w==;
+        bh=uAZW2MBE8275Ldt0n/IGNTEv2ZI5Fh5vxkOF7P2VqHg=;
+        fh=k/38k5Frqa22thpL+eRkH3xpG2GNmSviDg6/W0XBdlo=;
+        b=M2Kc0dmI/O897NRCqAK6qciIy4KAgcEToresr0FHTtjn9DGZQZLl6GfYcPQjcHYxFi
+         SR+jodyfDcFyq3t0x/mLjQEAMYN++tKHRHv18P3yUeF0Ycyg6Kzev8iQs4WZURJ48LzX
+         KUclVZMFcRaVrxPms3kE2DMFFoBxmS65CQGvBsi2eGzf664+8dDEotzNwXMEYAiLN9De
+         M5hco067+7DVFCCubgbAtcjLt+lDcC3OoJmBgdwxx0j+4I7Ha6zew44tqD7SCUoKDn+v
+         KA9FK4Q4vX3HQB+ZUGPzitvNRiferRgKCsVVJvfi5NU43Dw0SRtMlXNdGhjjN0n/wIbT
+         4plQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778945742; x=1779550542; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778947910; x=1779552710; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=zA9VjGoCdws4GITccriUwfqMhrSo1TzaklLYoRAlCIQ=;
-        b=aUGybiO+Fe2OWYzFeLoqT5eZb+3WxTaJMvH+UaXR1XdiSWz6kkO0fH/VG78Nfo8Kvy
-         bCepGxx6VaALpWC4SnC6m1dunn5oeSFeW9L1NKuNr91u6rcYo88ZngkObSgqS4CgTk4c
-         rWm+U6KnyboYphIy48zeydEOif1ViAD6lJ6Lk1IKETc+5IFZL9lOzrN+HTOtimEs4fL7
-         k+KjDd8pVdt8h0J8keOA2+em7sqeLudKQDWkw+bfnRGxu+OG8EL41aS0dgM9Ztkl2hMI
-         vX5ePaTzv+fA69bEZayJYRTohdsnIaIjfaxp8FWI/0ivmw6a/RP074bZfjdAvV2ESdUi
-         bkIg==
+        bh=uAZW2MBE8275Ldt0n/IGNTEv2ZI5Fh5vxkOF7P2VqHg=;
+        b=UHKjgESueyRnG0Qs3XcEuBaCbh248oZDehbhRdsreFuXeKoqxB9AsFEBaG9JOM2BNM
+         D8ivcfbI8YHpW2baywk8CmpdGegHHLcbvadNtDr+u9VD9Cfp6XcQRTB6lzk5W3Ba9fjT
+         MRYH0hTQCSYTGxf4zpdPGHvJ2yWveybeuSHE/RxK7rGfAk4O2EoRNnyTjsx42SCZPS43
+         nuXdv0NY3TlGO9FOv321mm7zX19+mD828Z9arkXoJUf1jRXlewwpSRReYqFK2YpqDC6p
+         oYLpfx+9jDf5Y+FVNkc0k+Dhl3rUPv8OHX7nTQmQ76t+OUXcFYooDl/z8ikOxZgRe0b6
+         90HQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778945742; x=1779550542;
+        d=1e100.net; s=20251104; t=1778947910; x=1779552710;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=zA9VjGoCdws4GITccriUwfqMhrSo1TzaklLYoRAlCIQ=;
-        b=Mc2N7K1ME87NQPr6uCs1+swXhTKlx6WoJVYW8nX2T5dzG9aKtXwd4VJ2B9s/boK8Z0
-         bUksc2GZN8QcK+BvOe9rsvRoAfQiR9scnD/QbUZ3PDpfZqFKQrv55LHss0U0n/k8SVCt
-         tZaYwfRoOVs/6bQBiQVV8LV6us4akQQ2xjVV1NGwWOiYTQv0wWG9Fb8ARnO25y4CcS0t
-         YSqHX1ZliaLcd7V3KAyccpmhjUqDdE1A9OUtFrmgoxFL+VPPSSW2NBCVe+79XGRl79OS
-         HYsIMye1XUHvz8X8Om4mPyXiZiBYbNTOt/2DxR8+gUj0+1TR8kXuY+dRA5gGlslXM1JK
-         qrfw==
-X-Forwarded-Encrypted: i=1; AFNElJ8EKs9e0NwLqyyH/o8k+2du6jTtKpNO0sS+1dEE/l4zEKSnGW2W2Jwy9gPK0NW3ssfm9PhBdLErydjW7QiB@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz9sTyaNYlH/Ch2b/Jixt2bvkYBLQPJNhtCfZvj08Zx38uGa9Ij
-	tIJnJJXubIYawZEtr4Dho8oU5kMuQjdpZfCi0XCEGf7IR2s+/Pruz/p/q0RJDBlYOdVAqTnw4Bs
-	EkZSPb1Or2iM6CPWG4RMDXsAju63EDPw=
-X-Gm-Gg: Acq92OFpcubxTTDg+hrief1NbcQQj/xH15zOLlM/8i2aJZ+7G/ONr2EoPtkdObjypfl
-	ndcXdRV+z/jjo38CJuNrnBcqApHeX7pMrR/WJlyFejROUe3U7lynZ15q1VsadiUoKoMAADg7Oph
-	bGisC1ERzpq5Y3MXphwEIeGCyJUUq8MvllesrziUTAXLXfsUOL40PphmX5olDZc5tBc4hejGFup
-	yEVEVml6Wzwz7iYbT/rNOzRl8/UA3ZxBrx7qVSmTZ5bA4030AYs8IQrWAfMvzKPqKyGcqXVfgbs
-	e7Wf4VRZ0o7mBjwRow8N+CZYjP9QdA0omIq2K5RWLw==
-X-Received: by 2002:a17:907:c80e:b0:bd4:f814:dbbe with SMTP id
- a640c23a62f3a-bd517814c55mr466886666b.19.1778945741468; Sat, 16 May 2026
- 08:35:41 -0700 (PDT)
+        bh=uAZW2MBE8275Ldt0n/IGNTEv2ZI5Fh5vxkOF7P2VqHg=;
+        b=Zr8QT/FiVaZlim3Yy/dQg4OqGzyO4D3txixidpekCN3fMXV1/4f4HNzBc9zzQkZq2V
+         83p7sR91o5/gRlpV8EI8uq1GkPgLyIkxJR4K42iqUw7ErYZhp6JnSYN7rg/jIpFAVvn0
+         aswKsdVzYmuWd09JgKU+M0ixbBweMo7y9T2SJMFiuLbF686q6gutJadG7o4WrEzVFfiz
+         F0U8MZsfNzqhnyBI193sTpk5n+wTlshgQxUh1RI2IbMPb2ev02EN03PylCZK578Fvuky
+         uSFoPd912QK0QvUhlXGlJ98bWi2dRWcTKR54AQ8huJLLc+zsbJjlF2f4MpiyqQCegYG5
+         gTGg==
+X-Forwarded-Encrypted: i=1; AFNElJ+0/l+LFi0Y/Tc4jTpiMlDA1tP0rqdSx7zrRMwZ9gw2W5ptSH6OEwXdxo1/RdkAShcD1il3Is0n9qMmPlEl@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxr55x0URXxtpWIxGAtaM1se6rrOWLwLeOi+FnqL4vlg2dEzeti
+	8/8ciiNdpEqM/34oqHvivVuiDMQ0BdzW6u42Bsqc2WPUJ2Ks9f7nIl+tXN5tgYpbS4EFXqJgdbU
+	LKS7h/81ONfxtmIKm2WRhRNkFwvDtleU=
+X-Gm-Gg: Acq92OF7D194pW3G2sr7sHoC7iBjjNZa9O7oGFt4eROrfStlacKuIByxhIVzvungsk5
+	sTrJVA4BqEXRKOgVBVbXc0qrAPkJzHjZuopUiUS2phxfSuDpySS+sMluY/vPccVgzMGuab7cJhd
+	3dxTcn0KCWfzF953tTwNKKWhbgvfEaFN1hEQINnqfczG61U6V1/XL/ENpmTfkLxX41aqHjdi82f
+	DjBBlN7YwMJ4bYD163SJ7VgrwXex4XnDgNmNHbsU72HodeDCTEx5fiuXLYDP0sEh/CnmpKUub0Z
+	Zw9EJjXH7nMoJ2ksgVMSPq3ytju8oa5AlFVZAqOd3I8Y69OtQSZ7
+X-Received: by 2002:a17:907:c714:b0:bcf:9dd2:f79e with SMTP id
+ a640c23a62f3a-bd517964d82mr481784066b.29.1778947909758; Sat, 16 May 2026
+ 09:11:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260516004004.1455526-1-joannelkoong@gmail.com> <20260516004004.1455526-9-joannelkoong@gmail.com>
-In-Reply-To: <20260516004004.1455526-9-joannelkoong@gmail.com>
+References: <20260516004004.1455526-1-joannelkoong@gmail.com>
+ <20260516004004.1455526-3-joannelkoong@gmail.com> <CAJnrk1YUjqd+j1yLXuO0M07ueCUYNC0NqgwmQSm3OiY3hnhgZQ@mail.gmail.com>
+In-Reply-To: <CAJnrk1YUjqd+j1yLXuO0M07ueCUYNC0NqgwmQSm3OiY3hnhgZQ@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 16 May 2026 17:35:30 +0200
-X-Gm-Features: AVHnY4Lv_tfty6tyl73Y0An7au81a6zgjoX6IM4U97tOfr4AKz4REFsBPKZvBnw
-Message-ID: <CAOQ4uxhUvy_+AEF10H7C1mH8ue9uDQuvcaPJqsMGssWawJZc4Q@mail.gmail.com>
-Subject: Re: [PATCH v2 08/21] fuse: handle zero ops_mask in FUSE_DEV_IOC_BACKING_OPEN
+Date: Sat, 16 May 2026 18:11:37 +0200
+X-Gm-Features: AVHnY4LRXBoTp7VSRpHV_Q0T8iOBc_MEV3aFDSOimmKfnbZNrPwrIz-QjGpKgXA
+Message-ID: <CAOQ4uxhyZU_6jbv8kY8od_SgG9yQ6aX+KcB2c1um4DajJdSPqA@mail.gmail.com>
+Subject: Re: [PATCH v2 02/21] fuse: prepare for passthrough of inode operations
 To: Joanne Koong <joannelkoong@gmail.com>
 Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
 	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 16, 2026 at 2:52=E2=80=AFAM Joanne Koong <joannelkoong@gmail.co=
+On Sat, May 16, 2026 at 3:34=E2=80=AFAM Joanne Koong <joannelkoong@gmail.co=
 m> wrote:
 >
-> Servers that pre-date the ops_mask field will pass a zero ops_mask in
-> FUSE_DEV_IOC_BACKING_OPEN. Default this to FUSE_PASSTHROUGH_RW_OPS to
-> maintain backwards compatibility.
+> On Fri, May 15, 2026 at 5:52=E2=80=AFPM Joanne Koong <joannelkoong@gmail.=
+com> wrote:
+> >
+> > From: Amir Goldstein <amir73il@gmail.com>
+> >
+> > So far, fuse passthrough was implemented for read/write/splice/mmap
+> > operations for regular files opened with FOPEN_PASSTHROUGH.
+> >
+> > A backing file is attached to a fuse inode, but only for as long as
+> > there are FOPEN_PASSTHROUGH files opened on this inode.
+> >
+> > We would like to attach a backing file to fuse inode also without an
+> > open file to allow passthrough of some inode operations.
+> >
+> > Add field ops_mask to the input argument of FUSE_DEV_IOC_BACKING_OPEN
+> > ioctl to declare the operations that would passthrough to the backing
+> > file once it has been attached to the fuse inode on lookup.
+> >
+> > Setting the FUSE_READ/FUSE_WRITE operations in the ops_mask is not
+> > required because those operations are implied by FOPEN_PASSTHROUGH.
+> >
+> > When setting operations other than FUSE_READ/FUSE_WRITE in ops_mask,
+> > non-regular backing files are allowed, so we need to verify when
+> > attaching a backing file to a fuse inode, that their file types match.
+> >
+> > For simplification of inode attribute caching, for now, require a
+> > filesystem with FUSE_PASSTHROUGH_INO (one-to-one mapping from fuse inod=
+e
+> > to backing inode) for setting up passthrough of any inode operations.
+> > We may consider relaxing this requirement for some inode operations
+> > in the future.
+> >
+> > Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  fs/fuse/backing.c         | 13 ++++++++++---
+> >  fs/fuse/fuse_i.h          | 30 ++++++++++++++++++++++++++++++
+> >  fs/fuse/iomode.c          | 16 ++++++++++++++++
+> >  include/uapi/linux/fuse.h |  9 ++++++++-
+> >  4 files changed, 64 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+> > index 4be9ccc5b3ff..0f1e1c1ec367 100644
+> > --- a/include/uapi/linux/fuse.h
+> > +++ b/include/uapi/linux/fuse.h
+> > @@ -243,6 +243,7 @@
+> >
+> > +#define FUSE_PASSTHROUGH_OP(op)        (1ULL << ((op) - 1))
+> > +
+> > +/* op bits for fuse_backing_map ops_mask */
+> > +#define FUSE_PASSTHROUGH_OP_READ       FUSE_PASSTHROUGH_OP(FUSE_READ)
+> > +#define FUSE_PASSTHROUGH_OP_WRITE      FUSE_PASSTHROUGH_OP(FUSE_WRITE)
 >
-> For FUSE_PASSTHROUGH_INO servers, an ops_mask must be set.
-> FUSE_PASSTHROUGH_INO is a new feature with no backwards compatibliity
-> requirements.
+> Do you think we should couple the passthrough op code to the fuse
+> opcode so closely, instead of defining the passthrough ops separately,
+> eg doing something like this?:
 >
-> Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+> #define FUSE_PASSTHROUGH_READ         (1 << 0)
+> #define FUSE_PASSTHROUGH_WRITE       (1 << 1)
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Don't drop the _OP_ please
+Need it to distinguish from FUSE_PASSTHROUGH{,_INO}
+and we need to think if we want to format this as 32bit and extend later
+or start with a u64 ops_mask format from the start.
 
-> ---
->  fs/fuse/backing.c | 20 +++++++++++++++++---
->  1 file changed, 17 insertions(+), 3 deletions(-)
 >
-> diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-> index 2234ab47406a..b499860e1185 100644
-> --- a/fs/fuse/backing.c
-> +++ b/fs/fuse/backing.c
-> @@ -119,9 +119,23 @@ int fuse_backing_open(struct fuse_conn *fc, struct f=
-use_backing_map *map)
->         if (map->flags || map->ops_mask & ~FUSE_BACKING_MAP_VALID_OPS)
->                 goto out;
->
-> -       /* For now passthrough inode operations requires FUSE_PASSTHROUGH=
-_INO */
-> -       if (!fc->passthrough_ino && map->ops_mask & FUSE_PASSTHROUGH_INOD=
-E_OPS)
-> -               goto out;
-> +       if (!fc->passthrough_ino) {
-> +               /*
-> +                * For now passthrough inode operations requires
-> +                * FUSE_PASSTHROUGH_INO
-> +                */
-> +               if (map->ops_mask & FUSE_PASSTHROUGH_INODE_OPS)
-> +                       goto out;
-> +               /*
-> +                * To maintain backwards compatibility with servers that
-> +                * pre-date the ops_mask field, a zero ops_mask defaults
-> +                * to passing through both reads and writes
-> +                */
-> +               if (!map->ops_mask)
-> +                       map->ops_mask |=3D FUSE_PASSTHROUGH_RW_OPS;
-> +       } else if (!map->ops_mask) {
-> +               return -EINVAL;
-> +       }
->
->         file =3D fget_raw(map->fd);
->         res =3D -EBADF;
-> --
-> 2.52.0
->
->
+> In the (far) future when some more advanced passthrough features get
+> added (eg full subtree passthrough), it seems like we'd want to add a
+> passthrough op for that,
+
+I don't know. fuse_backing_map has flags, why would we want to put that
+in ops_mask.
+
+> but that wouldn't map to a fuse op. I think
+> there are also some fuse ops we might skip defining as passthrough ops
+> but are implicitly passed through (eg FUSE_STATX which is covered by
+> FUSE_GETATTR),
+
+This could also become the case with FUSE_CREATE{,_HANDLE}
+or {FUSE,FUSEX}_CREAT.
+
+TBH, the fact that some ops will never be in the mask and
+that some ops have a canonical bit in itself does not justify creating
+a different mapping. Do we also want to squeeze the mask into 32bit
+and leave reserved space? my intuition is to leave it u64.
+
+> so it seems more intuitive to define the passthrough
+> ops as describing capabilities rather than implying that it describes
+> what specific opcodes get passed through?
+
+hmm. I guess you have a point that it is a bit limiting to commit
+to this arithmetic in UAPI.
+
+My thinking behind this was ease of use with these helpers:
+
+       if (!fuse_passthrough_op(file_inode(in), FUSE_READ))
+
+but those could just as well be macros:
+
+static inline bool fuse_inode_passthrough_op(struct inode *inode,
+                                            u64 opbit)...
+
+#define FUSE_PASSTHROUGH_OP(inode, opname)    \
+             fuse_passthrough_op(inode, FUSE_PASSTHROUGH_OP_ ## opname)
+
+#define FUSE_BACKING_MAP_OP(map, opname) \
+       ((map)->ops_mask & FUSE_PASSTHROUGH_OP ## opname))
+
+...
+       if (!FUSE_PASSTHROUGH_OP(file_inode(in), READ))
+
+wdyt?
+
+Thanks,
+Amir.
