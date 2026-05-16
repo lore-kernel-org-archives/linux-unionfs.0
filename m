@@ -1,289 +1,158 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9178B2673B0
-	for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 21:33:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A86DB38B12D
+	for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 22:23:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.44
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778967185; cv=pass; b=WVozliJbDamXvtHiTwSBFaNiWaBPaJlmCOfeExXnpbRgFPYPn85awjHotzdwXfYQc0ije2rDJUp8aL3mRFyctnnM1PxunEiH8dUz71LmlrzBJHff3LcVCsQ9gtM0B3Lgujg/gGRj1kLqUHJfPryqjXTLqjSfAXJqajnduSuv/KI=
+	t=1778970217; cv=pass; b=j2Z1UZl7/H8SIwl9TQSZ6MNryd/+9jOpXcBJ91iy2gdahjRCHXFVufojyapz2H0Gy00+ANFTSif6VZYXdZEADJnlKIMq1A4o50ItCLN/GsHctyV0II0fTpUz9m1L4huRfWEhRFq4e/OCvwlxb6l4i99Ni8mj4nqnzLBZy6IsyFs=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778967185; c=relaxed/simple;
-	bh=BXsZV79c366UnjUfakh8gqRbmjrjBqz6w7KMJevok3o=;
+	s=arc-20240116; t=1778970217; c=relaxed/simple;
+	bh=jnomCoubi0Kg5hraE0uJr+hIdRRLn/6AvriitA7UOCM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=G1/mYDmu3efEgTbWnBMH2okliTNaiVBuT4mEZuRBgDeCbB2n9GtVBMDow4Qspv0I5uOsKphlmKQ5k88k4wWiA9cEOjx1F+qK34ujasvSCfjDBSv+BQ1+dZovOFOOjvnRpP4ULJjEk0/7aVACrfaoUdTxny9WOnQoLHmYA00bl0Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NDIrtx+M; arc=pass smtp.client-ip=209.85.208.45
+	 To:Cc:Content-Type; b=MqcL4pqRLMzjadk+iRRUsWmm0O8mG7Uk8SWkIi7RSQpOXFGNVSSetFi5Fqbn8V0WACwaI+5/50/odLgnkPAoFnmbuHWGXAft/LYj/gAvAZvgPrig2cc+RbFm4XtlPdWsZ3UEmz8NnmFiTbNgnGKJ6Qq58jiOFXavvYZIFxywVWE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cDPqhqYH; arc=pass smtp.client-ip=209.85.218.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NDIrtx+M"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-67e24b8ef55so2047563a12.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 14:33:03 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778967182; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cDPqhqYH"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-bd21ffaca79so248598366b.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 15:23:34 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778970213; cv=none;
         d=google.com; s=arc-20240605;
-        b=OgnY1fJp6wVUh2UvmPCfPsHXT4uIaUvCptfSXLFQX6KIjTfOaZxGIP5k5u/FCFQ2h6
-         WffBdYTmWMJ3hI2TklTHawMnbaB70tqweWNDU4BawFDCYQSADicl0PZoUXgNkKO33L6F
-         cUlfT/VRJjETjeZoZ5M2TDVKdJepzhbTEBqgWOeusbHRaer6Xkj9nDCISwR4FnQiR1Ci
-         T/VQQjh7XyF/GlEEiidb8i/lztuvKXIBRc+riE/WUDOtkTb3iqo9eX3tBAkdqkYvlXOH
-         RoVO/7DYs7SysNLj9eLY7kHRGkTUju2GeQuDHRL1FonZXuw/QbUCjHUntAPIdSlb6Sc9
-         IK+g==
+        b=EGkYX2/xnWb10gG6f9vFODJtnabdscOKobbOjvokDGWnBh+6aNAt+BDN8YdjpHAo/x
+         VBNPmEj83h6IyXPJaFCZk43E05fqz/z2XSZfmVNTuf1pdvIMs20ffhVnmmFM60+CKos2
+         iG1gmMGRwxsgZ8iFzOhKBnmL5P7MOxUnWIYUGuHMocYr2NEe5g8KZ0MV0ItKnueDV37o
+         Vel9/wANMknGM4bKhVcN5FDh+GC6l2PQg+E8StRweJA3toCi11h4DJRY4MBf8InBBSuL
+         ASOydfZcBPduPZ/OyugY0rNRrrhqK4jBRXds0tPbgSCi8coGjIwUbnSUhqtu9Kurk/4z
+         VIIw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=BWaazyZYsXIJpOKmeh9IchbhFNxJQGeaPQHbFURAAAI=;
-        fh=woGTdxYAafmWtvyqkeByWa8+BsvgfjswpM1jACAVO/o=;
-        b=lkIfKnGDjJG6UDtmJuiRQa28WHfxezzRXxV/QpgprDKUHcom9Gxqf0dSSimcYi1o/B
-         Jbf3jAYzSS5SZxZKRWLyMIptBQZHCfk2wJFNJsAjIXlATIUp6XxiA675wuPLaq4mcMmK
-         ZVDqWXITiBdLULIbKu+7oVDDAarX2QKMNapC5ZO80/P9wI0hGH/xmzjgvbnvy7VixUzL
-         0Fr4Ht+veg44Ci6LXYWTM/kmxkswZylQFt6aOgdeWk6J8EWxjoEiWUJSjKI2AfB4AA7v
-         iOzQmOSk6XK2M44unXUG5py7+t6U1X/sEY7D4rAiyG/SE4ZGgKDuPMhIZ3if/fAsmLn/
-         lLAw==;
+        bh=yLM8Z0Tidc2198vLO+2avncDjSechT8gAlsN2JpVXKg=;
+        fh=fcyuOehT92c2XMvH00tBHIG8uuhHnW04NhlsPsdUkD8=;
+        b=ewfXrnlghA4N1h08QDHGrNySvK18UxX9HTdsYgttkrYX9pfixjisKbjlpc7LygbPDO
+         typSQaNilUCVy4yTpoD4XxR7c4p9b8DaGjZAGg42p6NXrXVphIJX5fj4IeAEl0qPmUD6
+         Tetb2ApeYS4wVNrfUDj+Lg3grlMrpaz4m7LCXY7CTsfXQ8BchIog1eIACH7UnI2KFVYd
+         vs8fDsxIUgAgkQVJwv27MI0TI6BCyZT/s5pBaa/8Gbv+uvN1IHcwXlC1teTr/mXicftt
+         Qfdk8Kxrb58fLF61sKCBoEB3b24T4Ewa/zYvjjfuW2rU7DFvv5F2TyDMdGsPOXBYroM0
+         nn0A==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778967182; x=1779571982; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778970213; x=1779575013; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=BWaazyZYsXIJpOKmeh9IchbhFNxJQGeaPQHbFURAAAI=;
-        b=NDIrtx+MGg7ifyu5vcmqYmbvuyRt7b8Ea3hyMV6Es/1/EnxBok0xC6B1gxwLhx0O1J
-         qG54YP1LvRz/gm0e7Vcxwe5FpHsaVa7l6RdcBgtQsN6QiIwxMb5wFq5M948zNBsVzDZZ
-         kzQNPVB2wM+t3YTrGlUCURdv5TVbwdNRXNb3uEInXGcT4caKMJKt8kFbp9gzhaJx/RNQ
-         f5dBPvNH9lbkun7MaJqdzi5krwVMNDq0NVOH1tYcfzpEFnjM7lme6zBT2xi+YGKuEnBM
-         3UcRFZ/ZCvru4AcP3EoxWxpjJ0EzlC4EDWEBx37MVBT3GYJIcr4x71tz6Jbhut5v/RQE
-         PGJg==
+        bh=yLM8Z0Tidc2198vLO+2avncDjSechT8gAlsN2JpVXKg=;
+        b=cDPqhqYH4sKESTeDI9J8ryDlDBnhO3c517e1VIRo0gGjVbeGX3VZkouOBIhN1TGY6B
+         y5LzjUifaLOyENzIWqayykkyW1tu7Lox2w6+DRUiU8JecAfwgZrbU5cB92YLwK9sjNUg
+         30ozVrJMCm6eyKW13oScPiKob3zEtyQE6+0p2DdBzOGkc+JK+xq4FOpWezGRE0iPZNL0
+         3xSA4rMz2kgUcyxMTanfw8OeQasDlOfjz88ce/C19SS0wODOY1RFs1I9BYlarYZpTPhh
+         40dDkJjYpmW9/rYfaFCiklo3iYMNcOY4mcao7mNCLepZt4Mv5GLWhCCdCnsI6lQEnigs
+         T+VQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778967182; x=1779571982;
+        d=1e100.net; s=20251104; t=1778970213; x=1779575013;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=BWaazyZYsXIJpOKmeh9IchbhFNxJQGeaPQHbFURAAAI=;
-        b=WARDMAJsA8lj++ZCFYcpQtOkPaI9MY3wmJWCFONQZXEELdNL/ZGiCtMn0G4hUed4SU
-         AfRNKdDioxzr7Rc6A82iXp4yssYu3ZjvAUYCRn9ZSRrDXerVI7j4BulNR5WZff9ZJCi/
-         nFIrtTKFRIMh7/ybA26IehSNmuBbAMjS7hO/uYLRPCVBDN7NqFXcN86B52pWtZVqNjWo
-         QRoE/Nt0M3HOK44+JfK1v/c2Fu4bXCU+n6iBnjpQFNXPs4k89wR7FUyajeJK0+orbE51
-         EL5u94nTqsG5nyCV84zs1I5TlmASzI3taqV1Zlyug0CRIRTBLZnPS7Rtqq03C/bA++cs
-         K5Dw==
-X-Forwarded-Encrypted: i=1; AFNElJ/Z5eBqpOkELnI/v1gRruvrGkz+7nDasCh+kssh4T61vZgMd2p+gLMhrAp74UkEqMeKJE5mCOvHfXHAAoK+@vger.kernel.org
-X-Gm-Message-State: AOJu0YzZb0k6hZsLxd+pqHFIwKI1su9osUFXIqdgdPJASkZeiP5UIil3
-	fbk3Pth1lCdyNYJ+AaBmWWm0RCF44JVCdTGNhQmux4lPX86WG/ZzqzwuVbsMTmwEvVHrwr/zCDu
-	L4Duh75OO3hpPlhuaVzquhPzqwjrEuCw=
-X-Gm-Gg: Acq92OF84wwL9jOci5E4JZEtwiMLvdPrVYNHN6N17iqwF+53ve+vfips2RfEtB8SDPE
-	uMDg/XdxGMTy0/u09IncTcNIM1lD2olpk8UwghRSke/Doyma0YVuU6VlFuMsSt9vkNkGh0tftf2
-	DZlrEex5RUtl49OVEEQ5q5cOI5VAHbXryZrdTWrq2O8vKMz0OaDR4nOmQg9ZjMlorMO1AUSE0sE
-	6L2J1N6cVIa5Du9NYacp+OwrgouLfjLaJ7PPWO4uhT83Zo50rbZetJyeMblNkBZTv+X6ENJKpzi
-	IF7qNX8/AyGAnm9uAhiTTzuLIqo6+updWU8e1GFqAg==
-X-Received: by 2002:a05:6402:2742:b0:67f:e9d0:d819 with SMTP id
- 4fb4d7f45d1cf-683bd1955e1mr4542144a12.22.1778967181731; Sat, 16 May 2026
- 14:33:01 -0700 (PDT)
+        bh=yLM8Z0Tidc2198vLO+2avncDjSechT8gAlsN2JpVXKg=;
+        b=jKT4St8/a0nvMjex7GXKpOws7ZY8bwP7NoJP2U2jYR78TehRiSisfeHNaly+WlfPC9
+         vys3O34v7AhZ7rb5fyacaCt0zoth+13erqlH3wsp1nvotdcxxQqbceZ8ziAacbQpSDdt
+         QYNwRTxA0suCaz/j5+8vCj7YHBzhhrRiW0hqgUnvCnc6sGrzpCGSto90ioa26CuP/QUB
+         Sf9P2nAoC6jGGs5BOToRJvUVUwP39BqpNAP+TjY50r2uCxA8rfZbbTig/tDrC2aqhRlf
+         gd5syv2inxZVPtTzbnEdd83oasa85YeQ6wGShPLhKv/XTUH0Srlepsohlx2Pun6gLwGb
+         9FMA==
+X-Forwarded-Encrypted: i=1; AFNElJ8w2rejEBIuo1R3/fbSS0GzE2Kpl2zlRLp2ZEoaO+JFyarzPoG2pqlhcSWPdbgVBBbEqPk2TBqzH9KUNyLr@vger.kernel.org
+X-Gm-Message-State: AOJu0YwVotNJQzPUO+1cJOCpZXfQCnLw/rT6IwhmhdwcaZaI2TaQZzJK
+	KCGdB7r1kz5S9hMdcoMne7nJPBjXQHS4FDXoPjTTz+yEUjZp5v1Us2/chBW45HUjRSrZ8Cs5vpE
+	s8/wF+T89LuZXnDTHqtwb4tI8ObR7sBaeYRke
+X-Gm-Gg: Acq92OEAlFNJWs4hfDoEOdB8AMKiHf8v3/804Us7ybqUspmxcRbGjFHr35GLAOrmU3X
+	47W+L9Pu8I52dXs34l94QuuI6jPQ4E2/5tWDiB2RC2j79opFaRDGlSAuvT6NYCY3a909kbrrpxZ
+	osqxojMHjku228by5W+knkFa/gOGsleznCRuFoMN7CLk91UKM4dX/B0SSwlJvBXEbeqx9vpqALK
+	kFK2DJtr0E2XJXUP7R0/hfqtMkj6yi5I1oNcIwhGFwlR+3unna5LUvG2LIE9SLiWPwW+Yn/5GJs
+	uyZvgtoNcYQQluRvWW3cbjIK8B7OPJabhSTxyNX3fSgTTb3G3xNO
+X-Received: by 2002:a17:907:9627:b0:bd3:7514:14f3 with SMTP id
+ a640c23a62f3a-bd4f333f84bmr729822766b.11.1778970213014; Sat, 16 May 2026
+ 15:23:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260516004004.1455526-1-joannelkoong@gmail.com> <20260516004004.1455526-18-joannelkoong@gmail.com>
-In-Reply-To: <20260516004004.1455526-18-joannelkoong@gmail.com>
+References: <20260516004004.1455526-1-joannelkoong@gmail.com>
+ <20260516004004.1455526-21-joannelkoong@gmail.com> <CAJnrk1a9_MLyMebfsDe_=Rcd2+TaiD87pW4fd4ve8ZBQPCfGcQ@mail.gmail.com>
+In-Reply-To: <CAJnrk1a9_MLyMebfsDe_=Rcd2+TaiD87pW4fd4ve8ZBQPCfGcQ@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 16 May 2026 23:32:50 +0200
-X-Gm-Features: AVHnY4KyU_ETmuYR2EQLjVCx9XjHFDk7vSclSGbQvJrWsgZeZqCv4aF_-JCdWyI
-Message-ID: <CAOQ4uxg9WT7WmJqQezgiCB1jOX_heW+=UJbbFntbfDUdm0H=tQ@mail.gmail.com>
-Subject: Re: [PATCH v2 17/21] backing-inode: add backing_inode_copyattr()
+Date: Sun, 17 May 2026 00:23:20 +0200
+X-Gm-Features: AVHnY4L4P_lpJBwi_JU31I3Z_tvNOTSVMYHRFfiIYHCC91B98n4JVW7_as_g4zg
+Message-ID: <CAOQ4uxiJaLtcuGNrYej6WCzTfu=fFfy4VLj7pUmfM+hHT0Z3Pw@mail.gmail.com>
+Subject: Re: [PATCH v2 20/21] fuse: use passthrough getattr in setattr
+ suid/sgid handling
 To: Joanne Koong <joannelkoong@gmail.com>
 Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
-	linux-unionfs@vger.kernel.org, Christian Brauner <brauner@kernel.org>
+	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 16, 2026 at 2:53=E2=80=AFAM Joanne Koong <joannelkoong@gmail.co=
+On Sat, May 16, 2026 at 3:20=E2=80=AFAM Joanne Koong <joannelkoong@gmail.co=
 m> wrote:
 >
-> Move logic in ovl_copyattr() to a generic backing_inode_copyattr()
-> function in a new fs/backing-inode.c, which other filesystems that use
-> backing inodes (eg fuse passthrough) will use.
+> On Fri, May 15, 2026 at 5:53=E2=80=AFPM Joanne Koong <joannelkoong@gmail.=
+com> wrote:
+> >
+> > When refreshing i_mode for suid/sgid kill during setattr, use
+> > passthrough getattr if the inode has that enabled.
+> >
+> > Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+> > ---
+> >  fs/fuse/dir.c | 6 +++++-
+> >  1 file changed, 5 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+> > index b67b3b334e69..fd1b3fd86968 100644
+> > --- a/fs/fuse/dir.c
+> > +++ b/fs/fuse/dir.c
+> > @@ -2524,7 +2524,11 @@ static int fuse_setattr(struct mnt_idmap *idmap,=
+ struct dentry *entry,
+> >                          * ia_mode calculation may have used stale i_mo=
+de.
+> >                          * Refresh and recalculate.
+> >                          */
+> > -                       ret =3D fuse_do_getattr(idmap, inode, NULL, fil=
+e);
+> > +                       if (fuse_passthrough_op(inode, FUSE_GETATTR))
+> > +                               ret =3D fuse_passthrough_getattr(inode,=
+ NULL,
+> > +                                                              STATX_MO=
+DE, 0);
+> > +                       else
+> > +                               ret =3D fuse_do_getattr(idmap, inode, N=
+ULL, file);
 >
-> Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
-> ---
->  fs/Makefile                   |  2 +-
->  fs/backing-inode.c            | 43 +++++++++++++++++++++++++++++++++++
->  fs/overlayfs/util.c           | 33 +++------------------------
->  include/linux/backing-inode.h | 14 ++++++++++++
+> I left this part untouched from v1 but there was a discussion [1]
+> about whether to enforce that setattr must be passed through if
+> getattr is passed through [1]. I think there might be some use cases
+> though where having only getattr passed through and not setattr is
+> useful (eg server wants fast stat() but needs to intercept attribute
+> changes for access control or policy enforcement).
 
+Of course there is. I think I was misunderstood.
 
-Nice!
+What I meant was that *specifically* for the getattr for this purpose
+of killpriv, it may make sense to ask the server's mode for
+calculating the setattr mode for the server.
 
-Please add these files to
-FILESYSTEMS [STACKABLE]
-section in MAINTAINERS.
+But this is just a hunch.
+I could be wrong and I have no strong feelings either way.
 
-Otherwise, feel free to add:
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> I'm not sure if you
+> still feel it's better to keep it simple with enforcing that
+> getattr+setattr rmust always be passed through together, Amir, but if
+> so I'm happy to add that in.
 
-There is one more cleanup patch required, now or later, to get rid of
-some awkwardness in kernel fs code.
-If you don't want to deal with it, I can take this cleanup later.
-
-d_backing_inode() is a noop from the day it was added and has 177
-call sites. Those call sites should be converted to d_inode() and
-d_backing_inode() should go away.
-
-backing_inode_security{,_novalidate}() are likewise unneeded
-dups of inode_security{,_novalidate}() and should be removed.
+No need.
 
 Thanks,
 Amir.
-
->  4 files changed, 61 insertions(+), 31 deletions(-)
->  create mode 100644 fs/backing-inode.c
->  create mode 100644 include/linux/backing-inode.h
->
-> diff --git a/fs/Makefile b/fs/Makefile
-> index cf4a745e9679..3f8a227d4938 100644
-> --- a/fs/Makefile
-> +++ b/fs/Makefile
-> @@ -40,7 +40,7 @@ obj-$(CONFIG_COMPAT_BINFMT_ELF)       +=3D compat_binfm=
-t_elf.o
->  obj-$(CONFIG_BINFMT_ELF_FDPIC) +=3D binfmt_elf_fdpic.o
->  obj-$(CONFIG_BINFMT_FLAT)      +=3D binfmt_flat.o
->
-> -obj-$(CONFIG_FS_STACK)         +=3D backing-file.o
-> +obj-$(CONFIG_FS_STACK)         +=3D backing-file.o backing-inode.o
->  obj-$(CONFIG_FS_MBCACHE)       +=3D mbcache.o
->  obj-$(CONFIG_FS_POSIX_ACL)     +=3D posix_acl.o
->  obj-$(CONFIG_NFS_COMMON)       +=3D nfs_common/
-> diff --git a/fs/backing-inode.c b/fs/backing-inode.c
-> new file mode 100644
-> index 000000000000..474770a1fa9d
-> --- /dev/null
-> +++ b/fs/backing-inode.c
-> @@ -0,0 +1,43 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Common helpers for stackable filesystems and backing inodes.
-> + */
-> +
-> +#include <linux/backing-inode.h>
-> +
-> +/*
-> + * backing_inode_copyattr - copy inode attributes from a backing inode
-> + *
-> + * When a filesystem copies inode information from a backing layer to it=
-s own
-> + * inode, it applies the idmapping of the backing mount, ensuring that
-> + * the inode ownership will correctly reflect the ownership of the idmap=
-ped
-> + * backing mount. For example, an idmapped backing mount mapping id 1001=
- to id
-> + * 1000 will take care to map any backing inode owned by id 1001 to id 1=
-000.
-> + * These mapping helpers are nops when the backing mount isn't idmapped.
-> + */
-> +void backing_inode_copyattr(struct inode *inode,
-> +                           const struct path *backing_path)
-> +{
-> +       struct inode *realinode;
-> +       struct mnt_idmap *real_idmap;
-> +       vfsuid_t vfsuid;
-> +       vfsgid_t vfsgid;
-> +
-> +       realinode =3D d_inode_rcu(backing_path->dentry);
-> +       real_idmap =3D mnt_idmap(backing_path->mnt);
-> +
-> +       spin_lock(&inode->i_lock);
-> +       vfsuid =3D i_uid_into_vfsuid(real_idmap, realinode);
-> +       vfsgid =3D i_gid_into_vfsgid(real_idmap, realinode);
-> +
-> +       inode->i_uid =3D vfsuid_into_kuid(vfsuid);
-> +       inode->i_gid =3D vfsgid_into_kgid(vfsgid);
-> +       inode->i_mode =3D realinode->i_mode;
-> +       inode_set_atime_to_ts(inode, inode_get_atime(realinode));
-> +       inode_set_mtime_to_ts(inode, inode_get_mtime(realinode));
-> +       inode_set_ctime_to_ts(inode, inode_get_ctime(realinode));
-> +       i_size_write(inode, i_size_read(realinode));
-> +       spin_unlock(&inode->i_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(backing_inode_copyattr);
-> +
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 3f1b763a8bb4..3e7d66c26c10 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -16,6 +16,7 @@
->  #include <linux/namei.h>
->  #include <linux/ratelimit.h>
->  #include <linux/overflow.h>
-> +#include <linux/backing-inode.h>
->  #include "overlayfs.h"
->
->  /* Get write access to upper mnt - may fail if upper sb was remounted ro=
- */
-> @@ -1503,38 +1504,10 @@ int ovl_sync_status(struct ovl_fs *ofs)
->         return errseq_check(&mnt->mnt_sb->s_wb_err, ofs->errseq);
->  }
->
-> -/*
-> - * ovl_copyattr() - copy inode attributes from layer to ovl inode
-> - *
-> - * When overlay copies inode information from an upper or lower layer to=
- the
-> - * relevant overlay inode it will apply the idmapping of the upper or lo=
-wer
-> - * layer when doing so ensuring that the ovl inode ownership will correc=
-tly
-> - * reflect the ownership of the idmapped upper or lower layer. For examp=
-le, an
-> - * idmapped upper or lower layer mapping id 1001 to id 1000 will take ca=
-re to
-> - * map any lower or upper inode owned by id 1001 to id 1000. These mappi=
-ng
-> - * helpers are nops when the relevant layer isn't idmapped.
-> - */
->  void ovl_copyattr(struct inode *inode)
->  {
->         struct path realpath;
-> -       struct inode *realinode;
-> -       struct mnt_idmap *real_idmap;
-> -       vfsuid_t vfsuid;
-> -       vfsgid_t vfsgid;
->
-> -       realinode =3D ovl_i_path_real(inode, &realpath);
-> -       real_idmap =3D mnt_idmap(realpath.mnt);
-> -
-> -       spin_lock(&inode->i_lock);
-> -       vfsuid =3D i_uid_into_vfsuid(real_idmap, realinode);
-> -       vfsgid =3D i_gid_into_vfsgid(real_idmap, realinode);
-> -
-> -       inode->i_uid =3D vfsuid_into_kuid(vfsuid);
-> -       inode->i_gid =3D vfsgid_into_kgid(vfsgid);
-> -       inode->i_mode =3D realinode->i_mode;
-> -       inode_set_atime_to_ts(inode, inode_get_atime(realinode));
-> -       inode_set_mtime_to_ts(inode, inode_get_mtime(realinode));
-> -       inode_set_ctime_to_ts(inode, inode_get_ctime(realinode));
-> -       i_size_write(inode, i_size_read(realinode));
-> -       spin_unlock(&inode->i_lock);
-> +       ovl_i_path_real(inode, &realpath);
-> +       backing_inode_copyattr(inode, &realpath);
->  }
-> diff --git a/include/linux/backing-inode.h b/include/linux/backing-inode.=
-h
-> new file mode 100644
-> index 000000000000..6b43cba9fabd
-> --- /dev/null
-> +++ b/include/linux/backing-inode.h
-> @@ -0,0 +1,14 @@
-> +/* SPDX-License-Identifier: GPL-2.0-only */
-> +/*
-> + * Common helpers for stackable filesystems and backing inodes.
-> + */
-> +
-> +#ifndef _LINUX_BACKING_INODE_H
-> +#define _LINUX_BACKING_INODE_H
-> +
-> +#include <linux/fs.h>
-> +
-> +void backing_inode_copyattr(struct inode *inode,
-> +                           const struct path *backing_path);
-> +
-> +#endif /* _LINUX_BACKING_INODE_H */
-> --
-> 2.52.0
->
