@@ -1,70 +1,74 @@
-Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
+Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com [209.85.128.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FDDE22F01
-	for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 00:51:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3869922F01
+	for <linux-unionfs@vger.kernel.org>; Sat, 16 May 2026 00:52:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778892717; cv=none; b=Kw9501lvkK9JBtpoK7dcSnwRGl4RvomrHHSfDBVStA4QvpX0vYSJx9tXYpJC5VNNXEDdVModQvxegcwZ+JdtFvm51Xk12VcM1i/I8DbS7IW2/npqaeFzcYN43/355XD3mHjky+GvRyOlSIf/EymnD8iLONuR2dbre4L7keHFCxo=
+	t=1778892738; cv=none; b=Xl5SAjfZUJnzeiG/XWbI+sd8QPS5ATE0nThT64gKJvXAoiC6nTwm7XFelMMUsI0VmUUHXJjPt+vQvu+ON7MuG2kJ+P92iGinaB7REtGZ2V31PHF83AYCm6YuOtcnldym8gH52DOLwPE2jFjvbQm8a9k5LdVsSoBloYuVzzZ9OzU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778892717; c=relaxed/simple;
-	bh=o67AANEOaaDmaW9WzNpQCZJDqZiiEfxqwrW/Av9TDlY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Onp4N6WyySMdRVAX+YG7fT20KrG8LMulutPDyTcHCv7K6nXSiSTCqNAEri5QBR9di2VHMl87M2FrqjS5JhXlmTDhRyL1aebPDFUyou/vT+aPQptVufdQjXLkH8utEf84yfuBx6eUarg43E9snM1turQWk23hzTZ8i+7VVz+iCp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HxLS/ndh; arc=none smtp.client-ip=209.85.128.180
+	s=arc-20240116; t=1778892738; c=relaxed/simple;
+	bh=7s7v6Q7Q18XwchqsnnBg1CXLt/ALd9UFDwaTvhxe7+E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YdjL7dwsHjR5KKLcrYZATBoVYF26Fz7F+4eJTz2DWkWVy8otEo/u9JbAFqybhbPmWSEZ74HGDljxin/6xZMOEZ1UMcxb5NYbJmxzXOzGdLBu3nVtyjdMjWY88jWyhn9pB6r9iOZBDcmewTzWJL3E6S0dejZhDCVziNNopoK6qBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EYRtcjZP; arc=none smtp.client-ip=209.85.128.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HxLS/ndh"
-Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-7c23248f3a3so568627b3.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 17:51:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EYRtcjZP"
+Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-7bd5e373d07so581177b3.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2026 17:52:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778892715; x=1779497515; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=KLYnxOjuWihDf1OJ1uA3JEFFOQyrieXCrqDHfBzMay4=;
-        b=HxLS/ndhXQunTXJDemsHPxLH/8lB3gOWOF/It+DUqx8tWQPTEgEopfRjeYdMsCFJsP
-         SUdgUt5V7/EC9PmmFwdTY+EiRESdHIDo6C912kgfyiGMA8ts84wW8MnaG/vadPkQnRLt
-         m0F3TRHd6aUC30tl48jyODgcZaNAY+E2K6K8X2D5LE7OZ282ORWwOSdrLgIkAKnBibSE
-         7wjnMsiYvS6gNvj9xXNw7E0Scy0xGtxShWgLJ5Rw7ncFdSGY7zwndn0l+GOqpjdViMUp
-         OLjYNMw5+Fe9dxRsvWsGf0DkJrZOYdyB4zVR8m4ttjMo2aTusoenlD69wBPBE+P+modW
-         MQGw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778892715; x=1779497515;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1778892736; x=1779497536; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=KLYnxOjuWihDf1OJ1uA3JEFFOQyrieXCrqDHfBzMay4=;
-        b=gkZ97lTBIAMCAlpsctXr69fJdY3I7tY3p57jpCS0OZ3KAT3rocYdglrhiP+lWjmGIs
-         y3TrcfvZnn76se7V29CuwTT3j7lK6PNOGSsRZoGJHIQesixDCdzUq9Zrf9SE5C+PZjoJ
-         ue3dNpQWOt+Oae4fF9Q4/GY6u06GHIIDjKFfdLKzH8BHDdnkPeStUqiJPFJci/tn4uuh
-         fP0xEh4IyL2AMrfUBb2+PVh8ohCa0TY9RrI2tqMICdjaTRD+Syw3n9FDzCjzJtOQktsP
-         K+OPdmYHDRKXy8AjyQ9z7U/Tn12+ouQ5N1A8ZJsusM9mPkCOoHqlH/OHcUZ09oU710R6
-         9Icg==
-X-Forwarded-Encrypted: i=1; AFNElJ8hNjJLjltLQsifCW9jR62Qq0cXrp8ACN+hCZ0noV8XVZb+lE7EocdfwpHn1J6WI+0jhyVEzzn9h5PkTMbK@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw7Y2L9iEStyrSOIDEq/1xIxeXqoiyuGI+uQu/+OY/il5cxSoEJ
-	51U2bQzuA3RrBmgETXZMSMeQJ/v2Zw+R1NQtYVIr3TWr7/Yl2mKNr6wx
-X-Gm-Gg: Acq92OGgfjmAvUJXq5Kln388YPE4wPvUSr6+CSZ/8+n7njVFZd1Fjfgvz/sM5LEHE4G
-	Lzt4BR3Ka9AS9l7wAEJcHU++Y6POXqPQErJJy7VKsDcqxnMJmu1d7puU5FdRRKOHSslkkq0QXAl
-	f3RXq8JQxdSoUwpz2ROFtOPL83zbHw2bfVayCdEhzoFn5y5BI7gfka/TwztMo0Ra2pb2DfyC2If
-	wTDB8279IwemDa1JvDRfQdAfQmxLKNgOxf9fXKumpZEjoTvMBTaX9p/pxCTRUdppVu5dqLWyIDI
-	evMNf++N9Ka72DmSJRxTk88SjY9UaVMx5Xdu+dUQ7QBmlxHF0DUq9yVW7C0ZxbBDU5IeQ5hzEYo
-	iWEy8U7GNuyTIfksFeX1MKOzjuDBgNcOYRbZKTnYIZaxKuDyOAW+D4wU+jVinLD100i795fooUJ
-	XRUjG0wRfv1HM88aWlJ52D2vyAwYWYLY4=
-X-Received: by 2002:a05:690c:6c87:b0:7c0:8028:11f7 with SMTP id 00721157ae682-7c959b9720amr74834237b3.6.1778892715333;
-        Fri, 15 May 2026 17:51:55 -0700 (PDT)
-Received: from localhost ([2a03:2880:f806:3f::])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-7c9cf5da147sm15615097b3.20.2026.05.15.17.51.54
+        bh=s36eFAIzmg/AD7FCSec4sHSYl3AeGXkpY8SXdTrFSxg=;
+        b=EYRtcjZP/3/qcTbzWZ+zuyLZCUYV/vZ0kg8bLJcp7amqQnuSlV5l5JNm5wof6T8B7B
+         EWOBKfLgiH17tcTwAHxaBQammwVK/8i+uAWjTfyy/4QyobN9gfpJfA6H5to4bdXzvRyo
+         y7VbaOzgX/iMkQWGxs+lQI/bWyX1uoq8K5vgFfNhorCx7hpgs0UeIkeiCCwSrh/RNewY
+         szkw/JdCwTX7RhXOq1hfsiQ8wSJHqGGIvfCGrocAr0JfiGdozQwDyhtV+VkyB7/tprVN
+         wYI99+MYyGdXvbn3B/VEeSZHPWMn5XvSUstVDvlE6za1j2B8JdACPyFaP3XB6LE/C4qK
+         ID9g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778892736; x=1779497536;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=s36eFAIzmg/AD7FCSec4sHSYl3AeGXkpY8SXdTrFSxg=;
+        b=U6SF1CqcKlZRZYN5OKLclfE5yi7QV848pOh4YXupQomOKJKnOBHomMQrRIsKK9fbrd
+         eB+MQPd9js4G6zSnbBnpreO/+dEzOYhPzTr4lf9M6t+ISui76ycHmJzJd9xsvsroJgIy
+         QadeB+6FYgl3Meim9OAWijqgkBwfSCQqGM5r+g6quV499HzdRF2adZz9ccBFfsUJH9BU
+         LtEkWKChy85aqlPKAICtaiNaBpmhp4p2u/QS39+yQGKpnlBvNgSHvHtes0F2Te3zo/dh
+         ovnxEKopLff4kWlxgq7HgBxwc8CNxPCwwi188icp1H2JaL281r38jl9e5mPumrci10Qv
+         E3OQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8jFNEqyx0hWvam1lcLDkaXekC4K3O4rQukVZSwZAE35yn5GO+O8dd+nsvtjEEF11GRAeKya4tXpHqTqWAP@vger.kernel.org
+X-Gm-Message-State: AOJu0YzppMshPqXY+LME46Kofp6kBV7RcQ60fFux9LAS2QaLVd05eBve
+	KLN6fAyiwPCNZvcE4fTJt8Mm4FrgEUY+3gaddfoqLhvvcd6y0PGHwWpR
+X-Gm-Gg: Acq92OHa7QCZ1Grxgb20RLOlzrWWSmOx6w0AMlyknQE20yxlExBQydCFKBMDfyIMLS+
+	X6SVCA1WjP6Yr6VgLuxyX1Z2SoDW9JEN1L7p8gg4kLQfwQ0tER+LdLfi6M1GAw9xwecBBt5Qdbp
+	Lm5BT8UkPURGqc9woTtnr1XO5hm19jAek9MyDvigMWty5bN3ru8iY2EG+Hl/imjuUlPi8cVNVGg
+	YcCOy6Pg+29j384vy6RXNgbCmSm0/zouiYJU8VKJOcU9Ki1jdY2PgEhQkN/9LFvIabkl3BHv4n8
+	qn2wE+e4QYLExr0giKuB+dCtFZX82Az0VV0LDN4BjnoZn/ibVkn4SgAsyMXpAChmCqIpZRJg9AH
+	S7RZvY4FqPe37+x1VHUlYK4i+VJB+EdtaxXU3ljTmgS2fh2XfLjkb6xx7Zce0pEGzr1gqZBkhBL
+	dCZWherOUYrFY24ALb/sq3
+X-Received: by 2002:a05:690c:6811:b0:7b3:c611:7ef5 with SMTP id 00721157ae682-7c958ecab11mr75160067b3.6.1778892736378;
+        Fri, 15 May 2026 17:52:16 -0700 (PDT)
+Received: from localhost ([2a03:2880:f806:28::])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-7c7f55b85edsm37657617b3.35.2026.05.15.17.52.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 May 2026 17:51:54 -0700 (PDT)
+        Fri, 15 May 2026 17:52:15 -0700 (PDT)
 From: Joanne Koong <joannelkoong@gmail.com>
 To: amir73il@gmail.com,
 	miklos@szeredi.hu
 Cc: fuse-devel@lists.linux.dev,
 	linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 00/21] fuse: extend passthrough to inode operations
-Date: Fri, 15 May 2026 17:39:43 -0700
-Message-ID: <20260516004004.1455526-1-joannelkoong@gmail.com>
+Subject: [PATCH v2 01/21] fuse: introduce FUSE_PASSTHROUGH_INO mode
+Date: Fri, 15 May 2026 17:39:44 -0700
+Message-ID: <20260516004004.1455526-2-joannelkoong@gmail.com>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260516004004.1455526-1-joannelkoong@gmail.com>
+References: <20260516004004.1455526-1-joannelkoong@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -73,89 +77,175 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series extends fuse passthrough to support inode operations (getattr +
-setattr) and directory readdir.
+From: Amir Goldstein <amir73il@gmail.com>
 
-The existing FUSE_PASSTHROUGH mode attaches a backing file to a fuse inode
-only when a passthrough file is open. This series introduces
-FUSE_PASSTHROUGH_INO, a stricter mode requiring one-to-one inode number
-mapping, which allows attaching a backing file for the lifetime of the fuse
-inode.
+This is a more strict variant of FUSE_PASSTHROUGH mode, in which the
+backing file inode number must match the fuse inode number.
 
-This is based off Amir's work. Patches 1-7 are from his git tree in [1].
+This mode will allow the kernel to instantiate fuse inodes by
+passthrough lookup and passthrough readdirplus and notify about those
+inodes to the server, using the backing file inode number as a unique
+identifier for fuse inodes across kernel and server.
 
-For testing/debugging, this was done using the passthrough_hp server with the
-changes in [2] applied.
+This mode limits the possibility to map multiple fuse inodes to the same
+backing file, unless they are all hardlinks.
 
-This series was run through fstests using passthrough_hp in [2]. There were no
-regressions seen compared to passthrough_hp --nopassthrough and an improvement
-in generic 683, 684, and 685 (dropping suid/sgid) now passing. Compared to
-passthrough_hp without inode operations passed through, generic tests 080 and
-215 (mapped write timestamp updates) now pass.
+This mode is only supported on 64bit arch, where ino_t is u64.
 
-This is on top of commit ea2ff881bb8e ("fuse: reduce attributes invalidated on
-directory change") + a locally applied patch [3], in Miklos's fuse tree.
+Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/fuse/file.c            |  3 +--
+ fs/fuse/fuse_i.h          |  6 ++++--
+ fs/fuse/inode.c           |  8 +++++++-
+ fs/fuse/iomode.c          | 13 ++++++++++---
+ include/uapi/linux/fuse.h |  6 +++++-
+ 5 files changed, 27 insertions(+), 9 deletions(-)
 
-[1] https://github.com/amir73il/linux/commits/fuse-backing-inode-wip/
-[2] https://github.com/joannekoong/libfuse/commits/extended_passthrough_v2/
-[3] https://lore.kernel.org/fuse-devel/20260513231437.1806724-1-joannelkoong@gmail.com/T/#u
-
-Changelog
----------
-v1: https://lore.kernel.org/fuse-devel/CAOQ4uxjBZL6CY0mJEiHrw8aR28MHg5pU+Pfr9fUqGdKPDOdwcw@mail.gmail.com/T/
-v1 -> v2:
-- Address Amir's feedback (especially about not mixing cached io mode with
-  passthrough mode, dropping the passthrough open patch, modeling some of the
-  logic after overlayfs)
-- Diff between v2 and v1 for Amir's patches 1-7:
-  https://gist.github.com/joannekoong/451eb02e716fa6321a622a61a95aea04
-
-Amir Goldstein (7):
-  fuse: introduce FUSE_PASSTHROUGH_INO mode
-  fuse: prepare for passthrough of inode operations
-  fuse: prepare for readdir passthrough on directories
-  fuse: implement passthrough for readdir
-  fuse: prepare for long lived reference on backing file
-  fuse: implement passthrough for getattr/statx
-  fuse: prepare to setup backing inode passthrough on lookup
-
-Joanne Koong (14):
-  fuse: handle zero ops_mask in FUSE_DEV_IOC_BACKING_OPEN
-  fuse: handle partial io passthrough for read/write, splice, and mmap
-  fuse: prepare to cache statx attributes from entry replies
-  fuse: clean up fuse_dentry_revalidate()
-  fuse: add struct fuse_entry2_out and helpers for extended entry
-    replies
-  fuse: add passthrough lookup
-  fuse: add passthrough support for entry creation
-  fuse: add passthrough support for create+open
-  fuse: allow backing_id=0 in open to inherit inode's backing file
-  backing-inode: add backing_inode_copyattr()
-  backing-inode: add backing_inode_setattr()
-  fuse: add passthrough setattr
-  fuse: use passthrough getattr in setattr suid/sgid handling
-  docs: fuse: document extended passthrough (FUSE_PASSTHROUGH_INO)
-
- .../filesystems/fuse/fuse-passthrough.rst     | 126 ++++++
- fs/Makefile                                   |   2 +-
- fs/backing-inode.c                            |  97 +++++
- fs/fuse/backing.c                             |  64 ++-
- fs/fuse/cuse.c                                |   2 +-
- fs/fuse/dir.c                                 | 391 +++++++++++++-----
- fs/fuse/file.c                                |  37 +-
- fs/fuse/fuse_i.h                              |  83 +++-
- fs/fuse/inode.c                               |  27 +-
- fs/fuse/iomode.c                              | 122 +++++-
- fs/fuse/passthrough.c                         | 122 +++++-
- fs/fuse/readdir.c                             |   5 +-
- fs/overlayfs/inode.c                          |  66 +--
- fs/overlayfs/util.c                           |  33 +-
- include/linux/backing-inode.h                 |  18 +
- include/uapi/linux/fuse.h                     |  32 +-
- 16 files changed, 969 insertions(+), 258 deletions(-)
- create mode 100644 fs/backing-inode.c
- create mode 100644 include/linux/backing-inode.h
-
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 7a35ac3e0023..06dc8cfe3c7b 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1429,7 +1429,6 @@ static void fuse_dio_lock(struct kiocb *iocb, struct iov_iter *from,
+ 			  bool *exclusive)
+ {
+ 	struct inode *inode = file_inode(iocb->ki_filp);
+-	struct fuse_inode *fi = get_fuse_inode(inode);
+ 
+ 	*exclusive = fuse_dio_wr_exclusive_lock(iocb, from);
+ 	if (*exclusive) {
+@@ -1444,7 +1443,7 @@ static void fuse_dio_lock(struct kiocb *iocb, struct iov_iter *from,
+ 		 * have raced, so check it again.
+ 		 */
+ 		if (fuse_io_past_eof(iocb, from) ||
+-		    fuse_inode_uncached_io_start(fi, NULL) != 0) {
++		    fuse_inode_uncached_io_start(inode, NULL) != 0) {
+ 			inode_unlock_shared(inode);
+ 			inode_lock(inode);
+ 			*exclusive = true;
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 3a7ac74a23ed..0b925ac3e195 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -698,6 +698,9 @@ struct fuse_conn {
+ 	/** @passthrough: Passthrough support for read/write IO */
+ 	unsigned int passthrough:1;
+ 
++	/** @passthrough_ino: One-to-one mapping between fuse ino to backing ino */
++	unsigned int passthrough_ino:1;
++
+ 	/** @use_pages_for_kvec_io: Use pages instead of pointer for kernel I/O */
+ 	unsigned int use_pages_for_kvec_io:1;
+ 
+@@ -1237,8 +1240,7 @@ int fuse_fileattr_set(struct mnt_idmap *idmap,
+ 
+ /* iomode.c */
+ int fuse_file_cached_io_open(struct inode *inode, struct fuse_file *ff);
+-int fuse_inode_uncached_io_start(struct fuse_inode *fi,
+-				 struct fuse_backing *fb);
++int fuse_inode_uncached_io_start(struct inode *inode, struct fuse_backing *fb);
+ void fuse_inode_uncached_io_end(struct fuse_inode *fi);
+ 
+ int fuse_file_io_open(struct file *file, struct inode *inode);
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 33009227e91d..b2a5892a4dc3 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -1397,6 +1397,8 @@ static void process_init_reply(struct fuse_args *args, int error)
+ 				fc->passthrough = 1;
+ 				fc->max_stack_depth = arg->max_stack_depth;
+ 				fm->sb->s_stack_depth = arg->max_stack_depth;
++				if (flags & FUSE_PASSTHROUGH_INO)
++					fc->passthrough_ino = 1;
+ 			}
+ 			if (flags & FUSE_NO_EXPORT_SUPPORT)
+ 				fm->sb->s_export_op = &fuse_export_fid_operations;
+@@ -1476,8 +1478,12 @@ static struct fuse_init_args *fuse_new_init(struct fuse_mount *fm)
+ #endif
+ 	if (fm->fc->auto_submounts)
+ 		flags |= FUSE_SUBMOUNTS;
+-	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
++	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH)) {
+ 		flags |= FUSE_PASSTHROUGH;
++		/* one-to-one ino mapping requires 64bit ino */
++		if (sizeof(ino_t) == sizeof(u64))
++			flags |= FUSE_PASSTHROUGH_INO;
++	}
+ 
+ 	/*
+ 	 * This is just an information flag for fuse server. No need to check
+diff --git a/fs/fuse/iomode.c b/fs/fuse/iomode.c
+index 3728933188f3..ca3b28597722 100644
+--- a/fs/fuse/iomode.c
++++ b/fs/fuse/iomode.c
+@@ -82,8 +82,10 @@ static void fuse_file_cached_io_release(struct fuse_file *ff,
+ }
+ 
+ /* Start strictly uncached io mode where cache access is not allowed */
+-int fuse_inode_uncached_io_start(struct fuse_inode *fi, struct fuse_backing *fb)
++int fuse_inode_uncached_io_start(struct inode *inode, struct fuse_backing *fb)
+ {
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	struct fuse_backing *oldfb;
+ 	int err = 0;
+ 
+@@ -94,6 +96,12 @@ int fuse_inode_uncached_io_start(struct fuse_inode *fi, struct fuse_backing *fb)
+ 		err = -EBUSY;
+ 		goto unlock;
+ 	}
++	/* With FUSE_PASSTHROUGH_INO, fuse and backing ino must match */
++	if (fb && fc->passthrough_ino &&
++	    fb->file->f_inode->i_ino != inode->i_ino) {
++		err = -EIO;
++		goto unlock;
++	}
+ 	if (fi->iocachectr > 0) {
+ 		err = -ETXTBSY;
+ 		goto unlock;
+@@ -117,10 +125,9 @@ static int fuse_file_uncached_io_open(struct inode *inode,
+ 				      struct fuse_file *ff,
+ 				      struct fuse_backing *fb)
+ {
+-	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	int err;
+ 
+-	err = fuse_inode_uncached_io_start(fi, fb);
++	err = fuse_inode_uncached_io_start(inode, fb);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+index c13e1f9a2f12..4be9ccc5b3ff 100644
+--- a/include/uapi/linux/fuse.h
++++ b/include/uapi/linux/fuse.h
+@@ -240,6 +240,9 @@
+  *  - add FUSE_COPY_FILE_RANGE_64
+  *  - add struct fuse_copy_file_range_out
+  *  - add FUSE_NOTIFY_PRUNE
++ *
++ *  7.46
++ *  - add FUSE_PASSTHROUGH_INO
+  */
+ 
+ #ifndef _LINUX_FUSE_H
+@@ -275,7 +278,7 @@
+ #define FUSE_KERNEL_VERSION 7
+ 
+ /** Minor version number of this interface */
+-#define FUSE_KERNEL_MINOR_VERSION 45
++#define FUSE_KERNEL_MINOR_VERSION 46
+ 
+ /** The node ID of the root inode */
+ #define FUSE_ROOT_ID 1
+@@ -495,6 +498,7 @@ struct fuse_file_lock {
+ #define FUSE_ALLOW_IDMAP	(1ULL << 40)
+ #define FUSE_OVER_IO_URING	(1ULL << 41)
+ #define FUSE_REQUEST_TIMEOUT	(1ULL << 42)
++#define FUSE_PASSTHROUGH_INO	(1ULL << 43)
+ 
+ /**
+  * CUSE INIT request/reply flags
 -- 
 2.52.0
 
