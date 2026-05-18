@@ -1,90 +1,173 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB05A413D98;
-	Mon, 18 May 2026 12:39:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2550643D511
+	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 12:48:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779107969; cv=none; b=gGNUpe2OtYlF4MqqqiBq34jwlXWl2ks3e4V/C6DOl+3+/dqg546o6CV1jLlE9N1KliXQ84feKOd5mLIIBQAaTlU3ZDgbZj4UGEJ9u6s+5I+9B0mxNKGMqO2CuCFOqS7Nw694UOHOAgNdZlxdfnYMgb6htvrH+QgqxwysI40DGGc=
+	t=1779108517; cv=none; b=nFSQOLW249e1b1L+XVU8EzuFoCx0R8OiCSeL1b1Y0PnzwpjWGOwLY0VOTWMA7DHD4oSrOcZ+2y0tmWehFAjlSzGr3uLIbDm5GDCS9lqweprLDr8gI44ZkgP2I0wVaqQ4BXC1JwOHZ57He8XMYtZM2HZdbjCKuSC3x0ZLRdNmZJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779107969; c=relaxed/simple;
-	bh=x1GZct0kHpiebRpuC7zyhG1VkHQuaURL5GL16ev4ciw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sMPop8Mb0FhASWX+rNniYP7rAhnQjV4HS9+eeZlNdrKMGRRhGGIz67Jq9JALr+aUWaHfqeMtMX4O8k3T6QkHRAqAwc7FgNLJH94FafyUb/8EuKm7taYEErJ0zcJCFo6eGgAnB08LaL9zrOUQ+e6hBbR7gTihHKkgqUM8M/+urYo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Br2U2CNs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779108517; c=relaxed/simple;
+	bh=ir9awwZE8mojdaXk33IApda6a3sA6BIp9dfWav123FI=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=uIKt9RlJgYP2GuxZDPWU/PPY4b2DttAhPg3XCfV3nuXeiEnV5y3vMEXWX/Tbba7HWeSmBPoS6fFS91MsPgSttJKnMZBvVVYonOiRcXpT2rGEEpiD5U1VkFIaz5mhMAW4rO72dIPaKS8z2BYGzKSEiQy3jA27rQTA3Wl5DjoyAKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LzTo3F/m; arc=none smtp.client-ip=209.85.221.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Br2U2CNs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832C1C2BCB8;
-	Mon, 18 May 2026 12:39:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779107969;
-	bh=x1GZct0kHpiebRpuC7zyhG1VkHQuaURL5GL16ev4ciw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Br2U2CNstNnfO3cl3lrEaWk6grj6YCisQmO+xWgic+/70+V3X8rrqeOnTR4Mr4z48
-	 IkuEeoRra69JNzcil03R+8+Ws6GsaGtGXIGID68k96vDUaMStCBeXpID2XdeZ7CFh3
-	 xM8WKhsbtrgre2Nd+tDBHUyRiiG0I5GL5Bi8n0rVeYY64F/mk1PubOQT1J7pJxLsLs
-	 ZP7HZU9VZ0+j8nCm6n0uoW5n8ltDGl6AqzpuUxEVgNGnJRYTZvhBZPs7ZaUzdMcg3N
-	 7E/eCiCBiCZlpurl3IvU0Hxxb8EGKuKjfqdVjHHuKpa3GQK6POicvLxERuvX8KB4Ng
-	 WNTcAlR1aWVgQ==
-Date: Mon, 18 May 2026 14:39:25 +0200
-From: Christian Brauner <brauner@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LzTo3F/m"
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-44e1ebb3122so1265520f8f.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 05:48:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779108514; x=1779713314; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ex8tnMi3tAlmxYwkM3DQvhatICWsapujzOUrgVSrXo0=;
+        b=LzTo3F/m2CgHqSzZ5lU0iUvsXsadJ4+azksDgNzEwn9u8hgsM1Pr/AduX7J8cBgOv7
+         sdOpsfo6VLz81fRhq062yCvjuYr9LXg43v3HL3G/d9kMyxZewWYnUxn94SZQPlG6rJGQ
+         41omWNJ9vD/8lSh2Zwyl/qT9H7wnSBa+Bq+Lonjqwf9AMMXPL0X51vDuFk5gldKdk7Od
+         cx3IduBHiLj8XMWPD30Bl2hSTbjnXP1ESANatm/PNN+SmNbWlFi3Aq6wcBurfg9jfVgz
+         Zntnw6oY6KpknKtUpG2jRRg2+SSsim1ZMvfMBBc9b+2YiPA7gVLTLyJIGRf/e6p02wZZ
+         ViHg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779108514; x=1779713314;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=ex8tnMi3tAlmxYwkM3DQvhatICWsapujzOUrgVSrXo0=;
+        b=H0SRzpTLNDE1Bdprk/jWkPWzmhmZyb3H6X/B3XLB38t1Wqgq9CMHxBrXuq4cDuy5HN
+         6rBIuGJVkTC79a3yw6JG2WAv8M/IXv1hAXCc0z3/xvXV2JjOBa8o2maQK2SgljN5/gKd
+         QXwXETFcLXI5jGm3hcUNpJ9DZ2tsXk0VSQCDGSWtcBXlYRgKtnaW8MLjtZ7ClO0rzHjY
+         NkIt5zk2PppBApRHJ5TS2+od3iP1RozOksjFJctnXXCW/jri0X3O48D36hcFYm1suPaK
+         rKyPVKEJnyWY2VGWc3hp2KJkXnW6NEyZfGcyG2Vg+N3E7fJkmn9er2mDH4iilDx9dQdO
+         HOvA==
+X-Forwarded-Encrypted: i=1; AFNElJ+DMPQj2lr82MF3oJfv83/bVCukqi/d1REHl0mOCvNKl920YmENGwW4y1J0BpEjhHy7z9bU6yo2jH8QMKGZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxKCTbCIChzKX0RJnFoAWx2vNkOHkofRMCW4v2ijtumltUUExGf
+	ergdt07w+WbueeNS8fC4YvtfKyVZ+jOhbqQsjwMmjBbY62fVslro7rKb
+X-Gm-Gg: Acq92OEVhMa8Al9GMaoEoJNnECvlXA1QBSWkQjswrFKw/3A0kwIktfug4YswNoUrgVd
+	kU5zU3Bt1XMKeHTs0r3tey6ZBXxfpGhxQ3KOeJ0Vz7dCypE0DS86aXe1j68Nks6UVR36KGhhrhK
+	itp2a191blzWqSTyNDOgPqeEqbgD1fadN3GCh+A7oKB71P0d+oyOR4uLMVLXmXtBCWQDTgwqdfC
+	/MUp3oAdIdkKJInfQbh9/TTLj++vhx0QIq4D5JQfWJyViNGRZwONVHxY8vzWrFnjLCTHMw9SBMn
+	gYp8wpcUZWF4h6oqiKOuSsO3s1F3d+7qWCkkE6BB6ZLcSGh/+o3UAwqStd3GJNogtb/89CfxAph
+	Tp+yL4XhFT6rkgLjbqoeDn9i/UzTvQJ9xGoAZVNPgliajFlDXcpOqNh4eSVDfykiDlLpbMpP4XL
+	n93NyWOhXQ9SdxMIWj81tYam8556ECp/VdJRtfVIKZGH6gOoXGwdi+hAdb6LfQSZwOdkmVghI0V
+	QQ=
+X-Received: by 2002:a05:6000:40df:b0:45d:b14b:2409 with SMTP id ffacd0b85a97d-45e5c35dd7bmr23470665f8f.2.1779108514308;
+        Mon, 18 May 2026 05:48:34 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45d9ed30110sm40744268f8f.13.2026.05.18.05.48.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 May 2026 05:48:33 -0700 (PDT)
+Date: Mon, 18 May 2026 13:48:32 +0100
+From: David Laight <david.laight.linux@gmail.com>
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>, 
-	Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, 
-	Nirmoy Das <nirmoyd@nvidia.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Cc: Rasmus Villemoes <ravi@prevas.dk>, Miklos Szeredi <miklos@szeredi.hu>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Al Viro
+ <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>,
+ Nirmoy Das <nirmoyd@nvidia.com>, linux-unionfs@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 Subject: Re: [PATCH] err_ptr.h: introduce ERR_PTR_SAFE()
-Message-ID: <20260518-rundschau-rohkost-e591e2d0deb9@brauner>
+Message-ID: <20260518134832.69853809@pumpkin>
+In-Reply-To: <CAOQ4uxj0sgB5B+1gzzq8fPuAPJxU=TfXMUaJtjB6vdfXUSOuqQ@mail.gmail.com>
 References: <20260514200129.94862-1-amir73il@gmail.com>
+	<20260515193010.056ef472@pumpkin>
+	<CAOQ4uxjDeF3uDe=OTVZ3fK65dF148FRUvPx5fOqZpoFuGUsmJQ@mail.gmail.com>
+	<20260516094242.77d20c92@pumpkin>
+	<CAOQ4uxjX=C6WZvW1DdJ13tJj-XBWVxgE2Q9vVvHoYqiOhqW0wQ@mail.gmail.com>
+	<87se7pdr7a.fsf@prevas.dk>
+	<CAOQ4uxj0sgB5B+1gzzq8fPuAPJxU=TfXMUaJtjB6vdfXUSOuqQ@mail.gmail.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260514200129.94862-1-amir73il@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 14, 2026 at 10:01:29PM +0200, Amir Goldstein wrote:
-> Code using ERR_PTR() is almost certainly intending to produce a value
-> which qualified as IS_ERR_OR_NULL(), but this is not the case when
-> code calls ERR_PTR(err) with positive or large negative err.
-> 
-> Introduce a fortified variant of ERR_PTR() whose return value is
-> guaranteed to qualify as IS_ERR_OR_NULL().
-> 
-> We add this in a new header file err_ptr.h which includes bug.h
-> for the build/run time assertions.
-> 
-> Subsystems may opt-in for fortified ERR_PTR() for specific call sites
-> or by #define ERR_PTR(err) ERR_PTR_SAFE(err).
-> 
-> Link: https://lore.kernel.org/r/CAOQ4uxg=gONUh5QEW5KJcyXLDF15HbLnc9Ea7RKPcgtyfPasTA@mail.gmail.com/
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
+On Mon, 18 May 2026 11:52:06 +0200
+Amir Goldstein <amir73il@gmail.com> wrote:
 
-I think this is backwards. You can of course do whatever you want in
-overlayfs but I think as a first-class concept in err.h it's not that
-great. Then we have to separate macros/inlines and almost no one will
-use ERR_PTR_SAFE().
+> On Mon, May 18, 2026 at 11:04=E2=80=AFAM Rasmus Villemoes <ravi@prevas.dk=
+> wrote:
+> >
+> > On Sat, May 16 2026, Amir Goldstein <amir73il@gmail.com> wrote:
+> > =20
+> > > On Sat, May 16, 2026 at 10:42=E2=80=AFAM David Laight
+> > > <david.laight.linux@gmail.com> wrote: =20
+> > >>
+> > >> On Fri, 15 May 2026 21:26:04 +0200
+> > >> Amir Goldstein <amir73il@gmail.com> wrote:
+> > >> =20
+> > >> > On Fri, May 15, 2026 at 8:30=E2=80=AFPM David Laight
+> > >> > <david.laight.linux@gmail.com> wrote: =20
+> > >> > >
+> > >> > > On Thu, 14 May 2026 22:01:29 +0200
+> > >> > > Amir Goldstein <amir73il@gmail.com> wrote:
+> > >> > > =20
+> > >> ... =20
+> > >> > >
+> > >> > > The object code bloat would be noticeable if this were used ever=
+ywhere.
+> > >> > > But you could make it a bit simpler:
+> > >> > >         if (__builtin_constant_p(__e))
+> > >> > >                 BUILD_BUG_ON(__e && !IS_ERR_VALUE(__e));
+> > >> > >         else if WARN_ON(__e && !IS_ERR_VALUE(__e))
+> > >> > >                 __e =3D -MAX_ERRNO; // Or maybe -EINVAL to stop =
+and other boundary errors
+> > >> > >         (void *)__e; =20
+> > >> >
+> > >> > Yeh that's nicer thanks. =20
+> > >>
+> > >> Actually this might be better still (or just more succinct):
+> > >>         void *__e =3D (void *)error;
+> > >>         BUILD_BUG_ON(!statically_true(IS_ERR_OR_NULL(__e)); =20
+> > >
+> > > This condition is wrong but also my compiler does not evaluate
+> > > __builtin_constant_p(IS_ERR_OR_NULL(__e)) as true.
+> > >
+> > > This works
+> > > BUILD_BUG_ON(statically_true(!IS_ERR_VALUE(__e)));
+> > >
+> > > I think it is enough to statically assert on ERR_PTR(EINVAL)
+> > > and no need to bother with ERR_PTR(0)
+> > > =20
+> > >>         if (WARN_ON(!IS_ERR_OR_NULL(__e))
+> > >>                 __e =3D (void *)-EINVAL; =20
+> > >
+> > > Oh, anything but EINVAL please - the most overloaded error value
+> > > My choice of meaningful error value would be EFAULT =20
+> >
+> > Could we have a dedicated "EBUG" that can be used to indicate "there's a
+> > bug somewhere in the kernel, we can handle it somewhat gracefully here
+> > by returning an error instead of BUG(). You can't do anything about it
+> > but report that you got -EBUG from $this_syscall", instead of
+> > overloading EIO, EFAULT, EINVAL or whatnot. Internally, EBUG could be a
+> > macro that did ({ WARN_ONCE(); -__EBUG; }) or something, so there would
+> > automatically be bread crumbs in dmesg if it is ever hit. =20
+>=20
+> How exactly would you use this EBUG() to write the graceful handling?
+> A bit of overengineering if you ask me.
+>=20
+> >
+> > Userspace code could also benefit from having EBUG to indicate that some
+> > internal inconsistency has been detected. =20
+>=20
+> So what about
+>=20
+> #define EBUG MAX_ERRNO
+>=20
+> as per my suggested patch.
 
-I think the correct thing would be to add an assert into ERR_PTR() and a
-debug-only one very likely at that and combine this with the static
-analyzer thing mentioned in the thread below.
+Your are relying on there being no 'off-by-one' errors.
+They happen...
 
-diff --git a/include/linux/err.h b/include/linux/err.h
-index 8c37be0620ab..6bf768adf157 100644
---- a/include/linux/err.h
-+++ b/include/linux/err.h
-@@ -38,6 +38,9 @@
-  */
- static inline void * __must_check ERR_PTR(long error)
- {
-+#ifdef CONFIG_DEBUG_INFO
-+       WARN_ON_ONCE(!IS_ERR_VALUE(error));
-+#endif
-        return (void *) error;
- }
+-- David
 
-I'm not convinced yet about ERR_PTR_SAFE().
+>=20
+> Thanks,
+> Amir.
+>=20
+
