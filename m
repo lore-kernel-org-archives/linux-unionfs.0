@@ -1,80 +1,80 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE11630FF1E
-	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 23:21:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 625C1248F62
+	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 23:47:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.42
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779146475; cv=pass; b=Q65iKSPvxt7ATmIwQNQ7TFslqMeViM0vTRpktC8dghz9DpjKXBi8f3Kxtif/J7tJj70tXJ+aI0t/gQgrFl/97sMP6i62X7vz3X/849bF8rlp2n7RSCFV1A1cTzBa8PrfluJZbrtrSxcFhd7v4Ii+WMj1s61MLLs1mCw1Es9zFSA=
+	t=1779148052; cv=pass; b=S/1Sef9cD57lqJi8AydSQl41+tThQlequMYi8aWZ1cL0ETTPPBjgAb9Nl1iWFXQ0V+uUnMvuHtGIa295bLfOlzyOOTsuxX8JWeGa4Wo5/i8xetB2QO3FXb6GBDHKQx7McVwiGL2anvM1UCsh5pF1+TByahCQaqw5FQqx2dxeCGM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779146475; c=relaxed/simple;
-	bh=4x3zQNmL9iHk74lRp0E3/wEsCAyJKC8fWM1/7YYLjCA=;
+	s=arc-20240116; t=1779148052; c=relaxed/simple;
+	bh=7JRt76FeYfU75XMfqsMxTCMGeOaC7FKxmLHQrRwmOPg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Lx96LSv/jKZGWfzvaR99igJTrCg1YKNU0YTvnuPbgZnA6ClSFh/tC1iB5/SzhF3taH54Np5uvzV5reiku/zh1iP9rhO1VRkQ8IxQ1gCdX2XmraQtmAbeYyUIfw2tWjH4p2WstazYL6HMJ8zF+BVHgdjyr7GdKm4KU9qVqb1h4Ig=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EzqekbVI; arc=pass smtp.client-ip=209.85.128.53
+	 To:Cc:Content-Type; b=YvBqDihq0quHY0rq2R/Qfvr/voTf0+gXa+osJHPZVOddCEhIGXupAnWnrglXwxqmPznkh4LKYXowDYTicrqTBUPoc8UEs6To6N5zhW+RmNrDIVK20Kh8dVrJEddMoloaqa7sd0ppxlBNf7eSkcMqhxYZq8EmdpSYVQHCPxGYTYA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cPr4BO4B; arc=pass smtp.client-ip=209.85.221.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EzqekbVI"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-48d102471a4so23012115e9.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 16:21:13 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779146472; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cPr4BO4B"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-43d7e23defbso1594681f8f.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 16:47:30 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779148049; cv=none;
         d=google.com; s=arc-20240605;
-        b=Vc1JSwaF/eooks6MVqOGTXndJ1PpQhNNpO2Ei1PaNqVsEZgvYZRTBgO60Qk30l/cYe
-         mRXcL0Wc9PsaqYdmX6u46+IP5KHfN7uVVI5dckKLSk8JjkNnAI3JN+1N/ko+BKc4x+hE
-         zK0zj6l5UGR5sX319Oz9T6rHJq+0fUOByNWT6BQwmk/o3axFah1N4UlHO65Ze0HVndTl
-         0feM90A3iy7UIlI9nKBXDoXiDj1RAg0xgFSMQyVgW+9gV6T3++3nFAf0bet4IW3mXJcG
-         ZfwuUQWy/kzGLRvfoslaUd8pyk4DUtCv1yiwf6+/bh/mEFvLoL8PTppLKhtNdISfNeUj
-         IqKQ==
+        b=lu6syPPRqPG4Xn8QivAkd2hOO6VjQpxaL045s5rotHaHHxT3Kdbjgb/nRtJtAMvrod
+         yMHv1+8b9vFid8wgg9RG4yc54tXy3kHaUK0ZVzxJFqBSeskh8ozyuMRvURE5j0e6TknU
+         9Lg+DH5XDepkptl1OubQBMVJtSmId0Qjpek0GREYGBnDNDGLs5KIF5ZsAUP28hC8rIPb
+         cezxn3jZ6nj+nfnQz4Dt34vEfyPqrrvQofjiOgXUcXKBk9RkxH3Y1dacgMCZCZxeBum4
+         JzoFoiniM1CQQtuQ5elHFYJ+O7ofNvG2Ap7sIKRGCqJtTRqTRImgcf+QT5du6cVm+Htf
+         y8ig==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=qigLvnHqnvJ1q/CbxAtya5W8ES5fZ7EbWfFSlybCG8E=;
-        fh=lmebBIqFuUjQ6U0zfdXALRuzA8ZUcX+iMY2Xg0Ng99U=;
-        b=ZLvenPZ7Ns3pjDTbprPfejcYrvxqA/cajqj+TSPMqzJ6DoTSGEsD1Mppg5vTfk4Bvs
-         MGxwjAi+FquUuxAIyvW6LuFcUHm39OVpHd1DypQrmZ6KQUWWUMOktj0DZzUbCoZxq2PD
-         cNu/Xk0jxI61pObdnnwa6dPUluk08C9F8NMPyqp8vFt8Jkc8JcXZ4UbDDaWw8VJe2Y2v
-         9GkB8CsC4Z86xHFb8jEfFUnI5jJyLH96P6CDIzHDVjXBsSVg2d1HsUsk4Ox0LBSD/Iw6
-         fLO8yIu+U4uTflmMP7GGV1YLOfgq8OgIEqNTWG7kFFt+x1Cn6pq/3ARO8XOsAhaQddcn
-         KdyQ==;
+        bh=0VSSyTI2tug1r63sRPGJdbXMez/ik64fwDp9DACoM0A=;
+        fh=RoIa1vGhHNEBBbsBrsueawKhwVF8jOouMHMHTnsfDxM=;
+        b=Px5dSMC2jac6l53wNH7CXzzKWW8bR+cySS7yp6nLIB2aC5Z1kOB63uwtdsAAQElJ8S
+         s7VdFwx8nZbTQy3baGOnBiHW3s2oHsHKcgtzy2Gm9zFz+FtoFREX85pGNsjnh8kysmUk
+         D7pRDXc35H2XT5ymvFRb2+Go65wvYfVz0H8P2zwABk/lhQR+yhMi536MspfmmihyxdVW
+         NJMt6gomNoR0IGnvR4yo5Yu0u8m0DjRweBdkJbwr6UIPPSkX/NSB8PADPrDGXh0AbEG7
+         CU6VGNtS7CTREGPmivYmo+ZTCN8TFB6vGgK7Ax0yMeu30TaDi8Mp9KZBzzjBsZDBkhba
+         XKyg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779146472; x=1779751272; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779148049; x=1779752849; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=qigLvnHqnvJ1q/CbxAtya5W8ES5fZ7EbWfFSlybCG8E=;
-        b=EzqekbVIfvGNJ1HnX1BYgkBKpzeLn1yGwiUXMcTYz5tDE1LpiuTPU1N9+1WRq7AYr9
-         KwKrFqJ8hgve3n1iF2khKhyGV5+D10XN3FXgR6tN4RdIjURlyca0BYDumz8CNLoBe2Ss
-         wmEHLQ5EAWoBB1vifXKO1K2FxgAe23Pkw2n0kHSgJssNz2a+bzGtL1GthrLesDHvBKGd
-         ycItoLl8/V21S95SLgfxEkjS26PtLxEUpvqYg0wxJnUIwdNh9kkTCYwJs3GFjIDQeIfE
-         2Kkz/dALW8sNCgi+H+ZuWF0cmeEp0mtZ0J5nhbgium35NbIVE82OUEWQDTFtouTwDbAg
-         52rg==
+        bh=0VSSyTI2tug1r63sRPGJdbXMez/ik64fwDp9DACoM0A=;
+        b=cPr4BO4B3/Us40u9oNG8cjZKVIKUSCYSaIB1g3I1lck4hER3zMeoWqYeVc6V0XR2mm
+         nIIFG6n0WYc+jXVt0g2UCNjx+od4P9UDL0K8a1nOQ5IRxlz6zgVENMPUyE0I00bj8/kd
+         hBWnA7NEMzRC+ZM2cf1YY8ZrRTzmU3pvPxMoYK8V/tpRwCEapGV5K1DABci4S648v4X5
+         8PKK1NvgMi9Uri3VODELnV5On6pCJuqkt1UuZgN4ahCaIpOkmI+S3xaOKRCgP3284ihI
+         AyFgkqeQPdBL+8yvDEjJNnFkIhna879aU0mrqUHRpPUl7j7VskK9s0vMoBaDLatXbXwN
+         py6g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779146472; x=1779751272;
+        d=1e100.net; s=20251104; t=1779148049; x=1779752849;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=qigLvnHqnvJ1q/CbxAtya5W8ES5fZ7EbWfFSlybCG8E=;
-        b=rzfG2DHU085wRX7kqNfqCbGay/MSAZsh1XZJzENq2i8gVCCRwc0cYobbr6/GCjE21A
-         ci7/wOweey3XKcaOe6I7h2dqrmNi58vhtszLL4/xOQ4u9eJ+a5td7OjtbZPwsOaVTWey
-         IZh6/V1yFca9BHfd1LADRJ/j1DKLRW1UsEfVfyPH4rN5kZ2x/Z+TR7IQ8EOAdrmibPfm
-         ajJnBWBff75/t/fJHUHLC3sQRdKkiS33rIfdJrISFu8Y3JMRycasoz5q89uZfQPNxqZT
-         jHGyXUGeGkeqxQEfGhkvuCLfJ8w8mIONFC6VGE0QgzmkJnCUJWrvZAMdfquuKDSSwkvl
-         DLlw==
-X-Forwarded-Encrypted: i=1; AFNElJ9AbvKiAezA3jVY3v4E6ExCFiydHsQCNB4pkXSI23ttRnE1KUjvJYRu1tufl4UfRVxzNCQXQph6cjEbbamo@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz+y7L7Ynyo2F0uANvPYaNgTa18X6PeOXEQhBM5PbrN3mrJuIp1
-	KcZyOpfPDwjhRj2Ker2I41gBZcAbc92/b9inC2ugAKoNoXD1i6awWFvo9ASBwc/gOMd4FEDG4en
-	ovNJF4hIOPb/xeJ7QhULUb9t4qcJbJI7nU+OT
-X-Gm-Gg: Acq92OEfjz6cgksO/VIQYpkOmY3OsBrswh0jDsIBWDyPmuiQGoHilokmVWakLh8HCVm
-	k9ET/C3/D9vOwEYnPWp2cO5CaDaQHA//WYX4xkQSyL2tffuzBwzwA8ZsPHFlgYpQ9Lc0JFsvXXp
-	kQ+njz3eiy0fmN0yZZLjSpNM0/T4X99iALdLXzm3R4QE/KcqiPJT7ftnjVRvYMs1ydXbevgkbLM
-	5L704t85m5GsUpkPbgQ9FigBPgi48WJxLUAUIGrfw3FQW6CvWfQ455JhRUz2b3IZbcwpgoVPLVT
-	3jBKug==
-X-Received: by 2002:a05:600c:a11c:b0:48a:5970:2003 with SMTP id
- 5b1f17b1804b1-48fe5fd483amr203177845e9.3.1779146471937; Mon, 18 May 2026
- 16:21:11 -0700 (PDT)
+        bh=0VSSyTI2tug1r63sRPGJdbXMez/ik64fwDp9DACoM0A=;
+        b=pKG1Oan+YqdNlkrElWraCfhCHJVyo3I/PSwrheoWtYyELGBdlPfgp2FOZJiC4mekUe
+         lM4XASQ/0fca8CD15ROvlMZ46q9qCyWdzfLIPm2NdMifmX8NmRC2bdiMkO7/o8/TcBTg
+         rZ8JRWcsBk90Dza7N9NqtdYteGseV9MLy9A5oOBf0QQc33JqRgNi3r34Q67T4kydnmRI
+         2P8fGdbvYHURwPGkBDPbGy5qnZE+hBO9imbpkH5YXmbk1KFYubRr65lFZlA866iG2KxZ
+         rhKaA3hxW/eV5NzMx3hf/LWiInalIfLTYGmlb3/pDmGiBrZj2iN33kkjUQbKYxnNqVoj
+         sPKw==
+X-Forwarded-Encrypted: i=1; AFNElJ+IF1s2E677MR+9gu0WW2PKlhmQLFpL2arpr6kvaZsYV0JKHe010Z/xPM5wvlQV8zAu8aEnG6Iq/43oIg9l@vger.kernel.org
+X-Gm-Message-State: AOJu0YyQ851EjL0ctcM9sxpYHQ2sPLWVCTbncqKnWC8GGWj6p0u+Yc2m
+	wQN0iYi+EpVZdThF/p8ztavaGB7EMWw7XYxBKIqlwvScUP8Xou+16+sKtvyAXjfMamHjHTQJ4Qk
+	TSpG9Tr7Kopv6G7YH3/XFyv8AtUWwzNL8NS1x2ag=
+X-Gm-Gg: Acq92OFN+L/vFg/wFC+LVivOaKPVkzoTf2vijTa9AP5J1Ln5CIUNu0Tf1ep03xn2dTZ
+	qeCx46k+hmgG2VfemPbfJa6ihC6xvRRqTuLNhoR99ERtRB2yMiAsa15KzCaTXjbk+6CTwTGO4py
+	NydzHWtYvYu+TsIiq0VkfPLJeK8qsoYZ1jS6ECW4tGUM2XdgcJ99dSmSa01OgSsUIkD2cR0aUL5
+	ioQ+q4EfzZilv76jEgES+1o4wl+DaNbhxfpamHhpr3K0a1E7Tlmm7TS1dZUSPNpT+AphOr3Q1IT
+	XGumsw==
+X-Received: by 2002:a5d:5d82:0:b0:439:c299:4d8f with SMTP id
+ ffacd0b85a97d-45e5c5cbe4bmr26543378f8f.17.1779148048602; Mon, 18 May 2026
+ 16:47:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -82,67 +82,113 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260516004004.1455526-1-joannelkoong@gmail.com>
- <20260516004004.1455526-18-joannelkoong@gmail.com> <CAOQ4uxg9WT7WmJqQezgiCB1jOX_heW+=UJbbFntbfDUdm0H=tQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxg9WT7WmJqQezgiCB1jOX_heW+=UJbbFntbfDUdm0H=tQ@mail.gmail.com>
+ <20260516004004.1455526-20-joannelkoong@gmail.com> <CAJnrk1bm=QOmY9MNZf5rbi-aTLaYetJ2Ziu7A5q9m4MMy5-Y7A@mail.gmail.com>
+ <CAOQ4uxgfEwhy+YRbZ2H6=Rj4b7d=R-DhZVd+_28MA-9VAd-C5g@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgfEwhy+YRbZ2H6=Rj4b7d=R-DhZVd+_28MA-9VAd-C5g@mail.gmail.com>
 From: Joanne Koong <joannelkoong@gmail.com>
-Date: Mon, 18 May 2026 16:21:00 -0700
-X-Gm-Features: AVHnY4Ij6E14B25Js9mPctacU2JwfQZGAV8QNpi-IPpjZfOoDi-Gn3aZptVLHLo
-Message-ID: <CAJnrk1bqfAczXnTxtb_rui2adksDpFKXOvJyj=zotGeWJoA5sw@mail.gmail.com>
-Subject: Re: [PATCH v2 17/21] backing-inode: add backing_inode_copyattr()
+Date: Mon, 18 May 2026 16:47:16 -0700
+X-Gm-Features: AVHnY4KcV6afCDxl4fkWuJFDwIiz__bxO9eLHea2g--HiDIodYXuy5AM5fR5xQ4
+Message-ID: <CAJnrk1bF9jFmqBtY_PgkA3x3muossApur4LpDo=6KFsA6vY4YQ@mail.gmail.com>
+Subject: Re: [PATCH v2 19/21] fuse: add passthrough setattr
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
-	linux-unionfs@vger.kernel.org, Christian Brauner <brauner@kernel.org>
+	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 16, 2026 at 2:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+On Sat, May 16, 2026 at 4:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
  wrote:
 >
-> On Sat, May 16, 2026 at 2:53=E2=80=AFAM Joanne Koong <joannelkoong@gmail.=
+> On Sat, May 16, 2026 at 3:04=E2=80=AFAM Joanne Koong <joannelkoong@gmail.=
 com> wrote:
 > >
-> > Move logic in ovl_copyattr() to a generic backing_inode_copyattr()
-> > function in a new fs/backing-inode.c, which other filesystems that use
-> > backing inodes (eg fuse passthrough) will use.
+> > On Fri, May 15, 2026 at 5:53=E2=80=AFPM Joanne Koong <joannelkoong@gmai=
+l.com> wrote:
+> > >
+> > > Add passthrough setattr which sets attributes directly on the backing
+> > > inode through backing_inode_setattr() instead of sending FUSE_SETATTR=
+ to
+> > > the server.
+> > >
+> > > Passthrough setattr is checked before the
+> > > handle_killpriv/handle_killpriv_v2 suid/sgid stripping because the
+> > > stripping is handled natively by notify_change() on the backing inode=
+.
+> > >
+> > > Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+> > > ---
+> > >  fs/fuse/dir.c             |  3 +++
+> > >  fs/fuse/fuse_i.h          |  3 ++-
+> > >  fs/fuse/passthrough.c     | 28 ++++++++++++++++++++++++++++
+> > >  include/uapi/linux/fuse.h |  1 +
+> > >  4 files changed, 34 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+> > > index 4c7e3e1604af..b67b3b334e69 100644
+> > > --- a/fs/fuse/dir.c
+> > > +++ b/fs/fuse/dir.c
+> > > @@ -2506,6 +2506,9 @@ static int fuse_setattr(struct mnt_idmap *idmap=
+, struct dentry *entry,
+> > >         if (!fuse_allow_current_process(get_fuse_conn(inode)))
+> > >                 return -EACCES;
+> > >
+> > > +       if (fuse_passthrough_op(inode, FUSE_SETATTR))
+> > > +               return fuse_passthrough_setattr(entry, attr);
 > >
-> > Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
-> > ---
-> >  fs/Makefile                   |  2 +-
-> >  fs/backing-inode.c            | 43 +++++++++++++++++++++++++++++++++++
-> >  fs/overlayfs/util.c           | 33 +++------------------------
-> >  include/linux/backing-inode.h | 14 ++++++++++++
+> > In the v1 discussion [1], there was a suggestion about gating
+> > FUSE_PASSTHROUGH_INO on FUSE_HANDLE_KILLPRIV_V2 to avoid the
+> > non-atomic killpriv path, but I think we were only encountering the
+> > non-atomic killpriv path because I was calling
+> > fuse_passthrough_setattr() in the wrong place. I think we can avoid
+> > this altogether by just having the backing filesystem handle all of
+> > the suid/sgid stripping atomically through its own notify_change()
+> > path, which will let us skip all the fuse killpriv handling logic in
+> > this function.
 >
+> I think it still matters, but to the only-passthrough-GETATTR case
+> and I am still in favor of making this change.
+> My point was why have the discussion whether getattr
+> for the purpose of killpriv should be passthrough or not (next patch)?
+> Why not drop the next patch instead because it will become moot.
 >
-> Nice!
+> If FUSE_PASSTHROUGH_INO requires FUSE_HANDLE_KILLPRIV_V2
+> it means that FUSE kernel is never trying to play games removing privs
+> itself, not with passthrough and not without passthrough.
 >
-> Please add these files to
-> FILESYSTEMS [STACKABLE]
-> section in MAINTAINERS.
+> Quoting your comment on next patch
+> "I think there might be some use cases
+> though where having only getattr passed through and not setattr is
+> useful (eg server wants fast stat() but needs to intercept attribute
+> changes for access control or policy enforcement)."
 >
-> Otherwise, feel free to add:
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Valid use case, but in this valid use case, said server may reject/allow
+> attribute changes, but eventually if it allows them it will likely apply
+> them to the very file which was set as backing inode, so essentially
+> FUSE_HANDLE_KILLPRIV_V2 is the natural choice for a
+> FUSE_PASSTHROUGH_INO server, even when it wants to introspect
+> setattr.
 >
-> There is one more cleanup patch required, now or later, to get rid of
-> some awkwardness in kernel fs code.
-> If you don't want to deal with it, I can take this cleanup later.
+> I think the same is true for ATOMIC_O_TRUNC.
+> Either backing fs deals with O_TRUNC or server deals with O_TRUNC.
 >
-> d_backing_inode() is a noop from the day it was added and has 177
-> call sites. Those call sites should be converted to d_inode() and
-> d_backing_inode() should go away.
->
-> backing_inode_security{,_novalidate}() are likewise unneeded
-> dups of inode_security{,_novalidate}() and should be removed.
+> But this is my opinion - I am open to hearing other opinions.
 
-Awesome! I'm happy to remove these.
+I was thinking from the user perspective, it'd be nicer to not couple
+things unless it was absolutely necessary, especially since
+passthrough is a per-inode/per-file attribute whereas KILLPRIV_V2 is a
+global server configuration (eg server might want passthrough on just
+a few files without taking on killpriv responsibility for the whole
+filesystem).
 
-You mentioned in v1 that fs/stack.c and the corresponding
-include/linux/fs_stack.h are pretty much only used by ecryptfs. It
-looks like there are only two pretty minimal functions in there. Do
-you think it's also worth moving that logic into ecryptfs and
-eliminating fs stack?
+But I think everything you wrote makes sense and I don't think
+handling the stripping stuff is too burdensome to ask of the server.
+
+For v3, I'll make the change to require FUSE_KILLPRIV_V2 for
+FUSE_PASSTHROUGH_INO.
 
 Thanks,
 Joanne
+
 >
 > Thanks,
 > Amir.
