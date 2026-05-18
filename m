@@ -1,173 +1,188 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07F7427979A
-	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 14:51:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779115910; cv=none; b=Cijfb+a5HOLdzSPsP9spJ4dPjsbG6VvklQGA6OblvGlYGhKPFEFMX4T2y/lwCKsQ434hDxx5cRaexeVJto9UiTSB26E3cFU202il0bmHx6Nnzafl0QnntWRb26U9XX0jJCOrCXpv5j5Q6qgsHA6GsyPla4KOgTgOPJYlflUHxa8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779115910; c=relaxed/simple;
-	bh=8YhRvGNtrOOwICxF1Gzv/WsXSxkHqfYNm1UG+B0jt08=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=upNp/c+3TwtOYtUybuyZ0ChbDGa0ObrHfC0avmctNX4Exq2YM0bBUfnkOVRmKNxam7xYHQ4aWuW51Z77GvJ9E6SHCg9rV5In84X28q8nPO+rS+KDt2WnGwi/4XL3FQtp8P5s0YuPF5yl+LAPQx+E/nTB+WayFqKWbbPnfNv6t58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FWobbnmN; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F49382F03
+	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 18:04:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.51
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779127491; cv=pass; b=pFw52n5S9dvwKMikP4lMB26o6nLYqjjkkd3/a3qbf+VMgMhaSPetUlLtBHOjPyNPnO3y+YmvDus94DYJA3bcFqy6oNIzHZXw0nugdsdOfwPke9iR9xvCjGI5fm4CovUD9fNpmQrg1jKVZ7utsjhzpf20pxbnVKbIVRcnwI+/Apg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779127491; c=relaxed/simple;
+	bh=kDDg6N0nN6KEff1emIwXgNf3VdPR+RZcL3mDcfSvr60=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YYP1HW11xWnjT/RiCozVYCME60A5ca+Jq8BBbtnZGR6B73xN40bwTHjPUWq29/DL4wV2Fyk/BcDhVNNiymTW4vpzEyGFb8YGtIDPzenzIem5Z2MQMf65EZVRu6NrAWsMKabQ5JIzOUKP1CyVYEwZw1KmOLoPtA4lhcD5lx9Jm74=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TjDdm/TH; arc=pass smtp.client-ip=209.85.221.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FWobbnmN"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4890d945eb4so18679075e9.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 07:51:48 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TjDdm/TH"
+Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-441209fb77eso1546727f8f.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 11:04:49 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779127488; cv=none;
+        d=google.com; s=arc-20240605;
+        b=BDMxAPtV47E2fZxNbg5jKcqO8WS+ySkQ7W8yuxAXFAHsuZoAKYE46BoOKPPt5MDgVU
+         KtOqtEhJ2m/D270vPNXBXfRvQrq26/V5NbdU7VGwJgPFBHaVfmoHlWPLSYfBgW3uh6U+
+         Cloira32zpvrBvJYwtrMeWrZ9LBBAxFRrpQUA7Le3pSFhES58C8TS0uBL8Opa+dayrTL
+         yDVY019NJn06ddln5e+hngYdWtsQuSqpNDs3W9/GzxdjnHwEaGwnsLFZWINZw2Y3M1sY
+         yRTr5XzMiKIqUihflxNMobK8HgRJugU8ha8/AWQeVgU0c/os0Xe7bsNfRwfYbR3flPaM
+         Bafg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=CljLoIYskFigaXEtOn3tL+BNQgFNUCP9mu4XODfMHjI=;
+        fh=fDZOicXj3tV61CbyyaTTUn7pYGeQhNvVfB1H88TYm9A=;
+        b=Ng/TuYeyFtxM0sIy4qAgDP1qDMZjDccSc6wI0wHzXe0xDdJ1UMpI+Y5orUT3Jm5p8h
+         Znbeb8eZLCWQym18qvgglQOA9UVnrdgF+XKvXTEwFmUrmullT5jxpoHvNseICNPF7cTj
+         FoZweapr+EURCoAEsk/9a4TewlDqRXY3E84yXjE/qA/JOicnL1sWk04zpSul2yQxXwWW
+         IiKT2408X9/SUQ5zZL0AB+/22ZtuiZFduSj4wZdsDFlMX6wmon7ZIcfvIRP7+6XidLfQ
+         IrPTE/xShmvOvP5uqogQwSAjIEdR2iOrhQwxMov3+GHEsNISmdOdPMacc7p6P2/aHu/b
+         CLhw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779115907; x=1779720707; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1779127488; x=1779732288; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=gBS8wbHwX/vB9UcM7E4Dc7DuA8qjN/WDE+nHyY7z+Qk=;
-        b=FWobbnmNvGY0/mT28uA3BlWixHVUvaVcr/trGD5CAg/3qEQxfDtjIj8MPzx0WDOzNn
-         tGDgGZ44ryuftvezh7jHpFJ9OdxSEMrnrV40v8gEORM7YUBN0KaYDJB5GqKei9LHxMLs
-         Aar1mPbBO+6irIubvKA0T9TC0zV1EOfnw4vYAH5QfILH5PSl0VY0PSp4s3EjNmnqhpzD
-         a/xM8C2cWOo8zi6rawrQ0yTk+9KTYc1CQZIf1IrXK6uXcSRzFpqVsV/ozDg6ss/qeEVh
-         wFxM3xQOFPytz349n4r/o7HHZkxiNTBaIlURSqklHmvXqzxNWMQVrJmiGwHQxsiWg4Bf
-         RQFg==
+        bh=CljLoIYskFigaXEtOn3tL+BNQgFNUCP9mu4XODfMHjI=;
+        b=TjDdm/THMqWBYorB2O5r8AoKuNBn2E3Ru04Mbr3xb41idenx/x6TEYiFI8dclIMs/w
+         12wUoMpLXscgNCbHJJokVfKiNQl+3rHOE96Ni/SDgUyBULSLxL3L9vzQ9jl/pTP32WHD
+         p9r3vVPTc/JrSQ8eyxJeZANArGHw7Pw97lb7jEaoMZEFLHsUt2T4L3kSNWfR3bB5DtQ2
+         eeI8dkzcN17A9+QK+1Sh0g13wRZmeLFdWifxsFa7/xD8I1BTHg49YXh7Gf8PWkGjQX2H
+         GnPPIbzyvr3h9pUtJiSBBQjFadGL6BP0FpOUXPa/vhApYe+bNYR05+5NGMcCkCGT4evs
+         BSew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779115907; x=1779720707;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20251104; t=1779127488; x=1779732288;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=gBS8wbHwX/vB9UcM7E4Dc7DuA8qjN/WDE+nHyY7z+Qk=;
-        b=UK50bz8Eq/IOPM3VS3/d3mnw6cgRSUQ5ZkJokoPhY97sImPknY15yPpyzM18Iis0GH
-         bT2+LzQNTJDgTtxyhDi4xTyzlQwwDDL2kCaSvsOmseyWr6V44W8MD0GR3Rb6teb/Eg+j
-         ugOTV6ZvkpTP+GlMCF7E20Q6Gc964L5Thz1FGNgqdjPDoPwmZZsUuGapYX0d1rMS5Zoi
-         xN2UY8iEbei6GOW5Q8lLaYmMc0BlOttc2O0CjxQ/SUdk9y4wSriyuzisi87+B3ru0N3m
-         k5xzPL3CdfTIuIRi1RI4VncAwlNkrHDvfs/SNMl7oN3dPTqJLAUKzhtqpTsfa/6sBCad
-         yEYg==
-X-Forwarded-Encrypted: i=1; AFNElJ+Nj3bjJyEvBHa7KNSIDUa4Fxg9DdZV6SxdfJ+wE7hPK0Vg3HbL4jAZfMlA3370s78vYjdRDn4GixI5P9dp@vger.kernel.org
-X-Gm-Message-State: AOJu0YxSFTHHo/7tRHLsqrUqH9PoEoM5nIWbCT79APz6Z8v4FIY80AFS
-	g7ZmAZezLsICtl37IVrJy+qfNSN9u3sZrg7C4g6tvds7H1cc6VFSW0D7Aq+zFj0O
-X-Gm-Gg: Acq92OECAL7Aocjknvo8Lc+kz6zRxL+0RyC5GI2bhFUAmcEQINbvkmNiIL5htKnIimI
-	tzQnAL4dp4bcy4Zp93LKqfgLICfqOT6PTyN3CvAtNIa0LMgAJ5rcHIao5NsgKjFYBGh1Cd9/9Ys
-	sp/jWkBYf/YN7ySz5K7tKnoblFokBXoYzqVsB3fAIhbMF5Sz48uUvv8BpKLbqdnmV+Q6jwe7ICe
-	M2K1jeEI/CBMv4GFOJGB2AcAklGci67dIQI7PdUT91rS6f2lvtgLhzSH8RKBS+Km/dk9/G+3qI7
-	7OY1wzUp0pX33EgFCRNHORsm8vwERJhJa+SRr28XcYaXltXBqWieTHLLgZ0zesyacWgKPT+PC5G
-	my1xqNps3q682PyQKrXpUHR8cj+EW6CyWFB5qQVJa/kPtEjOCl+eswg/xH42V6/rR7cUrcoKefu
-	vkfT4uU+MDJhOUHZZZDbx4oZsA14ULjsgsC1QSvkqJO3qvMV0vNSPYcW6vYaoL6ychyZCOeq1GQ
-	9I=
-X-Received: by 2002:a05:600c:1515:b0:48f:fe2a:107a with SMTP id 5b1f17b1804b1-48ffe2a10b7mr78609695e9.3.1779115907014;
-        Mon, 18 May 2026 07:51:47 -0700 (PDT)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48fe5cab7c5sm272733645e9.12.2026.05.18.07.51.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 07:51:46 -0700 (PDT)
-Date: Mon, 18 May 2026 15:51:45 +0100
-From: David Laight <david.laight.linux@gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi
- <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>, Al Viro
- <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>,
- Nirmoy Das <nirmoyd@nvidia.com>, linux-unionfs@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] err_ptr.h: introduce ERR_PTR_SAFE()
-Message-ID: <20260518155145.01ef37ed@pumpkin>
-In-Reply-To: <CAOQ4uxgy5Vut5KYC4vj_wgXiyghT2B9nd1YAV-a+hdkz5j1gqQ@mail.gmail.com>
-References: <20260514200129.94862-1-amir73il@gmail.com>
-	<20260518-rundschau-rohkost-e591e2d0deb9@brauner>
-	<CAOQ4uxgy5Vut5KYC4vj_wgXiyghT2B9nd1YAV-a+hdkz5j1gqQ@mail.gmail.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+        bh=CljLoIYskFigaXEtOn3tL+BNQgFNUCP9mu4XODfMHjI=;
+        b=E1HiJgojPtGmzQpBctgie2CyQsth6P05jaDyfM5znYHb56ecD05c4IA2rTYmTFnm0D
+         G4y7D5nQ4vHfPZOUO/raEuUPhJNEdNyCHfwCsSbZM1Prsq3P37Hh57Vm/+2dw+ZTPKk9
+         OwqeJSrk2zLMvfeWvoBVXTJMjM2pTH/orIxxcl2iXbWcv3Kb317aCdiLybwpKa0TXFEl
+         vjdbx7lPWVSLuj8VTRdD3wJK639F6VQpMTpAjOhPpHQ3tQYX5M0V6+jzZNYZd5D/MNb6
+         mmKWXoT3QarJzLDqxctyrlkmaKtRs52hMJwZ6Qal6V0GwfU9c6EVYQbMTyryURFjGCj6
+         Rlkw==
+X-Forwarded-Encrypted: i=1; AFNElJ9qMAGahTQxHCh90nN/RxNHhZ3zeTweE/rD4npDosDqAYlHEpD9ojwY1it9mOliWqi1oSavRxr14/G6IedK@vger.kernel.org
+X-Gm-Message-State: AOJu0YyU72ldfO70ZO5KTs38Z4ZPl8c6K74US57+fw+rbe+PqGyWYDkY
+	kv9nHZU75vVMH/jxBARsFsi5SlDwc5+IxkC0jXdCUh5sSnWbyJqcGyKVhmzcd+5VFN5Iw927eD+
+	stKsl7OYStvu0dem8wSJ6Qqg5u3NfN9M=
+X-Gm-Gg: Acq92OEit3xotkms8YtSktxwJBFyDnf5DUFjXKdd66BwzOmphAerXEe+2aJLks4IMp4
+	0azUkOGRjhz1qLNUOJTDTHdhUs8rON91l8QJc+Him5crk842wAjtIwjC7f00YJvc1lkxdsYHYTi
+	HU8vdjILwWXSQycpcNsM0tbqqbmNnlHr1RAQdL8sPBO9hO/MDdaWcNkfAcN9+zVaSNWYz0jpuoQ
+	9DN8gdC/wG9AWgFYRV7Ua+qKP0L+HFnQ9MYgGUOaXVHc/z196wOmb+B0tmKdn+EWFzw9KsgNzJu
+	lInBm0rG9PTS14Ii
+X-Received: by 2002:a05:6000:42c2:b0:456:d742:8b4f with SMTP id
+ ffacd0b85a97d-45d91438680mr21134881f8f.12.1779127488214; Mon, 18 May 2026
+ 11:04:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+References: <20260516004004.1455526-1-joannelkoong@gmail.com>
+ <20260516004004.1455526-3-joannelkoong@gmail.com> <CAJnrk1YUjqd+j1yLXuO0M07ueCUYNC0NqgwmQSm3OiY3hnhgZQ@mail.gmail.com>
+ <CAOQ4uxhyZU_6jbv8kY8od_SgG9yQ6aX+KcB2c1um4DajJdSPqA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhyZU_6jbv8kY8od_SgG9yQ6aX+KcB2c1um4DajJdSPqA@mail.gmail.com>
+From: Joanne Koong <joannelkoong@gmail.com>
+Date: Mon, 18 May 2026 11:04:36 -0700
+X-Gm-Features: AVHnY4LHIzzo9vmjpUtLlchtf0O-41uZhMAUHOsNmTtLXcemqB7KqU8vLK1LXnU
+Message-ID: <CAJnrk1aEc1nf7ax0UvdCi7rkzbWDFpgjJcE35HCQyWcPLdoOnw@mail.gmail.com>
+Subject: Re: [PATCH v2 02/21] fuse: prepare for passthrough of inode operations
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 18 May 2026 14:52:05 +0200
-Amir Goldstein <amir73il@gmail.com> wrote:
-
-> On Mon, May 18, 2026 at 2:39=E2=80=AFPM Christian Brauner <brauner@kernel=
-.org> wrote:
+On Sat, May 16, 2026 at 9:11=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+>
+> On Sat, May 16, 2026 at 3:34=E2=80=AFAM Joanne Koong <joannelkoong@gmail.=
+com> wrote:
 > >
-> > On Thu, May 14, 2026 at 10:01:29PM +0200, Amir Goldstein wrote: =20
-> > > Code using ERR_PTR() is almost certainly intending to produce a value
-> > > which qualified as IS_ERR_OR_NULL(), but this is not the case when
-> > > code calls ERR_PTR(err) with positive or large negative err.
+> > On Fri, May 15, 2026 at 5:52=E2=80=AFPM Joanne Koong <joannelkoong@gmai=
+l.com> wrote:
 > > >
-> > > Introduce a fortified variant of ERR_PTR() whose return value is
-> > > guaranteed to qualify as IS_ERR_OR_NULL().
-> > >
-> > > We add this in a new header file err_ptr.h which includes bug.h
-> > > for the build/run time assertions.
-> > >
-> > > Subsystems may opt-in for fortified ERR_PTR() for specific call sites
-> > > or by #define ERR_PTR(err) ERR_PTR_SAFE(err).
-> > >
-> > > Link: https://lore.kernel.org/r/CAOQ4uxg=3DgONUh5QEW5KJcyXLDF15HbLnc9=
-Ea7RKPcgtyfPasTA@mail.gmail.com/
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > --- =20
+> > > +/* op bits for fuse_backing_map ops_mask */
+> > > +#define FUSE_PASSTHROUGH_OP_READ       FUSE_PASSTHROUGH_OP(FUSE_READ=
+)
+> > > +#define FUSE_PASSTHROUGH_OP_WRITE      FUSE_PASSTHROUGH_OP(FUSE_WRIT=
+E)
 > >
-> > I think this is backwards. You can of course do whatever you want in
-> > overlayfs but I think as a first-class concept in err.h it's not that
-> > great. Then we have to separate macros/inlines and almost no one will
-> > use ERR_PTR_SAFE().
+> > Do you think we should couple the passthrough op code to the fuse
+> > opcode so closely, instead of defining the passthrough ops separately,
+> > eg doing something like this?:
 > >
-> > I think the correct thing would be to add an assert into ERR_PTR() and a
-> > debug-only one very likely at that and combine this with the static
-> > analyzer thing mentioned in the thread below.
+> > #define FUSE_PASSTHROUGH_READ         (1 << 0)
+> > #define FUSE_PASSTHROUGH_WRITE       (1 << 1)
+>
+> Don't drop the _OP_ please
+> Need it to distinguish from FUSE_PASSTHROUGH{,_INO}
+> and we need to think if we want to format this as 32bit and extend later
+> or start with a u64 ops_mask format from the start.
+>
 > >
-> > diff --git a/include/linux/err.h b/include/linux/err.h
-> > index 8c37be0620ab..6bf768adf157 100644
-> > --- a/include/linux/err.h
-> > +++ b/include/linux/err.h
-> > @@ -38,6 +38,9 @@
-> >   */
-> >  static inline void * __must_check ERR_PTR(long error)
-> >  {
-> > +#ifdef CONFIG_DEBUG_INFO
-> > +       WARN_ON_ONCE(!IS_ERR_VALUE(error));
+> > In the (far) future when some more advanced passthrough features get
+> > added (eg full subtree passthrough), it seems like we'd want to add a
+> > passthrough op for that,
+>
+> I don't know. fuse_backing_map has flags, why would we want to put that
+> in ops_mask.
 
-If you do this, you need to change the value.
-Even if just 'error | PAGE_MASK' (and check for zero).
+That's a good point, I like your idea of using flags for that.
 
-You could just do:
-	return error ? (void *)(error | ~4095ul) : NULL;
-or (avoiding the conditional):
-	return ((error - 1) | ~4095ul) + 1;
+>
+> > but that wouldn't map to a fuse op. I think
+> > there are also some fuse ops we might skip defining as passthrough ops
+> > but are implicitly passed through (eg FUSE_STATX which is covered by
+> > FUSE_GETATTR),
+>
+> This could also become the case with FUSE_CREATE{,_HANDLE}
+> or {FUSE,FUSEX}_CREAT.
+>
+> TBH, the fact that some ops will never be in the mask and
+> that some ops have a canonical bit in itself does not justify creating
+> a different mapping. Do we also want to squeeze the mask into 32bit
+> and leave reserved space? my intuition is to leave it u64.
+>
+> > so it seems more intuitive to define the passthrough
+> > ops as describing capabilities rather than implying that it describes
+> > what specific opcodes get passed through?
+>
+> hmm. I guess you have a point that it is a bit limiting to commit
+> to this arithmetic in UAPI.
+>
+> My thinking behind this was ease of use with these helpers:
+>
+>        if (!fuse_passthrough_op(file_inode(in), FUSE_READ))
+>
+> but those could just as well be macros:
+>
+> static inline bool fuse_inode_passthrough_op(struct inode *inode,
+>                                             u64 opbit)...
+>
+> #define FUSE_PASSTHROUGH_OP(inode, opname)    \
+>              fuse_passthrough_op(inode, FUSE_PASSTHROUGH_OP_ ## opname)
+>
+> #define FUSE_BACKING_MAP_OP(map, opname) \
+>        ((map)->ops_mask & FUSE_PASSTHROUGH_OP ## opname))
+>
+> ...
+>        if (!FUSE_PASSTHROUGH_OP(file_inode(in), READ))
+>
+> wdyt?
 
-That will ensure the value is treated as an error value.
+Nice, the macro idea is neat!
 
-> > +#endif
-> >         return (void *) error;
-> >  }
-> >
-> > I'm not convinced yet about ERR_PTR_SAFE(). =20
->=20
-> Maybe, but
-> 1. err.h does not include bug.h, hence err_ptr.h
-> 2. I think CONFIG_DEBUG_INFO is pretty common in distro kernels
-> and it means its ok to bloat the kernel object sizes
-> but it does not mean distro is willing to pay performance penalty
-> but David may be able to share more insight about the performance
-> cost of your suggested variant.
+I feel like it gives more flexibility to define it separately and I
+think with that, u32 would be more than enough bits as well. But I'm
+happy to go with what you think would be better here.
 
-The check itself (on x86) should just be 'add $4095, error; jnc bad'.
-WARN_ON() and BUG_ON() are implemented using 'ud2' (undefined opcode)
-and picking up the info from the exception table.
-I can't remember about WARN_ON_ONCE() - there has to be some writable
-global data somewhere.
-But other architectures end up adding more in line code.
-In particular anything that adds a function call can badly affect
-register allocation and code generation.
+Thanks,
+Joanne
 
-Not the least of the problems is the sheer number of places where
-extra code can get added - especially for something that static analysis
-ought to be able to detect.
-
--- David
-
->=20
+>
 > Thanks,
 > Amir.
-
