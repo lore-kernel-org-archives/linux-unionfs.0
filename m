@@ -1,80 +1,80 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B149381AEB
-	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 18:39:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 826ED24DFF9
+	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 20:56:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.43
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779129587; cv=pass; b=WTxPxgPL6+Hqli8aathc0Omx97h54rvhox2WPPVpUs/L2jqHzYmwndbzabIOO0oMRXrybJtzptewQMnybYc+h5tubXr1lDB7TzC+v0yVWUNc9onZ3RzhnnQXhGFrbgjYpSvPI9g8r5RJIYkdW8Hw+azfqyN0tvzQRK2Agxt6Skg=
+	t=1779137820; cv=pass; b=iTibi0IB7PmX+o6KQ1Q8UgVQYS9JzdqK0pBmFrhxf2S18rJO3v9sO6qT1WGJzb9akO0BdAOUECrkEFNxN0Ct44/D5ypXPaGXXEz6UADOShhbRQMvRAwiv0U2u6v0sfOEuOO1ywsvlxnE89k9/2gkVt5MEw2qrrzkm5anPBRs9qU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779129587; c=relaxed/simple;
-	bh=xCC7AHTEi3ftlT5SE/Ec0E0hK+N0nXWX1qAzoLVrJWE=;
+	s=arc-20240116; t=1779137820; c=relaxed/simple;
+	bh=O7yNteNB8Vvmz+auSl9LhOd2cAR6aF1IyCYgjo1KoT4=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=a+bgxT1Gv5ozag3yv3IBOj+WZ9b5vbuqS6uG06AVlo0ECCjwGzOauOwfvKMYhgn6iJIdhDpw1eX2T6fk1BPl1X/B2ENDqYOAaMPi0Wml3TF/mS7qfdtQQRfagMTBIaG/ggAQbzd4XNPEVrar6uOjqxOGW+uVhT3n4yGGda2/Og8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UAR4ipk0; arc=pass smtp.client-ip=209.85.218.49
+	 To:Cc:Content-Type; b=eCaFDFtT6CuEMhBLvOUMxDieZMZeFtH0JSUP71CdgBo95svbzxKYKqsXgPX7i5eGxgdDeV0kApwtWpfiljWta9/V64X5dQB6gv1fhz3hRPnvbiQphh21r9M3SS+Wsn8mNyZDFOCnXUl5xareg/9Y7FRBNxmN0oTL8omzQC8Wt70=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GZuanihf; arc=pass smtp.client-ip=209.85.128.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UAR4ipk0"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-b9d9971d059so376999766b.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 11:39:45 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779129584; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GZuanihf"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-488d2079582so26653325e9.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 13:56:59 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779137818; cv=none;
         d=google.com; s=arc-20240605;
-        b=Fn9Bpc0b7gzSh5bsGPD3aRJL/QNtKghclfQzRSX9Z4P6ZExJ2lKihp1hnAWnDEOw+K
-         5jRLda4nZAW741w6tXZIcNqk6EkjPHBsm1wzQFeLKC6505EOpSNF4uyRPGOyFzzO8qTY
-         jA7iNZWOPwOBPNAzo94kibVLR0wswBs7iRFDFnu6tnO1s7uwZFPyKqngbX5b96+fiZgJ
-         44UA7RVl2jk9nqna/NddLOYbo+hU2NZoWasVgnkrAp9CQRpjZGEPyiQC087ylHms4D6s
-         E/Gjyk11zhHBF70sK3vkXBAbEdR3lnrFL+1B7wSooMczl3CwYuxArvs2PAhr9zEcyBxf
-         68Ug==
+        b=fEcdOc0qBfTkSQdXkn7lAGMjqNiICoQMoOTXJ1VGiwWe+Fvig2iblBFmuOqxs0h5lH
+         VYjX8dP+dvPjRj+PJKiO8Iy6RvQh9BN/3sebNREgeC/jrxaKYMOcj7BLRwYS8KEy82vd
+         atZXvmpSGV6zUd/jFz4yBHznKk9zvg41/pdhk4MQHAX5Kpj6sz5BM7k7pldEZl2bgobD
+         RXUFkpYB4Aboyz7MB5e4Vyh9Jesqm1WMQylGhxRqgEniMsapKVvodmB8dSGUkJ5ajB3+
+         qxH0U1k+vZGv4STa0Z+0ITutqahJ4myHHD8hTHLuq7qoO7UmlVu7CKaDa4dlVr6Ra1Yc
+         8dKQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=j9+DsIOO/UhcsX5Jdn5KmB3aHxjo7tVc/mcyYuxt+ds=;
-        fh=d3ZU5kdxOSvPGXeldPQbOrO1hUwdGPvEWueNbfxlh7s=;
-        b=C2mbJw4RkVcvweXt0eiE6nzPDrQNZRSledzPH7Rm5umrZ8yu5yHPaiajnVQOk0XOLP
-         TMo9snmelGCROfwlkM/cHqnopRqUUS5NR8Z413WUqswIcOt8a/BgbBMXQ8pHRIVwdt5F
-         QFH0upiyXb7BRAl8+r26qvDWh0cLfqCws0l353VhUaVH5f6UZwOY0leSSiRQhxIWzMvh
-         J/HOHw18wuNv8roiM+IdtRJ3dZaTAbJ+2d4Vf0KM31TZ/mUPvXVJjD7DvsGRiixz4ELJ
-         svyrooa5rti8GSod09Lakz81bdm0zFYukWtHEA4YDJVIfFuB6GaTu/Qh3DQtTMsCZWN2
-         XBAw==;
+        bh=vlQVAcswqTiXHTsw5kgApTgT9RUz0A4MUuUWzK6vBMY=;
+        fh=BxYLak0ZEd0KQjObmcnnDVceYCkNdHB53324DoNJGpA=;
+        b=Hwg8h2mywln7HRpxAoSbGr8RQvGuQeGFnTDK8hHJR1y5jkFaFG59VWIedaywyi3zpm
+         I29lPGg8uvvvTknpoeTfYcukWRpfbw6+HeahxMPtPY+/GLEza9jZ6PthVMR2vDn6yWeD
+         ZXe9OpUTUCruI1szbdg83sXYaSGw81fs6nifkvhvFoUQS+cpxQIXQfN1V2Yzqa3SqjlE
+         Ed2oCfG/dyaZ6NKx2K4DPeJWd9RBU2nGIJlrfWtQKGjRHqMgdQTjg2/WJsqs/6EhFCYn
+         XKPyI/zYQ8pRlrxEx40QN2x7eq341Gh/+F8U3BZ/hTBN6D8Z3a1pfyjtHaJ3aqsRCZEf
+         CxJA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779129584; x=1779734384; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779137818; x=1779742618; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=j9+DsIOO/UhcsX5Jdn5KmB3aHxjo7tVc/mcyYuxt+ds=;
-        b=UAR4ipk0ocMoD746qr7vsY0KZWM2FrxvI0HXyiCJSE09OyE2CQh+y1+ogr/1ZlTNnq
-         zPH4SCG/xBS4PxxWfGDmNEFPRWJCiCuyA0m+9m2dcnKSG29KUjR14hc3dmydkrnb5fOC
-         kiw3OdX/2ALsj8nHiKWPhas693v9KU+8KaCbHwaKMNvdT1n2NFa8HolFS3WTtCHKE5jv
-         M44tQRcQWLqAio2m6vqnOx1xxiNfdv/fVt2gaaqxALrxrfhtFxcDlQBE9X90YhIV3utd
-         TKGo/pCj3+nIUv0UubDbbRVWTkKra/fs89bc6SGtc4vYHT5oeYxgnOhwWqcMe7Qsr3bW
-         Lr+A==
+        bh=vlQVAcswqTiXHTsw5kgApTgT9RUz0A4MUuUWzK6vBMY=;
+        b=GZuanihfW/KRZjsMtK08oeTFB72ExafApi84ccVGixKE81rXWTCVHXfx2lEwX9y8UW
+         PIlc/Ya0N9B0zHwu2exRO7XHXzn5E1YR6xWU84d02huBkxVgyV8z+otuMR1PKMEOAesD
+         jcysJOef7XrC/q8U244SxWiaIG7hmpIIfMrZ8RE/pfWvd6gypq0KDmaQjPh5Two65uxN
+         NHtWt2pNt7znjmsYGnf8eW5qxbq4n7H886xdSnXY4f/Wa8yjgOw1dCphtFwFsc73aaFp
+         Zf4XxfLQeVB62UzGhEEiTscbEbJuQoumVwuNpuYw5EezezmDPpAvIJP9iT+CbjwXUrO5
+         9ibA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779129584; x=1779734384;
+        d=1e100.net; s=20251104; t=1779137818; x=1779742618;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=j9+DsIOO/UhcsX5Jdn5KmB3aHxjo7tVc/mcyYuxt+ds=;
-        b=eQIvoAueUJlzLp4zUHPEsiruFY9x5xDGg3L5lce5uSSzY/alPeFV7CxN2cK+J3mDPH
-         KKhkL5Mg2DM8FSl3a7RZNa8ZIOOiVHtMBotl1SbcBb0xS+f0ic5SjzbCeFnrXqN0hprx
-         m+SJyJakxz3Tebw0KQT3A6LFfoGTSzw56k+g0w8zMR6+h18NSqh7WP9SUIrgd1Nr1UrN
-         tgUm06AGij34kut3vZjUPzUHrrdyLwIu7hwtifnEOzCZl4Cj4GQouZaXZTW0ihH9/p3C
-         UHV03UCJ7hPh2nfo1uStMln9/b/JbuIymhtVL4WNd95YhLB1526QT4MYwmNJ/XolAG38
-         R4Og==
-X-Forwarded-Encrypted: i=1; AFNElJ8zO22/w7VbtBlGn44EHOcYW3SuXRPNA4cNwrkgTWP1UAAMZ+JGT3N72Q040Rlo4cgiq8IK/0g4Nyt2piLy@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywv8z/MXAWK2eDEo69fBg6iqigpAki8yLGP9t60+yFY3vDj0f+z
-	9mnxpM6WAYYndXzEIDiKzCltW5wfXiyHJG4BRg6jsLARz6FzBHAAIF2zWeEEJB/rRHnon58GFMW
-	Ht9WG5gTNZArnU+n2puCjD8zCTg1EI/g=
-X-Gm-Gg: Acq92OE8Tu7Kug6FEiwA6cecAwFMAG0RMnTS4C11Kr66wZQ8HNQJJbX1DO1paJVsE9k
-	VYHVUemrmjeZCj+PNthjvJdZtiFaT8fFypadvx1L+POYmGd5ONuQfWtohIvDHI4dumLa4r0s7ow
-	4SOGTPxpOMbm6hh/MTvsTH+5kL35wOU8+RMLEzriYDjfBgRfbQtSa1y1UYBihwoNi2fQPN6D/mg
-	CFSxNoDYfZ0F3PhyAMOVowVZkpMYMLp3qeKULnJPio1wP1sqCljJljZ/r64CDDkD6QqJH2eBWmY
-	VVu3Kv3QI58m2fIph9JPADD6MA5omGR90cx8zgIs/g==
-X-Received: by 2002:a17:907:a317:b0:baf:e47:1b6a with SMTP id
- a640c23a62f3a-bd5179305eamr901579466b.24.1779129583498; Mon, 18 May 2026
- 11:39:43 -0700 (PDT)
+        bh=vlQVAcswqTiXHTsw5kgApTgT9RUz0A4MUuUWzK6vBMY=;
+        b=pyj5/6TIg8Kh2CFu2ScmWnSxt31FWjY/39FVxXuZOyh1EldisQG6POEiNsmp0Xkf8u
+         pwOTtFEQ2T/DkyDxNPvdsm+f7s0fJIREZAV7G9FRDktGcuCeicQSC7145OuzTYeBMeiq
+         xvhYx+UxninPhwXxRKGSJUn5P73HsVoRdCnlOjUTZMmvyyr5cWHzxdaMPf9ARUSua6aQ
+         vh/tIJyw7UWoiMSiCqbm45rZby6qxTORGRZU8krqYnMgOYa0QbST8WPe9n3azyYj2Ioo
+         hUckW48aYSctiC7yRIwjvpV13SnNx5p1xxD+FDFxhmCzF4M30vZd83/lsjux0FViGMfn
+         FCpA==
+X-Forwarded-Encrypted: i=1; AFNElJ/VONSiY4Il+EtJoAjYSObdOFyFVgdbVGc2/hEZmvdbgicPWZuESeTfvhUfFRvr8ThXyAI0lzvJxSBQMiEK@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywyqo86NBe4VPSfeMtrGLEDjCcOwXa4OYaI3IvkEIB5Lv6+kQmY
+	4UDJg6k77y8UwVjNM8xmkPGMq3B75Ht3LSiPRSRqZFDzcXRye1ipjQ+lPBd2O57ncexxHCLsdn1
+	tPat4GXsvca0xeSidyb2OqGCgFdJr06D6vioy
+X-Gm-Gg: Acq92OFl8+zKewgD/EjLy8eIW9yYbqhvrvyuoNjgANUfi1HeLB7hApiu0uC782CGbl5
+	IatxPJXfKnpRTayVF/ZuAvlFUfD55vnXPa5XPvJKKlVbji7jI7x+qbIFI/8ZHUqgWXqDxDyRjTo
+	3K1r8AOWbF4uCnDAmL9dRh/7fe8MCE07SNedTap0mRegMUPBVodUgPylaaJf4prvyCyv13fKZK1
+	sOuGsqDx67X3rEJQczivL7L4NvdO8oQJTPq6QTDiLjbr46MpYxu8uNN/w0QCFkwo8zXJ8c4TSfv
+	OodT1w==
+X-Received: by 2002:a05:600c:858d:b0:48e:5990:96b1 with SMTP id
+ 5b1f17b1804b1-48fe6514c62mr204044195e9.23.1779137817779; Mon, 18 May 2026
+ 13:56:57 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -83,125 +83,147 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260516004004.1455526-1-joannelkoong@gmail.com>
  <20260516004004.1455526-3-joannelkoong@gmail.com> <CAJnrk1YUjqd+j1yLXuO0M07ueCUYNC0NqgwmQSm3OiY3hnhgZQ@mail.gmail.com>
- <CAOQ4uxhyZU_6jbv8kY8od_SgG9yQ6aX+KcB2c1um4DajJdSPqA@mail.gmail.com> <CAJnrk1aEc1nf7ax0UvdCi7rkzbWDFpgjJcE35HCQyWcPLdoOnw@mail.gmail.com>
-In-Reply-To: <CAJnrk1aEc1nf7ax0UvdCi7rkzbWDFpgjJcE35HCQyWcPLdoOnw@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 18 May 2026 20:39:31 +0200
-X-Gm-Features: AVHnY4JsphHHnp2Pz3CHXNh0OLuBHsTbi3fRyxqNZbsPkkAYnNNogJkZfjWHYTw
-Message-ID: <CAOQ4uxhUZByYu6hp0TSekZ49FZDp20xPTpG9CmFDjtiTfh8Sgg@mail.gmail.com>
+ <CAOQ4uxhyZU_6jbv8kY8od_SgG9yQ6aX+KcB2c1um4DajJdSPqA@mail.gmail.com>
+ <CAJnrk1aEc1nf7ax0UvdCi7rkzbWDFpgjJcE35HCQyWcPLdoOnw@mail.gmail.com> <CAOQ4uxhUZByYu6hp0TSekZ49FZDp20xPTpG9CmFDjtiTfh8Sgg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhUZByYu6hp0TSekZ49FZDp20xPTpG9CmFDjtiTfh8Sgg@mail.gmail.com>
+From: Joanne Koong <joannelkoong@gmail.com>
+Date: Mon, 18 May 2026 13:56:43 -0700
+X-Gm-Features: AVHnY4Kk7UjvKo5G96rFFAWOoPehDm6nCtStEnSj10UV4YnAhPnsD8T12ZhmYgI
+Message-ID: <CAJnrk1ZO5s=71tMEJZ5Lt3cfjPijPt2bzucbYT70qJE-GuWz7w@mail.gmail.com>
 Subject: Re: [PATCH v2 02/21] fuse: prepare for passthrough of inode operations
-To: Joanne Koong <joannelkoong@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
 	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 18, 2026 at 8:04=E2=80=AFPM Joanne Koong <joannelkoong@gmail.co=
-m> wrote:
+On Mon, May 18, 2026 at 11:39=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
+> wrote:
 >
-> On Sat, May 16, 2026 at 9:11=E2=80=AFAM Amir Goldstein <amir73il@gmail.co=
-m> wrote:
+> On Mon, May 18, 2026 at 8:04=E2=80=AFPM Joanne Koong <joannelkoong@gmail.=
+com> wrote:
 > >
-> > On Sat, May 16, 2026 at 3:34=E2=80=AFAM Joanne Koong <joannelkoong@gmai=
-l.com> wrote:
+> > On Sat, May 16, 2026 at 9:11=E2=80=AFAM Amir Goldstein <amir73il@gmail.=
+com> wrote:
 > > >
-> > > On Fri, May 15, 2026 at 5:52=E2=80=AFPM Joanne Koong <joannelkoong@gm=
+> > > On Sat, May 16, 2026 at 3:34=E2=80=AFAM Joanne Koong <joannelkoong@gm=
 ail.com> wrote:
 > > > >
-> > > > +/* op bits for fuse_backing_map ops_mask */
-> > > > +#define FUSE_PASSTHROUGH_OP_READ       FUSE_PASSTHROUGH_OP(FUSE_RE=
-AD)
-> > > > +#define FUSE_PASSTHROUGH_OP_WRITE      FUSE_PASSTHROUGH_OP(FUSE_WR=
-ITE)
+> > > > On Fri, May 15, 2026 at 5:52=E2=80=AFPM Joanne Koong <joannelkoong@=
+gmail.com> wrote:
+> > > > >
+> > > > > +/* op bits for fuse_backing_map ops_mask */
+> > > > > +#define FUSE_PASSTHROUGH_OP_READ       FUSE_PASSTHROUGH_OP(FUSE_=
+READ)
+> > > > > +#define FUSE_PASSTHROUGH_OP_WRITE      FUSE_PASSTHROUGH_OP(FUSE_=
+WRITE)
+> > > >
+> > > > Do you think we should couple the passthrough op code to the fuse
+> > > > opcode so closely, instead of defining the passthrough ops separate=
+ly,
+> > > > eg doing something like this?:
+> > > >
+> > > > #define FUSE_PASSTHROUGH_READ         (1 << 0)
+> > > > #define FUSE_PASSTHROUGH_WRITE       (1 << 1)
 > > >
-> > > Do you think we should couple the passthrough op code to the fuse
-> > > opcode so closely, instead of defining the passthrough ops separately=
-,
-> > > eg doing something like this?:
+> > > Don't drop the _OP_ please
+> > > Need it to distinguish from FUSE_PASSTHROUGH{,_INO}
+> > > and we need to think if we want to format this as 32bit and extend la=
+ter
+> > > or start with a u64 ops_mask format from the start.
 > > >
-> > > #define FUSE_PASSTHROUGH_READ         (1 << 0)
-> > > #define FUSE_PASSTHROUGH_WRITE       (1 << 1)
+> > > >
+> > > > In the (far) future when some more advanced passthrough features ge=
+t
+> > > > added (eg full subtree passthrough), it seems like we'd want to add=
+ a
+> > > > passthrough op for that,
+> > >
+> > > I don't know. fuse_backing_map has flags, why would we want to put th=
+at
+> > > in ops_mask.
 > >
-> > Don't drop the _OP_ please
-> > Need it to distinguish from FUSE_PASSTHROUGH{,_INO}
-> > and we need to think if we want to format this as 32bit and extend late=
-r
-> > or start with a u64 ops_mask format from the start.
+> > That's a good point, I like your idea of using flags for that.
 > >
 > > >
-> > > In the (far) future when some more advanced passthrough features get
-> > > added (eg full subtree passthrough), it seems like we'd want to add a
-> > > passthrough op for that,
+> > > > but that wouldn't map to a fuse op. I think
+> > > > there are also some fuse ops we might skip defining as passthrough =
+ops
+> > > > but are implicitly passed through (eg FUSE_STATX which is covered b=
+y
+> > > > FUSE_GETATTR),
+> > >
+> > > This could also become the case with FUSE_CREATE{,_HANDLE}
+> > > or {FUSE,FUSEX}_CREAT.
+> > >
+> > > TBH, the fact that some ops will never be in the mask and
+> > > that some ops have a canonical bit in itself does not justify creatin=
+g
+> > > a different mapping. Do we also want to squeeze the mask into 32bit
+> > > and leave reserved space? my intuition is to leave it u64.
+> > >
+> > > > so it seems more intuitive to define the passthrough
+> > > > ops as describing capabilities rather than implying that it describ=
+es
+> > > > what specific opcodes get passed through?
+> > >
+> > > hmm. I guess you have a point that it is a bit limiting to commit
+> > > to this arithmetic in UAPI.
+> > >
+> > > My thinking behind this was ease of use with these helpers:
+> > >
+> > >        if (!fuse_passthrough_op(file_inode(in), FUSE_READ))
+> > >
+> > > but those could just as well be macros:
+> > >
+> > > static inline bool fuse_inode_passthrough_op(struct inode *inode,
+> > >                                             u64 opbit)...
+> > >
+> > > #define FUSE_PASSTHROUGH_OP(inode, opname)    \
+> > >              fuse_passthrough_op(inode, FUSE_PASSTHROUGH_OP_ ## opnam=
+e)
+> > >
+> > > #define FUSE_BACKING_MAP_OP(map, opname) \
+> > >        ((map)->ops_mask & FUSE_PASSTHROUGH_OP ## opname))
+> > >
+> > > ...
+> > >        if (!FUSE_PASSTHROUGH_OP(file_inode(in), READ))
+> > >
+> > > wdyt?
 > >
-> > I don't know. fuse_backing_map has flags, why would we want to put that
-> > in ops_mask.
+> > Nice, the macro idea is neat!
+> >
+> > I feel like it gives more flexibility to define it separately and I
+> > think with that, u32 would be more than enough bits as well. But I'm
+> > happy to go with what you think would be better here.
 >
-> That's a good point, I like your idea of using flags for that.
->
-> >
-> > > but that wouldn't map to a fuse op. I think
-> > > there are also some fuse ops we might skip defining as passthrough op=
-s
-> > > but are implicitly passed through (eg FUSE_STATX which is covered by
-> > > FUSE_GETATTR),
-> >
-> > This could also become the case with FUSE_CREATE{,_HANDLE}
-> > or {FUSE,FUSEX}_CREAT.
-> >
-> > TBH, the fact that some ops will never be in the mask and
-> > that some ops have a canonical bit in itself does not justify creating
-> > a different mapping. Do we also want to squeeze the mask into 32bit
-> > and leave reserved space? my intuition is to leave it u64.
-> >
-> > > so it seems more intuitive to define the passthrough
-> > > ops as describing capabilities rather than implying that it describes
-> > > what specific opcodes get passed through?
-> >
-> > hmm. I guess you have a point that it is a bit limiting to commit
-> > to this arithmetic in UAPI.
-> >
-> > My thinking behind this was ease of use with these helpers:
-> >
-> >        if (!fuse_passthrough_op(file_inode(in), FUSE_READ))
-> >
-> > but those could just as well be macros:
-> >
-> > static inline bool fuse_inode_passthrough_op(struct inode *inode,
-> >                                             u64 opbit)...
-> >
-> > #define FUSE_PASSTHROUGH_OP(inode, opname)    \
-> >              fuse_passthrough_op(inode, FUSE_PASSTHROUGH_OP_ ## opname)
-> >
-> > #define FUSE_BACKING_MAP_OP(map, opname) \
-> >        ((map)->ops_mask & FUSE_PASSTHROUGH_OP ## opname))
-> >
-> > ...
-> >        if (!FUSE_PASSTHROUGH_OP(file_inode(in), READ))
-> >
-> > wdyt?
->
-> Nice, the macro idea is neat!
->
-> I feel like it gives more flexibility to define it separately and I
-> think with that, u32 would be more than enough bits as well. But I'm
-> happy to go with what you think would be better here.
+> I am not sure. Let's keep it u64 for now.
+> Since the struct is in an ioctl, it does not really matter much.
+> If we ever consider moving backing_map responses inline
+> in lookup/readdirplus response (maybe over io uring) we could reconsider.
 
-I am not sure. Let's keep it u64 for now.
-Since the struct is in an ioctl, it does not really matter much.
-If we ever consider moving backing_map responses inline
-in lookup/readdirplus response (maybe over io uring) we could reconsider.
+Sounds good. For v3 I'll keep it a u64 but define them separately and
+use your macro helper for mapping from opcode to passthrough op.
 
-In case you missed the exciting conversations about this API
-original fuse passthough patches from Android had the backing fd
-in the open response but it was deemed unsafe writing fds to
-/dev/fuse, so ioctl was chosen instead [1].
+>
+> In case you missed the exciting conversations about this API
+> original fuse passthough patches from Android had the backing fd
+> in the open response but it was deemed unsafe writing fds to
+> /dev/fuse, so ioctl was chosen instead [1].
 
-With io_uring I don't think the security concern holds, so I see no reason
-why backing_map would not be possible in-place for readdirplus
-responses if we wanted to do that, but we can also ignore all this for now.
+Wow, that's a clever attack. Thanks for sharing the link.
 
 Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-fsdevel/CAG48ez3ZX8R9kRAQhung2_e3wjowu5cP=
-h7WL3U866mkga-kftQ@mail.gmail.com/
+Joanne
+>
+> With io_uring I don't think the security concern holds, so I see no reaso=
+n
+> why backing_map would not be possible in-place for readdirplus
+> responses if we wanted to do that, but we can also ignore all this for no=
+w.
+>
+> Thanks,
+> Amir.
+>
+> [1] https://lore.kernel.org/linux-fsdevel/CAG48ez3ZX8R9kRAQhung2_e3wjowu5=
+cPh7WL3U866mkga-kftQ@mail.gmail.com/
