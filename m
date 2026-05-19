@@ -1,80 +1,80 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 625C1248F62
-	for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 23:47:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21844405C4C
+	for <linux-unionfs@vger.kernel.org>; Tue, 19 May 2026 00:01:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.52
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779148052; cv=pass; b=S/1Sef9cD57lqJi8AydSQl41+tThQlequMYi8aWZ1cL0ETTPPBjgAb9Nl1iWFXQ0V+uUnMvuHtGIa295bLfOlzyOOTsuxX8JWeGa4Wo5/i8xetB2QO3FXb6GBDHKQx7McVwiGL2anvM1UCsh5pF1+TByahCQaqw5FQqx2dxeCGM=
+	t=1779148916; cv=pass; b=NAEbOeZHdb/dwXNGvURDhP8A/izah5WzMAVnBmK0u6acit7eukYRsXaOO0z85wSo5Ga/PgXoMEdlsfRRnzxZ9LTyu8CvtLFxr4R8XotYYgh9Y3CjplWT0fQVfrl+q5YgryFbOyIdi/Ys8flJk5ZXPG9XuFp8+HgIKhV2h3+13Y8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779148052; c=relaxed/simple;
-	bh=7JRt76FeYfU75XMfqsMxTCMGeOaC7FKxmLHQrRwmOPg=;
+	s=arc-20240116; t=1779148916; c=relaxed/simple;
+	bh=cY7l1Ij5zQ3U1zGP4fqtEQwVnmsu108odect3fiSVlU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YvBqDihq0quHY0rq2R/Qfvr/voTf0+gXa+osJHPZVOddCEhIGXupAnWnrglXwxqmPznkh4LKYXowDYTicrqTBUPoc8UEs6To6N5zhW+RmNrDIVK20Kh8dVrJEddMoloaqa7sd0ppxlBNf7eSkcMqhxYZq8EmdpSYVQHCPxGYTYA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cPr4BO4B; arc=pass smtp.client-ip=209.85.221.42
+	 To:Cc:Content-Type; b=fzg4iHs2pUMdgMTo1tfbN3IaaxsDOP3+x7yKd6pwwGhj3fQ6ni7q6D3Wl1eY1ZZKZ+97PRku+juJ+xPOKK1GzAeRsEQf3P2Q6lOeSJYYi7uGMFZypK0zAiYhsAVHu01nMKmUToRPZMvW5Jq8WYbON2pt/FZPnQJxSjA+ea6/3Dg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CV+sEsrf; arc=pass smtp.client-ip=209.85.128.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cPr4BO4B"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-43d7e23defbso1594681f8f.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 16:47:30 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779148049; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CV+sEsrf"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-48a3e9862f0so16525595e9.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 May 2026 17:01:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779148913; cv=none;
         d=google.com; s=arc-20240605;
-        b=lu6syPPRqPG4Xn8QivAkd2hOO6VjQpxaL045s5rotHaHHxT3Kdbjgb/nRtJtAMvrod
-         yMHv1+8b9vFid8wgg9RG4yc54tXy3kHaUK0ZVzxJFqBSeskh8ozyuMRvURE5j0e6TknU
-         9Lg+DH5XDepkptl1OubQBMVJtSmId0Qjpek0GREYGBnDNDGLs5KIF5ZsAUP28hC8rIPb
-         cezxn3jZ6nj+nfnQz4Dt34vEfyPqrrvQofjiOgXUcXKBk9RkxH3Y1dacgMCZCZxeBum4
-         JzoFoiniM1CQQtuQ5elHFYJ+O7ofNvG2Ap7sIKRGCqJtTRqTRImgcf+QT5du6cVm+Htf
-         y8ig==
+        b=QTOn+B7MTNZFSvIKBIEjHH5BSB9ZsNJZNN0ofXcpyatlERPIQxOK+XV+CcyY1P2XjF
+         fLSHQFa//ZLAniAF0PvMH253gFVezrr1tAxBZl7EcbAwEkH25x9d3NAxlRSU9aLodaGL
+         MgF+kW2Ub5XJiIsQ68OWOTRBraRcdxPjdV+dSELgv3eV9IXuUfRJnghIyGpeAoNraxZG
+         RUmq+g/PbBTS4FqkGkBwyWq8GrZUnkxp+C+lVvShk5nMF0bAqqUENQDp9KvTFbOb6NsL
+         GCF5SsmCM1RBLSEFwRUNT4cCEsc5gCMfGCdZzNiIk/CxcPtsQJtlVK78jHrKZVL3le/Q
+         PaBA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=0VSSyTI2tug1r63sRPGJdbXMez/ik64fwDp9DACoM0A=;
-        fh=RoIa1vGhHNEBBbsBrsueawKhwVF8jOouMHMHTnsfDxM=;
-        b=Px5dSMC2jac6l53wNH7CXzzKWW8bR+cySS7yp6nLIB2aC5Z1kOB63uwtdsAAQElJ8S
-         s7VdFwx8nZbTQy3baGOnBiHW3s2oHsHKcgtzy2Gm9zFz+FtoFREX85pGNsjnh8kysmUk
-         D7pRDXc35H2XT5ymvFRb2+Go65wvYfVz0H8P2zwABk/lhQR+yhMi536MspfmmihyxdVW
-         NJMt6gomNoR0IGnvR4yo5Yu0u8m0DjRweBdkJbwr6UIPPSkX/NSB8PADPrDGXh0AbEG7
-         CU6VGNtS7CTREGPmivYmo+ZTCN8TFB6vGgK7Ax0yMeu30TaDi8Mp9KZBzzjBsZDBkhba
-         XKyg==;
+        bh=sCNABeao7jNEZWws74B/pC8MJAjwnqZTvtKCDOtjNlg=;
+        fh=iJfc5hw6mZdhWXpNpc1o33jUsXcBXuXqjSyLCqtf2w0=;
+        b=aG0CqTN/7nwwZNcbJZQPIU5g65r/wXYWIpUaSaV3OTMkp7hrQP3E8NJEKBwoeCoXyn
+         +GzdFpC72QlTHgOYqw13WEj09kCnQPMLohYiL0AqkYDPF1Pg0L9TGQQbIp5NfYpVrnlL
+         4pH3h90YzmX+K1k9u0HR5BkTSZXqw3cYMSiwvcXNyESxo/4IB+XYh5SuW+WgHPRhd7E1
+         fNp6CJn3zpLexX2Lu2KtGFN5OpzfSyleeRPenkXE9uJkIZXJwdz+7z14rYN9ocL6eEPY
+         fza2JMc3b0gNQf3FA5i3yBUYhriWliG0w/xBCpLORm1FzVPLHpQ3udGt/SbhsCJt47mY
+         jG2w==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779148049; x=1779752849; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779148913; x=1779753713; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=0VSSyTI2tug1r63sRPGJdbXMez/ik64fwDp9DACoM0A=;
-        b=cPr4BO4B3/Us40u9oNG8cjZKVIKUSCYSaIB1g3I1lck4hER3zMeoWqYeVc6V0XR2mm
-         nIIFG6n0WYc+jXVt0g2UCNjx+od4P9UDL0K8a1nOQ5IRxlz6zgVENMPUyE0I00bj8/kd
-         hBWnA7NEMzRC+ZM2cf1YY8ZrRTzmU3pvPxMoYK8V/tpRwCEapGV5K1DABci4S648v4X5
-         8PKK1NvgMi9Uri3VODELnV5On6pCJuqkt1UuZgN4ahCaIpOkmI+S3xaOKRCgP3284ihI
-         AyFgkqeQPdBL+8yvDEjJNnFkIhna879aU0mrqUHRpPUl7j7VskK9s0vMoBaDLatXbXwN
-         py6g==
+        bh=sCNABeao7jNEZWws74B/pC8MJAjwnqZTvtKCDOtjNlg=;
+        b=CV+sEsrfhRNd8ZQzSetMzjg3OWVpGSP7/2VlEhE110586LmBu0clXRwsWBkSUcwZMN
+         t90QJW1g+Pc4xJG2RA9FyIPk6x/jBuB3dVUByKs3gWJFdQ051nFHm8mChtxLwpojJVun
+         mdUEEVk3ZyMYgfwYyxV51gm8kAcyhBvYvE17kQvRSjwVfoL30PYF0ERayN0C2UEB/BMu
+         m+PskAA+wlYR48U2YW4O2qeTZoJa9mFi71HNcLqdOVkZk4pI/FXVuRn9c4i3yG63cJg2
+         EgluymSvUMlhynNwCWovtEEtMxHeLYMm2Bx0Q4xcrZ/4XSiebuoue2QtWBOajN+7Mq+z
+         i+Mg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779148049; x=1779752849;
+        d=1e100.net; s=20251104; t=1779148913; x=1779753713;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=0VSSyTI2tug1r63sRPGJdbXMez/ik64fwDp9DACoM0A=;
-        b=pKG1Oan+YqdNlkrElWraCfhCHJVyo3I/PSwrheoWtYyELGBdlPfgp2FOZJiC4mekUe
-         lM4XASQ/0fca8CD15ROvlMZ46q9qCyWdzfLIPm2NdMifmX8NmRC2bdiMkO7/o8/TcBTg
-         rZ8JRWcsBk90Dza7N9NqtdYteGseV9MLy9A5oOBf0QQc33JqRgNi3r34Q67T4kydnmRI
-         2P8fGdbvYHURwPGkBDPbGy5qnZE+hBO9imbpkH5YXmbk1KFYubRr65lFZlA866iG2KxZ
-         rhKaA3hxW/eV5NzMx3hf/LWiInalIfLTYGmlb3/pDmGiBrZj2iN33kkjUQbKYxnNqVoj
-         sPKw==
-X-Forwarded-Encrypted: i=1; AFNElJ+IF1s2E677MR+9gu0WW2PKlhmQLFpL2arpr6kvaZsYV0JKHe010Z/xPM5wvlQV8zAu8aEnG6Iq/43oIg9l@vger.kernel.org
-X-Gm-Message-State: AOJu0YyQ851EjL0ctcM9sxpYHQ2sPLWVCTbncqKnWC8GGWj6p0u+Yc2m
-	wQN0iYi+EpVZdThF/p8ztavaGB7EMWw7XYxBKIqlwvScUP8Xou+16+sKtvyAXjfMamHjHTQJ4Qk
-	TSpG9Tr7Kopv6G7YH3/XFyv8AtUWwzNL8NS1x2ag=
-X-Gm-Gg: Acq92OFN+L/vFg/wFC+LVivOaKPVkzoTf2vijTa9AP5J1Ln5CIUNu0Tf1ep03xn2dTZ
-	qeCx46k+hmgG2VfemPbfJa6ihC6xvRRqTuLNhoR99ERtRB2yMiAsa15KzCaTXjbk+6CTwTGO4py
-	NydzHWtYvYu+TsIiq0VkfPLJeK8qsoYZ1jS6ECW4tGUM2XdgcJ99dSmSa01OgSsUIkD2cR0aUL5
-	ioQ+q4EfzZilv76jEgES+1o4wl+DaNbhxfpamHhpr3K0a1E7Tlmm7TS1dZUSPNpT+AphOr3Q1IT
-	XGumsw==
-X-Received: by 2002:a5d:5d82:0:b0:439:c299:4d8f with SMTP id
- ffacd0b85a97d-45e5c5cbe4bmr26543378f8f.17.1779148048602; Mon, 18 May 2026
- 16:47:28 -0700 (PDT)
+        bh=sCNABeao7jNEZWws74B/pC8MJAjwnqZTvtKCDOtjNlg=;
+        b=BgdgM+F21Y91ks031x36Z5g1Uwi43qj2QHAhcMjB+1Wq5YqEI/o8q7JuFUQGPoLsZX
+         DQLtzllqVrcdNNFi9uGQL8GCxMXjTcc1BV5zU9PgdF4VDSNbL2d/wS2Ysu6W17nFEucO
+         gSgzBIC1ZgH3ipKV04vx7qnkUr0fIddXt45lt5DlPBYwBppuLKy/xVeeYxB1qSp/jzWn
+         SJqDXgJR6oT4EMHQZQP4UQJbhrx5jtK6aOPIWSgjMF8AWU7Q+rcys1OIp+tqpvjkmQja
+         Cp22ODpRCBMyFf40GlaEl5f7fxNzbGe3/zBpmjf3cUZp13sps7Dq6XHibcdvGwf4fvqB
+         f3Pg==
+X-Forwarded-Encrypted: i=1; AFNElJ9krY+nAgRMFIIK9rLZ+Q6SR3Vw0jgZevyOM4ETR2UAgKe2nagLJckNqKA8BaTZNMb7bEBhsvupmew7SIt5@vger.kernel.org
+X-Gm-Message-State: AOJu0YwVEnC1u9qq9B+jj8W1/FzHhPXWPVFaZwqTg59if9ujDeTy1TaM
+	WACAeUqZXamaZZ2OhMr01aNcskqAFmSEqheU3OfVBgwUToTVYDjQM5iHpnbaGJr9XYei3B6Mtv+
+	8X0qSkYpEGZID1N3zkfdMwn6MyurjiXI3nTZ4
+X-Gm-Gg: Acq92OHmiv3dlwan3rEhNM+vPV5Lgo6ZsfagsSc3fdJjGBjTqlfeTtCuZp+1OqnrWJi
+	u69f52SaskWGTQhKvBNPVd+Zf2d29hE+PuvFq3Xev8lUWfZ7oit0AyCQW0lsqAzf1q6bfrIoRRc
+	NufYTPtJGo4v2U955dba+xbVrGQq2ykT6RntP6R2m0MvvqPe1xf3mv4Ilm83YsPykyf3GCow1dm
+	e3ga2dXTmX4pjOpvJrS9owjqA/pDChkyREF+4OlY0ynx2YG//VH7yEYWf9N+pWFJQIzNXajmuKP
+	FgDp0A==
+X-Received: by 2002:a05:600c:1688:b0:488:c21a:4754 with SMTP id
+ 5b1f17b1804b1-48fd646b8a0mr219247475e9.18.1779148913485; Mon, 18 May 2026
+ 17:01:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -82,113 +82,86 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260516004004.1455526-1-joannelkoong@gmail.com>
- <20260516004004.1455526-20-joannelkoong@gmail.com> <CAJnrk1bm=QOmY9MNZf5rbi-aTLaYetJ2Ziu7A5q9m4MMy5-Y7A@mail.gmail.com>
- <CAOQ4uxgfEwhy+YRbZ2H6=Rj4b7d=R-DhZVd+_28MA-9VAd-C5g@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgfEwhy+YRbZ2H6=Rj4b7d=R-DhZVd+_28MA-9VAd-C5g@mail.gmail.com>
+ <20260516004004.1455526-21-joannelkoong@gmail.com> <CAJnrk1a9_MLyMebfsDe_=Rcd2+TaiD87pW4fd4ve8ZBQPCfGcQ@mail.gmail.com>
+ <CAOQ4uxiJaLtcuGNrYej6WCzTfu=fFfy4VLj7pUmfM+hHT0Z3Pw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiJaLtcuGNrYej6WCzTfu=fFfy4VLj7pUmfM+hHT0Z3Pw@mail.gmail.com>
 From: Joanne Koong <joannelkoong@gmail.com>
-Date: Mon, 18 May 2026 16:47:16 -0700
-X-Gm-Features: AVHnY4KcV6afCDxl4fkWuJFDwIiz__bxO9eLHea2g--HiDIodYXuy5AM5fR5xQ4
-Message-ID: <CAJnrk1bF9jFmqBtY_PgkA3x3muossApur4LpDo=6KFsA6vY4YQ@mail.gmail.com>
-Subject: Re: [PATCH v2 19/21] fuse: add passthrough setattr
+Date: Mon, 18 May 2026 17:01:41 -0700
+X-Gm-Features: AVHnY4K7aLJXgYL7Z4ZYreCRwJgT_2uDJMFU082Qq7wg0A9bzkAxvr5ElbNXQSs
+Message-ID: <CAJnrk1Y+YO79e=yvzKaBT9XcCV_ht899nQjzhQnKzJMjt4UVFw@mail.gmail.com>
+Subject: Re: [PATCH v2 20/21] fuse: use passthrough getattr in setattr
+ suid/sgid handling
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
 	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 16, 2026 at 4:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+On Sat, May 16, 2026 at 3:23=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
  wrote:
 >
-> On Sat, May 16, 2026 at 3:04=E2=80=AFAM Joanne Koong <joannelkoong@gmail.=
+> On Sat, May 16, 2026 at 3:20=E2=80=AFAM Joanne Koong <joannelkoong@gmail.=
 com> wrote:
 > >
 > > On Fri, May 15, 2026 at 5:53=E2=80=AFPM Joanne Koong <joannelkoong@gmai=
 l.com> wrote:
 > > >
-> > > Add passthrough setattr which sets attributes directly on the backing
-> > > inode through backing_inode_setattr() instead of sending FUSE_SETATTR=
- to
-> > > the server.
-> > >
-> > > Passthrough setattr is checked before the
-> > > handle_killpriv/handle_killpriv_v2 suid/sgid stripping because the
-> > > stripping is handled natively by notify_change() on the backing inode=
-.
+> > > When refreshing i_mode for suid/sgid kill during setattr, use
+> > > passthrough getattr if the inode has that enabled.
 > > >
 > > > Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 > > > ---
-> > >  fs/fuse/dir.c             |  3 +++
-> > >  fs/fuse/fuse_i.h          |  3 ++-
-> > >  fs/fuse/passthrough.c     | 28 ++++++++++++++++++++++++++++
-> > >  include/uapi/linux/fuse.h |  1 +
-> > >  4 files changed, 34 insertions(+), 1 deletion(-)
+> > >  fs/fuse/dir.c | 6 +++++-
+> > >  1 file changed, 5 insertions(+), 1 deletion(-)
 > > >
 > > > diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-> > > index 4c7e3e1604af..b67b3b334e69 100644
+> > > index b67b3b334e69..fd1b3fd86968 100644
 > > > --- a/fs/fuse/dir.c
 > > > +++ b/fs/fuse/dir.c
-> > > @@ -2506,6 +2506,9 @@ static int fuse_setattr(struct mnt_idmap *idmap=
-, struct dentry *entry,
-> > >         if (!fuse_allow_current_process(get_fuse_conn(inode)))
-> > >                 return -EACCES;
-> > >
-> > > +       if (fuse_passthrough_op(inode, FUSE_SETATTR))
-> > > +               return fuse_passthrough_setattr(entry, attr);
+> > > @@ -2524,7 +2524,11 @@ static int fuse_setattr(struct mnt_idmap *idma=
+p, struct dentry *entry,
+> > >                          * ia_mode calculation may have used stale i_=
+mode.
+> > >                          * Refresh and recalculate.
+> > >                          */
+> > > -                       ret =3D fuse_do_getattr(idmap, inode, NULL, f=
+ile);
+> > > +                       if (fuse_passthrough_op(inode, FUSE_GETATTR))
+> > > +                               ret =3D fuse_passthrough_getattr(inod=
+e, NULL,
+> > > +                                                              STATX_=
+MODE, 0);
+> > > +                       else
+> > > +                               ret =3D fuse_do_getattr(idmap, inode,=
+ NULL, file);
 > >
-> > In the v1 discussion [1], there was a suggestion about gating
-> > FUSE_PASSTHROUGH_INO on FUSE_HANDLE_KILLPRIV_V2 to avoid the
-> > non-atomic killpriv path, but I think we were only encountering the
-> > non-atomic killpriv path because I was calling
-> > fuse_passthrough_setattr() in the wrong place. I think we can avoid
-> > this altogether by just having the backing filesystem handle all of
-> > the suid/sgid stripping atomically through its own notify_change()
-> > path, which will let us skip all the fuse killpriv handling logic in
-> > this function.
+> > I left this part untouched from v1 but there was a discussion [1]
+> > about whether to enforce that setattr must be passed through if
+> > getattr is passed through [1]. I think there might be some use cases
+> > though where having only getattr passed through and not setattr is
+> > useful (eg server wants fast stat() but needs to intercept attribute
+> > changes for access control or policy enforcement).
 >
-> I think it still matters, but to the only-passthrough-GETATTR case
-> and I am still in favor of making this change.
-> My point was why have the discussion whether getattr
-> for the purpose of killpriv should be passthrough or not (next patch)?
-> Why not drop the next patch instead because it will become moot.
+> Of course there is. I think I was misunderstood.
 >
-> If FUSE_PASSTHROUGH_INO requires FUSE_HANDLE_KILLPRIV_V2
-> it means that FUSE kernel is never trying to play games removing privs
-> itself, not with passthrough and not without passthrough.
->
-> Quoting your comment on next patch
-> "I think there might be some use cases
-> though where having only getattr passed through and not setattr is
-> useful (eg server wants fast stat() but needs to intercept attribute
-> changes for access control or policy enforcement)."
->
-> Valid use case, but in this valid use case, said server may reject/allow
-> attribute changes, but eventually if it allows them it will likely apply
-> them to the very file which was set as backing inode, so essentially
-> FUSE_HANDLE_KILLPRIV_V2 is the natural choice for a
-> FUSE_PASSTHROUGH_INO server, even when it wants to introspect
-> setattr.
->
-> I think the same is true for ATOMIC_O_TRUNC.
-> Either backing fs deals with O_TRUNC or server deals with O_TRUNC.
->
-> But this is my opinion - I am open to hearing other opinions.
+> What I meant was that *specifically* for the getattr for this purpose
+> of killpriv, it may make sense to ask the server's mode for
+> calculating the setattr mode for the server.
 
-I was thinking from the user perspective, it'd be nicer to not couple
-things unless it was absolutely necessary, especially since
-passthrough is a per-inode/per-file attribute whereas KILLPRIV_V2 is a
-global server configuration (eg server might want passthrough on just
-a few files without taking on killpriv responsibility for the whole
-filesystem).
+Ah gotcha, I misinterpreted your comment from v1. Thanks for clarifying.
 
-But I think everything you wrote makes sense and I don't think
-handling the stripping stuff is too burdensome to ask of the server.
+Thanks again for reviewing this series.
 
-For v3, I'll make the change to require FUSE_KILLPRIV_V2 for
-FUSE_PASSTHROUGH_INO.
-
-Thanks,
-Joanne
-
+>
+> But this is just a hunch.
+> I could be wrong and I have no strong feelings either way.
+>
+> > I'm not sure if you
+> > still feel it's better to keep it simple with enforcing that
+> > getattr+setattr rmust always be passed through together, Amir, but if
+> > so I'm happy to add that in.
+>
+> No need.
 >
 > Thanks,
 > Amir.
