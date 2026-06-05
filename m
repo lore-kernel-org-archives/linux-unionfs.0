@@ -1,210 +1,148 @@
-Received: from mail-oi1-f206.google.com (mail-oi1-f206.google.com [209.85.167.206])
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95915477E3D
-	for <linux-unionfs@vger.kernel.org>; Thu,  4 Jun 2026 21:33:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.206
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780608814; cv=none; b=aocHenK5fQtZ9RemQJJ+8C08Qfi7irH3BC4Oqv1tkkiTdIcAF1Q9Vofz/ro2wsuZAIKAGvX82kRLedgYZsD2ZyYgN3ISihCdIrlF2qrX8/GmfFKZNEnTeqEG3CHqu1NaQyT+6TuRrwV4VsHaUHqL29LqiDYoJyvdbY/TkfIJZUs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780608814; c=relaxed/simple;
-	bh=pyFc6Bl5jdsAF/lR6EWrYHzNgPwR+Ynyed2NUjuaUI4=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=lVGVIk61cyzqp0xDUFz2xGNpY8gt9jU/bV6iwxb3td4DQ8mcVrVBHzEG35rzdeasikp27LadmWagxIOP+wgXACkZxZjf0jaF6g7yJ2V2iqHSZv+ixE2qZPhuciNXVuOfpH7ubftaIbcoX/xnwAXm5e6UGbSJbkwsyyedIT7CRAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.206
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f206.google.com with SMTP id 5614622812f47-48637dce961so1112446b6e.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jun 2026 14:33:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF6752EEE8C
+	for <linux-unionfs@vger.kernel.org>; Fri,  5 Jun 2026 10:17:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.49
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780654625; cv=pass; b=VpNSQ3t5BkKAB0UkeAW9NQ0iRwepK35wv4hgPD6pPcv1VWRIRGV5wpA6Vzi/MaeDjh0V3isxCXu5E16USM5MeyaScyZRTA3RR/BVf63G3C9KsvjqeYtdpKYlKgu7KjM+b1gVwmpN0EHlM0uPXXFncYAlW8GIfu9R/f3XrQisAcQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780654625; c=relaxed/simple;
+	bh=WF1vL9rONde+7EdvH7Uhhegwq4EwzF5oUtUzFz12QtA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=fWY5P6PBxfGSpYVNn71eEsdl9DBX64J0SaEO4V6qdqjGdn4+zFZxHtr6LRn7RUq6eQ8lWtbI7wjEUeDc9MDowxikudXaBAag0ERVR55kIMlOQGoaRE6xmbUz1NM0jG99EVa5gy7p4MRa25G+rYSNnI04qj6/4kn8bz02ajBqX4k=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=G+9vUJST; arc=pass smtp.client-ip=209.85.208.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G+9vUJST"
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-6886be3d39bso2354404a12.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 05 Jun 2026 03:17:03 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1780654622; cv=none;
+        d=google.com; s=arc-20240605;
+        b=E0LWwRY2RK4purAxrxQZimjrDLUtUV3DyhEVJzOfzFA/ogwAAMWU/KVQWh8HzvSg6s
+         TWKKntKAzHCadIJDejixmiObufVr2byjtQYOMMv2xeYjLUlZ5aio6tGLI8KvyPDGuJNR
+         XWGpb6hbcLZMja/oBY6wjMt0EVzdibobZPDnF5hZNf9jEpelyqdF30S6oyiODCbitJT0
+         iDDL7D8TaHsOFQFR+hvFIUyF3DJ+naNbnr8GKCpjp0z97F3wHRhlGWu98uhjI8i4lTWR
+         /Rzw1YJ7Sirg8o8qBg2tMc1SaZM22PNzhf95fGaCLWOuauK1npWrWpyObcwfS9qbNq7P
+         8RNw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=bUhFysbZlGjq4fEHkg5MW+w54X1b9N3UpX9VYOCDIRU=;
+        fh=eX8mpF/cHjvY5ms3y8w4n+SOMrsoJuYxx2l+Gr+IBAQ=;
+        b=PlVKtG6/ryO4ButP1n4U7ZD3Liv57d2JLQsu7Ntgq3lZFRUQzZJfK6Ywnu5IOV2uLw
+         G8KPk7ad+UqD6cf2qCojBcfqbq7YTMjXtkjjAZ851IyvIYwORgdkGu5CSZajgTD006P6
+         EGCvsqWcVGfrSoFxNQQhkrGbi/k4NlMNRiZdltz7vjtz3g2PpvP1RntFQlCpf6D7gsQ3
+         1aOepLC1mnA9QbaUflrnqauEjr+gA6T7M9SKcWi+uivzLS+efi5l5WKW5cXgk54CWXLz
+         +2fwCyiKXR3MPQeJFxp1BbxK8yHc3+aLsL01s4wyuSRPqsNBhDRUdYXakEOu92YRgzin
+         BEAg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1780654622; x=1781259422; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=bUhFysbZlGjq4fEHkg5MW+w54X1b9N3UpX9VYOCDIRU=;
+        b=G+9vUJSTXWKm8O3eATRdhphA07y2DhvZrPOH5Wq91/zJq3PJ8cEPzEgr1fq/8gYwv7
+         aJ46/Vc9FbwjfMQJbWB1t96yDJ+B5KcLpTPQ8nsS/IKtIU6viXvPsEXwTynWVdZwX2H7
+         pzW8gCInImWsD9OSHoJNDKi3H5lSgFDloIqCjG0EUJWbtiFA+U0dNyO6DPC+T0Qrof1Q
+         +kLPB8d0n/61mS/zIt3XUMS89dBW8OfSkiMBX7u/iofBzqPsL6rM0UWxtUEXcDdxetJW
+         fVAG0A/UbzXE9Rj+a/7pY58ESue8ekdR5y52zTH/zZVCOVZfjnQRGQuGvLKAKAt+hZdB
+         NfOg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780608811; x=1781213611;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=5fRp0rtFh81Fn8m28u+cah1AL7sUPsmKU6z3BIZnz7Q=;
-        b=V2vOI5jiAE5HxkB/JRgU2DLUWg+aZ1kMfQ4hAAoEI7ejEaqsC/ptibvtkDzOJZl4x0
-         YGhKeAHgJoZLC8Nz0yKTrhBMTmFi9aDDq0voe+E/lsokjKXGopJ3ZDHf60xlXJoqbM3a
-         09WuksRO7x7bHI3NpaA1q5Y0Yglg64sCkUInWr/XjDUgAxQ+tqweLIW+ASmuXYBNwphl
-         0VORBdo6UlbZq0KppAnsvxhecflMhG6kXG97Ianb25W0VKWI5dCgd+czz7G/Ub8hLRys
-         Lh8BgwiDDn79a//xEqFD2hUtTmp3SiVZTb9aENWMr4hcNGUlmDnaB690n37IvnxHQhHX
-         WU0A==
-X-Forwarded-Encrypted: i=1; AFNElJ/waWVsowLDcROvBpARxnSS0gw14xmad3ctQMyeqrtgUSXZmISN0NjGiIy450Hr02Bf0SNYkzgPeua6LQaF@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy5lUc6y6WGtTOnzCfTAhtXkjTc2lQVYjfwUV2b3nY2DH6AgWyc
-	RzB7oD22xC+btGWFB8eI88Yjzqjplpx3IkP+vsJ9Cab2DH+gYfb9tEw0i3UZCI1NHPnWAmRJa7p
-	7XWE80Pt1bxO6DHu57wpXGNiRZ0g2+fD7rW5VIyMUic6lpT48O8BVfKlA0j0=
+        d=1e100.net; s=20251104; t=1780654622; x=1781259422;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=bUhFysbZlGjq4fEHkg5MW+w54X1b9N3UpX9VYOCDIRU=;
+        b=BoA0ub2sovEJru8ub2dwOYq2PWPeUr14DwrztzysRYoXtC+urx1hxZ63qYWKad6KO8
+         02r46MZ3DA3vi1899+FxPICG0MwjmqoAE1qj0SWQQTL7Qpm7WUkMntXGG+kTIoucxZtM
+         MVSY9sjuFLFTV+JIQq5l5S+mR8jRZm82wS19qdKQalNp2RVXDhNrkRaSOpcO1akM/6CW
+         YV9MeYB7qUfqe2oXHfhqHmhgTuehpGVG6AgYDI7uXg7KUfWMGpBu5BmjKP940+R4TTIM
+         KPRxP1obe8b8W650KUO+bPQBIzI3nj7ancXZaS+MaZ962nbq1u4KOLVb7q8cQb8eFEBH
+         1WRg==
+X-Forwarded-Encrypted: i=1; AFNElJ8yL8DOdPZpiPPevxkmrpYDjLAH8O5ta/318/mb9Cuy7tQ0LRtUDSd21SOKTUMTHd3vZS+ZV1oucOZk6nhx@vger.kernel.org
+X-Gm-Message-State: AOJu0YyXh4kHNuvTJzY251OEerCV6UBmba3Cl+gqbbIccVQnCBLBQNCG
+	+YOlDeuxlgLrMoJpVzinBRuu15u6fsdcS1Z9FnySUcbS0QBZliy0OAaaTCjEdsowuVJG1c5LQa1
+	NZSfotaQWOEmDuW+80hkGTceBsdQnQrI=
+X-Gm-Gg: Acq92OFwQdo9JM4SVY9NsR6/bGG3rdX+8Y7gwkn1l6Hhbd9Mmg/xDUwD8dn5Hcu1xZC
+	NSHcTLF67i25i0717Q2Ql+A3WKqMRaU0Cpsqv1MvFzX3+oSgwPtv8IUrNq1g04uLrRQreJa75OU
+	UHzcLyQFCXW4Idbgnh3Vm9tVIf0N9GqbTV+mpHeW1m3ZNZ8V8l77YmbtpIN2LiBUP2zr0NS27Tt
+	wcoQ/hZbB1l0mGBuW46M/vcc3+pMeCr/TqtVIc7o6dDF6DdA/HGaF1nbqHbYEH180uz6IuAexH4
+	/CL4X6npCvJVhoPgElGaafoUp3NTdAbKpBdGpeuS5VmF9OUZGemZ
+X-Received: by 2002:a05:6402:27d4:b0:68c:33e9:bf71 with SMTP id
+ 4fb4d7f45d1cf-68fa4e18fafmr1527593a12.11.1780654622302; Fri, 05 Jun 2026
+ 03:17:02 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:4c8b:b0:69d:a224:6ee7 with SMTP id
- 006d021491bc7-69e68cb64efmr577923eaf.54.1780608811698; Thu, 04 Jun 2026
- 14:33:31 -0700 (PDT)
-Date: Thu, 04 Jun 2026 14:33:31 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a21ef2b.a88f22c3.173579.0016.GAE@google.com>
-Subject: [syzbot] [overlayfs?] [ext4?] possible deadlock in
- lock_two_nondirectories (2)
-From: syzbot <syzbot+ad6118a7584b607c67f2@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-ext4@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+References: <20260526085801.81187-1-liwang@kylinos.cn> <20260528104208.395757-1-liwang@kylinos.cn>
+In-Reply-To: <20260528104208.395757-1-liwang@kylinos.cn>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 5 Jun 2026 12:16:49 +0200
+X-Gm-Features: AVVi8Cc1maywQKJB6UJFdpvjKJlWJs4NKrTH45EiYuR_zdidaMKJhOhK0HdykmA
+Message-ID: <CAOQ4uxi4F=7pOUJfAJavaCZ19YoaASNssjuADqzUQs24ztLkww@mail.gmail.com>
+Subject: Re: [PATCH v2] backing-file: fix backing_file_open() kerneldoc parameter
+To: Li Wang <liwang@kylinos.cn>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Joanne Koong <joannelkoong@gmail.com>, 
+	Bernd Schubert <bernd@bsbernd.com>, linux-fsdevel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Thu, May 28, 2026 at 12:42=E2=80=AFPM Li Wang <liwang@kylinos.cn> wrote:
+>
+> The kerneldoc for backing_file_open() documented a @user_path argument,
+> but the function takes const struct file *user_file. The user
+> path is derived as &user_file->f_path.
+>
+> Update the @-tag to @user_file and adjust the description accordingly.
+> Also fix the "reuqested" typo to 'requested' in the old comment.
+>
+> Signed-off-by: Li Wang <liwang@kylinos.cn>
 
-syzbot found the following issue on:
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-HEAD commit:    ba3e43a9e601 Merge tag 'soc-fixes-7.1-2' of git://git.kern..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1033aa56580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=bd38685893011045
-dashboard link: https://syzkaller.appspot.com/bug?extid=ad6118a7584b607c67f2
-compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17e2f3ec580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=174c2a66580000
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/8759ddf1bfa7/disk-ba3e43a9.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/e2f0e563c705/vmlinux-ba3e43a9.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/b40bdb37a0d7/bzImage-ba3e43a9.xz
-mounted in repro: https://storage.googleapis.com/syzbot-assets/4074e1f6d9f8/mount_0.gz
-  fsck result: failed (log: https://syzkaller.appspot.com/x/fsck.log?x=1103db7e580000)
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+ad6118a7584b607c67f2@syzkaller.appspotmail.com
-
-EXT4-fs: Ignoring removed bh option
-EXT4-fs (loop0): stripe (5) is not aligned with cluster size (16), stripe is disabled
-EXT4-fs (loop0): mounted filesystem 00000000-0000-0000-0000-000000000000 r/w without journal. Quota mode: none.
-======================================================
-WARNING: possible circular locking dependency detected
-syzkaller #0 Not tainted
-------------------------------------------------------
-syz.0.22/5968 is trying to acquire lock:
-ffff88805aab44a0 (&ovl_i_mutex_key[depth]){+.+.}-{4:4}, at: inode_lock include/linux/fs.h:1029 [inline]
-ffff88805aab44a0 (&ovl_i_mutex_key[depth]){+.+.}-{4:4}, at: lock_two_nondirectories+0xe7/0x180 fs/inode.c:1254
-
-but task is already holding lock:
-ffff88803ea9c480 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write_file+0x63/0x210 fs/namespace.c:537
-
-which lock already depends on the new lock.
-
-
-the existing dependency chain (in reverse order) is:
-
--> #1 (sb_writers#4){.+.+}-{0:0}:
-       percpu_down_read_internal include/linux/percpu-rwsem.h:53 [inline]
-       percpu_down_read_freezable include/linux/percpu-rwsem.h:83 [inline]
-       __sb_start_write include/linux/fs/super.h:19 [inline]
-       sb_start_write+0x4d/0x1c0 include/linux/fs/super.h:125
-       file_start_write include/linux/fs.h:2724 [inline]
-       vfs_iter_write+0x1f8/0x610 fs/read_write.c:982
-       do_backing_file_write_iter fs/backing-file.c:226 [inline]
-       backing_file_write_iter+0x5e7/0x950 fs/backing-file.c:274
-       ovl_write_iter+0x2fd/0x3d0 fs/overlayfs/file.c:370
-       new_sync_write fs/read_write.c:595 [inline]
-       vfs_write+0x629/0xba0 fs/read_write.c:688
-       ksys_pwrite64 fs/read_write.c:795 [inline]
-       __do_sys_pwrite64 fs/read_write.c:803 [inline]
-       __se_sys_pwrite64 fs/read_write.c:800 [inline]
-       __x64_sys_pwrite64+0x19c/0x230 fs/read_write.c:800
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0x174/0x580 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
--> #0 (&ovl_i_mutex_key[depth]){+.+.}-{4:4}:
-       check_prev_add kernel/locking/lockdep.c:3165 [inline]
-       check_prevs_add kernel/locking/lockdep.c:3284 [inline]
-       validate_chain kernel/locking/lockdep.c:3908 [inline]
-       __lock_acquire+0x15a5/0x2cf0 kernel/locking/lockdep.c:5237
-       lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
-       down_write+0x3a/0x50 kernel/locking/rwsem.c:1625
-       inode_lock include/linux/fs.h:1029 [inline]
-       lock_two_nondirectories+0xe7/0x180 fs/inode.c:1254
-       ext4_move_extents+0x20f/0x3950 fs/ext4/move_extent.c:589
-       __ext4_ioctl fs/ext4/ioctl.c:1657 [inline]
-       ext4_ioctl+0x3092/0x4b40 fs/ext4/ioctl.c:1922
-       vfs_ioctl fs/ioctl.c:51 [inline]
-       __do_sys_ioctl fs/ioctl.c:597 [inline]
-       __se_sys_ioctl+0xff/0x170 fs/ioctl.c:583
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0x174/0x580 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-other info that might help us debug this:
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  rlock(sb_writers#4);
-                               lock(&ovl_i_mutex_key[depth]);
-                               lock(sb_writers#4);
-  lock(&ovl_i_mutex_key[depth]);
-
- *** DEADLOCK ***
-
-1 lock held by syz.0.22/5968:
- #0: ffff88803ea9c480 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write_file+0x63/0x210 fs/namespace.c:537
-
-stack backtrace:
-CPU: 0 UID: 0 PID: 5968 Comm: syz.0.22 Not tainted syzkaller #0 PREEMPT_{RT,(full)} 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/18/2026
-Call Trace:
- <TASK>
- dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
- print_circular_bug+0x2e1/0x300 kernel/locking/lockdep.c:2043
- check_noncircular+0x12e/0x150 kernel/locking/lockdep.c:2175
- check_prev_add kernel/locking/lockdep.c:3165 [inline]
- check_prevs_add kernel/locking/lockdep.c:3284 [inline]
- validate_chain kernel/locking/lockdep.c:3908 [inline]
- __lock_acquire+0x15a5/0x2cf0 kernel/locking/lockdep.c:5237
- lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
- down_write+0x3a/0x50 kernel/locking/rwsem.c:1625
- inode_lock include/linux/fs.h:1029 [inline]
- lock_two_nondirectories+0xe7/0x180 fs/inode.c:1254
- ext4_move_extents+0x20f/0x3950 fs/ext4/move_extent.c:589
- __ext4_ioctl fs/ext4/ioctl.c:1657 [inline]
- ext4_ioctl+0x3092/0x4b40 fs/ext4/ioctl.c:1922
- vfs_ioctl fs/ioctl.c:51 [inline]
- __do_sys_ioctl fs/ioctl.c:597 [inline]
- __se_sys_ioctl+0xff/0x170 fs/ioctl.c:583
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x174/0x580 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fb592a3ce59
-Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffc3443e838 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-RAX: ffffffffffffffda RBX: 00007fb592cb5fa0 RCX: 00007fb592a3ce59
-RDX: 0000200000000040 RSI: 00000000c028660f RDI: 0000000000000005
-RBP: 00007fb592ad2d6f R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007fb592cb5fac R14: 00007fb592cb5fa0 R15: 00007fb592cb5fa0
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+> ---
+>  fs/backing-file.c | 13 +++++++------
+>  1 file changed, 7 insertions(+), 6 deletions(-)
+>
+> diff --git a/fs/backing-file.c b/fs/backing-file.c
+> index 1f3bbfc75882..080c99696cd0 100644
+> --- a/fs/backing-file.c
+> +++ b/fs/backing-file.c
+> @@ -18,17 +18,18 @@
+>
+>  /**
+>   * backing_file_open - open a backing file for kernel internal use
+> - * @user_path: path that the user reuqested to open
+> + * @user_file:  file the user requested to open
+>   * @flags:     open flags
+>   * @real_path: path of the backing file
+>   * @cred:      credentials for open
+>   *
+>   * Open a backing file for a stackable filesystem (e.g., overlayfs).
+> - * @user_path may be on the stackable filesystem and @real_path on the
+> - * underlying filesystem.  In this case, we want to be able to return th=
+e
+> - * @user_path of the stackable filesystem. This is done by embedding the
+> - * returned file into a container structure that also stores the stacked
+> - * file's path, which can be retrieved using backing_file_user_path().
+> + * @user_file->f_path may be on the stackable filesystem and @real_path
+> + * on the underlying filesystem. In this case, we want to be able to
+> + * return the path of the stackable filesystem. This is done by
+> + * embedding the returned file into a container structure that also
+> + * stores the stacked file's path, which can be retrieved using
+> + * backing_file_user_path().
+>   */
+>  struct file *backing_file_open(const struct file *user_file, int flags,
+>                                const struct path *real_path,
+> --
+> 2.34.1
+>
