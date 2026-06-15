@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 768723F4DD9;
-	Mon, 15 Jun 2026 13:20:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E38F33F485F;
+	Mon, 15 Jun 2026 13:20:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781529623; cv=none; b=di2iL3DFja/jFB1VUBsqNL/qbTO9HGHGGf08/oxc6vWuNaJFgiT/iyxao0bQyptrRrZGylnRyr7mJ/NIZTBKosZMKs9hqaDog+uh5f3Hu8kUMmQ625zJ4fBbqJdN0TWyFSo1Hs1+2X+ybrPnf0qw2F+5yF+npGkkBN8LJ7rqo1g=
+	t=1781529624; cv=none; b=E6+DR9ZLf/g4iZ5Q6UAUGwShrN5uGvCZ06KQRCdCG/i1Nf4pt8lBuW3FiU5iw8WvyxlNDZpnEkggkXitTi4AUPI++2UIX8jxcvQoLqvmP0mr/tM5vmmX+BuYgqOSsTP5JFaPgrkQT7tRbaCAge4ojLKN4lffbCbuCzYbKj3dfUg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781529623; c=relaxed/simple;
-	bh=9szy1eaK5iPBxvn6tPMMLcupjSedmktPYu4v5bgxWq0=;
+	s=arc-20240116; t=1781529624; c=relaxed/simple;
+	bh=DNeRIYjbkUKWItLjpqd3MaID1vUuQUKFko6vZezSndQ=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=NunhIpjyWhxJFagwQ4R1UUfalbdSZtujG1Fpl5+W6XuDM4p/O7smIjyB5b0hntsHOnxjlDDrUedFvzn4TYopyFUL4Qso2TABgror4iehfQHWMOXv+/9h7x3WaRQORbcbYkxG4s7GcBtr4QJ9yjuwA7f4GYNeMWEgMbVLjqVPV0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BlklUi2w; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=te9D53g4Mr8+E8hIQHj48313TRRyWiP+rYL68/fmjCZxLmgmUoOlsenhjRLIq98ge2KBhLVegtehb8BbMVyPSBHkDpS0M6PcX6PxJxK7i3OJFbwvxMhtCNg5eXfg2laaYF0McmMe5ulbS2OkTl4FfYVUUQ+8a6PsDoKln9MpMgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z0IBCtJ/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BlklUi2w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B26041F00A3A;
-	Mon, 15 Jun 2026 13:20:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z0IBCtJ/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C5D1F00A3D;
+	Mon, 15 Jun 2026 13:20:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781529621;
-	bh=9PejAffvMKcY8u+ZLJEHSqivW57WkTiUWxBCvDkXhDU=;
+	s=k20260515; t=1781529622;
+	bh=/1seP85KHVzeaoK6Wv6Z5WPE3l7PMpUZIxsF2LzzckI=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=BlklUi2wWehu4WOereX5Egfo0004WyDxdjUh5U5o5OEmXuIxejpFAj+Uk0K8g28U7
-	 v5Ltqd650JF7sv/7ygUW9aLCJBfLl6cfUBrLIfoJoWsC97WRKcaYQUmpnCZoElz95E
-	 X5lAA1NPvd3wc+9TJfF5VwX4eylNNGaQ9fuSnnw4mt2Eh4gzsZTW+h95vMm9KID56V
-	 LcisXSE+HdG8WUq6Quy9AZI+UpawY5iWB9CadX/f3RPRFFlJ8FH/Ey7xpvHLWod3gQ
-	 z8Zki+Bl974e4kHlJaio/54QhYEd/CoYqTfjB/n8dw0JP34R9PLftGHi5gczLeAKC+
-	 Iz4L3dMqDx9Uw==
+	b=Z0IBCtJ/H6NDW3sclzSxk0ecjH58LmRwZ/O0Kzk5R4Jt+/ThJboinKrOrSyJSzQQ2
+	 iEaMXXqsAfPM15xMEblBt2AN952UE5cP4u8JtkASIJfCAPaEDDUCGAuOFZ7MlbgkBU
+	 VXmIsXAxmLPcdTmE1VNTs3N6dSnGfl0lYbR72hfaG0jRuDde4hB6RFu5tN3m2el6pU
+	 ZXkh+EQvrLcknHYRZsstldYpbZ+I+sRSfz/xgNVS7k+ZZWiHuKsbUd00QklChS13Rr
+	 tXhgJetgPZjyASM00c1SImUhcTN72BCWWO8d2v9qjHWhSoXX2Xhx7subHJXUMAmcDt
+	 iqf/j9sL9mWsg==
 From: Christian Brauner <brauner@kernel.org>
-Date: Mon, 15 Jun 2026 15:19:52 +0200
-Subject: [PATCH 03/10] ovl: handle idmapped mounts in ovl_setattr()
+Date: Mon, 15 Jun 2026 15:19:53 +0200
+Subject: [PATCH 04/10] ovl: handle idmapped mounts in ovl_getattr()
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -37,73 +37,68 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260615-work-idmapped-overlayfs-v1-3-7381632aa402@kernel.org>
+Message-Id: <20260615-work-idmapped-overlayfs-v1-4-7381632aa402@kernel.org>
 References: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
 In-Reply-To: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
 To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
 Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.16-dev-f5839
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2246; i=brauner@kernel.org;
- h=from:subject:message-id; bh=9szy1eaK5iPBxvn6tPMMLcupjSedmktPYu4v5bgxWq0=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTp/+FZ/XrCB47PPlqfVH4dUD7xan3KwgP60SuElNy+m
- B/8eVSopaOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiRuGMDB+0+yuN6sTmcCoH
- zFdZ67a6sTB3zQuO432W7m6uTAdzmxh+MZ97UfRrjuI+l03JMypfqE2W4FrianPzdvnuxeVHTr5
- 5xQEA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1846; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=DNeRIYjbkUKWItLjpqd3MaID1vUuQUKFko6vZezSndQ=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTp/+GRTxf+wx7Odap4q+Kqxw+OydrkyE9uVUx8vqO9u
+ S5s9rqZHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPZ/5ORYZHIrPZIRdXwqQy+
+ 1o1qKbc/lfy48I7NIkZHSzVxMd/0Uwz/rAR3vznhx5EYFt4SquwhqvCF53Rip6Pt46vH7ypUHch
+ jBQA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-Pass the mount's struct mnt_idmap to setattr_prepare() so that the
-permission checks for a chown/chmod performed through an idmapped
-overlay mount are evaluated in the mount's id space.
+ovl_getattr() fetches attributes from the real (upper or lower) path
+via vfs_getattr(), so the returned stat->uid/stat->gid are already
+mapped through the real layer idmap but not through the overlay mount
+idmap.  Unlike the generic path, the VFS does not re-apply the
+accessing mount's idmap after ->getattr returns - generic_fillattr()
+does it, but overlayfs bypasses it - so overlayfs has to do it itself.
 
-The ownership requested in @attr is expressed relative to the overlay
-mount idmap.  Before forwarding the change to the upper layer via
-ovl_do_notify_change() - whose notify_change() applies the upper layer
-idmap in turn - rebase ia_vfsuid/ia_vfsgid into the overlay's own id
-space, i.e. the same space as the overlay inode's i_{u,g}id established
-by ovl_copyattr().  Without this rebase the upper layer would interpret
-the caller's mount-relative id as an upper-relative one and store the
-wrong owner on disk, or reject it with -EOVERFLOW.
-
-from_vfsuid() returns INVALID_UID for an id that the overlay mount
-idmap does not map; that invalid id is carried faithfully into the
-forwarded iattr and rejected by the upper notify_change() via
-vfsuid_has_fsmapping(), so no bogus owner can be written.
+Map stat->uid/stat->gid through the overlay mount idmap before
+returning, mirroring generic_fillattr().  The owner reported through an
+idmapped overlay mount is thus the overlay-final id translated by the
+mount idmap.
 
 No functional change until FS_ALLOW_IDMAP is set on ovl_fs_type; until
-then the overlay mount idmap is &nop_mnt_idmap and from_vfsuid() is the
-identity.
+then make_vfsuid()/make_vfsgid() are the identity for &nop_mnt_idmap.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- fs/overlayfs/inode.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/overlayfs/inode.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index f59db57dfd55..33734ca971e1 100644
+index 33734ca971e1..45b2a5c3d978 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -26,10 +26,18 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 	bool full_copy_up = false;
- 	struct dentry *upperdentry;
+@@ -180,6 +180,8 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
+ 	int fsid = 0;
+ 	int err;
+ 	bool metacopy_blocks = false;
++	vfsuid_t vfsuid;
++	vfsgid_t vfsgid;
  
--	err = setattr_prepare(&nop_mnt_idmap, dentry, attr);
-+	err = setattr_prepare(idmap, dentry, attr);
- 	if (err)
- 		return err;
+ 	metacopy_blocks = ovl_is_metacopy_dentry(dentry);
  
-+	/* Rebase ownership from the mount idmap into overlay id space. */
-+	if (attr->ia_valid & ATTR_UID)
-+		attr->ia_vfsuid = VFSUIDT_INIT(from_vfsuid(idmap,
-+				i_user_ns(d_inode(dentry)), attr->ia_vfsuid));
-+	if (attr->ia_valid & ATTR_GID)
-+		attr->ia_vfsgid = VFSGIDT_INIT(from_vfsgid(idmap,
-+				i_user_ns(d_inode(dentry)), attr->ia_vfsgid));
+@@ -292,6 +294,12 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
+ 	if (!is_dir && ovl_test_flag(OVL_INDEX, d_inode(dentry)))
+ 		stat->nlink = dentry->d_inode->i_nlink;
+ 
++	/* Map ownership of the real inode through the overlay mount idmap. */
++	vfsuid = make_vfsuid(idmap, i_user_ns(inode), stat->uid);
++	vfsgid = make_vfsgid(idmap, i_user_ns(inode), stat->gid);
++	stat->uid = vfsuid_into_kuid(vfsuid);
++	stat->gid = vfsgid_into_kgid(vfsgid);
 +
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		/* Truncate should trigger data copy up as well */
- 		full_copy_up = true;
+ 	return err;
+ }
+ 
 
 -- 
 2.47.3
