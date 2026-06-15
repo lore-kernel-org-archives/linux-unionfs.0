@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A7A33065D;
-	Mon, 15 Jun 2026 13:20:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 854B83F44F5;
+	Mon, 15 Jun 2026 13:20:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781529616; cv=none; b=lvFWVm1Gb0AyDt5ZKeYSWE6knntW5zx6GtOe2PMPLhuFi9oPH0FisGL+PcHk4bHWWpWavW9P33Z0t827QBKl5sgUFeIQwrbI4UsX+5/YblgpcJxQD0DM/ucNd9GWJWgTHrs5sFs9nATY/Wf2If2KC60M8f1Snuefrb96s4ANq4g=
+	t=1781529618; cv=none; b=SgpBwOPgDzlGGsZIBoOXM0SXETJ18Cr5tToa+F2cv3bV3Jms95oBYuMCISRCcWVAh3MYw4OXkazoDnVh4PvFEozlgP/OYIpcDWyIBZbbipOx3g9/7ogj4mtSfVD+bKX4gRDK0Ei6XrUEkX8HKfhSk5M2JSFyhFLEA/dk6aGzNTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781529616; c=relaxed/simple;
-	bh=Oi1Gz7E8QPCTYMz4AaeQ5V+0Mfe5DN/XqAVr06VG9ss=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=doeFtL/YoAa8s3DJhAjU69TPxA+uEiwWWF794Vr/rRdyA4RLWyF7+AjgU2gdwKbU9hHMFShVBVgmDP5GJ2XqhtipfD1+btq43dYpXvM4o02pgsZjNZuzdmuqWOCqL91tskDgZTGSkv+scAoJq7XgxlWkNFJRLAn3nARNC2vGbM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W03HfXQP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781529618; c=relaxed/simple;
+	bh=NpWUpF2WSEyl1oSiqyWLF2E+Soif/8wHHnhGgpZqmQE=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=hb5/3GIDUUNwvJSTYycAS9y2G9J+uv4Eh6d2Fhb6Ic+T4ELmXxBRbFXd2sOexXTN8w9ccJ57fn4afdzqLGx/062BJANl0tnETW1bddE2W4Piw8Bmk9NkRwdxnDLVp/jBArmDLNPFZFeXXctYez+OXvB9mL+Z3GKJ0QTV4bW5GIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TTOA+XeX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W03HfXQP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 312CF1F000E9;
-	Mon, 15 Jun 2026 13:20:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TTOA+XeX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB861F00A3A;
+	Mon, 15 Jun 2026 13:20:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781529615;
-	bh=DpFsWyewM7BsF2XA7NPwIXo+AiNjCX/CpdO/zk7esVw=;
-	h=From:Subject:Date:To:Cc;
-	b=W03HfXQP+Qkk3S0UOU/QgWL7VG4ZSoz3ZQHY/AQykgDmNt2eO4l0uGnWyzoS+nQ9+
-	 w9kwLWoM2VDpaFIgxVIL1xItM1MR361X1cWEANQDB2p98HxmWy41HvT042cJOUgNLs
-	 UP5LdvUEkX8ttBgFw6x82b3u+guIVX6+g1Pni7AHcjj0xFY0OixdDtEAYYQsiebzra
-	 90yPFCZAB5vgQPJq8oMtgKSwkf9lJIc9tBvL2qQoavGgQIC4RSwxX0PsGV5UL4m3MS
-	 /tT+/tYgn4jyHHh2BAEtS1tZdHXPo2Wy/piPKv18gVFIB/LgmgcWFl0yGM44h5EEzT
-	 ke89127deVXag==
+	s=k20260515; t=1781529617;
+	bh=e/IMpetT2k0wHwxIN4I/giBOH+uiAW+AqVmzJ8SbQ3E=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=TTOA+XeXbVDfG3ERLrlAQsu1HufPecwviiIjtH//bNYfPJMiEf9s12PeJzwudop8l
+	 EXZMq3PR2x/QAn6HtpldcBAHmBwr2fea5BdKXzzeI/90J6S6wYQbvx+pAxxmfn+BmQ
+	 JZxxJKFo221eIZBualy3g2Ml+ALs33In8L95BmekGKWXgNA8bvjuGDF4Suf+xUquOv
+	 jO9wveFQxd3ICtBM7f0g0NcCC9BNahuZQ9STU7YaHY2+Jm3Na2GK3m0YZlfetipKU7
+	 FkzsqMAwdXwrIizPjdBECVseHSLyMTCM8PM3aGh5g2g7YF04TbkClwPaP+2xkNEYaP
+	 8q2BNn6+mdwOA==
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 00/10] ovl: support idmapped overlay mounts
-Date: Mon, 15 Jun 2026 15:19:49 +0200
-Message-Id: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
+Date: Mon, 15 Jun 2026 15:19:50 +0200
+Subject: [PATCH 01/10] ovl: handle idmapped mounts in ovl_create_object()
+ and ovl_tmpfile()
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -37,92 +38,107 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAPb7L2oC/yWMyw6CMBBFf4XM2pK2CSX6K8ZFH4NUhTYzWDWEf
- 7fo8pzce1ZgpIgMp2YFwhI5prmCOjTgRztfUcRQGbTURhrViVeie3WTzRmDSAXpYT8DC+lkh/3
- RBa0M1HcmHOL7Vz5f/sxPd0O/7Ll94SyjcGRnP+5qsrwgtaVvFWzbF5LvEJKZAAAA
-X-Change-ID: 20260615-work-idmapped-overlayfs-0b05e79bd216
+Message-Id: <20260615-work-idmapped-overlayfs-v1-1-7381632aa402@kernel.org>
+References: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
+In-Reply-To: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
 To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
 Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.16-dev-f5839
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3723; i=brauner@kernel.org;
- h=from:subject:message-id; bh=Oi1Gz7E8QPCTYMz4AaeQ5V+0Mfe5DN/XqAVr06VG9ss=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTp/+E5veLimpYE1sPu+btX99drWb1LWFNu+vr2DvMK9
- Rkfd/Df7ihlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIe2ZGhmMdv2zld07PPMml
- YLAv88lGw/t+96cGuf+JC7e1DmhnO8rwP7qHe6qt6Nzwr5c4Gtb5tutEr3u0vn7r7O0XuA8lSFr
- eYwAA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3517; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=NpWUpF2WSEyl1oSiqyWLF2E+Soif/8wHHnhGgpZqmQE=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTp/+GJmKlcJ3OvVuNIlN3xZbouK1g0Jl3hSLXw2bfBw
+ 97M+fDijlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIn0bGb4Z+2WtK7mQ+P9F/cm
+ TWr2Xr3/wqkrzxbqWlY+bLJXeXaQ14Dhf0HttRgl9jK9kwkxgnseuus0rJw4+fiTItO+Y0yueg/
+ ZGAE=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-I've been asked about this feature multiple times and had actually
-implemented it right when I did the initial idmapped layer support.
-So here's a new version of this series.
+In preparation for allowing the overlay mount itself to be idmapped,
+thread the mount's struct mnt_idmap into the inode creation path and
+use it for inode_init_owner() instead of the hardcoded &nop_mnt_idmap.
 
-This series lets the merged overlayfs mount itself be idmapped via
-mount_setattr(MOUNT_ATTR_IDMAP), in addition to the already supported
-idmapped lower and upper layers.  It allows the same overlay tree to
-be exposed under a different ownership view, e.g. a container seeing
-the merged tree as 0:0 regardless of the on-disk or per-layer ids.
+The preallocated overlay inode's i_{u,g}id are copied into the override
+credentials by ovl_override_creator_creds() to create the real upper
+inode, so honoring the overlay mount idmap here makes newly created
+files, directories, special files, symlinks and tmpfiles get the
+caller's mapped fs{u,g}id once overlay mounts can be idmapped.
 
-Overlayfs already normalizes every underlying id through the relevant
-layer idmap when it copies attributes into the overlay inode
-(ovl_copyattr()), so the overlay inode's i_{u,g}id are "overlay-final"
-ids.  The overlay mount idmap O composes on top of that pivot:
-
-    caller view  <--O-->  overlay-final id  <--layer idmap-->  on-disk
-
-O is applied at the overlay-inode boundary only - permission, getattr,
-setattr, the ACL owner checks and inode_init_owner() - while the
-underlying layers keep being accessed with the mounter's credentials
-through their own, possibly idmapped, mounts.  The mount idmap thus
-only changes how the caller sees the overlay inode and never widens
-the mounter's access to the layers: the second, mounter-credential
-check in ovl_permission() against the real inode stays on the layer
-idmap.
-
-Most paths need no change because the VFS applies O to the overlay
-inode before overlayfs runs (sticky/rename/unlink/create gating) or
-after it returns at the syscall boundary (the POSIX ACL get/set
-translation).  Overlayfs only acts where it bypasses the generic path:
-getattr (it stats the real path), the setattr forward to the upper
-(the requested id is rebased from O into overlay-final space before
-being handed down), inode_init_owner() on create/tmpfile, and its own
-owner checks in ovl_set_acl().
-
-FS_ALLOW_IDMAP is set last, once every operation honors O, so there is
-no bisection point where the mount is idmappable but an operation
-still ignores the idmapping.
-
-Note that fstests will be broken by this temporarily as they rely on the
-ability to create whiteouts for unprivileged device node creation. That
-can be adjusted.
+No functional change: until FS_ALLOW_IDMAP is set on ovl_fs_type the
+overlay mount idmap is always &nop_mnt_idmap, so inode_init_owner()
+behaves exactly as before.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
-Christian Brauner (10):
-      ovl: handle idmapped mounts in ovl_create_object() and ovl_tmpfile()
-      ovl: handle idmapped mounts in ovl_permission()
-      ovl: handle idmapped mounts in ovl_setattr()
-      ovl: handle idmapped mounts in ovl_getattr()
-      ovl: handle idmapped mounts in ovl_set_acl()
-      ovl: allow idmapping overlay mounts
-      docs: document idmapped overlay mounts
-      selftests/filesystems/overlayfs: fix set_layers_via_fds link error
-      selftests/filesystems/overlayfs: test idmapped overlay mounts
-      ovl: document security.capability idmapping on the xattr forward paths
+ fs/overlayfs/dir.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
- Documentation/filesystems/overlayfs.rst            |  16 +
- fs/overlayfs/dir.c                                 |  16 +-
- fs/overlayfs/inode.c                               |  26 +-
- fs/overlayfs/overlayfs.h                           |   1 +
- fs/overlayfs/super.c                               |   2 +-
- fs/overlayfs/xattrs.c                              |   1 +
- .../selftests/filesystems/overlayfs/.gitignore     |   1 +
- .../selftests/filesystems/overlayfs/Makefile       |   2 +
- .../filesystems/overlayfs/idmapped_mounts.c        | 501 +++++++++++++++++++++
- .../filesystems/overlayfs/set_layers_via_fds.c     |  16 +-
- 10 files changed, 560 insertions(+), 22 deletions(-)
----
-base-commit: 254f49634ee16a731174d2ae34bc50bd5f45e731
-change-id: 20260615-work-idmapped-overlayfs-0b05e79bd216
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index a033743dbf51..a7a393b04277 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -689,8 +689,8 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 	return err;
+ }
+ 
+-static int ovl_create_object(struct dentry *dentry, int mode, dev_t rdev,
+-			     const char *link)
++static int ovl_create_object(struct mnt_idmap *idmap, struct dentry *dentry,
++			     int mode, dev_t rdev, const char *link)
+ {
+ 	int err;
+ 	struct inode *inode;
+@@ -717,7 +717,7 @@ static int ovl_create_object(struct dentry *dentry, int mode, dev_t rdev,
+ 	inode_state_set(inode, I_CREATING);
+ 	spin_unlock(&inode->i_lock);
+ 
+-	inode_init_owner(&nop_mnt_idmap, inode, dentry->d_parent->d_inode, mode);
++	inode_init_owner(idmap, inode, dentry->d_parent->d_inode, mode);
+ 	attr.mode = inode->i_mode;
+ 
+ 	err = ovl_create_or_link(dentry, inode, &attr, false);
+@@ -734,13 +734,13 @@ static int ovl_create_object(struct dentry *dentry, int mode, dev_t rdev,
+ static int ovl_create(struct mnt_idmap *idmap, struct inode *dir,
+ 		      struct dentry *dentry, umode_t mode, bool excl)
+ {
+-	return ovl_create_object(dentry, (mode & 07777) | S_IFREG, 0, NULL);
++	return ovl_create_object(idmap, dentry, (mode & 07777) | S_IFREG, 0, NULL);
+ }
+ 
+ static struct dentry *ovl_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+ 				struct dentry *dentry, umode_t mode)
+ {
+-	return ERR_PTR(ovl_create_object(dentry, (mode & 07777) | S_IFDIR, 0, NULL));
++	return ERR_PTR(ovl_create_object(idmap, dentry, (mode & 07777) | S_IFDIR, 0, NULL));
+ }
+ 
+ static int ovl_mknod(struct mnt_idmap *idmap, struct inode *dir,
+@@ -750,13 +750,13 @@ static int ovl_mknod(struct mnt_idmap *idmap, struct inode *dir,
+ 	if (S_ISCHR(mode) && rdev == WHITEOUT_DEV)
+ 		return -EPERM;
+ 
+-	return ovl_create_object(dentry, mode, rdev, NULL);
++	return ovl_create_object(idmap, dentry, mode, rdev, NULL);
+ }
+ 
+ static int ovl_symlink(struct mnt_idmap *idmap, struct inode *dir,
+ 		       struct dentry *dentry, const char *link)
+ {
+-	return ovl_create_object(dentry, S_IFLNK, 0, link);
++	return ovl_create_object(idmap, dentry, S_IFLNK, 0, link);
+ }
+ 
+ static int ovl_set_link_redirect(struct dentry *dentry)
+@@ -1444,7 +1444,7 @@ static int ovl_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+ 	if (!inode)
+ 		goto drop_write;
+ 
+-	inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
++	inode_init_owner(idmap, inode, dir, mode);
+ 	err = ovl_create_tmpfile(file, dentry, inode, inode->i_mode);
+ 	if (err)
+ 		goto put_inode;
+
+-- 
+2.47.3
 
