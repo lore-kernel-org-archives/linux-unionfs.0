@@ -1,122 +1,77 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8DC818DB26
-	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jun 2026 18:03:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781546598; cv=pass; b=WDNa+I+rypTCQHnrQKYpK5zC0dhzJ05bi70b+UFzXVlLrat6U34sxKOa7JWvOIV0iKKgfdy1u8d9Z0y3YpKWF5KJ9tz33RLsaW7RoRChNEsgqt2iyEDdqAQhnVIX0esYfQiwB2W9Y2DZ2EtQIhkcvwUpPd9XDbUMwnjt0ShByhI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781546598; c=relaxed/simple;
-	bh=hBOi3p0V03qyFPtScOsJhsmSy+M+ZuyXWOL5390UOjQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=neL0xPDoFq3z/5uY8JIygOQDYrrhpDaHfnswLlcSNvqWJyrJd9cRCrFU30hWDpfcHS1q4sWyIoj9KPYlpSMMrL+eN6qODHtubrsGe4dAxomqYv109ufZdIrFPaEmvCdvgIzO8EyGJ5yJ10KsRD1WhW80AM3yMTSoocbYraBWwLc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=myIZemFv; arc=pass smtp.client-ip=209.85.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 046143BCD31;
+	Wed, 17 Jun 2026 13:22:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781702549; cv=none; b=BgZHxi1J/2MYsrxPKsTF8QCJS+qqgW+0ap0OI5fhgxNMYxMMhge1iu3Upr2alE5SfzzVNWPRa+RsD716VvyLo+kQSgNaiJ6UDLh5PN8CWD6e1autTa+3hnBQlkD1NHI3ZlaS0TOPoJtK7lxvXLTDt8sDikZ3R8uRBQHH1WWwWYQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781702549; c=relaxed/simple;
+	bh=2l+Wx1vgZnMvuLLZF695Kf9yHqIqlLEZVIyAT0+TDPQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=hqDSbCPMCW5m1gZMUjk3PaVbB1J57gIxnObff/i/tHw0dntSkjkgVxN9u8Hl5yLwwAcOr896SBb30UCq81gvV/UUS+rEtgoB8WKA79wiK6961mTwi/DqGD2eNmWUbb0OAO4xfVi9ozkqbadkZbw1ZA1YP1jsoXsue8FTt+dNXqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CO2Sv6j3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="myIZemFv"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6913fb25322so4697577a12.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jun 2026 11:03:16 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1781546595; cv=none;
-        d=google.com; s=arc-20240605;
-        b=MGE2hzs53slpVqV3tn51Jc5IB6/ZlZSqOVHiapQsewowSKv8+KUczdSLm8zNSoFtUc
-         91+1IX3CJLQJ+PGW0O/7VufYLH+OjaLc2Gs96YnBLGjq9qdPNCVxgWh+Rp7fqQEr76UG
-         uPMg3DEtS4qwC9qa1h7axu5J63tjUF5J8cVTIwgM/i9/ftJ6CTMAjkRAyQC5Ju3RCWOL
-         3TbdcK6Fjs9p4CTSExnQESktrHShbg083Qis0lQg9hTB+pdftLZF+o2y/hxSYyBJaYfo
-         dZeJ/V7WGWZ9cvf38wyIJppZQj7ATuPVXxjQnx5L9PmOOpSh85ZmgmuZYcG/7jnM7VS7
-         R7UA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=hBOi3p0V03qyFPtScOsJhsmSy+M+ZuyXWOL5390UOjQ=;
-        fh=IvD2HZo1zteSAB0j5B3L4UVepaV2OLwIfuWKCnqQet0=;
-        b=AMuazXpDBVXq8qqjO6eRKBE9ka41G1P4DkJSTyNA7p8EzNTBQf26r4Z6udk7l6uyNO
-         Wka4/2r8ZlNq2eN+CBWcSllxzl5q2H2rzkC4a/6COSeq6DMYQSzbXrkxH1N6zavGYsEp
-         woye5VJxPxo5Z4HioDh20myWP8t/M66+oDb2ixJvzm3fOQjJE4ecWRzOsPtyOh9WT2eW
-         PXRTN17BHL1onFrIEQtOAZqloMY000MPdtAxOQWo0Y4j4BD257R3vwHeyUlRRC9AG5xX
-         AnCiEfdcff7wMyI8Z9rcaFna4KtX/SYW9PRO6qNkd1zxeFYRxx3d83tyAGgQNEt0Wj1X
-         Bxqw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1781546595; x=1782151395; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hBOi3p0V03qyFPtScOsJhsmSy+M+ZuyXWOL5390UOjQ=;
-        b=myIZemFvoTlAinWuw3Orhm2XFDBji4wzeW6yNOCib9ozeADZEaYk/q0fhzr6IONarQ
-         Yz7KWrYjYwGUX/rDDB49HDNe9DjyVi1MwS6mhgW4R/EG1ZJ2xzGSaa4g4sL1T6maKRpu
-         y3LwvoyxIfcw/hh/Eqy1MxPb8NCPXYtPSi0f8dW+Zx2gb4kcwU3gmbGOZCkU1dRpLvVh
-         /1XwvNSKM6AbxmIwiG3IPdDitc+bMYCAj2W4iXHkafHWS4UHNgTj946eY63jZLb+61lc
-         LTowbs9p0s9ytXozYIKEGLGq2V0fSZ1BXt7MARCqcqyuJTHufK0DKyR/HC/RZVFGFx+G
-         c6xw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781546595; x=1782151395;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=hBOi3p0V03qyFPtScOsJhsmSy+M+ZuyXWOL5390UOjQ=;
-        b=T8jMLQEur2Wk0eUDutIHBQYe5nCalOxM9B+nyoyJL3oc/2q8o6K/eFXzNdwto7fXCp
-         ED3xMMlOnklPfJl/BSdO4u81VMRtifA3DNF3ICmBww/gdvYy60DNo7KRF3Jr3pg5M7iW
-         8fi2KU6MZTE3N6kwpGk1fqU3Gz8V0Ekn7Osd4qBzdIFboGn7tCefD/wF2aRX7tDa+qtv
-         /+1VP0Sf/IwoXXT2jJIWEGTdw+T9whoMckQfRRNlweAp5zYiCsXDO/CzmTChHfU9KaLh
-         f0bBYYrsO8YBJ5rLOVPQjH2aMD5n4Te6a+fLbWI1Z7Uq2kffMnBPl48zWB7UdIgNTBwG
-         gcdQ==
-X-Forwarded-Encrypted: i=1; AFNElJ+Gp1Mv4Y7KGbWo9+z47zkhJGMvZhU16RwJwqjtwSXI7bV1XCM0p6Hg58RFuCtlIgj70hOAMBSDxe4nKRru@vger.kernel.org
-X-Gm-Message-State: AOJu0YyZM0ykXHZu2R0bNnUPiWkrGSBqkCLVyH6gvjxbQPJUHUGg+Svj
-	FVmruNvL2bbaPkmvyDcQCA/yPs/2qbdjdyQg1MkrGDIwj4JYGsxX0Qt+kgwWvJ+W/erq8SZ7q8T
-	q8Houg7z4kQhnw5ujVEq5K6eNgOFwTpA=
-X-Gm-Gg: Acq92OFQnfjr7CVmDJfwEFeeDnBvVvQjaMMWPoFax31r1bML8uRM8NjQd2gkHiTrBl6
-	u1/usFhpmQaT9Y+tRD2l04azmdWMo0i34OnEt+l3jsotCzQfnI3SLMP7O+4cbGm/nYSFaISQLe/
-	mYaJMqKNUQCnECLKYOIfjTXt1m/khprXVFjo1N0dv7tAQ+l1bI2YfUKlMXAue9nKiQ+co6HT6e4
-	sU+9oyUyUMxVcBVHRHZp+nFnrl2dSww+BvAFyAI7EykinViEw58i6SMNRFCPhY3PoFHbuCZrYNF
-	zFh8/sq8aGQ3PD8a4wwVhOzdtOQPgq25mnFaZpU4xg==
-X-Received: by 2002:a05:6402:5d0:b0:691:706b:183a with SMTP id
- 4fb4d7f45d1cf-693788fb0c2mr7319496a12.6.1781546595064; Mon, 15 Jun 2026
- 11:03:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CO2Sv6j3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 011E91F000E9;
+	Wed, 17 Jun 2026 13:22:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781702548;
+	bh=jjE1ZgEQ7JK8ooIDdfvIp9yidTMTkSuCid79afKW4HA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=CO2Sv6j3D1MvkjY+AfuWFS/W0s2AxAFVNZXibTGHyLViBO2kHoDIOCLB20Fm/7AiG
+	 gr4wr8Fee4yWuKlpV+X/vEE+cT9lFSOn2lInt/vGAVzQrHjKX1H5C1DXVsmVkkcbYz
+	 oaRQfn1yCCA/Z4OTS0VhZnJKia4yytKDsl7lcc/VXe660cHNBY4gWRNtwG7yDYd6Hn
+	 SfPDJDOihKHgKizKEvkwVpFarcsGlQXEImYph2z8EwWbRgqkqEbWTcZCJ7ZYiukoZ9
+	 Ec9mmznt+9SC0IgDNzBCFW935dyfq+hdTgr95wrhNt6P282awuYrsjOyvICz3c3NDx
+	 0SDW96A97CSmw==
+From: Christian Brauner <brauner@kernel.org>
+To: miklos@szeredi.hu, amir73il@gmail.com, 
+ Souvik Banerjee <souvik@amlalabs.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <20260501232735.2610824-1-souvik@amlalabs.com>
+References: <20260501232735.2610824-1-souvik@amlalabs.com>
+Subject: Re: [PATCH] ovl: use linked upper dentry in copy-up tmpfile
+Message-Id: <178170254157.660235.877558308523952750.b4-ty@b4>
+Date: Wed, 17 Jun 2026 15:22:21 +0200
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260615-overlay-idmapped-vfstest-v1-0-c6b3b2228092@kernel.org> <20260615-overlay-idmapped-vfstest-v1-2-c6b3b2228092@kernel.org>
-In-Reply-To: <20260615-overlay-idmapped-vfstest-v1-2-c6b3b2228092@kernel.org>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 15 Jun 2026 20:03:02 +0200
-X-Gm-Features: AVVi8CdpMlwPdMYy_oKn-YBrEOug14SXeIqtiRTYC62U7wjb_HcLETp8cI_hDMM
-Message-ID: <CAOQ4uxjtTd0H=DjyyxaOm56be0JOy2y4ZYV8AbVRnsdGnv4hxA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] src/vfs: skip whiteout-device fixtures on overlayfs
-To: Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Zorro Lang <zlang@kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, fstests@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16-dev-4090c
+X-Developer-Signature: v=1; a=openpgp-sha256; l=873; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=2l+Wx1vgZnMvuLLZF695Kf9yHqIqlLEZVIyAT0+TDPQ=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQZzZ/EabtpGTdDsjXTwt0sLPe/Nt4+y5yqdZlZZuKly
+ +szLnzk6ihlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZiIARMjw5t7BxWyriidjch1
+ vNPH6bLGfFnKnldTLixh2nLZOtrTKYmR4cmipQ4ndxRP/v3rYsiab28FHWaqu9zLcz6QYhbKvfD
+ OPx4A
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-On Mon, Jun 15, 2026 at 5:33=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> The idmapped mount tests create a whiteout device,
-> mknod(S_IFCHR, makedev(0, 0)), as a fixture: a whiteout device is the
-> only character device an unprivileged caller may create, since it is
-> exempt from the CAP_MKNOD check. overlayfs reserves a 0:0 character
-> device as its on-disk whiteout marker, so ovl_mknod() returns -EPERM
-> and the fixture cannot be created, failing generic/633, generic/696 and
-> generic/697 on overlayfs.
->
-> Add an is_overlayfs() helper and skip the whiteout-device fixtures and
-> the checks that depend on them on overlayfs. The makedev(5, 1)
-> "creation must fail" probes are unaffected and keep running. No-op on
-> every other filesystem.
+On Fri, 01 May 2026 23:27:35 +0000, Souvik Banerjee wrote:
+> ovl: use linked upper dentry in copy-up tmpfile
 
-I have no strong objection to this patch but there was actually a request t=
-o
-support makedev(0, 0) in overlayfs for creating overlayfs on an overlayfs r=
-oot,
-so perhaps it would be better to probe for makedev(0, 0) by fs owner instea=
-d
-of the is_overlayfs() check.
+Applied to the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
-Thanks,
-Amir.
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
+
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.fixes
+
+[1/1] ovl: use linked upper dentry in copy-up tmpfile
+      https://git.kernel.org/vfs/vfs/c/8726161b595e
+
