@@ -1,169 +1,164 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BFE22D2397
-	for <linux-unionfs@vger.kernel.org>; Wed, 17 Jun 2026 13:47:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 620F63F5BC3
+	for <linux-unionfs@vger.kernel.org>; Wed, 17 Jun 2026 13:57:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.45
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781704074; cv=pass; b=RC7C7ZP+ocvuJ3w715kLDP7D4dSc1Q9lGQ+zvc1huqaRyCS29OfE0aOTd+Ozli9vV05nBYxjs8YzItgF5DEdEsgwqOr4DCfnRUocRcLfCVFyShoP3UWNFYlubKt/yRzOA9aYmFB6lqQVMjlkrmzAleX7twPQTB53UQugpkP543w=
+	t=1781704631; cv=pass; b=cFg0CkUxzi4ReBGzLvzQw70h0sYRHms1dogKsqW6GyYYVUL5TfVkrln6aQkzFY0uPUqcwEvhBG9zfub65STd1eJI/CjIlmyq0Mj41uk13H1cHL+HitKmCHmDPvkVEGsj1dxGJnEbr5Cp/YhhhzA6nXXKUs51dyo+BnuDRo+3VVA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781704074; c=relaxed/simple;
-	bh=nM8r/px9H7v/tHYNgNd0qH7K7eDqiE8FyYEm7qDudTY=;
+	s=arc-20240116; t=1781704631; c=relaxed/simple;
+	bh=dE5QCB49gSg1E/RqRTQMAXzDMVbNpSI9Wu25lRSuKrE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NtDqO8B9WhvqkD0TZznxuQafopoS0F4A2jiY1yQEzebylla1qQjz2guHAJn+N02rkUJfR5ln9x9zlEfapXZwVDmx0UmKu0f8O5L/q006fGlf1IpHEQreG+GU2rO1AgAauUZcLoZWIMWQP0V5NHOrh4jhQq+fIZekdkZrINdQeWg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=atpeuxCQ; arc=pass smtp.client-ip=209.85.218.44
+	 To:Cc:Content-Type; b=WQNZp2J/K3+h/zXRa+Ewy/dqB4X63v/7+uMDxbbAEYBh8c/daL9lmG7/+O/IW9/9FReqJRafrgKtu9XDjAcl/tNyqHB6EjscBj7PrE42Xmk0PDuAm+WwMBrg9KpX9XW1tP6IP0T9K1WQQz5HPtzT0qRO7FmLeRAELZf+UYh1Zdc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kUelxZlk; arc=pass smtp.client-ip=209.85.208.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="atpeuxCQ"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-bec405a6ea5so829637666b.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 17 Jun 2026 06:47:50 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1781704069; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kUelxZlk"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-69583ca0499so846285a12.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 17 Jun 2026 06:57:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1781704629; cv=none;
         d=google.com; s=arc-20240605;
-        b=gT3Hp9qkGKq1U7qEAu2V69xGvOkAbln2N+cgHPPz7KiwZC1WkCluzjIuux6WXPJ3Fn
-         /qp3Rbr48s+fG9Bw+zK9003yVhr+ix1jweS+1g2D6gDsD+Ue/mrQVB7QaJQbLwomMZOz
-         MGlefWbrom604ZDCaYENYsa+/pYDF7GnhEoWwcFW9bGxubd94WCM7InalmrzRbrQIVy6
-         we5d/ftaFuJUt90W5QjbmU/94pSPAUZEuznJMkILZEnht+11NeZ7kz3EKhL5tWarVU9D
-         hxubmjDT+gFP1angb1DV5V582DL3pKZbur8xgUpDxa+XfleNUjsaNYprVyq7uyG4qpDf
-         c2jA==
+        b=F0zE5crWk9JKIr7/fAtNdYkW6JTu4qaNyAdcibz6IrPjI0O6ILwb7f11ikHvvtr2/9
+         XatVKxzQqLXix0YcOPVHXsEogXRlh4tNi03C0c4ThAx8ZEF81RvoA7B9e8mZ3S9fb5FR
+         XlXGc6mBZo0J72S6ULuYSJDy1SEkveqrwRmNLKxZH7Rm4uwyIWm8lU0x3PncGO18s7Ov
+         odm9+0NBR/Ke5rh28KTU7KP4fajzEi9SZFBe/ye3Nxbo7Fn9qTAcRUf+o3MfJbuyUcUO
+         jQ+uzWRehw+95px43g82N2wRVYzbZrmUJd5AsHDVCpsdnxVwS40x4t86xfKLwXWbZ6iM
+         EKIw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=ILDtdQoYcmNGPD56O0qnXW+XsYYGZpRpGru6zWmT3R0=;
-        fh=GxuFlwaDMbYAqMFhJXkdXvkFbrTt4SMVri06xzOYyGg=;
-        b=gwHPzjiBgcndVgZW+ooGnlyhpFyJAp89JO2SDJbsSmwwkv6SUn/8oLtGR8uJonHnM+
-         4H8+e5VAlpUD5hgQoxts2XAU5ZVQ0OE2lpUDxmg/3G5MQISviuRKVKpjzPIYs4hC8yws
-         6TM1kxLf5QmUMvrWAZ7BlqCHIMLnpfKmRxQKwtJy2ZD58xZmxFOyOa/XF8ddO06H7C9q
-         nEdzZQpxOEOqwP4dI7l2Fux+URlrZJ5KBQZy9atnczVDpuDcsp4v1agIqHUonryOE18+
-         vzXMmgeO86bcpFdtwzyqrh3BghNjhsCqaSOOq8d2yWMLaLm91ZxpDC9CH4cWW33/8m3d
-         65GQ==;
+        bh=+wp0SeU5SONpnRADKEmw1FslXvGN/FM0f3dCvuAH5VU=;
+        fh=sc3kj5pSs5SZNzDLvxlWLd/Wk1N7wVXMaZf4uYXCJ0U=;
+        b=VXYv4qgb3yV2lawf7BsRvT5fTTi+R0cw8bThCjMkAziePkmaTbo9/42yIMoblJc9rb
+         o81D3jFUg9HTwKg3wM5JZRg5L+chuDsAWn0CZrqKXGcpCVRq5GRiXsuCLjZus1lvyh7i
+         1RNGGxxSNY/khMZQgUTFbXnMzKRI8aCthsO5e6rSk7lkP79aHU4+p/Y2HjGyhSv7QYBb
+         wSJEsINqhpME0c0ekPrDC9EzjMw43mE3oZXKPozh6qX4i2jR7wnzaeZ8TkqYMEmSOp6A
+         +VlnqHkOGzKJqUEYKE66qK6dIQL5qU8b7OqCdkPc5iGywAQuK9YuhUug+Z8GoGoqBaYV
+         O/jw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1781704069; x=1782308869; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1781704629; x=1782309429; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ILDtdQoYcmNGPD56O0qnXW+XsYYGZpRpGru6zWmT3R0=;
-        b=atpeuxCQ++cnee2bpmNPqpU8IUSeCFPsnGNOUkgPUvFoDc6/igyTAbewzLdAERiGnM
-         vb6z+iAdBOGiPQZYNto4I9L8c0q+mJu5n21GpZptxB2UPnsMiqZyaHsPO/I3wOlf7Fe3
-         u/qgQF5jTmBT0T3IxlTx6e1pzX7Esry6aiC2jA5zh+6C18NeHRVa/XqF9NaCdGcNzD7U
-         IrP+SM0Vd5m1a0FbmXl/06mBXKpLF9lzxxXvuNT8hMpMRTR6TIHE+bGXdzqNFeRGQIHF
-         B5ud5kh5EADyX9Fhcj6m9j1hFy294CJCQ9qRsTjdhvAljBwd5QnZmqI2cJK0i0tQXTUO
-         BIpQ==
+        bh=+wp0SeU5SONpnRADKEmw1FslXvGN/FM0f3dCvuAH5VU=;
+        b=kUelxZlkwIHbfz5fnhT976luhMbfUekPLZOAEFTci1N8RM2ZW71hOvNJ9CVzugTqVZ
+         6C+GlEhDYA16Xq3byQpwCMcXCPwpm1aNRoADRrFPvXW8uvEfOsG8cQnoUWJzcWQEZlL9
+         g/Ni7HUJ/PSQUyB/Htpc/1kCCNi888W15VAFrIaDz/N2BL7Y+5zY0puqN7awKX2jZ6xl
+         j2Ee3OVS9O0WlpA3WuZ7JrQ1uB6YCdNVHixDDy8jYOJu8mwc/PZ9LDu8lAEwHQmuNzP3
+         fx6+yyW+wlk1/hiCNByCjiWyTfpKDO5LRXwu1wTArC3LjVFvQ7ifYc7S13cgcSZ1CwFO
+         anzw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781704069; x=1782308869;
+        d=1e100.net; s=20251104; t=1781704629; x=1782309429;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=ILDtdQoYcmNGPD56O0qnXW+XsYYGZpRpGru6zWmT3R0=;
-        b=d/R4uw9Ew9v48l0F/qA3As0dqJE3bzrPYOQE8fGHWkIYzbE7Tf4uueTGkOXOtC7DSn
-         RqCLr8hkFLAcULL2SmLRUfjxdHpCFvHWk/GWsei4DlvpfzF8QytStaubBicE4Nmde0/S
-         gZDBqUHq2svEbwN2ZMxhnI8IOWzgmUw8gI60uFa6WNehG7aeC80f0QkMJS9LN8uYQ58q
-         yz9j6zqi117v9Uri4nGwYHbKfCPhNW6Ch87H/RXnCLxxGhRYKIAbYHZdUXltPS7qXWx9
-         lAydsAG+b+H5ouMbCr5yzMBL8pK3cu6796eBGMNwXw9wumCoqHk37vrhhe5ybZVn+N8o
-         txXA==
-X-Forwarded-Encrypted: i=1; AFNElJ8001Dac8l+URBp5+WIrFyfgeSt9PfOWTVQp4JM/LYGWoemzxJKX4eeQ6R6fF7chraJGIfFNaAZ8JN56WS8@vger.kernel.org
-X-Gm-Message-State: AOJu0YwA9gmt0IGqse8A/WjUoo//FHIiiC+mpCEi3Hm56vBAe/wGfuVo
-	VNVLDESgDPYXSy4fLYMcaktgK+8VckLQhc6SF85gMJKYjpMKT6KRATvNONHREBX9GSdPCp9fzv5
-	TYChLHlDiUgoB5ihVHH5xMQbYkY567sg=
-X-Gm-Gg: Acq92OHLs9WqvAajIDquLu64aUbpBl6Vvaplw/bUJCYqnanwoQ/cE+BgrhjQFEbm/nF
-	l5cBwNHm6WOlKyNAYJ7gAOQW6+ulRI44rin7MeRHj4XP8AYpVWtomzRTjXgyZnjZAH4OP/KnpB2
-	RvW3/gi0NH3BzpWB5+CFEy0TMk2oIPOu2EpohLu4w24uIfBSpCRO87iSt8QNMvV3PdKCYDGyv97
-	Mze4I6a+5h31m6bvUxRZxycxn4Arj1AMEAyZc++4N6NjFZhsyC7nKjGVlCx+HI9cUpbODb7TzuJ
-	x3KrqOx+lLEcSLtK+4ck2RZ+lOpSE6I=
-X-Received: by 2002:a17:907:3f0e:b0:bf1:8145:c300 with SMTP id
- a640c23a62f3a-c05d2182a42mr204224766b.3.1781704068936; Wed, 17 Jun 2026
- 06:47:48 -0700 (PDT)
+        bh=+wp0SeU5SONpnRADKEmw1FslXvGN/FM0f3dCvuAH5VU=;
+        b=b30ineQHYGIOpflzDfjgFpC2+Dv9fAcoA5/R1Z4zaO59nNmPUBPaBFqinLsQLCYksj
+         UWFpiQmOvdRyJrMLcS62GO0+JiPSs67gS7eipD+2LUNovF0b2C+dicAgn1prKg8LeGsm
+         amsATm2nvENoKFTRgIiQ+iI7BK/fgT6GxZcrxAWwWi8xvZNrPA/hd7wGhoDD1sijxxXX
+         P5HDd/pFI+gk/E67/ipfuCjAyQSbWgrG1F27lnHH18Eiffjes9xSBmSdaBpwbnNLuB2L
+         5zKkMeIDCT8tWcAErn5gNFBvqJEveZVlSDozqkRX9QAavEYXo0CA2ppbLX+PSVrtuM0+
+         OItQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8ORR8Z1SRHeUy74QHejm6XcRMIIu6bRXelZ+X0qChNLaGmWZFq5/yX1uiLUVvMz2hZyIEsEwHBGIi5oM8n@vger.kernel.org
+X-Gm-Message-State: AOJu0YwGnCtYbmod1ripZ5NesNmmnDEFrAZ1ESp93kWaKP6pL4V+gsjO
+	QeKq6zaiuj2/W5WALbklTtru/ayBv3+RCZiO7Sryx+HxiIg0YSiuMUjVyYNxqZR2X8UX4BZLzfv
+	G6LLnom1BfnYn9EY/YrSY0m6/q1W61Ynd73LOYXc=
+X-Gm-Gg: AfdE7cmv7uzpsi7oG0nyb+nVg4WMCSyEP9nhvsf2ZREngPlO4PtBK8zvvPoQbH8XCPB
+	0oETjV4ScXwst/5xNOPIpFvDMzuWUcJ0f53VdSmbbky2WCw4oiOFWFBjjbn5OWueG9MpXnRwc2m
+	QPDaOnh8lgJHm+Yjgcjeyiu9UQRoGpHdQ7U3T4pyT4gwwakMlNbYND4wGKDSKhY6mGDi/MA6M+c
+	pQ33aWvlYNOJilR1VnCKicBlJXuLhyhNeV4Thslug98/mxMdHWmykrd9itjMNpwM4NKDiFGw99v
+	AH8tm6UW46aP7A8N7Ja0YyYgq1GO0tA=
+X-Received: by 2002:a05:6402:43c6:b0:691:6fc9:da9b with SMTP id
+ 4fb4d7f45d1cf-695476f12f9mr2346333a12.23.1781704628533; Wed, 17 Jun 2026
+ 06:57:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org> <20260615-work-idmapped-overlayfs-v1-3-7381632aa402@kernel.org>
-In-Reply-To: <20260615-work-idmapped-overlayfs-v1-3-7381632aa402@kernel.org>
+References: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
+In-Reply-To: <20260615-work-idmapped-overlayfs-v1-0-7381632aa402@kernel.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 17 Jun 2026 15:47:37 +0200
-X-Gm-Features: AVVi8CcEconpeqhBOyuB-_I5gU5arq4VBIDYPQCkGUDoShE8kWT7dvLar1E8_TU
-Message-ID: <CAOQ4uxiK_GruYMcqekrf+iF1a2y=VksFw71XOW=Gsf3GV0kAgg@mail.gmail.com>
-Subject: Re: [PATCH 03/10] ovl: handle idmapped mounts in ovl_setattr()
-To: Christian Brauner <brauner@kernel.org>, Joanne Koong <joannelkoong@gmail.com>
+Date: Wed, 17 Jun 2026 15:56:57 +0200
+X-Gm-Features: AVVi8Cc91CYxE7YUj4wWZdM6y9_jyZ_C5AaQRG7SM4wSoRtc5uIGg_0FUc1ceTc
+Message-ID: <CAOQ4uxin8B4SbPjnNL-hUWX4EP3V=8jCO=ENt8SQ2D7wcCsdLg@mail.gmail.com>
+Subject: Re: [PATCH 00/10] ovl: support idmapped overlay mounts
+To: Christian Brauner <brauner@kernel.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
+	linux-fsdevel@vger.kernel.org, Josef Bacik <josef@toxicpanda.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Mon, Jun 15, 2026 at 3:20=E2=80=AFPM Christian Brauner <brauner@kernel.o=
 rg> wrote:
 >
-> Pass the mount's struct mnt_idmap to setattr_prepare() so that the
-> permission checks for a chown/chmod performed through an idmapped
-> overlay mount are evaluated in the mount's id space.
+> I've been asked about this feature multiple times and had actually
+> implemented it right when I did the initial idmapped layer support.
+> So here's a new version of this series.
 >
-> The ownership requested in @attr is expressed relative to the overlay
-> mount idmap.  Before forwarding the change to the upper layer via
-> ovl_do_notify_change() - whose notify_change() applies the upper layer
-> idmap in turn - rebase ia_vfsuid/ia_vfsgid into the overlay's own id
-> space, i.e. the same space as the overlay inode's i_{u,g}id established
-> by ovl_copyattr().  Without this rebase the upper layer would interpret
-> the caller's mount-relative id as an upper-relative one and store the
-> wrong owner on disk, or reject it with -EOVERFLOW.
+> This series lets the merged overlayfs mount itself be idmapped via
+> mount_setattr(MOUNT_ATTR_IDMAP), in addition to the already supported
+> idmapped lower and upper layers.  It allows the same overlay tree to
+> be exposed under a different ownership view, e.g. a container seeing
+> the merged tree as 0:0 regardless of the on-disk or per-layer ids.
 >
-> from_vfsuid() returns INVALID_UID for an id that the overlay mount
-> idmap does not map; that invalid id is carried faithfully into the
-> forwarded iattr and rejected by the upper notify_change() via
-> vfsuid_has_fsmapping(), so no bogus owner can be written.
+> Overlayfs already normalizes every underlying id through the relevant
+> layer idmap when it copies attributes into the overlay inode
+> (ovl_copyattr()), so the overlay inode's i_{u,g}id are "overlay-final"
+> ids.  The overlay mount idmap O composes on top of that pivot:
 >
-> No functional change until FS_ALLOW_IDMAP is set on ovl_fs_type; until
-> then the overlay mount idmap is &nop_mnt_idmap and from_vfsuid() is the
-> identity.
+>     caller view  <--O-->  overlay-final id  <--layer idmap-->  on-disk
+>
+> O is applied at the overlay-inode boundary only - permission, getattr,
+> setattr, the ACL owner checks and inode_init_owner() - while the
+> underlying layers keep being accessed with the mounter's credentials
+> through their own, possibly idmapped, mounts.  The mount idmap thus
+> only changes how the caller sees the overlay inode and never widens
+> the mounter's access to the layers: the second, mounter-credential
+> check in ovl_permission() against the real inode stays on the layer
+> idmap.
+>
+> Most paths need no change because the VFS applies O to the overlay
+> inode before overlayfs runs (sticky/rename/unlink/create gating) or
+> after it returns at the syscall boundary (the POSIX ACL get/set
+> translation).  Overlayfs only acts where it bypasses the generic path:
+> getattr (it stats the real path), the setattr forward to the upper
+> (the requested id is rebased from O into overlay-final space before
+> being handed down), inode_init_owner() on create/tmpfile, and its own
+> owner checks in ovl_set_acl().
+>
+> FS_ALLOW_IDMAP is set last, once every operation honors O, so there is
+> no bisection point where the mount is idmappable but an operation
+> still ignores the idmapping.
+>
+> Note that fstests will be broken by this temporarily as they rely on the
+> ability to create whiteouts for unprivileged device node creation. That
+> can be adjusted.
 >
 > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 > ---
->  fs/overlayfs/inode.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index f59db57dfd55..33734ca971e1 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -26,10 +26,18 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentr=
-y *dentry,
->         bool full_copy_up =3D false;
->         struct dentry *upperdentry;
->
-> -       err =3D setattr_prepare(&nop_mnt_idmap, dentry, attr);
-> +       err =3D setattr_prepare(idmap, dentry, attr);
->         if (err)
->                 return err;
->
-> +       /* Rebase ownership from the mount idmap into overlay id space. *=
-/
-> +       if (attr->ia_valid & ATTR_UID)
-> +               attr->ia_vfsuid =3D VFSUIDT_INIT(from_vfsuid(idmap,
-> +                               i_user_ns(d_inode(dentry)), attr->ia_vfsu=
-id));
-> +       if (attr->ia_valid & ATTR_GID)
-> +               attr->ia_vfsgid =3D VFSGIDT_INIT(from_vfsgid(idmap,
-> +                               i_user_ns(d_inode(dentry)), attr->ia_vfsg=
-id));
-> +
->         if (attr->ia_valid & ATTR_SIZE) {
->                 /* Truncate should trigger data copy up as well */
->                 full_copy_up =3D true;
->
 
-Won't insist on this as part of your work, but would be nice to
-take Joanne's patch [1] first and make this change in backing_inode_setattr=
-()
+Apart from the minor comments on the test, the entire series looks good to =
+me,
+so you may add:
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-In any case, Joanne, watch out!
-Fuse already has FS_ALLOW_IDMAP, so your passthrough inode
-series must take this into account - now you have the template here ;)
+The problem is that my review can only assert that your changes make sense.
 
-Thanks,
+I am not even close to being able to prove that this is risk free.
+
+This is the first time that we will have a combination of
+FS_ALLOW_IDMAP | FS_USERNS_MOUNT with fs which is a proxy to
+another fs, which to me sounds like Vulnerability Scanners heaven.
+
+Could we maybe ask our friends in Anthropic to unleash Claude Mythos
+on this work to try to beat the AI kiddies to it before we merge this work?
+
+Sorry for my lack of faith in human kind ;)
+
 Amir.
-
-[1] https://lore.kernel.org/fuse-devel/20260516004004.1455526-19-joannelkoo=
-ng@gmail.com/
