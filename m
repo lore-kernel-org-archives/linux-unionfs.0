@@ -1,70 +1,100 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70A74367F39
-	for <linux-unionfs@vger.kernel.org>; Fri, 19 Jun 2026 10:51:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD7973B38B4;
+	Fri, 19 Jun 2026 16:56:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781866265; cv=none; b=Wk4lHGy83oHvALxJMoppWOuHWoU3O0rDgehcpFcx5NX5Q2xb+hVdMluc1RrsQGXmVc87/E3E28D0nZ8+p/zhFvbC8ADVE+JMax9V75jdgUiapM0PIWhpMIORRAosErlYKmFzG6rlt3UQtz8EjJ7Av+RWp2XxtFGn9gnIjtP98ck=
+	t=1781888182; cv=none; b=MdCbQ9lOe9Ltze0Kkl7lGXDmozbslxJhHiv7NXCJZgS8mNqXMHNegtUwSXaxFO2TVzI3B85dHLS64MZaeLZKprPp4xn6u5T/jo2rObtUp3zo/zusBKV5UBw4t0FTzhtpn41KbQ4XwS9Hdta1qySfFztgcpbbM4zS8VHk6GtLP9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781866265; c=relaxed/simple;
-	bh=vMYClChU/nDPI1mel4GN+SXm9uUJKTLxS7A8nNNkrcU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=X4PP/NLat+4tkZkg7S6WH/MyhXNu3AOseA6DhKKGRTKxrBADig6bzC7cK85ewyVwYFIcQIjVQsZcxj4Q62GXjNaKyqCYCcY8PfrargT59B9nS/9ahgp4H1J5W/PqxAT5BzbSN1qpJHO5sU+YNv2p/zVtLtIpFOFLXMNOyMqWH/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lW0ZX6y9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781888182; c=relaxed/simple;
+	bh=ikxZrrHtTEwRwlSyKa2TSoeJ3Jvgpjp6HfvvF3KoJj4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LF8NK1/supuYydlwLZervtUQaqZugPokkJR45eQc9pjGa8ygiuxM1xl5TrwkwFjErfJ/kZs/JxAdjL5I5u29Aa3VMOOAidoD2EEx01WMrTotK/w0gcMfUwH02hLj1EVnPQUYVYCPwkSxn8jSwIuqsFh++JcLadWMCbEwB55+0LA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Shn1glci; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lW0ZX6y9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F29B21F000E9;
-	Fri, 19 Jun 2026 10:51:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Shn1glci"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5F0B1F000E9;
+	Fri, 19 Jun 2026 16:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781866264;
-	bh=MUujH3qFbfe3GmEdxD3XwZQt1WsG4jGSOBkRIiPGK1w=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=lW0ZX6y9WSSAKoid7iGU7Oa6fs5++3fi8wSIxsybcKqKGoTG2X9UaEvdYQb4WkBtN
-	 nLmBK1aNqpwYOVO8kNLpu+k6tZ9GG5zu+O4V9rgY0sGsMI1WiKiCDMUtJjp3e+tN2M
-	 bODmZSVwV5bkaYLUtsJQO3rqbH0MQAcxi9zUcqySHbt2xvJ/BhlDtF7IRz6QqhHwsw
-	 Eu+IsZZor2VZOq88b5yheLrZ2QQ29lr+KjY6oLdUXbzCjmtRrqW2VDVJzbdEuqVLb7
-	 uyM4hhUElsys1pvrl+sULVn3+pTDT3T/FraI9XR9wHZ877UmO5F/haAg5Y8tn7KHXh
-	 qdqYVv53uXNqQ==
-From: Christian Brauner <brauner@kernel.org>
+	s=k20260515; t=1781888181;
+	bh=9Pc+roecy0N9fcSZhZ72+qSw1o+IjhE+4/qpcF1Vmgk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Shn1glcirGu1wXLyw5SX0iBWhoHUNgPUYmU8oRgEF5R3UfunAR/3yR1wGLaOhqZl6
+	 MpE/n+QWAPWVxdK3LJ8/X2j33uGDZ0TvVuTjBkn7bpSkSlyuSrMWvO9ep3WkVTOO05
+	 mbhAU6MeJya50Kd3/vda+WFYnkAzPRZywQm3HkKzDDozrePtQdjbXWwifpBJuDTJeD
+	 6wh1fWSUDSDkVniWShwwXXFI74T7qKkPY8t422Qa6eciuECvWYLv0KFqR04t4BbFPL
+	 UQj8fLdwGxzyj9eiyahw7qYBlKUc/U8Bz+AvhujKQxITT/mvPTlAYM4cvpW45DlAjg
+	 Ra8kcktUx+xLg==
+Date: Fri, 19 Jun 2026 09:54:48 -0700
+From: Eric Biggers <ebiggers@kernel.org>
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] ovl: fix comment about locking order
-Date: Fri, 19 Jun 2026 12:50:59 +0200
-Message-ID: <20260619-umkurven-leibhaftig-warnt-781db9f78064@brauner>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260609184656.1916631-1-amir73il@gmail.com>
-References: <20260609184656.1916631-1-amir73il@gmail.com>
+Cc: Andrey Albershteyn <aalbersh@kernel.org>, linux-xfs@vger.kernel.org,
+	fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org, hch@lst.de,
+	linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+	linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+	djwong@kernel.org
+Subject: Re: [PATCH v10 03/22] ovl: use core fsverity ensure info interface
+Message-ID: <20260619165448.GB3223@sol>
+References: <20260520123722.405752-1-aalbersh@kernel.org>
+ <20260520123722.405752-4-aalbersh@kernel.org>
+ <20260520190719.GB3424023@google.com>
+ <CAOQ4uxh_hfiSwMw8ABhhrz7GguZWjHEiBmvb3eq16Wfqw0+ZrQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=877; i=brauner@kernel.org; h=from:subject:message-id; bh=vMYClChU/nDPI1mel4GN+SXm9uUJKTLxS7A8nNNkrcU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWSZygufcVzo4Xp+wr0Dmi4Vky+dK07PuOzLyp934n1s+ apQz37VjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgInUXGT4w9/792JPg97f4/8+ 8p4oMlW7Z/bxQalwkczXjD7jC2ceXWX4p8sYeHjN6/9HT+13MJtzJfPuk6Prtp5cO61JV2lyzkP OOUwA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxh_hfiSwMw8ABhhrz7GguZWjHEiBmvb3eq16Wfqw0+ZrQ@mail.gmail.com>
 
-On Tue, 09 Jun 2026 20:46:56 +0200, Amir Goldstein wrote:
-> Forgot to update the comment when we changed the locking order.
+On Fri, Jun 19, 2026 at 09:28:31AM +0200, Amir Goldstein wrote:
+> On Wed, May 20, 2026 at 9:07 PM Eric Biggers <ebiggers@kernel.org> wrote:
+> >
+> > On Wed, May 20, 2026 at 02:37:01PM +0200, Andrey Albershteyn wrote:
+> > > fsverity now exposes fsverity_ensure_verity_info() which could be used
+> > > instead of opening file to ensure that fsverity info is loaded and
+> > > attached to inode.
+> > >
+> > > Signed-off-by: Andrey Albershteyn <aalbersh@kernel.org>
+> > > Acked-by: Amir Goldstein <amir73il@gmail.com>
+> > > ---
+> > >  fs/overlayfs/util.c | 14 +++-----------
+> > >  1 file changed, 3 insertions(+), 11 deletions(-)
+> >
+> > Reviewed-by: Eric Biggers <ebiggers@kernel.org>
+> >
+> > I'm still confused by the new implementation of fsverity_active() that
+> > got introduced by "fsverity: use a hashtable to find the fsverity_info",
+> > though.  I should have caught this during review of that commit.  For
+> > one its comment is outdated, but also the memory barrier seems to be
+> > specific to the fsverity_get_info() caller and probably should be moved
+> > to there.  Anyway, that's not directly related to this patch.
+> 
+> Eric, Andrey,
+> 
+> Did you see the Sashiko review for this patch and others in this series?
+> 
+> https://sashiko.dev/#/patchset/20260520123722.405752-1-aalbersh%40kernel.org
+> 
+> It annotated some review comments as high and critical.
+> For this patch it is about interaction with fscrypt.
+> 
+> Please take a look and say if this is concerning or false positive.
 
-Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+Yes, this patch is broken and should be dropped.  I need to remember to
+look at the Sashiko reviews for other people's patches and not just
+trust that the submitter will.  Fortunately this one wasn't applied yet.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+I pointed out the HIGHMEM performance bug in
+"fsverity: generate and store zero-block hash" earlier
+(https://lore.kernel.org/linux-fsdevel/20260401222717.GH2466@quark/).  I
+assume it was decided that no one will care about the combination of XFS
+&& fsverity && HIGHMEM.  But the XFS folks should double-check that.
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+Andrey, could you check the Sashiko reviews for the other patches too?
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
-
-[1/1] ovl: fix comment about locking order
-      https://git.kernel.org/vfs/vfs/c/52d2aadd2020
+- Eric
