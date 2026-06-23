@@ -1,32 +1,32 @@
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F50E2E7389
-	for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2026 10:06:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.132
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C91336E498
+	for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2026 10:12:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.113
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782209186; cv=none; b=SOUdrlnYYFJQjwQIsr0sFlaZDY8iLDIQOxZCzeGFFUnt9KFts+Ol3+T29RPYwS+rCXTf5t1eNNeZVOEQ6nDcB9QBrumwPUm/A6C1vkaIhSnq4fyO/mRSLPHyxrcLwCfgWWtdZqRoltDw2AZn5DPIeuPg5rJUIhJqBgp9Y3Rw9cc=
+	t=1782209526; cv=none; b=Z1JvxJLjG7aHmkOBAoVQ8G/oXBBmGLFI4KlUsk514h+9WHdCUfrqWIURFUfV1vQQn9smhYYOrO7I4aLishcTtvin9iFAUhY8vkbYn2TZqOaXcZ9yYu0XUuLNU5YxjnGqGEUQrmzb6Zg1v8Y0Uv+CvPGotaQ3ZozsBsqQf28QB1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782209186; c=relaxed/simple;
-	bh=oi56KBaqbzfg6s3E/j79ztg7ZIyX9hHzJA4F8XewOYY=;
+	s=arc-20240116; t=1782209526; c=relaxed/simple;
+	bh=GKWhxnmin9C8KXDCB0s8f8XY1VjFSulvTHn1/woT5fU=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DC82d72q3vtc/XlamC+strGpk1CvOwIzXCy4oEnsfxNNG70qRZ37tioopjPHFyPnIYnPFukSfR9SPbyHtjRFslDf9H8ZdYGOYnocu25eeCduZMtcRz6OVvwsZV/NCKoykK1OGHEcstljBKpOudxS95ez1yLsBWb+L707E3JYaFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=Apz3RqL3; arc=none smtp.client-ip=115.124.30.132
+	 In-Reply-To:Content-Type; b=n8aBCdSb51OCN1rcckytit9IbdFVE5aOgyydNhiTvJ3M0ToLVWRadQIw48+9HD+FG+93GE9xpKYoPOmmPmxmAISQZZm/m74mesgOLv3dcIqPc2bWYE88raGCywD4R1QUqZqHQ1iSWzVEAwlY3n0pqmxqFzrh4S+s/hXw5QD2tVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=pR5meXF2; arc=none smtp.client-ip=115.124.30.113
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="Apz3RqL3"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="pR5meXF2"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1782209181; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=WErfCvaSUgxBk9m9gVXBzacpG2P/70h0KHE31dDn0Q0=;
-	b=Apz3RqL3zaw1HxaBR3kawXodTOQ4QcXrakQFLdWvlSHfz4ZniCl0GlCgtXgwgJ5rX7YmiDV0Hi58KWvOkjVxyv2IPrDa1ti/Vy+oRNZq+Uy7iwMv8XOUb8RskdGbF+PBnh3tloAMXA+DrrO5QONe0Bmzgo8XWGhJXLaJWaCTzPk=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X5TuQSt_1782209179;
-Received: from 30.221.132.85(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0X5TuQSt_1782209179 cluster:ay36)
+	t=1782209522; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=gbhjrVUba6vrOJZoU2T57dkDjF3VKrHb52fpIyBFEf0=;
+	b=pR5meXF2kJ+t6tlu5J8Yj/c3X4tdBFcrx6Ii6lyFXs54rmwfSa/PJNe+bfprBRkrlJO7sPlwpdog5SRboR7Gg0VY3zSb+Uz8fFtUFo7Tee8AR+PBxRfPZfDr418n2F1sHTJQB6L3Lg6gI2X55SQ8K6i2rWJsACOLhuF2zvAV0XY=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X5TqL7-_1782209520;
+Received: from 30.221.132.85(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0X5TqL7-_1782209520 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Tue, 23 Jun 2026 18:06:20 +0800
-Message-ID: <7985d6d1-a7ce-430a-9a06-9bbf95b1be2f@linux.alibaba.com>
-Date: Tue, 23 Jun 2026 18:06:19 +0800
+          Tue, 23 Jun 2026 18:12:01 +0800
+Message-ID: <bfdf1d1e-2313-46e7-8567-da2a363d6b3d@linux.alibaba.com>
+Date: Tue, 23 Jun 2026 18:12:00 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -100,90 +100,14 @@ On 2026/6/23 17:59, Yafang Shao wrote:
 > Are you sure? How would one change an already mounted overlayfs that
 > was not enabled with "volatile"?
 > 
->>
->>>
->>>>
->>>>>
->>>>>>
->>>>>> Not quite sure applying a default volatile policy is quite feasible,
->>>>>> especially the issue documented in
->>>>>> https://github.com/containerd/containerd/pull/10274/files#diff-9239161e2af83fd84df5792f9fe64701c517fe4598eae60d4d245d039955f46cR33
->>>>>>
->>>>>> then userspace cannot drop `volatile` option as a somewhat
->>>>>> workaround now.
->>>>>
->>>>> OS vendors can still set "auto" as the default config, while customers
->>>>> can override it dynamically via sysfs. We have been running with
->>>>> "volatile" on many production servers across different workloads for
->>>>> over a year, and it has worked as expected without any issues.
->>>>
->>>> but sysfs setting still applies as system-wide, and there
->>>> are some edge cases that we cannot apply volatile as
->>>> default, that is my one concern.
->>>
->>> It is unclear whether there are mixed workloads on the same server
->>> that require both "volatile" and "strict" modes, but we have not
->>> encountered such use cases across our large fleet of servers.
->>
->> At least containerd needs to strip out `volatile` in some use cases,
->> again see:
->> https://github.com/containerd/containerd/pull/9555
->> https://github.com/containerd/containerd/pull/10274/files#diff-9239161e2af83fd84df5792f9fe64701c517fe4598eae60d4d245d039955f46cR33
->>
->> So set `volatile` as default will break userspace (containerd),
->> and containerd needs to add another mount option to avoid the
->> default `volatile` behavior, which is messy and makes the
->> userspace more harder.
-> 
-> However, our userspace is easier with it ;)
+I don't see how your patch can apply to already mounted
+overlayfs.
 
-It depends on how you define "our", if your docker can be
-upgraded, why bothering kernel?
-
-As I said, common existing applications (like containerd) will
-break since they already assume "OVL_FSYNC_AUTO" is the default
-behavior, and explicitly use mount options to override the
-default "OVL_FSYNC_AUTO" behavior.
-
-But with the patch, it just breaks the application assumption
-and userspace application needs to change again.
-
-> 
->>
->>>
->>>>
->>>> The other concern is that since `volatile` omits fsync, so
->>>> it's a posix violation (even that makes sense for container
->>>> writable layers), not sure if we have to use it as the
->>>> system-wide default configuration too.
->>>
->>> We have use cases for setting this as a system-wide configuration. It
->>> is unclear whether others have similar needs.
->>
->> While I cannot speak out of overlayfs, but really it depends
->> on if the use cases is generic.
->>
->> Usually filesystems need to obey posix semantics as much as
->> possible, and using specific mount option to relax (violate)
->> some restriction, but it shouldn't be a system-wide stuff
->> since otherwise user applications cannot know if they really
->> live in the posix world.
-> 
-> AFAICS, the Linux kernel does not strictly follow POSIX in a number of areas.
-> 
-> BTW,
-> 1. The "volatile" is not the default option.
-> 2. Even when the system-wide default is set to "volatile", users can
-> still change it per mount.
-
-Here, I'm strongly against this, again: especially it
-just breaks application which implies "OVL_FSYNC_AUTO" is
-the default, and we shouldn't ask userspace to handle this
-to deal with the fact that the "volatile" could become
-the default again and again.
+Again, I don't want such customized messy breaks userspace
+again; with that patch, container runtime needs to consider
+if `volatile` is the default which just breaks the existing
+containerd versions.
 
 Thanks,
 Gao Xiang
-
-> 
 
