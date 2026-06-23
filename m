@@ -1,216 +1,192 @@
-Received: from AM0PR83CU005.outbound.protection.outlook.com (mail-westeuropeazon11020104.outbound.protection.outlook.com [52.101.69.104])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6483A3D564B;
-	Tue, 23 Jun 2026 14:55:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.69.104
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC4AB269CE7
+	for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2026 15:35:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.54
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782226525; cv=fail; b=FQ/R5ITjUOWNkrEMMRzRnn6WUz1Cex7psZTEhXvI17BskdbSdfqPF7Ep0GQc6TwyZqVRsk/ZhJcKA2ItbS6Ze9uhfdVbF9tomvA4m9Ygb6h0QpZwIzstD/hk1qUPNirRbHL56QqrpjpPAclaW1de8i4V75q+G9kJo2ZCEvruEK4=
+	t=1782228902; cv=pass; b=SzEjb306Isw/vDCW24qis10l+mT2FldlfxrIMzJwH1dkTLcT8XpLeOBmWciAMPBUDOfZ0T8rXX4E8P0NjIj+S84fxZlR4nQehILt8Yxw2r3m7GHHzNpZcvnzxbpi+OyZh4YC5UQdibjHCCTG8EalgBXCUXMY/j4LPjSHyt3W4pc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782226525; c=relaxed/simple;
-	bh=1Iye2ne169Nn4R95Luhb9mEDT5OTHsnmemzjazNFi7c=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=jp7j+NL7uca2MLA1fZt46rCpGRPJehM1e5U2Atn24r9RrfF86OgmtR2nUcow5ndgvgOHpyVW7AATEAiqCG+iTx79q1fhzL7vhogZvO9OQHhK4qrUo4jhlqaPVF3Ve9weQPR7Dg+VcGzY9UqdABFKTYqZW597bwJ1kAVl0c8Ld30=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=virtuozzo.com; spf=pass smtp.mailfrom=virtuozzo.com; dkim=pass (2048-bit key) header.d=virtuozzo.com header.i=@virtuozzo.com header.b=eYaiEI7H; arc=fail smtp.client-ip=52.101.69.104
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=virtuozzo.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=virtuozzo.com
+	s=arc-20240116; t=1782228902; c=relaxed/simple;
+	bh=F5jxOgOxeIGxOiAIJVL5hSxhOncVvBstJWDCLkelQbQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=rd2f/5vaEKl8BvZsW3gIz9TK15l2jSt/aNE/nVN6TT4GQlhZ10Ot1jLxcefoX++iWkPUQswnRMvYlvQR7XKFRYDh20wAHTlT2X+34ab7q84xLC3MLCs1M0v9i5g9Q/udsu6390CJq+z4/zaKf7lxwv7bZEycLOIQnulDqKCxDug=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rQ8WPs7M; arc=pass smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=virtuozzo.com header.i=@virtuozzo.com header.b="eYaiEI7H"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RbUJiyUIgEJKm9dLbczaeroyx0ezQtwymzcMnj2oIHpHII6P6AwEfHc57Ziiem9qkErOQR0rm/RW8TQl3G3kV0b/yEW2KzSsx2deCBBSrsx/ZXxdW9sq79MF7/ypVPPj/eXFoXjz+i9/Kexamt9exW+oYHYpQrfOFfheEatpJfvVZqvtfMF/cXWypbkU1/U9SyAD/L8cBY3hzysSWWHo4TNSGY3t/Rw2jYCLNJ25UHQd4E84nyVZWpXSYuA1RO9soKzE4oTwJGxqTroPEqYQxHG0OiXfRQR4exBcRP9HCtsD+szcMJKmuitrUoyKxvF/uS/uuyfvEPGvNHhqekL2gw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=EJhp0e+1GGv+vy/YtsLflMDkv+lQR3xG2kA52InrL/s=;
- b=tejXKr2PCtiSLEuw1zMuIJcNv6Y/JY93WAbpoXnp+kRMrlFGSE7zzU32bhvI7cjCESzgKJSY36aE5rSfz5r5lnmvfQq3xh33wX/PCMrltOB2xjt430oRXUzw/Yzln5mgwwkakK/MqQ5Dxz0VJTlBTQaLzUBPPN97uxS8eom/d5rFRfHRTp/kY2+zKLjNre+8TvgE5nLQBWMd1RZB4bHYwPCXb4xAumpU0m+WnnJYxlkcoHk7qG16b/fM4sLgREm5JnzfoNm4igzBsTZ7YytQ0xXn3oaDMSxKZuvGKPDMwo0hYa9U4m3+c1TlsIyXaDev7jRhSKnh2p1byYS4bKPoOg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
- header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EJhp0e+1GGv+vy/YtsLflMDkv+lQR3xG2kA52InrL/s=;
- b=eYaiEI7HRC3T/ue3EO/Flx1/Ug7dkGE8xUFOQl9wwuZUQIuZnsuSFZxBWrWbdrGGeTiorEwAJvBtEYJFFreSzC1kklV04aQ3PNJD7PVu0zfaSw/JADTZxNidZJCHv1tHkRO0/8yf30l8KF5LZWWRa9aq3BEBe+i20mRhnA2SqPwEtUwZKL4EvaBbxwPKP/eXBKbp3M4I7ix4W9i7zdeWE7dmlHCIOvw0Z5ai/p8JuwF3xNKcnPtm6Ef+qUY3bFpIUdmLJNdwp85WCu1P3GaZB5rckyef14z9DaQdABq+/WurVq7Ev3SuKpiHsMDRGWnjcB0aTci+nVnbj50FRcxJfA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=virtuozzo.com;
-Received: from AM0PR08MB11804.eurprd08.prod.outlook.com
- (2603:10a6:20b:747::14) by AMDPR08MB11631.eurprd08.prod.outlook.com
- (2603:10a6:20b:73d::13) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.18; Tue, 23 Jun
- 2026 14:55:19 +0000
-Received: from AM0PR08MB11804.eurprd08.prod.outlook.com
- ([fe80::bf46:f137:f6d2:5b3a]) by AM0PR08MB11804.eurprd08.prod.outlook.com
- ([fe80::bf46:f137:f6d2:5b3a%6]) with mapi id 15.21.0139.018; Tue, 23 Jun 2026
- 14:55:19 +0000
-Message-ID: <3f6392aa-c1f6-4263-8892-978dacbbd8ca@virtuozzo.com>
-Date: Tue, 23 Jun 2026 16:55:17 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/3] fs, mm: add ->cachestat() file operation
-To: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- "Matthew Wilcox (Oracle)" <willy@infradead.org>,
- Andrew Morton <akpm@linux-foundation.org>, Nhat Pham <nphamcs@gmail.com>,
- Shuah Khan <shuah@kernel.org>, linux-unionfs@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-mm@kvack.org, linux-kselftest@vger.kernel.org
-References: <20260623111533.2285005-1-ptikhomirov@virtuozzo.com>
- <20260623111533.2285005-2-ptikhomirov@virtuozzo.com>
- <ajqOyIA8tPQsxfz6@cmpxchg.org>
-Content-Language: en-US
-From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-In-Reply-To: <ajqOyIA8tPQsxfz6@cmpxchg.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BE1P281CA0313.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:b10:85::13) To AM0PR08MB11804.eurprd08.prod.outlook.com
- (2603:10a6:20b:747::14)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rQ8WPs7M"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-695f6438518so8182773a12.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2026 08:35:00 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1782228899; cv=none;
+        d=google.com; s=arc-20240605;
+        b=WvIzScHEuIW+IF5EvZblk2DhMIih+E2qTgvIkfCLFxDCVDeCEm4whxkEz7N7G0lhhz
+         cqnGk504Gt4HxUXqRcGFNtANNiSlDOuDEICw2+SDBFAt76cDuhDxPN/r/XinzDCyvKXZ
+         /QTFbGJYIe16Xbb0csC8r8P72k2F6DFP5PEvCE57HUPa+ie+7Rzen8QE8IYdv1ajmeGO
+         ii2rVhw86rZnKiZKN0UmzXRqFhUnXXUv+a9xZTDzILT/x4jsV2fHd2tPM4r8PgoITYYs
+         bwNiz7lW8tDWb8HlH26vVhDKryXdkc4dC9PTPXN0ho4saosXSTb3B/dJfLFxYT3sm3TF
+         rHvQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=jGc5O48HR7pepVvOkH86p+d+WQn7/E2BGrsqzSwA0sE=;
+        fh=BCFUaGD3kkGX47oqtMYYsMF78jg9K9tPM7EBXEpSfXY=;
+        b=Aso1cv9E0cTtE2khyV+GEtKbHhydhHbfoCIA9iP8xKCyn7A+tKeUxx+IhmBhvOmM+O
+         Ugf3xRjzsyRSlipI9ixXyturwDv0U2XQ5smlTnFFtAGm6yYMIfRbARPq95S0cr72Nw3v
+         t4Pr6rlr7VuFtZqb3hT2FzqSniP2hqLVKQkgPl5nEXEgOFM7T+ZvOnCDxVi9WdWIfn+t
+         w8PClzMrV3zLGPXoxjxulVb1SV8zU428BrZH+lYNeFKBCEBFNhEAnbFDTF6lh4O5iv3g
+         EHSFTrLlnmUaSowQYmQmPNksih5/zGLVMwWhiDaujVG98vJNGSqq1Bl0y6DMlRs4PXtK
+         I5kA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782228899; x=1782833699; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=jGc5O48HR7pepVvOkH86p+d+WQn7/E2BGrsqzSwA0sE=;
+        b=rQ8WPs7MMgstdoLPEEQHPzKfrSKlXdTayEAxfEKaqHXZ8R3Dfr7OR+Zov9IhAfcoqc
+         LbwgrXbHiB2WQ5+HBmaLWQlV3jxkYznxSD7T39Ojx8Xw+L6zhpI2PIDqbsNH8qzkzFaQ
+         +SUuHSiq3TKBJV+g1KS/eEhiL/49objPT2kGr7EAsfUdBlXOEt9/d8EwAR+ErGE87Vsn
+         wWJhd8YpUr4U9ZSZ0bvsqngAq2EyGFHcJPgykxQKqaswZkiaZUmadADo/sEI05deBjy+
+         J3SRo69S04IXqY9Rz5fMPQC6wLOsOS66F0nTc9lAuE+3b1Q0jMZHOhKBKIV1pwll89T4
+         g6iA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782228899; x=1782833699;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=jGc5O48HR7pepVvOkH86p+d+WQn7/E2BGrsqzSwA0sE=;
+        b=a1BJtRAIRJRnkssxOhapf1HBkogAaz1PvijcUZ2P177lOMgQ5a5PEeEUxsNkxM8+hN
+         mT8njif0Kj9qrxPfjVKOJe5E0ln+/FyLzIOppA+G6hqbKNkgUZvAI3LgZT3quet3xqng
+         G650otmE26eQevoQ1uaWb449immEmgdlzpp6hD5U51k3EC9cyjt8VkVhkMBHoP8P99Mp
+         qc6CN1KD9WUdNJoy2uIS/wBc8YbnbIr4MCjCjzV8bUTtQaTorziTNstgfK2gyaYi4PBN
+         s1I4buHTowkWxHeZsXVkp2tajU7PGjWDRAa2oucuUoa5m+u2Qxe98bbumAWD7X6x2Pvk
+         zwIA==
+X-Forwarded-Encrypted: i=1; AFNElJ98nAsO8IWBB7cxGypk0cjDg0mz/aUlDcmFn8yiUdawwY3ig5mkbgjjwCO5NN3ucw40F/TsrrnU9nBFPPOP@vger.kernel.org
+X-Gm-Message-State: AOJu0YzPDRDPMVcHJZ8GdkuymN33FAyoHm1PSspRlwJb1zoMm10ntwlv
+	XCWzId+IcTefoLaK0q+rY4/FRRuYv83TlbmUNn57BEjwScPCy79XwJzayGxAfx8E9ohY/Ns3QLb
+	2xn7z5C/XnrGWai6gbSQZVqgAl7o9cPw=
+X-Gm-Gg: AfdE7ckCVO0uJ2pi7zzDUzooFBRe74/H56m+y5d2RwJksvmw70t6fMQVwCS32d/6FHl
+	Xk1qFooE7dqClchxhwOyPkXNGPEkLxZbFDi++6EJqeb4TK350vI51M7O1/6q0M3vBzkLzwK+Ybm
+	UAnoX8QsQ4FeDLsG3oBq4+I2/KAN84ebuq6dTAICtxKe0GniU6L0fEus4buu082+pr80zlImN+8
+	v4gR93oqDEC36W2DP0jhJN1wMuepH7RC86cvXmA3SrKD+bWHF6yplPTcF3P0TPolepbK7rgQ5bv
+	F0zbiAcmjHNdywrZ9dgtYmArgMNcoHc=
+X-Received: by 2002:a05:6402:3205:b0:687:7fa4:faa0 with SMTP id
+ 4fb4d7f45d1cf-69711e0602bmr1457590a12.23.1782228898944; Tue, 23 Jun 2026
+ 08:34:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: AM0PR08MB11804:EE_|AMDPR08MB11631:EE_
-X-MS-Office365-Filtering-Correlation-Id: 46fd8ad5-793a-49de-1000-08ded137719c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|1800799024|366016|23010399003|10070799003|18002099003|22082099003|4143699003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	30uiE+07sCUJyYX8AhZQnqVTpmggIeqzbb4JyIohIRLGvZ1MDjbFz4AWaWmQKe3mlTlLTKNz4c+BBKMDbAZQSOTEbhwvB2/wGa9ghPHVJ+bJdX8IbIuQZnUKeBS//u368K5eJ3pp3LjTuXLlIbzm5dourmHkkZx5jfvIwEJ3xROKVBpotDiKR1kuPe5yNv2ASP7fNVU1lQDbqbG73Ir/q0cggPKkh/ZCQYCg2N5wSQDizcFynR4/mZ6kYXD1+TE0RzG+Q/BzEuM+G+92RS4PxtPpLF9v0NK1AkNmv8p8vWZr35LvsstWXajMFPpFGVh13kuVlSBd6DtaLJ3x6q+JUBg8qvpAur5OyoJ9Hb2X8QN9h3iOqFcjhqARq7kqDTVqzrWuXkRD+WqF7G7C4tWFc6vhWAbLtTNv0M0QEfC1q7kIyEzordmZLLrQI8cjbCHL132hr6traWDM+2Xfmir/5Tvi3hc6R2IQTBmwfHTWQiRzS9Bmwx7Cmid/39IcoUpmH+2+RBEajb+bEUGKr5qJIkF5nnCdjecmekso4bW5AW8eMPEFTNw23XQz3NKW1FjBSVXDwwyND3/lMdVVUh1uaiwW0k9E0qbldTHTrqkpKm/8cVtjQPP22Eioo3i4aE/9mmBJLP3OUfpQhhfy00N6iis3ypDjKUfQNjSYX0njuN0=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR08MB11804.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(23010399003)(10070799003)(18002099003)(22082099003)(4143699003)(56012099006);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?QU1qc1krZWl5WlZmNExyejRYWnlrWXVCQktFdWlnMUgvWERhb3o5bkc2dENV?=
- =?utf-8?B?TjVmSk53V2lITTVIZGZxUDFQWCtTNDM3N29PclhWNTEzZ1JrSHhwNk9pbHkz?=
- =?utf-8?B?VklCQWY2d1NuQkpVSWMyQnJkMmlKVVQxa2xzV0dhMlRyY2RYei8rU1QvRGh3?=
- =?utf-8?B?akhSMTFlckZWTFF5SVByZC8zMnZ1dlJocnRQZG9tREZVVHBENmx0NjFNcW91?=
- =?utf-8?B?MUhlSGxueHk4Yk5lRVhyUVY1dUgrUmoyQkJZN1JlYXU3K3l3bys1SHp6bU9V?=
- =?utf-8?B?SGRaRlNpcEZiUHdTK2tDYXk5c1UzRkR0ZFdDOWZseE1DNkJrb2xmSVl6aHRW?=
- =?utf-8?B?cTNkeTQxQkFmN3RvcHlvSUxvTjkyazlRcEJyUDdISytYeS9SZTVWNTR0MGQ1?=
- =?utf-8?B?amhVSlhwaTA1eWJqUFNSV1FKeGNOdmdZOVc1K1JTRnV4VmhVb3ZObUtONFl6?=
- =?utf-8?B?MktvNjBmd0dNdzRpeHV2SmpKN002S3NRTFp6R3ZEN0hYbDgxUFI3dlNSREtL?=
- =?utf-8?B?RW41M0s0Y2Jma2xMQmtaeVpxSkVTVUN5Z0R6YmlXVTZGbTVVOGV6VzEvRW1L?=
- =?utf-8?B?R1NsVDBhK3Y5ZjFhUTRkV1ZoSzk0MytNUmxTbTd2RDlBeUYvTGllL2xSYVVX?=
- =?utf-8?B?dFlhOXNQSWVwSHpIV1dRemxDZ0o4WnpHYmxlNjN5ZjNCVVFoOVpZOEduZnI3?=
- =?utf-8?B?OXB0WWdFdWgxU1RKaVNrVUljMW5aUHNlZmNhRzJjY2tvbXQ5RFFYY055S3RK?=
- =?utf-8?B?cTNaenhqUzZXdzhFblZoWU5XUnQrV0xSMWZkemYxeWNoblIrN0tlZkkyZXYw?=
- =?utf-8?B?NkhPSDRmOCtMbnVXdEQ2OTN6cXo3MDRyM3ozaFhKWHJNTFBiMWR5WUZXR3dX?=
- =?utf-8?B?VHlXOEg0bmRmVVF3b2QyV2pHdDNEUjl2ay9pU010ZFlYZE81TTU4cHdHQ25m?=
- =?utf-8?B?aitBMFI1MHhETDhteEQyNlZlUk9CeCtUdDFrMTV3Rlg0cjJnNWcwK25rMXVu?=
- =?utf-8?B?ZzlaTVZLSVVYV0ZLbmNTWTJlaDV4YjYxVmc3NE92aFFlMmpNbzI1cFFQRnJW?=
- =?utf-8?B?WHFQakhETnBOdGxOYXlkV0xUZWxDNEd0UitURk9LUllsTTY3bmZiaEw4ZjZM?=
- =?utf-8?B?TEZ3dUduL09oUWhzRVNIYW1Ed0RkZENOVlJyU2VYL2F5bm01M05vOVVKbGs0?=
- =?utf-8?B?Vkhqd1puZEUxeVdPWmlJNzlmYTNzRnZGQUlRSWNuRUkrNHZ2NU10Q21PbnBM?=
- =?utf-8?B?RUgrbEZFSU9VcDZXSWlZdWRKTnRDVmwvY3l1L3hhRmQ0V2d1L2JkRURsZkVi?=
- =?utf-8?B?NklTU0hYUHZVV1Q2L1hvZ3VFb0pZSEJPeVVJRmhta2tWaDJWM0Y1dHR5NllF?=
- =?utf-8?B?MC9FQUJSR21QYStnb2NYa0lSczVZZ2t4VnUvR1RuOHJueG80WEQxakRuMEtN?=
- =?utf-8?B?RWJ5QWlJcmdLUkVpK1ZWUGFxOXJEK3N5OVpzRk45M04wWjdrSFVvSzRyWVFa?=
- =?utf-8?B?eHRqeGdFTUd4Tmg5c0NMUjFWTTZPUE9OSkhMV0pKRnNOS0ZqTEhzR1NNZk9L?=
- =?utf-8?B?WFNiVm93L0Z2eWJpVFROUS9qRjk1alNGS1B2bWF2OHdqdzdWUEZvdEJnbmtR?=
- =?utf-8?B?S1htZS9WZUwwaWtWcmhNcE0veFYwaFdoSmJnUmtEK09WaDB6TEpjdkVpVGMx?=
- =?utf-8?B?WnlPYWlkM0pPdzRhZXR6VllqU0czeGw1STNnbVpPa3dGUVpFOTVhSGdkT2kw?=
- =?utf-8?B?UXZmOEc2bHh1a1R3NjFKNmFiT0tEK2ZVVlZZR0Mwcnl1RVRhbFEvMlEyK0dv?=
- =?utf-8?B?SklsVDV1SC9XWTVDSVkyelBIVWFreXRwOWI1cHAwNGpnYUE2MlpldFhJQ0xC?=
- =?utf-8?B?d0xXbDFtaDV5aGNPSkxLZ1BFTWJDck0zemdMd09FYlZGNkd3OGJLQkFINmg5?=
- =?utf-8?B?bC9sY1BOS2g1TWRWUUpTVk1QblZ4QnpZMTExMW8wZU92aVZ2bXpGMHRnakE1?=
- =?utf-8?B?TktNZkdjYi8rcFdWY1AxWVpyYlZhWjh5clFrcXlFY2h4QTNHc3QxMlc5THBt?=
- =?utf-8?B?SzVZbzlBNjBkajFJeVZQNVBTSkliMDE4aDcwdjluckd6OHVmUTNQREJzc1lk?=
- =?utf-8?B?NzllclRyRUptNjJFUmpPNkhXdEg0WTN3dzNPcWRvbnpwbWdWY3JwM29lWEVt?=
- =?utf-8?B?UG1aWTVvZFVBWVNvY2c0M3Q3c3ZwNjJZSzJqSEMwSWE2dWlmVGkydkpoYTA1?=
- =?utf-8?B?eDFyUE5vckMrZkFyYVh6c0JPSy9MREs5NVNFWUhmaW5jbjFmWnRrbmVCbDgr?=
- =?utf-8?B?ZXJKNkl6NExuRi9kTnlqVG9VSStoYzNNd0JxSnEvY0ZXSHV3eTJWUDN1VTY3?=
- =?utf-8?Q?nNKzSFd+U0YghS40pth+Cn/IYpyet5kFPp3GfsGPSrp6+?=
-X-MS-Exchange-AntiSpam-MessageData-1: v51dHhg5FZ4090Ty1sq0goBO31QCCLcoVQ4=
-X-OriginatorOrg: virtuozzo.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 46fd8ad5-793a-49de-1000-08ded137719c
-X-MS-Exchange-CrossTenant-AuthSource: AM0PR08MB11804.eurprd08.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jun 2026 14:55:19.3946
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: d6ajuVZknhykFgh0u6jgCnSPSJruOTln6e9TH3gQORde0B/rKUIzFZEy5CtqJkPv65FX8Ht30NBdsPh+cqq/yUerlbdSCVHtiLe6eN7er+Y=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AMDPR08MB11631
+References: <20260623111533.2285005-1-ptikhomirov@virtuozzo.com>
+ <20260623111533.2285005-2-ptikhomirov@virtuozzo.com> <ajqOyIA8tPQsxfz6@cmpxchg.org>
+ <3f6392aa-c1f6-4263-8892-978dacbbd8ca@virtuozzo.com>
+In-Reply-To: <3f6392aa-c1f6-4263-8892-978dacbbd8ca@virtuozzo.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 23 Jun 2026 17:34:47 +0200
+X-Gm-Features: AVVi8Cecv2_TqQ_O8FYC-won9z3vUEfkkWOTSNMZJamaSksyTs_hA8rdhn2B_co
+Message-ID: <CAOQ4uxhras5YAr8_HBpuHSDwvfiEF8vAr0NDB0R_PXtGDhnqjQ@mail.gmail.com>
+Subject: Re: [PATCH 1/3] fs, mm: add ->cachestat() file operation
+To: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, 
+	Nhat Pham <nphamcs@gmail.com>, Shuah Khan <shuah@kernel.org>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-mm@kvack.org, linux-kselftest@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Jun 23, 2026 at 4:55=E2=80=AFPM Pavel Tikhomirov
+<ptikhomirov@virtuozzo.com> wrote:
+>
+>
+>
+> On 6/23/26 15:48, Johannes Weiner wrote:
+> > On Tue, Jun 23, 2026 at 01:14:48PM +0200, Pavel Tikhomirov wrote:
+> >> The cachestat() syscall reads page cache statistics straight from the
+> >> file's f_mapping. Stackable filesystems such as overlayfs keep the dat=
+a
+> >> pages in an underlying inode's mapping rather than in the overlay
+> >> inode's, so cachestat() reports all zeroes for them.
+> >>
+> >> Add a ->cachestat() file operation and route the syscall through a new
+> >> vfs_cachestat() helper that calls it when present, falling back to
+> >> file's f_mapping otherwise. This lets stackable filesystems forward th=
+e
+> >> query to the file that actually owns the page cache. No behaviour chan=
+ge
+> >> for regular files.
+> >>
+> >> Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+> >> ---
+> >> Note: Memset change might be a bit tricky, I moved it to no
+> >> ->cachestat() path to avoid multiple memset on nested overlayfs, that
+> >> means that ->cachestat() is expected to be able to handle unitialized
+> >> cs.
+> >> ---
+> >>  include/linux/fs.h | 10 ++++++++++
+> >>  mm/filemap.c       | 43 +++++++++++++++++++++++++++++++++++--------
+> >>  2 files changed, 45 insertions(+), 8 deletions(-)
+> >>
+> >> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> >> index 6da44573ce450..966b6564707e4 100644
+> >> --- a/include/linux/fs.h
+> >> +++ b/include/linux/fs.h
+> >> @@ -53,6 +53,8 @@
+> >>
+> >>  struct bdi_writeback;
+> >>  struct bio;
+> >> +struct cachestat_range;
+> >> +struct cachestat;
+> >>  struct io_comp_batch;
+> >>  struct fiemap_extent_info;
+> >>  struct kiocb;
+> >> @@ -1963,6 +1965,8 @@ struct file_operations {
+> >>                                 struct file *file_out, loff_t pos_out,
+> >>                                 loff_t len, unsigned int remap_flags);
+> >>      int (*fadvise)(struct file *, loff_t, loff_t, int);
+> >> +    int (*cachestat)(struct file *file, struct cachestat_range *csr,
+> >> +                     struct cachestat *cs);
+> >
+> > I suppose you can't just have it return the real file because of the
+> > with_ovl_creds() scope you need during access?
+>
+> Yes, AFAIU in overlay when we use realfile we should always use it
+> with_ovl_creds(), even though I don't think there is anything cred relate=
+d
+> in filemap_cachestat(), I still think we should follow the common pattern
+> other overlay helpers use (similar to ovl_fadvise() and ovl_flush()).
+>
+> note: Actually some places get ovl_real_file() and use it without
+> with_ovl_creds(), e.g.: ovl_read_iter, ovl_write_iter, ovl_splice_read,
+> ovl_splice_write. But those look more of an exception than the general
+> rule. All other instances use with_ovl_creds().
 
+Use with_ovl_creds() is a good practice to keep the mental security model,
+but it is useless if the security check (can_do_cachestat) is not in the
+vfs helper (vfs_cachestat), so please move it there.
 
-On 6/23/26 15:48, Johannes Weiner wrote:
-> On Tue, Jun 23, 2026 at 01:14:48PM +0200, Pavel Tikhomirov wrote:
->> The cachestat() syscall reads page cache statistics straight from the
->> file's f_mapping. Stackable filesystems such as overlayfs keep the data
->> pages in an underlying inode's mapping rather than in the overlay
->> inode's, so cachestat() reports all zeroes for them.
->>
->> Add a ->cachestat() file operation and route the syscall through a new
->> vfs_cachestat() helper that calls it when present, falling back to
->> file's f_mapping otherwise. This lets stackable filesystems forward the
->> query to the file that actually owns the page cache. No behaviour change
->> for regular files.
->>
->> Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
->> ---
->> Note: Memset change might be a bit tricky, I moved it to no
->> ->cachestat() path to avoid multiple memset on nested overlayfs, that
->> means that ->cachestat() is expected to be able to handle unitialized
->> cs.
->> ---
->>  include/linux/fs.h | 10 ++++++++++
->>  mm/filemap.c       | 43 +++++++++++++++++++++++++++++++++++--------
->>  2 files changed, 45 insertions(+), 8 deletions(-)
->>
->> diff --git a/include/linux/fs.h b/include/linux/fs.h
->> index 6da44573ce450..966b6564707e4 100644
->> --- a/include/linux/fs.h
->> +++ b/include/linux/fs.h
->> @@ -53,6 +53,8 @@
->>  
->>  struct bdi_writeback;
->>  struct bio;
->> +struct cachestat_range;
->> +struct cachestat;
->>  struct io_comp_batch;
->>  struct fiemap_extent_info;
->>  struct kiocb;
->> @@ -1963,6 +1965,8 @@ struct file_operations {
->>  				   struct file *file_out, loff_t pos_out,
->>  				   loff_t len, unsigned int remap_flags);
->>  	int (*fadvise)(struct file *, loff_t, loff_t, int);
->> +	int (*cachestat)(struct file *file, struct cachestat_range *csr,
->> +			 struct cachestat *cs);
-> 
-> I suppose you can't just have it return the real file because of the
-> with_ovl_creds() scope you need during access?
+Also it kind of makes more sense to check (flags !=3D 0) in sys_cachestats
+before checking permissions.
 
-Yes, AFAIU in overlay when we use realfile we should always use it
-with_ovl_creds(), even though I don't think there is anything cred related
-in filemap_cachestat(), I still think we should follow the common pattern
-other overlay helpers use (similar to ovl_fadvise() and ovl_flush()).
+>
+> Also there are simingly no other file_operations which return "realfile"
+> for further processing, mostly the operation from fsops simply replaces
+> general operation with its own logic completely.
+>
+> Thanks for your review!
+>
+> ps: Hope overlay maintainers will correctly if I'm getting this wrong.
+>
 
-note: Actually some places get ovl_real_file() and use it without
-with_ovl_creds(), e.g.: ovl_read_iter, ovl_write_iter, ovl_splice_read,
-ovl_splice_write. But those look more of an exception than the general 
-rule. All other instances use with_ovl_creds().
+I don't think this is wrong per-se, except for can_do_cachestat().
 
-Also there are simingly no other file_operations which return "realfile" 
-for further processing, mostly the operation from fsops simply replaces
-general operation with its own logic completely.
+Just be aware that the real file could change from one cachestat
+call to the next (i.e. due to copy up).
 
-Thanks for your review!
-
-ps: Hope overlay maintainers will correctly if I'm getting this wrong.
-
-> That would make things
-> a bit easier. But short of that, this looks good to me.
-> 
-> Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-
--- 
-Best regards, Pavel Tikhomirov
-Senior Software Developer, Virtuozzo.
-
+Thanks,
+Amir.
