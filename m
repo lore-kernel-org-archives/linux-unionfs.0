@@ -1,202 +1,122 @@
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D79215075
-	for <linux-unionfs@vger.kernel.org>; Wed, 24 Jun 2026 03:41:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.172
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782272516; cv=pass; b=bm4deiDruW1uCEPJbfpge/WxXKwT3RuqkXzPzCZ3eT3bIiiDaYZ58ya7YxZLVBgyEt6mqcrvDq8AIKbA+bNfm8Aax4US3L3qKbSGeYpaDbQt41J6bEcH6WN5+kGHTDGoCKjqZnUw1lR6sLud9AkmK0ss/BKg3589fJLm2HBYuAY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782272516; c=relaxed/simple;
-	bh=U2UuNuly4gL0+2XrDmm1FfmBDxpUxQXqduxxXaYs6N0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lrZ7tZW2nkCrMJhC8o6hvqeb/HdJCHy52mxjzlFhiabMB1r2spETNrsZ3f+Sb8rJU70Wc5y/Sn2hCcKDJjy4kvJw/2t739XEBPSmHAPLONR6E44sRQO3Y9U9n6urCvOB2E4ftqYfF/Ba5o7tXkRcIdhUyhnQywxYKVGEZEG3dX8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X4cqjH0U; arc=pass smtp.client-ip=209.85.128.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB08439A809;
+	Wed, 24 Jun 2026 08:59:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782291585; cv=none; b=GgWv0fI2kO0Agvj7uebtfppETqDtGh2HaPMgaBYFZVJZufCXvVvKVeNOv+tsFVtEdCKglXgnLd9AUL2uDKJAbvo8qUf+Ljl+DGP/A+TX855C8DToGgaZm4LlQPbxyYl8j0i3oYpur9r4Xclo5f8jYBIcGfwUjBT/3mQDnJrXhzM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782291585; c=relaxed/simple;
+	bh=ItpYSXrK/37J71vAtTVRv7EPn/7nOKqrjREz9qixy/Q=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=ioHI3wtTlIzQ72CgvQivPhpn4t1OV+ZPGtdTZ5xxQ4XRHQeNzmWF3tacDJC3JJYt8ZLCZYA71SddERfDLmGiwq49bDnKTLhGPUJDWtuAvpkKbB1hhx4JseTQjkig/ZYgqvjAVh/a1MRLgnzvYWT2SjbYTu/xNrXFLGWLDZasUOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V0v3ckCZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X4cqjH0U"
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-8000e21f014so8100787b3.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2026 20:41:55 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1782272515; cv=none;
-        d=google.com; s=arc-20240605;
-        b=hfN3RKsuE4eFDGrH5kFZcYwaOg4YLg72FIXCfrPTOOqdF82qmzHoI2lScKkh8+Vxxm
-         pSWPTSrU6dmIqhyNiwKAK3dHnFB33tmw4OWDPNYJKbfyXNhUuOt9cu5dXeYN+aGC069b
-         VgpGwqchajtkqzVgWQ/3bd57JQ0gxlafhr2lVV5MBYiNr+5wyZO9a8rTq1z83KMst8PI
-         Bb928xdfAfaarI5xot2xtEZD4yw2z/23MGFcFAhlMlQ8Nq/R4I5LxkM2/OSfaMGLUyrE
-         jILsmcuLq34pDL3x1h7mheVdQ4b/+IB52qv/VNdY+1lbDDhjijp4cEMOsDuQo+gjdeUD
-         5ItQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=P6Gk/nUwBGsoSlBgHUi/aDNnbDSHEio+4Fp7O2GUofM=;
-        fh=G5qniHW7MJF0vGlw1W+/k5sVx443bptxbUFiGmufnJk=;
-        b=FOzM3xpOdp8tMxoJ6BzqREYZCI4XrxTEZsE2xO6i0PvMvydsW7pTMYq4qnPuaZD5AT
-         h6LZNik6VthWckCFMag2UtNWvEWqC9QB3fUCJC7bXpiAd1vNxoOLiJW114wFJHov3Lfm
-         3+x8MJMf0BlPDgQQPCFksIhosztyC3KAd0iwaxtwivSCrxg88KQNzKyKDavroFh8BVn6
-         DCnPA1s7KWDrEdUPYRVv3WLBp+zovRUrhSHN0BtlxYa0fAkT6Mo8zfba2YjA/Wgs5Iba
-         ia5C/9tm+61jSWSxoN3aHfznSz71cZD11eXWwsX+elrcbyIiiNk+cZ3VwL1CawM1h76w
-         LLmQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782272515; x=1782877315; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=P6Gk/nUwBGsoSlBgHUi/aDNnbDSHEio+4Fp7O2GUofM=;
-        b=X4cqjH0Unohy2FbrpqCsgIIG24XxAGkUMF5Fs9QaM08+f44SOG+B5wd+/b3DbcmhdJ
-         jhYIdj3u6I35IR7TbsXn0o/sz1y2sKnaNIPbCqnO1GaR6+Hzw4Q60h7IbrFU0cCic438
-         85FbWYbDJDZgOZERZn6fThLqCodUjAk4S5Whe1fFHU4PXt9B9ssNfVzB0y4TmhpyJX9T
-         tZW/+FxyOFivxmDX2tKTmzt6r/8aCneBAjrzYKrkMuiQGb0b5xuj4G1L/PVXcNl2K/Q4
-         oJT+K9gMeU2opnmrtAT7ogIJ2aNVmvNENm9WJBaWhOzx7H2aceN6v2hjxRqAJV9kLUJR
-         FvGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782272515; x=1782877315;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=P6Gk/nUwBGsoSlBgHUi/aDNnbDSHEio+4Fp7O2GUofM=;
-        b=jNPxdVvLvp57+/Fh/vhgeTQ/ZXD5SUL/9j0p9kJxnLAD7zdCqumYbT/VGrHBdWbHhU
-         /AT1f7INRwY5L/qLm/kQhZCzKaCxU9NJOmzf7J6PkK9F8z6AoumdroQ6hH/is0xRauKm
-         60sy7ryWODJWfZi57sF+k7DmSxRI9p0YkkNxTMrpoEigCWz0tt+W/bCQVvBXBG9YTZaT
-         ubmEVrWzzGyqjCPSR7uNk1DMEvNhHE8/XyhFvCCN7nBnnXyIQPejiVTotMrRmmYeagtK
-         6LJXyCDuNI3GF00YtgRPUlAL6iW5v/t2c32TYIjYrdeYOUF+jvHFSa1UPajSQoYNh1zo
-         UfBw==
-X-Forwarded-Encrypted: i=1; AHgh+RqfqQTgsHXXon1GwaokdMppJFJA5oSaVyQ3WWEro+uIHIplmhrOROGx1Q097aArfMh380IonNHZgg7XoCpG@vger.kernel.org
-X-Gm-Message-State: AOJu0YyMMxjztxiGXncCm+cZynlBthA2lwSYSYZQ8KYwXbM6HiJXQpgv
-	HCyu0f1pDUVIo6XeMTF/sZo/oL49qlHVrC0rILZbq5as/P99mCMn3nWAmDavRcPFgYiYG/XoHfV
-	SyHib4360FKvL2JLXcZTbHGHE02cRclI=
-X-Gm-Gg: AfdE7cn5X8WCqmLy2XmGM0gZch1ds/gK4H1m9FOfu2wyGDxHac5Rqi442HjrU7oILbU
-	cRSe2fK56AO9cvlaSxfXr2nrGIZS3Yo3KzcJpc04X1iSoMiN9oCR8tqbiDwc1QHaHcTlAzkHn7b
-	FAkVbK0OcSXmpfVRymC9cMQyfIf1MGExb0SGHymJeF//Xs1MGxAysxjav7tO6s2XXkPycOhoYhW
-	F/+WC9uAKtAvmH/hfdaXkcq11nu7V1c8MbF9P2hnjGR3cMjmzAgmRM2G15gF9eFGi8RUgQzTz9d
-	inT+69UPsWASLjhF/X6e/HoR/fkN7k+8AHuscGh7
-X-Received: by 2002:a05:690c:f0c:b0:7e9:9f7e:9f3 with SMTP id
- 00721157ae682-807ef6322a8mr16184577b3.35.1782272514505; Tue, 23 Jun 2026
- 20:41:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V0v3ckCZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B7FB1F00A3A;
+	Wed, 24 Jun 2026 08:59:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782291582;
+	bh=Kfog2XYgdAz2tICEuYPMWdkUUmomPmspfGK5Ice4Jqo=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=V0v3ckCZreTLHBWI2DQ0Ao25Y2i7ybcWseLm5EmwZbWIMxXez49bh7wb4hoL0MemX
+	 DDnYyi/vw5GJfHrQ/nea3efur8GwSo6hHb3jkbxFbOqy/okRn5cN/85xQjJ6mjDG3E
+	 rh6X9Vbxc6QDIGD/QQsi37GlKZIbP897GIkoIzpA71qLlbXaqjlGTnepv2FJL+zW3f
+	 cRxLhJk9v9PQ4c9o/3tHGft0Siobxcj7RlwAiGe5Rd4u0L+GdE27NO8nSq7Ejypayi
+	 OIT4ZDLC7ChIudE/UAu7X5xDl1AIhiVS7qTcYBgu4jce5ylVUtFOy5H5kQOperMV7o
+	 XYe4Gn18KEkZw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93A1D39EF964;
+	Wed, 24 Jun 2026 08:59:32 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CALOAHbAY-3GAd=7DsA74W4ax7aPdXC7ecYt6b+tHoxFu754ZjA@mail.gmail.com>
- <ac56e537-d095-487b-8272-726d6739d0af@linux.alibaba.com> <CALOAHbCBo2eB0xVoSv8Vi+r3DwbwTticismFSL3EXyYuwFkEzA@mail.gmail.com>
- <13bb8cba-c82e-4a41-aff1-0a6418873bf1@linux.alibaba.com> <CALOAHbCkbSBVqUStUbWB=4vUUOEyB63yMsXvS_cZUZOwr-nmew@mail.gmail.com>
- <a5a1b56f-0b1a-473d-8fc9-8cbfba85813e@linux.alibaba.com> <CALOAHbCrvbvT04O3v+p-CmdqVN2BGJYKj6F7we70kPwbs-hmRw@mail.gmail.com>
- <b4d43064-7a7d-4d65-b65c-56e80d47ed17@linux.alibaba.com> <20260623134240.GA7980@lst.de>
- <1cc0931b-648e-4baf-9667-742175b3f9d0@linux.alibaba.com> <CAOQ4uxhURfuQWMd3y_W1iFebJms3aohn+koy5_sjxbcc4ZBQ-w@mail.gmail.com>
- <CALOAHbBjhqKZPqb9r8qoUoYfzpEe6wYU9By_cZtuGGmnoaAa5g@mail.gmail.com>
- <f650bed9-b049-4576-bbcf-6dd46028c5a4@linux.alibaba.com> <CALOAHbC=2AvZYWEUXR9bk2s=2jk_sVK6zimes1H-TK3iFnn_qQ@mail.gmail.com>
- <33912eb8-6b2c-40c2-b698-837e3f675d61@linux.alibaba.com> <CALOAHbDrWR0eRF9gST14Vm3xOimDZ=iLdn0zRFiF7OeBtqOD=A@mail.gmail.com>
- <56cdf083-99e9-4656-a353-f4d4670917b8@linux.alibaba.com>
-In-Reply-To: <56cdf083-99e9-4656-a353-f4d4670917b8@linux.alibaba.com>
-From: Yafang Shao <laoar.shao@gmail.com>
-Date: Wed, 24 Jun 2026 11:41:18 +0800
-X-Gm-Features: AVVi8CckYDPxpxM_bRXwTTUr5KwCRBp7mzrJEc2POq-lQJEUvksQEVYlqip4VFs
-Message-ID: <CALOAHbDzuxZ1Nx+viPg33Fnb1aBLw_Sw4GFeM3ngshjGpVvdcA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Allow changing default fsync_mode
-To: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: conduct@kernel.org, Amir Goldstein <amir73il@gmail.com>, Christoph Hellwig <hch@lst.de>, 
-	miklos@szeredi.hu, linux-unionfs@vger.kernel.org, fuweid89@gmail.com, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	derek@mcg.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Subject: Re: [f2fs-dev] [PATCH v10 00/22] fs-verity support for XFS with post
+ EOF merkle tree
+From: patchwork-bot+f2fs@kernel.org
+Message-Id: 
+ <178229157126.2577930.6775564706271606889.git-patchwork-notify@kernel.org>
+Date: Wed, 24 Jun 2026 08:59:31 +0000
+References: <20260520123722.405752-1-aalbersh@kernel.org>
+In-Reply-To: <20260520123722.405752-1-aalbersh@kernel.org>
+To: Andrey Albershteyn <aalbersh@kernel.org>
+Cc: linux-xfs@vger.kernel.org, fsverity@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, ebiggers@kernel.org, djwong@kernel.org,
+ david@fromorbit.com, linux-unionfs@vger.kernel.org,
+ linux-f2fs-devel@lists.sourceforge.net, linux-ext4@vger.kernel.org,
+ hch@lst.de, linux-btrfs@vger.kernel.org
 
-On Wed, Jun 24, 2026 at 11:36=E2=80=AFAM Gao Xiang <hsiangkao@linux.alibaba=
-.com> wrote:
->
->
->
-> On 2026/6/24 11:28, Yafang Shao wrote:
-> > On Wed, Jun 24, 2026 at 11:17=E2=80=AFAM Gao Xiang <hsiangkao@linux.ali=
-baba.com> wrote:
-> >>
-> >> Hi,
-> >>
-> >> On 2026/6/24 10:30, Yafang Shao wrote:
-> >>> On Wed, Jun 24, 2026 at 10:28=E2=80=AFAM Gao Xiang <hsiangkao@linux.a=
-libaba.com> wrote:
-> >>>>
-> >>>>
-> >>>>
-> >>>> On 2026/6/24 10:09, Yafang Shao wrote:
-> >>>>> On Tue, Jun 23, 2026 at 10:52=E2=80=AFPM Amir Goldstein <amir73il@g=
-mail.com> wrote:
-> >>>>>>
-> >>>>>> On Tue, Jun 23, 2026 at 3:47=E2=80=AFPM Gao Xiang <hsiangkao@linux=
-.alibaba.com> wrote:
-> >>>>
-> >>>> ...
-> >>>>
-> >>>>>
-> >>>>> Since the "volatile" option has been working fine for over a year
-> >>>>> across our large fleet of Kubernetes production servers, I submitte=
-d
-> >>>>> this change to upstream. In Kubernetes environments, there is no us=
-e
-> >>>>> case for remounting the workdir to the same directory, so the volat=
-ile
-> >>>>> file won't cause any issues =E2=80=94 which is why the "volatile" s=
-etting has
-> >>>>> been working well there.
-> >>>> That is not an excuse to introduce such new incompatible behavior
-> >>>> to the linux upstream starting only for your customized fleet and
-> >>>> bother every single opensource user/application to adapt this
-> >>>> behavior which uses overlayfs now.
-> >>>>
-> >>>> If you insist to work on a breaking change, please gather
-> >>>> userspace feedback boardly first.
-> >>>>
-> >>>> And here I just say you and your employer are lucky since I
-> >>>> know it's also risky even on the generic kubernate perspective.
-> >>>> Please just maintain your livepatch downstream, thanks.
-> >>>>
-> >>>> No need to reply, and I won't reply this either, it's just
-> >>>> waste of my time to explain a basic upstream principle again
-> >>>> and again.
-> >>>
-> >>> I'll just go ahead and redirect you to /dev/null ;)
-> >>
-> >> The whole thread is:
-> >> https://lore.kernel.org/linux-unionfs/20260623084337.54344-1-laoar.sha=
-o@gmail.com/T/#u
-> >>
-> >> Personally, I feel offensive due to Yafang's expression
-> >> written above.  I keep maintain my replies in technical
-> >> discussion, but the replies above already include the
-> >> following words:
-> >>
-> >> "No wonder containerd is getting harder and harder to use ;)"
-> >>
-> >> "Please do your homework."
-> >>
-> >> "Again, pls do your homework."
-> >>
-> >> and the emotional texts `;)` make me feel uneasy over the
-> >> time,
-> >>
-> >> especially the final words "I'll just go ahead and redirect
-> >> you to /dev/null ;)"
-> >>
-> >> So I write an email as a public report to the CoC since I'm
-> >> not sure how to proceed to comment the community patches
-> >> because I could get offence as a result.
-> >
-> > I believe you could learn a thing or two from Amir about how to
-> > comment on others' patches ;)
->
-> ;) Please let me know why you commented:
->
-> "No wonder containerd is getting harder and harder to use ;)"
->
-> ;)
+Hello:
 
-Because I find it harder to use than Docker ;)
+This series was applied to jaegeuk/f2fs.git (dev)
+by Christian Brauner <brauner@kernel.org>:
 
---=20
-Regards
-Yafang
+On Wed, 20 May 2026 14:36:58 +0200 you wrote:
+> Hi all,
+> 
+> This patch series adds fs-verity support for XFS. This version stores
+> merkle tree beyond end of the file, the same way as ext4 does it. The
+> difference is that verity descriptor is stored at the next aligned 64k
+> block after the merkle tree last block. This is done due to sparse
+> merkle tree which doesn't store hashes of zero data blocks.
+> 
+> [...]
+
+Here is the summary with links:
+  - [f2fs-dev,v10,01/22] fsverity: report validation errors through fserror to fsnotify
+    (no matching commit)
+  - [f2fs-dev,v10,02/22] fsverity: expose ensure_fsverity_info()
+    (no matching commit)
+  - [f2fs-dev,v10,03/22] ovl: use core fsverity ensure info interface
+    (no matching commit)
+  - [f2fs-dev,v10,04/22] fsverity: generate and store zero-block hash
+    https://git.kernel.org/jaegeuk/f2fs/c/07d09774e2bf
+  - [f2fs-dev,v10,05/22] fsverity: pass digest size and hash of the all-zeroes block to ->write
+    (no matching commit)
+  - [f2fs-dev,v10,06/22] fsverity: hoist pagecache_read from f2fs/ext4 to fsverity
+    (no matching commit)
+  - [f2fs-dev,v10,07/22] iomap: introduce IOMAP_F_FSVERITY and teach writeback to handle fsverity
+    https://git.kernel.org/jaegeuk/f2fs/c/63e242afa466
+  - [f2fs-dev,v10,08/22] iomap: teach iomap to read files with fsverity
+    https://git.kernel.org/jaegeuk/f2fs/c/1d140731753a
+  - [f2fs-dev,v10,09/22] iomap: introduce iomap_fsverity_write() for writing fsverity metadata
+    https://git.kernel.org/jaegeuk/f2fs/c/36a36c4cac91
+  - [f2fs-dev,v10,10/22] xfs: introduce fsverity on-disk changes
+    (no matching commit)
+  - [f2fs-dev,v10,11/22] xfs: initialize fs-verity on file open
+    (no matching commit)
+  - [f2fs-dev,v10,12/22] xfs: don't allow to enable DAX on fs-verity sealed inode
+    (no matching commit)
+  - [f2fs-dev,v10,13/22] xfs: disable direct read path for fs-verity files
+    (no matching commit)
+  - [f2fs-dev,v10,14/22] xfs: handle fsverity I/O in write/read path
+    (no matching commit)
+  - [f2fs-dev,v10,15/22] xfs: use read ioend for fsverity data verification
+    (no matching commit)
+  - [f2fs-dev,v10,16/22] xfs: add fs-verity support
+    (no matching commit)
+  - [f2fs-dev,v10,17/22] xfs: remove unwritten extents after preallocations in fsverity metadata
+    (no matching commit)
+  - [f2fs-dev,v10,18/22] xfs: add fs-verity ioctls
+    (no matching commit)
+  - [f2fs-dev,v10,19/22] xfs: advertise fs-verity being available on filesystem
+    (no matching commit)
+  - [f2fs-dev,v10,20/22] xfs: check and repair the verity inode flag state
+    (no matching commit)
+  - [f2fs-dev,v10,21/22] xfs: introduce health state for corrupted fsverity metadata
+    (no matching commit)
+  - [f2fs-dev,v10,22/22] xfs: enable ro-compat fs-verity flag
+    (no matching commit)
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
