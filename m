@@ -1,29 +1,29 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 887373B19B4;
-	Thu, 25 Jun 2026 11:07:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71A2B2BE7DB;
+	Thu, 25 Jun 2026 11:35:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782385671; cv=none; b=eOOcJVQnRhIzPcFr5dV6fRctKPtD35ZVaF6s+ISfnph7BsEtFJH/BLveUonL5XN13OnVHwgxQV9pYxk5venIuZZur3gI4FyvTbtaY+uqCp8i2WMs3uv4p9qeoMTyP0BMpm9708cX1h2M0Ss0iYGJ1L1bt/aXAntC1nWMHeJa9ao=
+	t=1782387332; cv=none; b=V7RM3pgsTKl+mC5DWO6ESFWY54gBg0Z5PykNpAa0fEu3SUVEwrSa4CGRfHaFeHRQDI8kt100DhBWJfSTr2t89HNcZWWM0pUDiLQpBeA6AagyLcsx6F1Am5LMU7lkxasK6rKRRWHcHCt+qPpvLzSYNnsOK5JqgDo+T06Y5SxqSdg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782385671; c=relaxed/simple;
-	bh=ZaGQHrsu5B4E8/yrF6teUXrBsceqt6AC7Fd5+8dUGwQ=;
+	s=arc-20240116; t=1782387332; c=relaxed/simple;
+	bh=gk9Wpf5x30UBAgIye/6MhuKBmdy5XK+9aJd5ScWBNzI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cEwEU0AdN747eOeJ1dnp06Y3uHR6L5XKXZaR8f8nJdiGVwsR+hVWI2znjPMXmmQbmK0EyA3fAPA0Zs+96tYEvLMMuz4ERe5yNMOZxRKG44lTHZudxxsJfGDHTlLn4KeixKz7CfF8tPGcyLP8E8T3G06mNWW+SKXb6fGzr0IB9UQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=0l8fEeLl; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=puEHz3qfKkQX/hdoVYyeQFxO1Ezc/06KkrxMDj5uKeHUrClLptI8K/t7EtZNNbTslidpehFehq1IDS0q7mMgh4MDeK6zI9Ac8LBZiOKKCjYxO2ZMcoRJ0I5iEt6tjfwstD9h+VLMxPq1PYKA2S4qKnjzv16QnH5QZ+hzVjtRZMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=teFOIKrL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="0l8fEeLl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9647D1F000E9;
-	Thu, 25 Jun 2026 11:07:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="teFOIKrL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FFC21F000E9;
+	Thu, 25 Jun 2026 11:35:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1782385670;
-	bh=/nHrn+mrSRVOJ20fuBj9leaUr9UbxIZAjuQRBG7RaB4=;
+	s=korg; t=1782387331;
+	bh=9hXO385gf9P0OlTj4W9SgtyQdtKMg7hoTES325U6mGY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=0l8fEeLlQZLAeyv9XDhXjG1pgfb4Ad+Tu/Do4GcRbYF7+8CvGTZWEOpOy9yF05tuw
-	 srl0FXaUJMnsBIOSMOUX7uejKjbN6qQ3aQC66jZBMB8oXJrVAlZ+W8GOp4Jiz3vrS9
-	 OcNYqZ3kllMoc/yO/M1Kh1acKeX5xiNWwgXdYgrQ=
-Date: Thu, 25 Jun 2026 12:06:38 +0100
+	b=teFOIKrLVSCbT0w4Yxh1I1UWLD0VQuT0PsDn3zSissgfZxMDGptSHjvyWM46Tk780
+	 i/ib7fEj7FsCazKYrr//GFZfUArBNgxF1tYls3O7EDApNL9h9t3sHJyS+6PEiBwZ9Z
+	 zOtz7DGjumvU+b+N7sH3kF0u6T6HOJI+gh82jOwg=
+Date: Thu, 25 Jun 2026 12:31:35 +0100
 From: Greg KH <gregkh@linuxfoundation.org>
 To: Cai Xinchen <caixinchen1@huawei.com>
 Cc: viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz,
@@ -34,11 +34,10 @@ Cc: viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz,
 	linux-unionfs@vger.kernel.org,
 	linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
 	bpf@vger.kernel.org, lujialin4@huawei.com
-Subject: Re: [stable/linux-6.18.y 2/2] selinux: fix overlayfs mmap() and
- mprotect() access checks
-Message-ID: <2026062529-squealing-suffice-ed61@gregkh>
-References: <20260622031416.2663747-1-caixinchen1@huawei.com>
- <20260622031416.2663747-3-caixinchen1@huawei.com>
+Subject: Re: [stable/linux-6.12.y 0/2] Backport Fix incorrect overlayfs
+ mmap() and mprotect() LSM access controls
+Message-ID: <2026062521-shingle-degrease-a584@gregkh>
+References: <20260622031509.2663919-1-caixinchen1@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -47,34 +46,20 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260622031416.2663747-3-caixinchen1@huawei.com>
+In-Reply-To: <20260622031509.2663919-1-caixinchen1@huawei.com>
 
-On Mon, Jun 22, 2026 at 11:14:16AM +0800, Cai Xinchen wrote:
-> From: Paul Moore <paul@paul-moore.com>
+On Mon, Jun 22, 2026 at 11:15:07AM +0800, Cai Xinchen wrote:
+> Backport the patch series
+> "Fix incorrect overlayfs mmap() and mprotect() LSM access controls" [1]
+> to 6.12 lts
 > 
-> The existing SELinux security model for overlayfs is to allow access if
-> the current task is able to access the top level file (the "user" file)
-> and the mounter's credentials are sufficient to access the lower
-> level file (the "backing" file).  Unfortunately, the current code does
-> not properly enforce these access controls for both mmap() and mprotect()
-> operations on overlayfs filesystems.
+> I test selinux-testsuite[2] overlay test, it pass 135 tests.
 > 
-> This patch makes use of the newly created security_mmap_backing_file()
-> LSM hook to provide the missing backing file enforcement for mmap()
-> operations, and leverages the backing file API and new LSM blob to
-> provide the necessary information to properly enforce the mprotect()
-> access controls.
-> 
-> Cc: stable@vger.kernel.org
-> Acked-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: Paul Moore <paul@paul-moore.com>
-> Signed-off-by: Cai Xinchen <caixinchen1@huawei.com>
-> ---
->  security/selinux/hooks.c          | 242 ++++++++++++++++++++++--------
->  security/selinux/include/objsec.h |  11 ++
->  2 files changed, 189 insertions(+), 64 deletions(-)
+> [1] https://lore.kernel.org/all/20260403030848.731867-5-paul@paul-moore.com/
+> [2] https://github.com/SELinuxProject/selinux-testsuite
 
-Again, what is the git id?
+Again, upstream git ids are needed.  Please redo all of these and
+resend.
 
 thanks,
 
