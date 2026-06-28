@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB69A3101A7;
-	Sat, 27 Jun 2026 16:35:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3A3C13B293;
+	Sun, 28 Jun 2026 03:33:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782578147; cv=none; b=gQSClxPucmxjED1b8UuIRmFNDL0d0457i9Wyqih5dkf47NQFJzdU/6GuwRBYbFqG0xahYZqY7alI9goThzxN1qczrGP6RWx6QGlAYtHF+sTHgxkp/eHewRzvRWjcOC9sQ5sqVipSFBPBf0DEi0snQlm01SX7ob3WITt0IEWcmXw=
+	t=1782617625; cv=none; b=T6t9UKACqw+Lvq5ly3rNMH1bTvV+17Ih5wMJ8s6bx7h82hKc+3Um44ss7hzQZg3l3vQzBvAzXZMEsZSQKw0o3qlJPdAfO9EOjfvPo6yqdWqT0gS9V4eC2NEoqye6IVukqO9w+ZkEGEC/p8YTYloIj1yDTP/L1HPOZnkyAUKXo78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782578147; c=relaxed/simple;
-	bh=LSeX5dTmVKAwuvtjDBS38OMI7aoRkeOidKLUTvkoiwg=;
+	s=arc-20240116; t=1782617625; c=relaxed/simple;
+	bh=Z+JVV9VPncqXZgZLL6ymD4pWaALidlXhdXC7+voI7zg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GNv6j3t3MoVjWKAiF2gt6bCJFNvl6Mb4sLR44zVVJiXQfnCz9cO5oaPxgYEqdAwAuOoqnryXCsJXBjqBNAKkEXC+OJl/IL1oybUgegM+yii6KiO1Mi1YBAmtT421/DHkQ3yQnp1CuYJa5Yy6kjaFPn1nR0LUlq5vFCh51t/q/MY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k6zRHu6Y; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=LiNJaVQBOX7BiRYakUnWCVR5o1m1MlboQMuCux+rUEQ4jdeo5cA8yAR2QwLMozXfuoXmveUclzTmeJHIUtNTMI1zwJfrJJ301xnOLdmIQ+cgqgiaweN+dQSup3BqZUsB6z88ynON2tnqaWwK35knDQ0jpCdF0naqYkrirRK7oDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ntt1Riqs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k6zRHu6Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91E5C1F000E9;
-	Sat, 27 Jun 2026 16:35:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ntt1Riqs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D3F1F000E9;
+	Sun, 28 Jun 2026 03:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782578146;
-	bh=HsktIm+QY4BsGrhFOxHHtIcLN/tKMMKOe2MQHQBTuec=;
+	s=k20260515; t=1782617624;
+	bh=Z+JVV9VPncqXZgZLL6ymD4pWaALidlXhdXC7+voI7zg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=k6zRHu6YCb/cISwdfLV8CNeNjWbhCFyl0r/FCG3vHpdmTsojWWh0UmSb+jKxMCdwj
-	 DNVF05VpYC5axGq74m3Mn7r/s81QfhXD1CDihGBeQvGe3HyD1FoLzQ13E+voW7h/9/
-	 t52yA97B6HNqVd117kbRvAaNsY9Dll7ooIsHYm4Wroa/bkJ00ugFP/lYY73/rK5+2p
-	 M/KQ3cmvujU4SzKUQ10yNYR5KLqjbKxN6E9ybXIzzliMv5179hUwnPNLzyfH3qL+GL
-	 z3vZIuWJ6IWvv+ZB32tt6F/LG12fHHJtM3zoxBPrb3iYjYSVJOQxqRtDBP6jY6IeEL
-	 Tl610P3Id5slA==
+	b=ntt1RiqsPY1ldgjhWXQv46df28gHnKPn2Jk0/rA0ebp+kzQSKixMwk61I11DTnWWl
+	 DpnBQlIgCnrcSMvluWdRaxVRKxF1CHrs32keceL9RLUIxDRhaTRN3wxa2vz8NNRKIR
+	 LeKvG/RyMqoWg3jlk10sl4JnQGJa6s5MbkC6olK04uWGQ3Kfi82f+vNyD5pn4rC9qG
+	 LAKKkHIvYp95EYK8jv2MX9IWX9j1OhBQV5inOWIcRtIjlCCCJxupbFBuwhU6YjKCFA
+	 DBbYVFCijpEn9fbuya8Xt8+FFNTj04zzGk5ZR1dR3QgQiawf+gKbc6aks3RLJpVPeh
+	 p2KxfVn9MAGPw==
 From: Sasha Levin <sashal@kernel.org>
 To: viro@zeniv.linux.org.uk,
 	brauner@kernel.org,
@@ -49,12 +49,12 @@ Cc: Sasha Levin <sashal@kernel.org>,
 	bpf@vger.kernel.org,
 	stable@vger.kernel.org,
 	lujialin4@huawei.com
-Subject: Re: [PATCH v2 stable/linux-6.12.y 0/2] Backport Fix incorrect overlayfs mmap() and mprotect() LSM access controls
-Date: Sat, 27 Jun 2026 12:35:32 -0400
-Message-ID: <stable-reply-item017-overlayfs-lsm-612-20260627162226@kernel.org>
+Subject: Re: [PATCH v2 stable/linux-6.6.y 0/3] Backport Fix incorrect overlayfs mmap() and mprotect() LSM access controls
+Date: Sat, 27 Jun 2026 23:33:31 -0400
+Message-ID: <20260628032401.0001-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260627042835.1492435-1-caixinchen1@huawei.com>
-References: <20260627042835.1492435-1-caixinchen1@huawei.com>
+In-Reply-To: <20260627065720.1945589-1-caixinchen1@huawei.com>
+References: <20260627065720.1945589-1-caixinchen1@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -63,19 +63,11 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> [PATCH v2 stable/linux-6.12.y 0/2] Backport Fix incorrect overlayfs
+On Sat, Jun 27, 2026 at 02:57:17PM +0800, Cai Xinchen wrote:
+> [PATCH v2 stable/linux-6.6.y 0/3] Backport Fix incorrect overlayfs
 > mmap() and mprotect() LSM access controls
->
-> [PATCH 2/2] selinux: fix overlayfs mmap() and mprotect() access checks
 
-Thanks for the backport. I think there's a small issue: the selinux patch calls
-backing_file_user_path() with a 'const struct file *', but in 6.12 that
-accessor still takes a non-const file pointer, so the build produces
-const-discard warnings.
-
-The cleanest fix is to also include the upstream prerequisite:
-
-  4e301d858af17a ("fs: constify file ptr in backing_file accessor helpers")
+All three patches are queued for 6.6, thanks.
 
 --
 Thanks,
