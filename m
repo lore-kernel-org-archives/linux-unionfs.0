@@ -1,176 +1,625 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B3B8423170
-	for <linux-unionfs@vger.kernel.org>; Wed,  1 Jul 2026 13:05:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782911101; cv=pass; b=ppNJLdEf99KprE7Tck3hJRZDaACmXLGpyOyIOVrpUnBr1gWEEHMbb95wiauwLgZGDELz6KhTaZwmqMpBi6jk7nwtVgod/RswjFttwo5kf4K9xU/4m7cc+5LELx2EpXlRRhNGCUBJ5Jx3mTwrx0MR3mWqZxSMHSegY+7jSUMHboc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782911101; c=relaxed/simple;
-	bh=bvlatj40fRWZ+Y9TshPkuXyNJOuX1LRT20taCosLulY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dG9TltqcYnmlNIL2AUCDtxEJ9M/b/iSS+n26/0MSyDg2ClBPqSWWvrZ5yvduCZNGpwNaGRHWgYNRHxG6vKel/e4BgXamTQPm4MNBRJ5UhWXG95XbPFxK+i4CsW1ySE6K7WQBU8u9cO8AJmFUnLS3XugwSqwJh/U2GWgTQ5+9PJY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QYoKdkFq; arc=pass smtp.client-ip=209.85.218.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 721AF346E6D;
+	Thu,  2 Jul 2026 16:41:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783010486; cv=none; b=b80KMcdkFUsbJjbYtyxRtOk2XGulw+XIQ38fYv9VBxlX6+kirSMHEGEA/ky2Ji9xxaYEx4dzRoup1PjUt9VsZyoe1T5NpgLc7Yb5aMZnip0kZb3272v601wMghCNqiGkeFONEFjlyP0D5b45CmrelyJytxGm2csNfeq9DYd2wkY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783010486; c=relaxed/simple;
+	bh=lcOHqHGvJBXl6rokrykrJSOGY5r2jxWRoxinkMNGSfE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Fyfa3+FUQiFCfUCUu9vZmkBt3jjCtIWAhS7F0qk4RDT1x4iI7mkjHxTy2Mj4c/7hM8aUq8fV8Chlcwh4VUmYquS9kFlsYHd+uDGiowj9VX3qNQlhP07ENQxlNnRg0qX6jXjYaWRZYbK1g3qn5Txnp2i9E/bVnxLtnya+Y9HBacc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=a370iXEx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QYoKdkFq"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c1297f37073so79891666b.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 01 Jul 2026 06:05:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1782911099; cv=none;
-        d=google.com; s=arc-20260327;
-        b=SttRlG/3JIJARNGM0658m1imuGTAvVO9FecctMR8v8W0RVDaURaCcmKueD3wQ84ntN
-         vuimbeI4IGsO+jtGI5A3HgzdghfvGBWAXag+hbkKRJGETZxv3HMmZfkZQP4DFWCicaSo
-         je/T5r9x6KRVFbeecBt8lMOuRgUDrhVf+xMG3s1CNkZj4D8rWwJ19NtKIYnK0cg3DGN5
-         Tgk/AI8SrpDG6iTsBd7Fmuv5T8DNMHr8L/h+UYYT6evvejUwa4lV5tQkL0/6Cp4gBdwW
-         8PrdJCod6vV6upciupXtPDNw1/Ok97LILzx0l61meCqkWUfZCYCcZx2mAIuOJCMoaH9F
-         fU9g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=yCmCJ1/rt/ynHCtRD6lpeJb8p8J2sg8lKY2Q/LQXZIM=;
-        fh=xm0p3VytG/9Y9Pr/inFBfghrxtuBcrdw3ZtBQhfUZeA=;
-        b=NcjfTIvjbyROASlajybK8BJ9Wgadze6oNSgbzY1Xqf2/1Fq5h4Mj4FkoSxPDsfZt8I
-         pr0wG4YVZKSPtItf4c9SMUTaWUmyy6L10UBdVuFdgPfYlF4NqWkJFrbq/g+7plZ/MjWU
-         eqLvJKKTkiGCfitV6AvhcksbqV8DfWUKp8eXGNJ5+76eUOHkkuMSKT+ress1S425M8gC
-         g7DrZr/BVeBHYWmJjWqd3hobfXXDcbWdlgLkiPWyJjSNU91m84yCAwycs6CyXjO09Inh
-         7OE0gp4eODlLvgFcnO6vIJCFBDEwjAIIwtJB/l8ulirGObh8Zq59puyR3/Y1f33rc8Wr
-         Eerg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782911099; x=1783515899; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=yCmCJ1/rt/ynHCtRD6lpeJb8p8J2sg8lKY2Q/LQXZIM=;
-        b=QYoKdkFqTkFgi8JWrWPXyqMm6yCQRYquj2ABFPL+g5q030FzD0qmuz/3HIY6EGC/lt
-         mcaChZ3t1RVA4KxXcMyWOjy/s39ucnv8VdV13vpujuls/AHdKw3T69HLR11HB5DwdgWE
-         oGNOEL+rDdl8p8SHTTDqHG1gsCGo5+2PbAfHEDIea2694CDv7pcBNblhgflH86u/uroW
-         jg69AFBJJreHopq+6tb/miBdYfXgaYmZZc0rVcaS71uCnlwYJf2W6kK+kekL0emC9hEi
-         eRE06qmQsioizG8vpcyu1GuEWBZveY74YwOCDu0se7XZjXj+QpEzz8B+FC0U564ovVSQ
-         EFfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782911099; x=1783515899;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=yCmCJ1/rt/ynHCtRD6lpeJb8p8J2sg8lKY2Q/LQXZIM=;
-        b=VGBY9HIQf5M5kfIC7RvBJpQUu7UnRLi5ztZpyjpdP2pS85tpwrRjoeWy/gBZruJRB/
-         i86itEi0EzYsJv5tYDYTV0/yekQYQsAlV1mlckovHFGYXCyi9HZjLHtTh80XxbwJ9rDX
-         bxdtrJpfF9FCdxzuSnxK/mlTIHNG0jUQvZtxwUovz7tioYLhsttub/KJ3FGoYCfaQeFb
-         vlayVHPkf4J1D82Lg0awWmV9Iu4c7qgGr9oc8/HkaEEcUJF8NFoN4eEV+HPtedSINdp4
-         vLePx7EjR5P57B7QbTJpVongGoa7UIRM9OkmvTjrmH1GUg1r6keGO584vBbrxMoncH6S
-         AR2A==
-X-Forwarded-Encrypted: i=1; AHgh+Rpl3icq3FpnZ5si1MOOHFR2fjxHu46l8RRWd4wuPPSlnIPkFD3DdDDrbFAFypQUzNgldiEI9CBDzuaPQhrF@vger.kernel.org
-X-Gm-Message-State: AOJu0YzkiJxolQvAbH+PMseI1ptE/XQiVCqCUHl6P0lvyEJCw3H3JlcY
-	73vxVHNVYMsIbGz4BPE30nIA2G+tv3POBo2sxxjjcPoZ0Fj8HjwUemi3UvQ3T7Mx/zBsZk5vw5+
-	X7yaO0qlwVBQsuJe0W2IDG2E9vDgoAMs=
-X-Gm-Gg: AfdE7clE8hO/xEr4EbY5jy05apshs79lQUbQd+nLTdtkEfc7pEsBWUy5QoeX20wXF4F
-	kV6nYtNIGRiLkddEqcDfc3EgK/hcDZEAVA24+OHPJdl9bXkUx5+yWEZ780ck4Jl1l4x7dffWgI2
-	RqZVK5uGPsmDqAvLw+kQRye3YT5E7rxbnmhWgZ5tsyQZyBO4ET169mhIc1Vmlg8da/ezWZWzxI7
-	b/sKYOHdKErTa571whekOuvLVMJbJBM2s4afmiKUaFWxjxvp43V8QxpIhkR7A54NJ1RUtJ9GMwv
-	r1YnS8nWGevfWpr2ZOuauC9oWQncmpMy+IvEvZvYtw==
-X-Received: by 2002:a17:907:7245:b0:c12:34ec:ad1d with SMTP id
- a640c23a62f3a-c12aa372a8dmr76023066b.57.1782911098160; Wed, 01 Jul 2026
- 06:04:58 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="a370iXEx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 636FB1F00A3F;
+	Thu,  2 Jul 2026 16:41:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1783010479;
+	bh=j34M72gT5DoU3BpZ6z/G/gwz68ufwLtScZ+9Y8zqVhE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=a370iXExrucNAMzlzqQWyTo5VC+HHSGqfG3KJk25A8fFUWgZCEvk1SiLxW8E44YHk
+	 SsLL51YdOsfUU/MCsBF6mPKirpLTpdo1wYr4mFBr2ePPOg3l7Vt5gzXxmTHVbuAd4Y
+	 EAX7Ju7Jcja9nVU0HcvZnI+trJEfKluD6+cF7Lco=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-erofs@lists.ozlabs.org,
+	Amir Goldstein <amir73il@gmail.com>,
+	Serge Hallyn <serge@hallyn.com>,
+	Christian Brauner <brauner@kernel.org>,
+	Paul Moore <paul@paul-moore.com>,
+	Cai Xinchen <caixinchen1@huawei.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 6.12 126/204] lsm: add backing_file LSM hooks
+Date: Thu,  2 Jul 2026 18:19:43 +0200
+Message-ID: <20260702155121.297245559@linuxfoundation.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260702155118.667618796@linuxfoundation.org>
+References: <20260702155118.667618796@linuxfoundation.org>
+User-Agent: quilt/0.69
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAEAeJizPbZh=bcZk=iDhdw-LS-_ZG7V6SmvMprxVxS+m6BevGw@mail.gmail.com>
-In-Reply-To: <CAEAeJizPbZh=bcZk=iDhdw-LS-_ZG7V6SmvMprxVxS+m6BevGw@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 1 Jul 2026 15:04:46 +0200
-X-Gm-Features: AVVi8CcYEtNocLjvPpp2vsIgH7I3bk8CGrV2Gtcc8losf_dzJrj9OvIUOMoV3XI
-Message-ID: <CAOQ4uxhVFc4F0gsRkZ7USAzVcSXDsVazUAMNUbXidXniZHd+LQ@mail.gmail.com>
-Subject: Re: [PATCH v3 0/3] overlayfs: security hardening patches (with PoCs)
-To: "Rodrigo H." <gatofladigo1@gmail.com>
-Cc: security@kernel.org, Greg KH <gregkh@linuxfoundation.org>, miklos@szeredi.hu, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jun 22, 2026 at 5:21=E2=80=AFPM Rodrigo H. <gatofladigo1@gmail.com>=
- wrote:
->
-> Greg,
->
-> Thank you for the previous review. I've now properly prepared the
-> patches following the kernel submission process.
->
-> Summary of changes:
->
-> | Patch | Description | Reference |
-> |-------|-------------|-----------|
-> | 1/3 | Replace component walk in ovl_lookup_layer() with vfs_path_lookup=
-() using LOOKUP_BENEATH | Matches ovl_lookup_data_layer() at namei.c:403-40=
-4 |
-> | 2/3 | Convert long refcount =E2=86=92 refcount_t; add refcount_inc_not_=
-zero() in ovl_cache_get() | Per Amir's March 2024 question |
-> | 3/3 | Add ovl_dir_cache_drop() helper with refcount_read() guard | Base=
-d on Nirmoy Das's RFC |
->
-> Testing:
->
-> - PoC #1 (poc1_path_traversal.sh): Confirms that `trusted.overlay.redirec=
-t`
->   with `/../etc/passwd` is blocked after PATCH 1
-> - PoC #2 (poc2_refcount_race.c): 8 readdir + 8 open/close threads for 15s=
-;
->   monitors dmesg for refcount_t warnings
->
-> Important note on PATCH 2/3:
->
-> After re-analysis of the current code, both ovl_cache_get() (readdir.c:48=
-2)
-> and ovl_cache_put() (readdir.c:295) execute under inode_lock exclusive
-> (via WRAP_DIR_ITER and ovl_dir_release()). The long refcount is not
-> currently subject to a race condition.
->
-> This conversion to refcount_t is defense-in-depth =E2=80=94 it's the corr=
-ect
-> kernel type for reference counters and provides saturation protection.
->
-> The real fixes are PATCH 1 (path traversal) and PATCH 3 (impure cache
-> UAF prevention). PATCH 2 is still valid as a hardening measure.
->
-> All patches are based on: ef0c9f75a195 (Nirmoy Das's commit)
-> Branch: ovl-fixes-v3
->
-> Full PoC scripts are attached.
->
-> Thank you for your patience and guidance,
->
-> Rodrigo Henrique de Souza
+6.12-stable review patch.  If anyone has any objections, please let me know.
 
-Rodrigo,
+------------------
 
-This patch set and report is very odd.
+From: Paul Moore <paul@paul-moore.com>
 
-It claims to have POCs for security issues but I did not see any proof
-that the POC reproduces a security issue.
+[ Upstream commit 6af36aeb147a06dea47c49859cd6ca5659aeb987 ]
 
-Most of the patches range between completely incorrect, to completely
-unneeded to "hardening measure without proof of need".
+Stacked filesystems such as overlayfs do not currently provide the
+necessary mechanisms for LSMs to properly enforce access controls on the
+mmap() and mprotect() operations.  In order to resolve this gap, a LSM
+security blob is being added to the backing_file struct and the following
+new LSM hooks are being created:
 
-You even caught the false claim about race in patch #2 yourself
-but the commit message still claims there is a race.
+ security_backing_file_alloc()
+ security_backing_file_free()
+ security_mmap_backing_file()
 
-On top of that, attaching patches is not how you submit patches to the kern=
-el
-and these patches are of no interest to the security mailing list.
+The first two hooks are to manage the lifecycle of the LSM security blob
+in the backing_file struct, while the third provides a new mmap() access
+control point for the underlying backing file.  It is also expected that
+LSMs will likely want to update their security_file_mprotect() callback
+to address issues with their mprotect() controls, but that does not
+require a change to the security_file_mprotect() LSM hook.
 
-Please be respectful of maintainers time and do not send
-anymore AI generated overlayfs patches before you yourself
-have a full understanding of the problem a real reproducer of
-the problem and a real understanding of the solution.
+There are a three other small changes to support these new LSM hooks:
+* Pass the user file associated with a backing file down to
+alloc_empty_backing_file() so it can be included in the
+security_backing_file_alloc() hook.
+* Add getter and setter functions for the backing_file struct LSM blob
+as the backing_file struct remains private to fs/file_table.c.
+* Constify the file struct field in the LSM common_audit_data struct to
+better support LSMs that need to pass a const file struct pointer into
+the common LSM audit code.
 
-If you have a real reproducer, without a good understanding of
-the code, you can send a bug report.
+Thanks to Arnd Bergmann for identifying the missing EXPORT_SYMBOL_GPL()
+and supplying a fixup.
 
-Thanks,
-Amir.
+Cc: stable@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-erofs@lists.ozlabs.org
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Serge Hallyn <serge@hallyn.com>
+Reviewed-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Paul Moore <paul@paul-moore.com>
+[ Mainline declares lsm_backing_file_cache in security/lsm.h.  Linux 6.12.y
+does not have security/lsm_init.c or security/lsm.h; the cache variable
+is defined locally as static struct kmem_cache *lsm_backing_file_cache in
+security/security.c. ]
+Signed-off-by: Cai Xinchen <caixinchen1@huawei.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/backing-file.c             |  18 ++++--
+ fs/file_table.c               |  27 +++++++--
+ fs/fuse/passthrough.c         |   2 +-
+ fs/internal.h                 |   3 +-
+ fs/overlayfs/dir.c            |   2 +-
+ fs/overlayfs/file.c           |   3 +-
+ include/linux/backing-file.h  |   4 +-
+ include/linux/fs.h            |  13 ++++
+ include/linux/lsm_audit.h     |   2 +-
+ include/linux/lsm_hook_defs.h |   5 ++
+ include/linux/lsm_hooks.h     |   1 +
+ include/linux/security.h      |  22 +++++++
+ security/security.c           | 109 ++++++++++++++++++++++++++++++++++
+ 13 files changed, 195 insertions(+), 16 deletions(-)
+
+diff --git a/fs/backing-file.c b/fs/backing-file.c
+index 892361c31c3de9..53690754810f1d 100644
+--- a/fs/backing-file.c
++++ b/fs/backing-file.c
+@@ -12,6 +12,7 @@
+ #include <linux/backing-file.h>
+ #include <linux/splice.h>
+ #include <linux/mm.h>
++#include <linux/security.h>
+ 
+ #include "internal.h"
+ 
+@@ -29,14 +30,15 @@
+  * returned file into a container structure that also stores the stacked
+  * file's path, which can be retrieved using backing_file_user_path().
+  */
+-struct file *backing_file_open(const struct path *user_path, int flags,
++struct file *backing_file_open(const struct file *user_file, int flags,
+ 			       const struct path *real_path,
+ 			       const struct cred *cred)
+ {
++	const struct path *user_path = &user_file->f_path;
+ 	struct file *f;
+ 	int error;
+ 
+-	f = alloc_empty_backing_file(flags, cred);
++	f = alloc_empty_backing_file(flags, cred, user_file);
+ 	if (IS_ERR(f))
+ 		return f;
+ 
+@@ -52,15 +54,16 @@ struct file *backing_file_open(const struct path *user_path, int flags,
+ }
+ EXPORT_SYMBOL_GPL(backing_file_open);
+ 
+-struct file *backing_tmpfile_open(const struct path *user_path, int flags,
++struct file *backing_tmpfile_open(const struct file *user_file, int flags,
+ 				  const struct path *real_parentpath,
+ 				  umode_t mode, const struct cred *cred)
+ {
+ 	struct mnt_idmap *real_idmap = mnt_idmap(real_parentpath->mnt);
++	const struct path *user_path = &user_file->f_path;
+ 	struct file *f;
+ 	int error;
+ 
+-	f = alloc_empty_backing_file(flags, cred);
++	f = alloc_empty_backing_file(flags, cred, user_file);
+ 	if (IS_ERR(f))
+ 		return f;
+ 
+@@ -326,6 +329,7 @@ EXPORT_SYMBOL_GPL(backing_file_splice_write);
+ int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+ 		      struct backing_file_ctx *ctx)
+ {
++	struct file *user_file = vma->vm_file;
+ 	const struct cred *old_cred;
+ 	int ret;
+ 
+@@ -339,6 +343,12 @@ int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+ 	vma_set_file(vma, file);
+ 
+ 	old_cred = override_creds(ctx->cred);
++	ret = security_mmap_backing_file(vma, file, user_file);
++	if (ret) {
++		revert_creds(old_cred);
++		return ret;
++	}
++
+ 	ret = call_mmap(vma->vm_file, vma);
+ 	revert_creds(old_cred);
+ 
+diff --git a/fs/file_table.c b/fs/file_table.c
+index 75a1908d51a9f5..f78bcff79f1a04 100644
+--- a/fs/file_table.c
++++ b/fs/file_table.c
+@@ -46,6 +46,9 @@ static struct percpu_counter nr_files __cacheline_aligned_in_smp;
+ struct backing_file {
+ 	struct file file;
+ 	struct path user_path;
++#ifdef CONFIG_SECURITY
++	void *security;
++#endif
+ };
+ 
+ #define backing_file(f) container_of(f, struct backing_file, file)
+@@ -62,8 +65,21 @@ void backing_file_set_user_path(struct file *f, const struct path *path)
+ }
+ EXPORT_SYMBOL_GPL(backing_file_set_user_path);
+ 
++#ifdef CONFIG_SECURITY
++void *backing_file_security(const struct file *f)
++{
++	return backing_file(f)->security;
++}
++
++void backing_file_set_security(struct file *f, void *security)
++{
++	backing_file(f)->security = security;
++}
++#endif /* CONFIG_SECURITY */
++
+ static inline void backing_file_free(struct backing_file *ff)
+ {
++	security_backing_file_free(&ff->file);
+ 	path_put(&ff->user_path);
+ 	kfree(ff);
+ }
+@@ -262,10 +278,12 @@ struct file *alloc_empty_file_noaccount(int flags, const struct cred *cred)
+ 	return f;
+ }
+ 
+-static int init_backing_file(struct backing_file *ff)
++static int init_backing_file(struct backing_file *ff,
++			     const struct file *user_file)
+ {
+ 	memset(&ff->user_path, 0, sizeof(ff->user_path));
+-	return 0;
++	backing_file_set_security(&ff->file, NULL);
++	return security_backing_file_alloc(&ff->file, user_file);
+ }
+ 
+ /*
+@@ -275,7 +293,8 @@ static int init_backing_file(struct backing_file *ff)
+  * This is only for kernel internal use, and the allocate file must not be
+  * installed into file tables or such.
+  */
+-struct file *alloc_empty_backing_file(int flags, const struct cred *cred)
++struct file *alloc_empty_backing_file(int flags, const struct cred *cred,
++				      const struct file *user_file)
+ {
+ 	struct backing_file *ff;
+ 	int error;
+@@ -292,7 +311,7 @@ struct file *alloc_empty_backing_file(int flags, const struct cred *cred)
+ 
+ 	/* The f_mode flags must be set before fput(). */
+ 	ff->file.f_mode |= FMODE_BACKING | FMODE_NOACCOUNT;
+-	error = init_backing_file(ff);
++	error = init_backing_file(ff, user_file);
+ 	if (unlikely(error)) {
+ 		fput(&ff->file);
+ 		return ERR_PTR(error);
+diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
+index 6bfd09dda9e3e6..140e150be0de85 100644
+--- a/fs/fuse/passthrough.c
++++ b/fs/fuse/passthrough.c
+@@ -326,7 +326,7 @@ struct fuse_backing *fuse_passthrough_open(struct file *file,
+ 		goto out;
+ 
+ 	/* Allocate backing file per fuse file to store fuse path */
+-	backing_file = backing_file_open(&file->f_path, file->f_flags,
++	backing_file = backing_file_open(file, file->f_flags,
+ 					 &fb->file->f_path, fb->cred);
+ 	err = PTR_ERR(backing_file);
+ 	if (IS_ERR(backing_file)) {
+diff --git a/fs/internal.h b/fs/internal.h
+index a4352d333c617a..997acc721f6175 100644
+--- a/fs/internal.h
++++ b/fs/internal.h
+@@ -99,7 +99,8 @@ extern void chroot_fs_refs(const struct path *, const struct path *);
+  */
+ struct file *alloc_empty_file(int flags, const struct cred *cred);
+ struct file *alloc_empty_file_noaccount(int flags, const struct cred *cred);
+-struct file *alloc_empty_backing_file(int flags, const struct cred *cred);
++struct file *alloc_empty_backing_file(int flags, const struct cred *cred,
++				      const struct file *user_file);
+ void backing_file_set_user_path(struct file *f, const struct path *path);
+ 
+ static inline void file_put_write_access(struct file *file)
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index ab65e98a1defdd..1c8009bf194bc1 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -1320,7 +1320,7 @@ static int ovl_create_tmpfile(struct file *file, struct dentry *dentry,
+ 		goto out_revert_creds;
+ 
+ 	ovl_path_upper(dentry->d_parent, &realparentpath);
+-	realfile = backing_tmpfile_open(&file->f_path, flags, &realparentpath,
++	realfile = backing_tmpfile_open(file, flags, &realparentpath,
+ 					mode, current_cred());
+ 	err = PTR_ERR_OR_ZERO(realfile);
+ 	pr_debug("tmpfile/open(%pd2, 0%o) = %i\n", realparentpath.dentry, mode, err);
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 94095058da34ec..3765e1defa1981 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -47,8 +47,7 @@ static struct file *ovl_open_realfile(const struct file *file,
+ 	} else {
+ 		if (!inode_owner_or_capable(real_idmap, realinode))
+ 			flags &= ~O_NOATIME;
+-
+-		realfile = backing_file_open(file_user_path((struct file *) file),
++		realfile = backing_file_open(file,
+ 					     flags, realpath, current_cred());
+ 	}
+ 	revert_creds(old_cred);
+diff --git a/include/linux/backing-file.h b/include/linux/backing-file.h
+index 2eed0ffb5e8f83..cd18acd7ac5b29 100644
+--- a/include/linux/backing-file.h
++++ b/include/linux/backing-file.h
+@@ -19,10 +19,10 @@ struct backing_file_ctx {
+ 	void (*end_write)(struct file *, loff_t, ssize_t);
+ };
+ 
+-struct file *backing_file_open(const struct path *user_path, int flags,
++struct file *backing_file_open(const struct file *user_file, int flags,
+ 			       const struct path *real_path,
+ 			       const struct cred *cred);
+-struct file *backing_tmpfile_open(const struct path *user_path, int flags,
++struct file *backing_tmpfile_open(const struct file *user_file, int flags,
+ 				  const struct path *real_parentpath,
+ 				  umode_t mode, const struct cred *cred);
+ ssize_t backing_file_read_iter(struct file *file, struct iov_iter *iter,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 70bbc00a2bd250..0eb43147dc877e 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2740,6 +2740,19 @@ struct file *dentry_create(const struct path *path, int flags, umode_t mode,
+ 			   const struct cred *cred);
+ struct path *backing_file_user_path(const struct file *f);
+ 
++#ifdef CONFIG_SECURITY
++void *backing_file_security(const struct file *f);
++void backing_file_set_security(struct file *f, void *security);
++#else
++static inline void *backing_file_security(const struct file *f)
++{
++	return NULL;
++}
++static inline void backing_file_set_security(struct file *f, void *security)
++{
++}
++#endif /* CONFIG_SECURITY */
++
+ /*
+  * When mmapping a file on a stackable filesystem (e.g., overlayfs), the file
+  * stored in ->vm_file is a backing file whose f_inode is on the underlying
+diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
+index 97a8b21eb03339..c0a2839253fa1f 100644
+--- a/include/linux/lsm_audit.h
++++ b/include/linux/lsm_audit.h
+@@ -93,7 +93,7 @@ struct common_audit_data {
+ #endif
+ 		char *kmod_name;
+ 		struct lsm_ioctlop_audit *op;
+-		struct file *file;
++		const struct file *file;
+ 		struct lsm_ibpkey_audit *ibpkey;
+ 		struct lsm_ibendport_audit *ibendport;
+ 		int reason;
+diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
+index 9eca013aa5e1f6..addb34abffa18a 100644
+--- a/include/linux/lsm_hook_defs.h
++++ b/include/linux/lsm_hook_defs.h
+@@ -188,6 +188,9 @@ LSM_HOOK(int, 0, file_permission, struct file *file, int mask)
+ LSM_HOOK(int, 0, file_alloc_security, struct file *file)
+ LSM_HOOK(void, LSM_RET_VOID, file_release, struct file *file)
+ LSM_HOOK(void, LSM_RET_VOID, file_free_security, struct file *file)
++LSM_HOOK(int, 0, backing_file_alloc, struct file *backing_file,
++	 const struct file *user_file)
++LSM_HOOK(void, LSM_RET_VOID, backing_file_free, struct file *backing_file)
+ LSM_HOOK(int, 0, file_ioctl, struct file *file, unsigned int cmd,
+ 	 unsigned long arg)
+ LSM_HOOK(int, 0, file_ioctl_compat, struct file *file, unsigned int cmd,
+@@ -195,6 +198,8 @@ LSM_HOOK(int, 0, file_ioctl_compat, struct file *file, unsigned int cmd,
+ LSM_HOOK(int, 0, mmap_addr, unsigned long addr)
+ LSM_HOOK(int, 0, mmap_file, struct file *file, unsigned long reqprot,
+ 	 unsigned long prot, unsigned long flags)
++LSM_HOOK(int, 0, mmap_backing_file, struct vm_area_struct *vma,
++	 struct file *backing_file, struct file *user_file)
+ LSM_HOOK(int, 0, file_mprotect, struct vm_area_struct *vma,
+ 	 unsigned long reqprot, unsigned long prot)
+ LSM_HOOK(int, 0, file_lock, struct file *file, unsigned int cmd)
+diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+index 090d1d3e19fed6..0876cf11e200c6 100644
+--- a/include/linux/lsm_hooks.h
++++ b/include/linux/lsm_hooks.h
+@@ -104,6 +104,7 @@ struct security_hook_list {
+ struct lsm_blob_sizes {
+ 	int lbs_cred;
+ 	int lbs_file;
++	int lbs_backing_file;
+ 	int lbs_ib;
+ 	int lbs_inode;
+ 	int lbs_sock;
+diff --git a/include/linux/security.h b/include/linux/security.h
+index 2c6db949ad1a16..e4300f2ff11b55 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -421,11 +421,17 @@ int security_file_permission(struct file *file, int mask);
+ int security_file_alloc(struct file *file);
+ void security_file_release(struct file *file);
+ void security_file_free(struct file *file);
++int security_backing_file_alloc(struct file *backing_file,
++				const struct file *user_file);
++void security_backing_file_free(struct file *backing_file);
+ int security_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ int security_file_ioctl_compat(struct file *file, unsigned int cmd,
+ 			       unsigned long arg);
+ int security_mmap_file(struct file *file, unsigned long prot,
+ 			unsigned long flags);
++int security_mmap_backing_file(struct vm_area_struct *vma,
++			       struct file *backing_file,
++			       struct file *user_file);
+ int security_mmap_addr(unsigned long addr);
+ int security_file_mprotect(struct vm_area_struct *vma, unsigned long reqprot,
+ 			   unsigned long prot);
+@@ -1065,6 +1071,15 @@ static inline void security_file_release(struct file *file)
+ static inline void security_file_free(struct file *file)
+ { }
+ 
++static inline int security_backing_file_alloc(struct file *backing_file,
++					      const struct file *user_file)
++{
++	return 0;
++}
++
++static inline void security_backing_file_free(struct file *backing_file)
++{ }
++
+ static inline int security_file_ioctl(struct file *file, unsigned int cmd,
+ 				      unsigned long arg)
+ {
+@@ -1084,6 +1099,13 @@ static inline int security_mmap_file(struct file *file, unsigned long prot,
+ 	return 0;
+ }
+ 
++static inline int security_mmap_backing_file(struct vm_area_struct *vma,
++					     struct file *backing_file,
++					     struct file *user_file)
++{
++	return 0;
++}
++
+ static inline int security_mmap_addr(unsigned long addr)
+ {
+ 	return cap_mmap_addr(addr);
+diff --git a/security/security.c b/security/security.c
+index 6e4deac6ec0737..dd6b922c12de05 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -95,6 +95,7 @@ const char *const lockdown_reasons[LOCKDOWN_CONFIDENTIALITY_MAX + 1] = {
+ static BLOCKING_NOTIFIER_HEAD(blocking_lsm_notifier_chain);
+ 
+ static struct kmem_cache *lsm_file_cache;
++static struct kmem_cache *lsm_backing_file_cache;
+ static struct kmem_cache *lsm_inode_cache;
+ 
+ char *lsm_names;
+@@ -266,6 +267,7 @@ static void __init lsm_set_blob_sizes(struct lsm_blob_sizes *needed)
+ 
+ 	lsm_set_blob_size(&needed->lbs_cred, &blob_sizes.lbs_cred);
+ 	lsm_set_blob_size(&needed->lbs_file, &blob_sizes.lbs_file);
++	lsm_set_blob_size(&needed->lbs_backing_file, &blob_sizes.lbs_backing_file);
+ 	lsm_set_blob_size(&needed->lbs_ib, &blob_sizes.lbs_ib);
+ 	/*
+ 	 * The inode blob gets an rcu_head in addition to
+@@ -468,6 +470,7 @@ static void __init ordered_lsm_init(void)
+ 
+ 	init_debug("cred blob size       = %d\n", blob_sizes.lbs_cred);
+ 	init_debug("file blob size       = %d\n", blob_sizes.lbs_file);
++	init_debug("lsm_backing_file_cache	 = %d\n", blob_sizes.lbs_backing_file);
+ 	init_debug("ib blob size         = %d\n", blob_sizes.lbs_ib);
+ 	init_debug("inode blob size      = %d\n", blob_sizes.lbs_inode);
+ 	init_debug("ipc blob size        = %d\n", blob_sizes.lbs_ipc);
+@@ -490,6 +493,11 @@ static void __init ordered_lsm_init(void)
+ 		lsm_file_cache = kmem_cache_create("lsm_file_cache",
+ 						   blob_sizes.lbs_file, 0,
+ 						   SLAB_PANIC, NULL);
++	if (blob_sizes.lbs_backing_file)
++		lsm_backing_file_cache = kmem_cache_create(
++						   "lsm_backing_file_cache",
++						   blob_sizes.lbs_backing_file,
++						   0, SLAB_PANIC, NULL);
+ 	if (blob_sizes.lbs_inode)
+ 		lsm_inode_cache = kmem_cache_create("lsm_inode_cache",
+ 						    blob_sizes.lbs_inode, 0,
+@@ -666,6 +674,30 @@ int unregister_blocking_lsm_notifier(struct notifier_block *nb)
+ }
+ EXPORT_SYMBOL(unregister_blocking_lsm_notifier);
+ 
++/**
++ * lsm_backing_file_alloc - allocate a composite backing file blob
++ * @backing_file: the backing file
++ *
++ * Allocate the backing file blob for all the modules.
++ *
++ * Returns 0, or -ENOMEM if memory can't be allocated.
++ */
++static int lsm_backing_file_alloc(struct file *backing_file)
++{
++	void *blob;
++
++	if (!lsm_backing_file_cache) {
++		backing_file_set_security(backing_file, NULL);
++		return 0;
++	}
++
++	blob = kmem_cache_zalloc(lsm_backing_file_cache, GFP_KERNEL);
++	backing_file_set_security(backing_file, blob);
++	if (!blob)
++		return -ENOMEM;
++	return 0;
++}
++
+ /**
+  * lsm_blob_alloc - allocate a composite blob
+  * @dest: the destination for the blob
+@@ -2893,6 +2925,57 @@ void security_file_free(struct file *file)
+ 	}
+ }
+ 
++/**
++ * security_backing_file_alloc() - Allocate and setup a backing file blob
++ * @backing_file: the backing file
++ * @user_file: the associated user visible file
++ *
++ * Allocate a backing file LSM blob and perform any necessary initialization of
++ * the LSM blob.  There will be some operations where the LSM will not have
++ * access to @user_file after this point, so any important state associated
++ * with @user_file that is important to the LSM should be captured in the
++ * backing file's LSM blob.
++ *
++ * LSM's should avoid taking a reference to @user_file in this hook as it will
++ * result in problems later when the system attempts to drop/put the file
++ * references due to a circular dependency.
++ *
++ * Return: Return 0 if the hook is successful, negative values otherwise.
++ */
++int security_backing_file_alloc(struct file *backing_file,
++				const struct file *user_file)
++{
++	int rc;
++
++	rc = lsm_backing_file_alloc(backing_file);
++	if (rc)
++		return rc;
++	rc = call_int_hook(backing_file_alloc, backing_file, user_file);
++	if (unlikely(rc))
++		security_backing_file_free(backing_file);
++
++	return rc;
++}
++
++/**
++ * security_backing_file_free() - Free a backing file blob
++ * @backing_file: the backing file
++ *
++ * Free any LSM state associate with a backing file's LSM blob, including the
++ * blob itself.
++ */
++void security_backing_file_free(struct file *backing_file)
++{
++	void *blob = backing_file_security(backing_file);
++
++	call_void_hook(backing_file_free, backing_file);
++
++	if (blob) {
++		backing_file_set_security(backing_file, NULL);
++		kmem_cache_free(lsm_backing_file_cache, blob);
++	}
++}
++
+ /**
+  * security_file_ioctl() - Check if an ioctl is allowed
+  * @file: associated file
+@@ -2981,6 +3064,32 @@ int security_mmap_file(struct file *file, unsigned long prot,
+ 			     flags);
+ }
+ 
++/**
++ * security_mmap_backing_file - Check if mmap'ing a backing file is allowed
++ * @vma: the vm_area_struct for the mmap'd region
++ * @backing_file: the backing file being mmap'd
++ * @user_file: the user file being mmap'd
++ *
++ * Check permissions for a mmap operation on a stacked filesystem.  This hook
++ * is called after the security_mmap_file() and is responsible for authorizing
++ * the mmap on @backing_file.  It is important to note that the mmap operation
++ * on @user_file has already been authorized and the @vma->vm_file has been
++ * set to @backing_file.
++ *
++ * Return: Returns 0 if permission is granted.
++ */
++int security_mmap_backing_file(struct vm_area_struct *vma,
++			       struct file *backing_file,
++			       struct file *user_file)
++{
++	/* recommended by the stackable filesystem devs */
++	if (WARN_ON_ONCE(!(backing_file->f_mode & FMODE_BACKING)))
++		return -EIO;
++
++	return call_int_hook(mmap_backing_file, vma, backing_file, user_file);
++}
++EXPORT_SYMBOL_GPL(security_mmap_backing_file);
++
+ /**
+  * security_mmap_addr() - Check if mmap'ing an address is allowed
+  * @addr: address
+-- 
+2.53.0
+
+
+
