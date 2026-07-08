@@ -1,80 +1,76 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF02843933E
-	for <linux-unionfs@vger.kernel.org>; Wed,  8 Jul 2026 19:02:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 852423A960F
+	for <linux-unionfs@vger.kernel.org>; Wed,  8 Jul 2026 19:45:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.179
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783537328; cv=pass; b=Byp5cNjDj8Ud36AryIBT1WlxdA+GtqeFMu6xUjjTm6rtMs/SOlcfhnz9jRDTX2hQoHIcJATEeZlH5NuQHWl1x0LXlixS2LerbCV33tKH2t556fUpphOhGOg+jRHDOdZVmnjlv7lVYuEqTCNEeez3oQVBuyWWxslJ9o+mNRAQWYY=
+	t=1783539915; cv=pass; b=kDFLaP9O7FPVKp+/xIaBgVJX6y05CjhGQPT5IaCBkp8e+ekNBlX/F/srlvxpjNnqISXAlzLAN7jU5pQlkRcbboDyfF8zfvFUoW6fC7fCXmA37OJJedEs7IPy+ti27zlU1WXsWZOOJaltRdHQ4A9B3y6DICJg9srMqM3Fp8cyv/s=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783537328; c=relaxed/simple;
-	bh=RrokN5hI2xrJP0hSZASJxB0o58XKatfrhNPDXueAhYg=;
+	s=arc-20240116; t=1783539915; c=relaxed/simple;
+	bh=JaB8MKARUyOluTUTKfGfO9Fwrtc8Ku2njk8Dxn08suU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TBqyXD1CxAEQNNDvBWs/w8jlaGda4b4Ah1tyqs9EbBrhKCoDJa69Zciz8YOr0M6Wzc9zur6m11ubp/6NVh863W5MyyqmfmpPf9kTUzXd/TAJ8evN503gg6lXyt8DZ7aZ+ZxgUpDw/+TqAIOc7greDu/XCXs5xs6dQrwWACQtxTo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Glm/llwh; arc=pass smtp.client-ip=209.85.208.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=VgWL0fsEDCi/ObISlT68aAqHFywk6m/99gJsYQeh0YHqkyoj3apbVKmyrwQ+HFmBV8HP+J8fj1GfjZrkf2DiXZfTG5zcXDzw+DoLIRJUGr/a8IY1IJ2Ay92SebQT98Dgh17r8QyairQCAgLKML6zwg94UzD+kpnDh5M9UgYidk4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=LW6ZqAC4; arc=pass smtp.client-ip=209.85.160.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Glm/llwh"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-698a9f11776so1743527a12.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 08 Jul 2026 12:02:06 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1783537325; cv=none;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="LW6ZqAC4"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-51bfe810293so5489761cf.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 08 Jul 2026 12:45:13 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783539912; cv=none;
         d=google.com; s=arc-20260327;
-        b=etUPk8eZmBzLD5vV5RPc/1muXMghihYoJctagGHxsjO85JQfxrzfK8B7+Kt2RqCzM6
-         d974Ckq1HYcq5Np63GMITQz4WoezHkVhnqc5Trm8ImE9DuMBTNaYA1MWjPfRUmM9Uz8P
-         dHBmxKt+K0nXWnFueAQt+DDf7/RTRa8MOdwQ+gPRjeCf+XpyMFWFmlNgpaP8a3RETi/m
-         gtWYBr0cW32eDEcrwIKh0BmXMYFBrCAgtCh05IdQoXi0y0yLN0bUYE6D+zUsLlXslrwO
-         azLy5yOPwrnApsytZTrpyacv19HovC3DkMSY3oByuMUjx82pjcVOIdzyfhTR7T6fNiqa
-         GKrw==
+        b=PdxI/49kfCxBFQTz23U/GKb6JDsiG9dLZznilsi+5LvD0kp7qaxxbFNoJ8u8sRzPW6
+         Ff+LGzIxwPyCMWuBDX+dD0LC67Yl77rY49vtmHSAnGU91XzHrcNT1t84bchJwXIM9Tfb
+         GISxS4dW0acMfVaDGIC+XLp9z0yiGKAZCtokD1WDgVc1Z3w06rmj4Goa8f6MVl9GvNYf
+         6PWy3BECaCFte/W/Ru8XuikfO3Tnrpzz8ZoBEF4aoj6mfRlkQjtciFXmwqs3LRhVFP86
+         4JDWaKdfm+bmS7OM6r1xOQQEj+26QBO13/dCegXH49XmglOpbAXPhiX3gdzfk9O8OH9f
+         zjdA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=h6p7iFMPL0RnoW5Oom2GXslSbFev5CUALqnSA0TrUcg=;
-        fh=8lwIsTsqsIpfPEUjYGWylNv44w0Yd5Qf9PpEpCAOqA0=;
-        b=RcVk73EoyWqOL0ZOqoQTxT9y8I2JIkaAu21NsvsgjcFa/3u13HUzJ9Asl22imc3m2F
-         yxgLhTye7ZbJYHj5Kqjd5rqDilHa5F/VTSYY5tHbey1qY+R/JrOataBg4z8a42x3YMyE
-         yoMAaVnbuF21jFJOgqP7/dtsm8Qf2gVSlixKjLrnp4GXhLyRg8gXXmAa7jNqsOX43CP+
-         znOnVxHk2tfppPNdsa3CumjozdvFLGB1dwLNtvivaVNh5QhwO2A5E5yyiUrqTJegB/yb
-         5osY9mXNfYDumJreiShThIYtFNtgggy93gX7su3RZAnTIGNTmk0q1FU/PLhqVezy6ORr
-         G5ow==;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=BRAVl1LUxqDgkvoB9BijEMJL+fVxc4zMfLM5kk+MyrU=;
+        fh=sPe/eK/A+ebhTB4m7Mepcs4ZeppaAx7D0fyCTM6sQjQ=;
+        b=N75l6cbStfHQpDtCc9AmAh6voj44maQ23YohdaUiuPBSr3Cz07+T+t+0Hr59afUqoL
+         wi6H6J4xdG97C0MM3oq4syb2+tYu3dVFuvkIC3oVx62JZZMmbRQJO6tJ5z02ZIowavSh
+         ed7DprfBP4EmtbOMjgHK5HggbKNpvB2tfmIzOy+B+gxg0OONgnFePd+JdfevBc2nmgm/
+         nRuEx2wUt6d0Y6yQrZTlI9aYs3eEmkb8O8Zrm1P3FkZoIYqGSvznDdBYnQBv8+VSbugY
+         0q8YuL8S0b3zCC3YdG9Ep9lEahWMK1T5OJQmF3abBy1CUlY9e9ifcgej5tEUDZTAPNL1
+         uWsw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783537325; x=1784142125; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=h6p7iFMPL0RnoW5Oom2GXslSbFev5CUALqnSA0TrUcg=;
-        b=Glm/llwhmN/OqN4srBrldQ2ar8nOoVYOXQIzgUAQusWDAUbWpUwfXvP7QQfe4hkzoC
-         6T/1wWq6ZNv49ZgET+xVVQSy2BN8YuxH2ZQBTCI9FVUMS3kwODjqebtAoJxFSmhKKNLM
-         26/dxR/PyXTA4pftE5BznuI2QJ9J8kd/1iis8BTs4fXPRzTV2okI6hfdEdafzGZS0Try
-         t/7iH6EVPIQDdvm8s2MIflJ78xi2Ceh3zPPB6y9EXOcq/3MwuQnb6nH7H3JoowV58uRo
-         c2Ct1hRUgr8w6j7fAa/f8XIFy1Bwj5Q+kIo1xLn5oKxdJnEK00J1cLUkxzco0vC5m49z
-         kJFg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783537325; x=1784142125;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=szeredi.hu; s=google; t=1783539912; x=1784144712; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=h6p7iFMPL0RnoW5Oom2GXslSbFev5CUALqnSA0TrUcg=;
-        b=UUTa8jSrYVGiP+bsu8mT7v0T2Qw5mVIq8pqR09xooioa1J2SbPVBvSj7PnbfQIHtyv
-         eSGrHavho2TQufAM4PyymCCz+Efy2HMXOxZnTpsJyOkQHqoxGv1U7gfChJZCXLN0023M
-         J13R/hpMw8OqKOaURZFAH1vkIcYME06+8+FUIKumS8hRSWAFWlaeC0LJL1PbRCLaovVG
-         zpY44EMNvCcqJdC+lOlcZMusnIbVzgYgoG+kFSj0yXQLay11xExe2ffjTSVvtVSTzpsI
-         Pkt+QajJwhjf5nOirLMUP4ajuo/I19p7VWf9gaJIQ7p6wgCa2/XksUKXTqoRahG7BCnI
-         8PlQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqnSy6R24SAPv6aB6TGAN/lV4G8VTfxG0u3+Ttr1ersSZaSjwYhBBJxgrb9OW4dd/u/S15Sg2c7vFFSJNbi@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw9wqU6gMrvZYq9/Bh3oVKd6ChpcRj+IBnZwvMRYvY1NBupH43B
-	iNFXYqY8kWDygs8BticQD2ov6tai72VYjZJTZ24atXyuQopNg986DF/gl9CF1gsSgdiITbUlWZO
-	DYqPYr3uea6UhJrgYbkoM2A8QyykiPgU=
-X-Gm-Gg: AfdE7cmBJXAgBPczQ+HMlE/fIJnSOBLwX/JblihRZLCogkjHkZ7A6r6/nyEuvyzK18K
-	bXYQxlfAV4kA1M0ATV4PIobt5y5DBRatC44I1XIlddj4Xfn32OlUaMaE6tmiVu6cqZHAs352AiM
-	5PLlYGWT49d1wjhMP3h6CV8xl3mAWt5/bmjgCqaFRachQrOOYyommbBrItWO+l/EDBCCB3OYR8f
-	L0pQIi+M91pywB9k2bybC2617Z74jarhhjRpylCya/kT7E7RGfZ8Z+a4WJAS4HV6UleDXOPXg==
-X-Received: by 2002:a05:6402:1f89:b0:69a:9355:ec35 with SMTP id
- 4fb4d7f45d1cf-69ab44b5e42mr1817377a12.41.1783537325129; Wed, 08 Jul 2026
- 12:02:05 -0700 (PDT)
+        bh=BRAVl1LUxqDgkvoB9BijEMJL+fVxc4zMfLM5kk+MyrU=;
+        b=LW6ZqAC4FbxbBm8HLLrTFWWlXoMUJ9CUp2FdEycrQL1F9NefHq0xM2Dq9eWhVKBmjh
+         JHlkEl3qhrEXAXf46hGh6OVto2prj6QX52fAtlIl8quaqYYWRzrpiCxZOloGEaHqXIQR
+         G9sgax2w4irmb4tkY2CyHmQKLbv6l+q/VWoL8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783539912; x=1784144712;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=BRAVl1LUxqDgkvoB9BijEMJL+fVxc4zMfLM5kk+MyrU=;
+        b=TwWpk8wiEgJ1r+nTTejSbgYF/ahElX9+Bsw6b8hyUpX9OvwhyZkK2tmjB1gDoMckNe
+         BfXVeIJ+kwPk3AXNSoRDTf0qiK5gPbagI88ag/VY+4PUQAMlVZWF2NF0Mt6qmAArnRqy
+         KGmr5B7w+85VM6H6sWt4gaSqlY4O/VPQ0gWiisz+eL4NjW9ihi10cMyj72+WMiBB5I9x
+         LZ1yJ66zwT03Lo0EtYf8CiYeT3JeBo1gDm6GpP752BXCzsvx50HfSSpxHFoC/ZJdy/rn
+         NnxiLniV7IDFLgNS1QpkwtP+Z5S6+HsDyD9UPg2XDt0b47CAhLoG0w4QDVPlvoHb0yP3
+         MRBg==
+X-Gm-Message-State: AOJu0Yz6qcT6iuTd/dKVmMqaHdyIKhI3VH90o1in48L6ovi4GhgeIzdo
+	kGz0qAcfoHHrhSxVA0oyYid8ay5T7Z2hCJmc4J6PSL6Jq8aXGe7NZ9evqDKGT44jMstaa2KmVWg
+	UT0MaaAHdmbaOsHGIDDfonAi1bHgG8aLDiwxJvmnFAw==
+X-Gm-Gg: AfdE7cnnZAX7pME5xtV9n2z/bDiRY9efpcTB+uFXue5pQ5L3uZXiahkahNRwrv4Qlyj
+	bfzrB2ieRCCigQxtelh74k3vpXZ3E7gak4pvWH4kLbS1li94EKE8JXkSEtR7Y0VIK1iHyi8nN5G
+	leb2LoqBUrlQ+jWGTtvgiBwgfBiFOoJALFJZPMWRXqO0jjqikJGZGJmponC3r7NoQCKWoxSGsEY
+	fDTD3lfWf0HpTK51ChSuoVpP5xB6c32ARUzIIWQWHJqjpP3E7SGauN2L3RdAo02T4LYfa6871bA
+	lyiPHGi9sL27MvKXpypPc8n50FxbCxg+pqMrAw==
+X-Received: by 2002:a05:622a:2282:b0:51c:4eb:b586 with SMTP id
+ d75a77b69052e-51c8b2bcca6mr44081721cf.3.1783539912501; Wed, 08 Jul 2026
+ 12:45:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -86,44 +82,30 @@ References: <20260708095831.3381978-1-gscrivan@redhat.com> <CAJfpegsJON=1_84PCGM
  <87wlv57dt1.fsf@redhat.com> <CAJfpegtTixwWSh9M-9NbwP0nUbJJ9rh0rxqO7BzgK7Su_RpM+A@mail.gmail.com>
  <87o6gh79yi.fsf@redhat.com>
 In-Reply-To: <87o6gh79yi.fsf@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 8 Jul 2026 21:01:53 +0200
-X-Gm-Features: AVVi8CcH_8D2AVPgSdZmur5rdOwKhUpVaCHJD-tULtZMblV_EPw4hJoYlLj59_k
-Message-ID: <CAOQ4uxgbNhdzKN7tvRmFDpt-8CZWh9pVcMLv25HxJzA0_0WfSg@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 8 Jul 2026 21:45:01 +0200
+X-Gm-Features: AVVi8CfEBqDFsxEsCKynN2toUTD0jqsYUgCkXMmD75nSowC3aB39c38nRzYyz0U
+Message-ID: <CAJfpegvUEEbFnCa1N9k3gMXpw46YFpWuta=G6brON1=xU36bgw@mail.gmail.com>
 Subject: Re: [PATCH] ovl: add ioctls to retrieve layer file descriptors
 To: Giuseppe Scrivano <gscrivan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org, 
-	Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Gao Xiang <hsiangkao@linux.alibaba.com>, 
-	linux-erofs mailing list <linux-erofs@lists.ozlabs.org>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-api@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 8, 2026 at 5:55=E2=80=AFPM Giuseppe Scrivano <gscrivan@redhat.c=
-om> wrote:
+On Wed, 8 Jul 2026 at 17:55, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 >
 > Miklos Szeredi <miklos@szeredi.hu> writes:
 >
-> > On Wed, 8 Jul 2026 at 16:32, Giuseppe Scrivano <gscrivan@redhat.com> wr=
-ote:
+> > On Wed, 8 Jul 2026 at 16:32, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 > >
 > >> Amir suggested to add that functionality when I've asked for some
-> >> feedback before sending the patch here.  I am fine to drop it if this =
-is
+> >> feedback before sending the patch here.  I am fine to drop it if this is
 > >> the consensus although I see its utility from user space.
-
-I was thinking that getting the number of layers or info would be
-a good idea to complement getting a layer fd.
-
-I agree that the same information is probably available via statmount
-by parsing the upperdir/lowerdir/datadir mount options.
-
 > >
 > > How about a completely different interface:
 > >
-> > int get_fd_opt(const char *name, unsigned int index, unsigned int flags=
-);
+> > int get_fd_opt(const char *name, unsigned int index, unsigned int flags);
 > >
 > > Enumerating layers would be as easy as passing an index stating from
 > > zero and stopping when -ERANGE is received.
@@ -132,40 +114,22 @@ by parsing the upperdir/lowerdir/datadir mount options.
 > > fs specific ioctls.
 >
 > Is a new syscall really justified for such a narrow use case?
->
 
-I feel the same way.
+That's the reason I advocate pseudo fs based solutions.  Let's see, we
+had a proposal to use openat(), something. like:
 
-Giuseppe,
+openat(base_fd, "mount/options/lowerdir+/0", O_ALT | O_PATH);
 
-Could you add some high level context in this thread on why you need
-this functionality.
-I think it's this composefs-rs work. right?
-https://github.com/giuseppe/composefs-rs/commits/reuse-mounts-and-prevent-g=
-c-overlay/
+Meaning that O_ALT switches to an alternative/meta namespace that is
+based on the given fd and in that meta namespace the tree under mount/
+represents the attributes of the mount that base_fd is on.
 
-I must say this seems a bit upside down to me.
+See this post from Linus as well:
 
-If you want to keep a pool of mounted erofs images, you could do that
-in userspace -
-create a service that indexes mounted erofs images by unique mount point pa=
-ths.
-Then you can introspect the overlayfs mount options referring to those
-mount points.
+  https://lore.kernel.org/all/CAHk-=wjzLmMRf=QG-n+1HnxWCx4KTQn9+OhVvUSJ=ZCQd6Y1WA@mail.gmail.com/
 
-Going through the kernel to get an fd and reuse that fd for a new
-overlayfs mount
-sounds like a strange way of accomplishing this.
-
-If the overlayfs mounter is unprivileged, it would have to go through
-systemd-mountfsd
-to request a mount of erofs trusted image, right?
-
-Can't the same service provide the "is_image_mounted" query which provides
-the mount path?
-
-I am not against introspection of overlayfs, but I'd like to understand
-the use cases before finalizing the uapi.
+The statmount api took a different route, but for getting an O_PATH
+file this would be a very natural interface without added syscalls.
 
 Thanks,
-Amir.
+Miklos
