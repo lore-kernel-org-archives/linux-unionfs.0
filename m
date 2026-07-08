@@ -1,135 +1,120 @@
-Received: from fout-a6-smtp.messagingengine.com (fout-a6-smtp.messagingengine.com [103.168.172.149])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 506233AC0F8;
-	Wed,  8 Jul 2026 20:18:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.149
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C6433E5A12
+	for <linux-unionfs@vger.kernel.org>; Wed,  8 Jul 2026 20:35:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783541939; cv=none; b=Jsi7au5/Pgc1a4pg+B6VuFmCy5Do7O7r6dzZPvWSc4pCJOtPUHyHe1Kr79JiJOdjz6y/yibcsMVBdbyPM4zla919wQhTACXYfBe8FDJSYxXNPrpuebp0Cs9Jvz984ONeU1ua2uAUTxxETS0/FculcmjMynmSacU1F3xe8OHYfdc=
+	t=1783542947; cv=none; b=nSXnRJIenh4oFxwcdORioQODT2CYzjEsciRStPi4Uy2tJB0vWNhWbEzg3nSff3Ml+Y+/VVjQHlrRFCVkej5NQ6aBHJ+J0gFtEMrugCXZX1suk2ttdhMuu8EtE0koTxDnmH8BsRhb3VsemgsVO9pP1Zx0XqQm7suhzEDn2RJF3Ys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783541939; c=relaxed/simple;
-	bh=wLGhsWeNJi8zd8/PkkwZnzKfSNF/g1DdrFV0OOf9YqY=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=cd4pXA42AZsu2c9W/VFHEWBTMvZhq2JATQ8SfChMlQqxFxJfESXJMurST2gXDH6y9itSe2cVvR1uhxRmXP9jnxI6hppEgHcA1YD7zh78j4BS4LvE80TUTbryNo2ZYcJD7hVeVGqTi55Polad2m+NRGtg6pFXMyaYMsn6IEB7+C0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=verbum.org; spf=pass smtp.mailfrom=verbum.org; dkim=pass (2048-bit key) header.d=verbum.org header.i=@verbum.org header.b=ow/n4Rit; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=izvy4diN; arc=none smtp.client-ip=103.168.172.149
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=verbum.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=verbum.org
+	s=arc-20240116; t=1783542947; c=relaxed/simple;
+	bh=dNCH3GBqXQ8BeQwtL9quBRN8WK05Wh+x5HVAqi882XU=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=tUpw2x/HD6xWup6mVo5mhV2lfcJh0LcN13MxJcL6HN0iAutpeLjYgyRi88pRjgWHPqPkMW7OWZpB4sii5tzWoO4t/8ejhZZm3I8LTwXZyKd8PE36k8JKllEfbqiI8CloLORMQxpiwumkgAv8jREgg9I3ZZOq6vWnC74oMpAiFXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=BQjb+NBK; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=verbum.org header.i=@verbum.org header.b="ow/n4Rit";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="izvy4diN"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfout.phl.internal (Postfix) with ESMTP id 8D654EC0088;
-	Wed,  8 Jul 2026 16:18:54 -0400 (EDT)
-Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-04.internal (MEProxy); Wed, 08 Jul 2026 16:18:54 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=verbum.org; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1783541934;
-	 x=1783628334; bh=wLGhsWeNJi8zd8/PkkwZnzKfSNF/g1DdrFV0OOf9YqY=; b=
-	ow/n4Rit5tUlEd2H3q0EG/TVdn2dzyC9g40PZAHxVjO+WA2ydZCUqPcuwfiQpSYA
-	hhKT1Noiibx3cz96xPjI2Y27BGua9XfG0ZR6DKwsEdyyB8kus0twp75/VTK3+R2I
-	8vkeWggo1FepJd//zs5uAQZftRuqS6so3/5TyP1yi6EMi5tFXFiuYbe4l41hoQbn
-	pEhGkSEO4ogzNbO6mcyAbhhDXzfEtR4fxb1LvDGtkTyZfRMKrjtOOosWK84zN3uj
-	mPzwVbTkSUp/dTR1Hmm6VXQc7i4iRkULOID8fp4QevA/ZmbfqOEZzHnjB6hjujhx
-	pyJlW6/I93gxiD5UJqOpEA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1783541934; x=
-	1783628334; bh=wLGhsWeNJi8zd8/PkkwZnzKfSNF/g1DdrFV0OOf9YqY=; b=i
-	zvy4diNMr3EwaUdCBT9je5mqS3VjvyctlwpE65BoychvpB3oJDOS5DUOtLm6wG3l
-	3g0Bvc1TjviPgXe0SikEnvSTcda8J+cc6iu6Xo/B4rpqvO+Vq2YISWAigBkRwfGf
-	GzML+QhW+smpde/ZmnIV10Hl+vV3N/JVnI8qspZx/OqsSWXeas7KrdsFkTvKtH2Q
-	UMW8cVGk5Lq0Jogxvmve/FtUk0C9cPPQfI4JIasJOSRax1ZAJnlUfhEWwzsVS9Kk
-	qyyyDyEvg12ZytxZ8bTaTX5vwgJAp3+tUUJjU0hb8IKADFbk17h6+Y814M15kMtH
-	6LhjgcDqntOkjdGO8tJzw==
-X-ME-Sender: <xms:rLBOaicjHXAzWj2f30SgSCFtt9Gm4YwDjOXvGT1edISQp7rLKPrLdw>
-    <xme:rLBOanDVf_8pC2mnRM10GE-EvyAWRa1mtsXCG3mUQqgA_hBpk2WCFo42IYiwwQJv2
-    6_RnEWSOObAVF_IPlegFddN17Weq8lsOUHRTibx5pVKqVX130xUPw>
-X-ME-Proxy-Cause: dmFkZTFeSPUT25v+12YVMbRBoofLsuPVc5lWVwFljbzt+zLqPXzvS4js3nW+jwmR6qiqwK
-    l2E1L2sYGTAVEOpkxbHitkR4MrfePAFXCI95P8r5vW1cHnVPCapFoN0ksFkpcPxyOHmjxl
-    Q3UxS3CfKznUJH9t1bb7dweAudc2NLBNNlY1Vj7KPNO2ClMqoqCcuR3Q4xEz1xXArAzlop
-    kwDj1fHHL+1dmUAm7uAufaAoVr+O5SZtsPm2xR/ajf376wN043bEH0kqXoeeZ59scvJ8z9
-    76XrIh3FM51EuTUDOesyqUyUYoIgl9o4yEE737hNR5K56mapr0aGMZ91aUILk06vtrnEbM
-    0RztINzHEmPpqgUYqcS9DOomOKoubBzWKw/Tej5NK3ZRw+/Qxay/KC7Cim4YeHAIyeHYeo
-    SojHnAD4pd0S7zm8czFFehVDgwXBww4HO3xJG/ByIkffHDjU/4QyVXLtf4jtnXgds6VAt0
-    4cGcs4eHp4pB2lmSOaLKZJSLbZ7ehGHkdn4ZDvCrWghr0mc3VMmVPvaDnE8BRkBnppoF1Y
-    ozs/0cHxXxVYFDU4/2Cf7Nx7NVCy5bIa+UnjdiAHpQtX1Qy8tUmwmjTxt6/KNlEqVweqYA
-    aOcuqZsXiJCWmCSTvM+M0nMkPVB/LxltxZr1fjRDzZxKW5GmcgLA9ztdInPQ
-X-ME-Proxy: <xmx:rLBOasGhE5DwljEjCOp92hnkDBmd-l2s62EnYPB0oOE_iQWxPvNQ1g>
-    <xmx:rLBOaq3bJb6qB3C1f0R4dp8wCGR8-hAttyy99A2feNU_DGSJv5HYtA>
-    <xmx:rLBOalPI9q1TWCVdIrzutQy_XXxskQqtEgURo6_NIllDFQc-Fiiuog>
-    <xmx:rLBOaibrKjpkVkoCxKZnxH5gfa7tdFN4_oUrXzol3wBmef4Stjl39A>
-    <xmx:rrBOalvn_VGwtfzSPnyv0ta10VqD041ZtZSW5_Gt0ZKHLVqcYuvu_Qff>
-Feedback-ID: ibe7c40e9:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id B2F56780AB5; Wed,  8 Jul 2026 16:18:52 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BQjb+NBK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1783542945;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/GdmhhnDmpRS1ZdiDos4jfG6fHjForej54rE9mVQS0Q=;
+	b=BQjb+NBK5IFDBmEWx3wZoU6Bb6WTU0hBIFrOAkNBQGEPBCESkCgyS20g3E8yN6+XQze5K/
+	He9nu2qbduDHr9YLiw9QYDKyp6xQWmVfMCe75tfnu3ZcL2u4SnWM29toQO8d/5YefgazYf
+	glnXR9erQ9JjCzas+ZB1ti5UvOhMJc8=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-396-KBF1YK9DMuaxt0-_1DuQlw-1; Wed,
+ 08 Jul 2026 16:35:42 -0400
+X-MC-Unique: KBF1YK9DMuaxt0-_1DuQlw-1
+X-Mimecast-MFC-AGG-ID: KBF1YK9DMuaxt0-_1DuQlw_1783542940
+Received: from mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.95])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 673951955DCF;
+	Wed,  8 Jul 2026 20:35:40 +0000 (UTC)
+Received: from localhost (unknown [10.44.33.4])
+	by mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 724961774;
+	Wed,  8 Jul 2026 20:35:39 +0000 (UTC)
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org,  linux-fsdevel@vger.kernel.org,
+  linux-api@vger.kernel.org,  Amir Goldstein <amir73il@gmail.com>,  Al Viro
+ <viro@zeniv.linux.org.uk>,  Christian Brauner <brauner@kernel.org>
+Subject: Re: [PATCH] ovl: add ioctls to retrieve layer file descriptors
+In-Reply-To: <CAJfpegvUEEbFnCa1N9k3gMXpw46YFpWuta=G6brON1=xU36bgw@mail.gmail.com>
+	(Miklos Szeredi's message of "Wed, 8 Jul 2026 21:45:01 +0200")
+References: <20260708095831.3381978-1-gscrivan@redhat.com>
+	<CAJfpegsJON=1_84PCGMjASYPFL=Wqsz7dnTAbO3Tdz5DfRQU+g@mail.gmail.com>
+	<878q7l8y4y.fsf@redhat.com>
+	<CAJfpegvQ06=2E0V_ADgxwmo7e5weTfOMozmBB-QVNLLWYAm8WQ@mail.gmail.com>
+	<87wlv57dt1.fsf@redhat.com>
+	<CAJfpegtTixwWSh9M-9NbwP0nUbJJ9rh0rxqO7BzgK7Su_RpM+A@mail.gmail.com>
+	<87o6gh79yi.fsf@redhat.com>
+	<CAJfpegvUEEbFnCa1N9k3gMXpw46YFpWuta=G6brON1=xU36bgw@mail.gmail.com>
+Date: Wed, 08 Jul 2026 22:35:38 +0200
+Message-ID: <87fr1t6wyt.fsf@redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AP2jg_FR6fcw
-Date: Wed, 08 Jul 2026 16:16:42 -0400
-From: "Colin Walters" <walters@verbum.org>
-To: "Amir Goldstein" <amir73il@gmail.com>,
- "Giuseppe Scrivano" <gscrivan@redhat.com>
-Cc: "Miklos Szeredi" <miklos@szeredi.hu>,
- "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
- linux-api@vger.kernel.org, "Al Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>,
- "Gao Xiang" <hsiangkao@linux.alibaba.com>,
- "linux-erofs mailing list" <linux-erofs@lists.ozlabs.org>
-Message-Id: <01df945c-9dbc-4b80-b71c-f68aa70fb8bf@app.fastmail.com>
-In-Reply-To: 
- <CAOQ4uxgbNhdzKN7tvRmFDpt-8CZWh9pVcMLv25HxJzA0_0WfSg@mail.gmail.com>
-References: <20260708095831.3381978-1-gscrivan@redhat.com>
- <CAJfpegsJON=1_84PCGMjASYPFL=Wqsz7dnTAbO3Tdz5DfRQU+g@mail.gmail.com>
- <878q7l8y4y.fsf@redhat.com>
- <CAJfpegvQ06=2E0V_ADgxwmo7e5weTfOMozmBB-QVNLLWYAm8WQ@mail.gmail.com>
- <87wlv57dt1.fsf@redhat.com>
- <CAJfpegtTixwWSh9M-9NbwP0nUbJJ9rh0rxqO7BzgK7Su_RpM+A@mail.gmail.com>
- <87o6gh79yi.fsf@redhat.com>
- <CAOQ4uxgbNhdzKN7tvRmFDpt-8CZWh9pVcMLv25HxJzA0_0WfSg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: add ioctls to retrieve layer file descriptors
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-Scanned-By: MIMEDefang 3.6 on 10.30.177.95
 
+Miklos Szeredi <miklos@szeredi.hu> writes:
 
+> On Wed, 8 Jul 2026 at 17:55, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
+>>
+>> Miklos Szeredi <miklos@szeredi.hu> writes:
+>>
+>> > On Wed, 8 Jul 2026 at 16:32, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
+>> >
+>> >> Amir suggested to add that functionality when I've asked for some
+>> >> feedback before sending the patch here.  I am fine to drop it if this is
+>> >> the consensus although I see its utility from user space.
+>> >
+>> > How about a completely different interface:
+>> >
+>> > int get_fd_opt(const char *name, unsigned int index, unsigned int flags);
+>> >
+>> > Enumerating layers would be as easy as passing an index stating from
+>> > zero and stopping when -ERANGE is received.
+>> >
+>> > It would work for all filesystems that use files as options.  No more
+>> > fs specific ioctls.
+>>
+>> Is a new syscall really justified for such a narrow use case?
+>
+> That's the reason I advocate pseudo fs based solutions.  Let's see, we
+> had a proposal to use openat(), something. like:
+>
+> openat(base_fd, "mount/options/lowerdir+/0", O_ALT | O_PATH);
+>
+> Meaning that O_ALT switches to an alternative/meta namespace that is
+> based on the given fd and in that meta namespace the tree under mount/
+> represents the attributes of the mount that base_fd is on.
+>
+> See this post from Linus as well:
+>
+>   https://lore.kernel.org/all/CAHk-=wjzLmMRf=QG-n+1HnxWCx4KTQn9+OhVvUSJ=ZCQd6Y1WA@mail.gmail.com/
+>
+> The statmount api took a different route, but for getting an O_PATH
+> file this would be a very natural interface without added syscalls.
 
-On Wed, Jul 8, 2026, at 3:01 PM, Amir Goldstein wrote:
+I don't argue against such an API, I only argue that I am probably not
+the best person to drive such a significant change :-)
 
-> If you want to keep a pool of mounted erofs images, you could do that
-> in userspace -
-> create a service that indexes mounted erofs images by unique mount poi=
-nt paths.
+Would you be OK with the ioctl as a solution that works today, and
+duplicate it when an alternative API materializes?
 
-You're right that it=E2=80=99d be possible to do this in user space.=20
+Thanks,
+Giuseppe
 
-However, overlayfs is used by many things (it=E2=80=99s a powerful =E2=80=
-=9CSwiss army knife=E2=80=9D!) and this ability to reliably introspect i=
-ts components is I think generally useful.
-
-For example: https://github.com/systemd/systemd/issues/35017#issuecommen=
-t-2457333218
-
-Various tools want to know the backing filesystem(s) and/or block device=
-s thereof, and if we don=E2=80=99t have something like this in the gener=
-al case every overlayfs user would need to agree on a scheme to store th=
-is data out of band - and manage its lifecycle as mounts change and deal=
- with where that data is stored with respect to mount namespaces etc.
-
-Even if we had this API, would it be better to have a user space cache s=
-erver for the original use case here? Maybe. I could personally go eithe=
-r way.
-
-But the introspection I think really would be generally useful and there=
- are code bases (in systemd and in composefs at least) that would start =
-using it (with fallback for old kernels) for at least that use case righ=
-t away.
