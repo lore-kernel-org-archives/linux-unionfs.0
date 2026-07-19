@@ -1,146 +1,140 @@
-Received: from mail-lj1-f180.google.com (mail-lj1-f180.google.com [209.85.208.180])
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9041F3914FF
-	for <linux-unionfs@vger.kernel.org>; Sun, 19 Jul 2026 14:12:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFB483AB496
+	for <linux-unionfs@vger.kernel.org>; Sun, 19 Jul 2026 18:43:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.181
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784470378; cv=pass; b=BM3O50kJgl6+L9X1Fy0cET3Mf+M8aTDxvH4qaXaxTp952GN30xA4n9+x/wVvUGxjW3p0X2txtdwtkAk6bq5O8VSon4ITndjM/0cjJIQ7VppZDSH/rDFv7iUnnylhJkuFd4pRrzaPczbf9+6IqafdXFreD84ArjYQt99c3jJCxkU=
+	t=1784486584; cv=pass; b=fD7xrziWqOuTfAq3iK4+7Tfykrn750QeKD1ehpoBAXaVUnn4QpJkYOgw9i/TJtPk7reU9E8ZcFI8yDWtgiVyHWwVmdpKMFMMkk2N0ukrZP64Bc7v6H7ugLqOi1Jo/2HYXN5G8ma3u2b80TfhNhiC8HCr1Xo6oxOVkNUiTIZUqDk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784470378; c=relaxed/simple;
-	bh=Gf39QtDs1NJUG97yBMAnk9ZJwy/ZHg7aeBsaEUjF3/g=;
+	s=arc-20240116; t=1784486584; c=relaxed/simple;
+	bh=mFFppR+tgzYK6/5HpSQcE1hem+w1X/QeYlu4aLPPxXQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QH9nIWSifTVJrUe0pDAWXy8UstfPxzoycrxPIwsMxR3YWDBJ3VL52UN0/ohBcHRYx1f8xDN9tosGS4kuFfhVwkbQvwBhWE9xAqK6V9ZzuNXIMvpkbNe2t6aZp/KDHibAW8hkOoJNDh7zqKkcE8mEhN8rUHzcBae7C9MVBtorWPo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net; spf=pass smtp.mailfrom=amacapital.net; dkim=pass (2048-bit key) header.d=amacapital-net.20251104.gappssmtp.com header.i=@amacapital-net.20251104.gappssmtp.com header.b=d9wy5ZKV; arc=pass smtp.client-ip=209.85.208.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amacapital.net
+	 To:Cc:Content-Type; b=FRuoyCDO3iUalKwXEDD8My8Wbs2Qi72iVU6B+oPZOXYacAMZB84OOxLbRXdw/R5u2AWe1uHo7RMOWKGxfKVvf8kXDNDnn7mvioG9pPkZtc7yMW3A9h26/cMM0I5Of8Gl6OqO174X59vcBwLe+RPRkCaLtcYg0C+g1sIxZc8izY8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=LLMEnHWd; arc=pass smtp.client-ip=209.85.160.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amacapital-net.20251104.gappssmtp.com header.i=@amacapital-net.20251104.gappssmtp.com header.b="d9wy5ZKV"
-Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-39c908d6cb6so82984441fa.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 19 Jul 2026 07:12:56 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784470375; cv=none;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="LLMEnHWd"
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-51c0cea8883so38007261cf.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 19 Jul 2026 11:43:01 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784486581; cv=none;
         d=google.com; s=arc-20260327;
-        b=Q6tFg6TRwe0CXmuq8nljvAzrQgVJKJCJncofGdNhCjbtlAtzqRSCzRk09Nm9tbZCiE
-         oDmlgp81GgvhvtmBetHIJ8H673ywPG1aGIgJ0/Z7wKEJndnnlyXjDuS96Me/CbMmUoli
-         r0HXsttsh/FvZrp0h4iD77Bv8w5WzTTq6raWGUyhQAUv3Vz324kyo2+Y3rHivBdr6wYB
-         OcCRT6OCEvRowBKrWDiy/Y5cheN+QmV8ipIca69e+0BxFK34E69Q+amuR2hOYP2sbCXV
-         w3WQbgZkBU03WVfQLNOBQyrXoDJWcfFyaFFHclrkxFjInTihtqnCEUQ1eSY4I2m267Iw
-         mVuA==
+        b=LQh5/SWbhNzAijROv8ALMKVGx4mBUlas6m1RtwX6XrStnDnxXht+U2+6FdHtwKmO22
+         sxSYxtP+r5fZWqA9fdzeA5KfQiAm01FOyVu9g8qI8gELyyT/ELtkUDkAnc3lI3Y2W61n
+         U+XV/1hxqEDBkj+0WKIMX/udbLN9aS5bLgeeCL8bZCcYInBBzik6OCRc0+6ZHeyNmF3o
+         elr5ncJ4m7fRiZ2ayQ0zuOYcg6lOH5ltVp6C62ne2kISYMOLUaZ9+uODM5uDgwv/ABvc
+         uD34qe1b7S7ajTGvFtXjqHCS2cQd+rMSKjNBjxkhplM5vTrkqJO/KDEOkRL0oxPoThfg
+         owyg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=8fnfVrhkwP422PxO/5FsFZHAUY1r3GNO+87kR51xMWc=;
-        fh=cB+cJN3tkubkBIGZ7ANQ1G+rmphW0LcKmmnK5g5xgsc=;
-        b=f1f1bLSlyHS6vUDMgaWpq/NfXuwVikEInlPE6qy1CCXMEE2MbhR6y2Bp5yHWiU7P3p
-         z+hYnSfo4IL3GPXQgzxN2ZIEf9ZB/0JHSTdmZ3UTWLgYqrgKg1VjJCF2JIvBGCfXU7VZ
-         M8tAOtZdfHcb/3IwtV52/AN0zZHJzDOxQ0eXI+LRYvDnijmOPxQLr0XMLdBrZEO+xdox
-         Y6mSP939Arta0+Rn3Fklyb3cVLxUzT1CE4hXnS7o45mcGoJhAtKrzmYrwZ65jziqZvmI
-         R9ROJDD6OcavK+EdFZA4ex60sQK5i2q7lAAtjpL8ZxK/pz6vsgt+lY0fSJZ8KB2jJIbF
-         HP8w==;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=QIWNHNNm4n4NbEoASWprWeRfxUra6wPCmbbue/4Snck=;
+        fh=ChVGraHwEcU9e69gU7e+wn4KitRiWA4dQ3olNDnmFqk=;
+        b=jHePvRaBWR+eBtYU/t4Dm0Nwo6DgkRq3Ki8Har4kGsq6emkFsGktoXL7+2L/XwYElB
+         OC4ER24EU/38v0KTeh1d/2gCL0N2FwSukwQ5IgK0UnVXhKX3pINAh98Ei8dskQAcFKlW
+         Fmj75lHVLJsiFmBLUEhiwwJQTOaoeosUFjXu9wePvM8BOK4f3ryXvIEuzzs2VY6ooQp7
+         xNXB1Wn2h16oaojPYDKxXE5hQLjEc5cuShgHjFinanlbSBHsYz9aEZF7fo7qVoXF+r/O
+         P8iTuuu2RjqSMzGcOhQyMLQ3Px8qLarYAvkZc3aWX5uS1OIkyVQk5vN19o2UJ9eFB6iX
+         WuhQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amacapital-net.20251104.gappssmtp.com; s=20251104; t=1784470375; x=1785075175; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=8fnfVrhkwP422PxO/5FsFZHAUY1r3GNO+87kR51xMWc=;
-        b=d9wy5ZKVfznR4qbSmLHM5wLxuSjQRPGy4i0VLYQtK5dLLnwGkRiddDA/VLgetiMi05
-         Y+I5UVuKvV9E3SM3HWug7hMlD4PFdtZXvAOxx5/lQIh2bzY+pz1wpzt6Bzg0w3hILDMW
-         e3GsK76nCbgIptHRnYDLRt9rCOZy8ameABUXCEZA8dK9EblMfR74xzbuPGYobV75OCGT
-         5dmKGa4DA83unOer5/p/6wDrCqXELBQgzfxOhfojRcG7ht8/0nlpdK50hruoJQPTrjAj
-         m2PabkRjHvH6MgKwQzHgdBgP8HHyIdR7r2EMuqKn+CkNA0aIbcifu3rVZlrjzFttBdzl
-         Ph6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784470375; x=1785075175;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=szeredi.hu; s=google; t=1784486581; x=1785091381; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=8fnfVrhkwP422PxO/5FsFZHAUY1r3GNO+87kR51xMWc=;
-        b=He651yMYbgDIUksPid3nxsRYa6L2UP6QFWs07OUO7ZVRql7iFC2nDHbfLzEh5AhdeO
-         r6OpeDGhO6+/LR526MVP1fb8eZAQa7ZueU2vvGqV1jq43JUuVK7z5uibK4EHHBkqvecV
-         MI8toxbP78i2XX0slu7kNccggUikHtG3FmLOmQgnygS3z5TkwU7WFd2mwi6nfK4CHDmI
-         TBMxIpY3vVDhQv0znpYICRRx0TTl//uY6fOH9YTUVVFO8rWIo+BczBia6nLrxeVh/SF/
-         sMJw3GGkXE1PXVGOKIN9efqrfArpUG3LnJq49rzwUSVy6YBzdsakVuCjl8omfSlu0ZU3
-         0TAg==
-X-Forwarded-Encrypted: i=1; AHgh+RrI/+TXPvq/lMLeNoMqA9oJunQGCULMvqSfnw5kOw6bka+T5CTSTi8xuOVTrajOP0afJbq41SEQPx1W/n0S@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx7hU47vpW73DwoA15qkOIgNdQ8Ybq8fRnaW+ExBFwp9iBZejOG
-	vp53gpX38GgfO9vRTvrg7RVd3dMqsKsw4C5yZjbOHAsfJ5TT6QE0eug1hSqsqTKrqHe3mKgsXra
-	FbdvaWoPWGhUIYpJwPl+UAvR8N54CLpt0tskFwZGl
-X-Gm-Gg: AfdE7cmyTYtiAmf3J5M/2/SEdnQgLkuN/q5q26IKMEeeQmKES+ykvDhRfYW+0tukzfo
-	zxIoswHyx5J4v6rj2h2i0HVWERXtRwycGfoIxe/ybKBSPwJVhi1qk6e6qh+LbTFCRn4GDOI+xyU
-	dLoE5uc+B89zpdhLo6jwTyuxm6hcKJ8kDYtqXPMRVVf4kMnXAnhL/fwkR3AClUuKk5f9ow8NZ5Q
-	z56X8oZlIws7Db0cmfv4+3BunbO4NPKroP04AvY5nxH7tV/ssq4JzyuJAg=
-X-Received: by 2002:a05:6512:3d8f:b0:5b0:1879:1ba9 with SMTP id
- 2adb3069b0e04-5b28f9a5720mr2256451e87.33.1784470374426; Sun, 19 Jul 2026
- 07:12:54 -0700 (PDT)
+        bh=QIWNHNNm4n4NbEoASWprWeRfxUra6wPCmbbue/4Snck=;
+        b=LLMEnHWd0Fxl7f2PLtvb9/12JUtvOORfOPtaRf4g8nmg3HU91XEiQcSqS4b/qj1hus
+         hzqXl1M50X1ZH1s3V0S/v1waL37a/zxRsdJsGbb9yoO+aT3WorFerOjvp9C2QgkXS82x
+         jdyc2Areri+08q2M00uVesZs3htcPey6XALT8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784486581; x=1785091381;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=QIWNHNNm4n4NbEoASWprWeRfxUra6wPCmbbue/4Snck=;
+        b=fZTHoa5eqHgBXVoLYeb4Lgxk4Y9RBANbJfBS9LMMyR5+B7O50VIsjqv0IJbBYfwDO9
+         sVMF8DfwhVNWNKokF226Xa79cHTYrEwOEsQrzXgCadQ1dGrbMi+GcIQN9wb4pKAEUYcQ
+         iKvty6IXhbJZL3E90LtAtkaHa4nScNFLMsH8WLpqh1xroKOeaoGfCP2tCKGCZZGKJQ8j
+         ReiZB4O7KTw9ZRPpwUjXTb2fiv8AAl3jGTRcgsZY2uNGFEOFZ//lK4be36fbUiZb7NDS
+         UlAk1HvkmHdaiU5oQ3Cn1RROzdrZsy0ukjzW9i+sQTXoFlkAlx1BOEFn3OAICjs9c/aD
+         HRKg==
+X-Forwarded-Encrypted: i=1; AHgh+Rpw+o0ZSMo7s26cisyfYGHcHVdn+cvpsLrjwVc3QS+Xy25ZyJihSqAD8CSvmAdgEHdVQxXkUMUhDHEiW4HX@vger.kernel.org
+X-Gm-Message-State: AOJu0YzQflJovchJtGd0XdTwuqzgdnXF5cZFmW6Q8vWXeNFdNuXRWjy0
+	D2FWHyMD60ZysMelqnVEzDi6aYwm1s7/XIazkfSr2IRifxe0hVWy/bmg4O8io2Ml7NuXLbqh7hY
+	q3ZNzo+y3al6/2oTKCFbhu4nZsAKS3YUXMUYbj8mc8w==
+X-Gm-Gg: AfdE7cmPgNxIYjAyXHYbF2+VGt2HSsYUd26R8lGHApsOSjUwL9odLRQnt10SLTlX7E3
+	KN/OToc9dUQnJAwBx9xQ4G1VFYh0sl122jk53QWcXK6AT1Zl+kxhLvyUxh8DzdSvz4qmFlwWOKX
+	8G61Tat9V44+3Hvs6Z343xn3agEzP/zSBJ1y0z1AJql7hy15qpOCjy1D7JDmIKbUPqJw8cYh1Cv
+	t7g7n+HQUKcHjwJ5A/edqfuon220Xe1oCaOQZlR4NZb1fGwnKyS+ATnQwp9VKBSrJuGHQczeLvE
+	mj0P8RCHfd85Pv+4Ow==
+X-Received: by 2002:a05:622a:1388:b0:51c:7aa7:e0ea with SMTP id
+ d75a77b69052e-5212c20f0c9mr108504931cf.39.1784486580491; Sun, 19 Jul 2026
+ 11:43:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260715101107.973997-1-mszeredi@redhat.com>
-In-Reply-To: <20260715101107.973997-1-mszeredi@redhat.com>
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Sun, 19 Jul 2026 07:12:42 -0700
-X-Gm-Features: AUfX_mx-VrWAtPNuDviKfVjbn51tqQht-nWAXr-HfoWBbjn3eDOh3hiCtUPefpg
-Message-ID: <CALCETrXYHX+OSwm6vhzQqvdk9Fkbxzh_dGuVm2tjvPJG_x1XdA@mail.gmail.com>
+References: <20260715101107.973997-1-mszeredi@redhat.com> <CALCETrXYHX+OSwm6vhzQqvdk9Fkbxzh_dGuVm2tjvPJG_x1XdA@mail.gmail.com>
+In-Reply-To: <CALCETrXYHX+OSwm6vhzQqvdk9Fkbxzh_dGuVm2tjvPJG_x1XdA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Sun, 19 Jul 2026 20:42:49 +0200
+X-Gm-Features: AUfX_mxZAmDgP1C2hJYyCV36TzCfzCkpkn9ppyiNeH1CkViYcwVDmhXZWL-qKS8
+Message-ID: <CAJfpegsS=aZABvwx56tfMtWzSsKWtR-N78q3YQ6JZ-nvQLUrGA@mail.gmail.com>
 Subject: Re: [RFC PATCH] fs: allow opening overlayfs/erofs layers through O_ALT
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Giuseppe Scrivano <gscrivan@redhat.com>, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-api@vger.kernel.org, 
-	linux-erofs@lists.ozlabs.org, Amir Goldstein <amir73il@gmail.com>, 
-	Gao Xiang <hsiangkao@linux.alibaba.com>
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, Giuseppe Scrivano <gscrivan@redhat.com>, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-api@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
+	Amir Goldstein <amir73il@gmail.com>, Gao Xiang <hsiangkao@linux.alibaba.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 15, 2026 at 3:17=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.com=
-> wrote:
+On Sun, 19 Jul 2026 at 16:13, Andy Lutomirski <luto@amacapital.net> wrote:
+
+> This gives me the willies a bit.  It's very cool, but it has some
+> potential security issues that I think we need to watch out for.  As
+> sort-of prior art, NTFS supports alternate streams and Reiser4, ahem,
+> supported files-as-directories.
 >
-> This is a prototype patch. Needs to be split up!
+> Some questions that we would need to consider:
 >
-> 1) O_ALT / OPEN_TREE_ALT
->
->   These open an alternative namespace rooted at dfd - instead of resolvin=
-g
->   the path in the real filesystem, it resolves it in a virtual tree that
->   exposes metadata about that file.
->
->   This is intended to provide an alternative to adding new ioctls:
->
->    - provides structured namespace
->    - allows accessing data through fs ops
->
->   Could call this O_META, but O_ALT seems more generic and there could be
->   uses beyond metadata (e.g. seekable, in-place decompression).
+> 1. Can you open an fd referring to a "directory" within an O_ALT tree?
 
-This gives me the willies a bit.  It's very cool, but it has some
-potential security issues that I think we need to watch out for.  As
-sort-of prior art, NTFS supports alternate streams and Reiser4, ahem,
-supported files-as-directories.
+Yes.
 
-Some questions that we would need to consider:
+>  What happens when an unsuspecting process gets such an fd?  Can you
+> fchdir to it?  chroot to it?
 
-1. Can you open an fd referring to a "directory" within an O_ALT tree?
- What happens when an unsuspecting process gets such an fd?  Can you
-fchdir to it?  chroot to it?  clone its tree and possibly bind-mount
-it somewhere?
+Yes.   However you cannot escape from that particular base file's O_ALT tree.
 
-2. Can you bind-mount *onto* something inside O_ALT?
+>  clone its tree and possibly bind-mount
+> it somewhere?
 
-3. Whose creds are used for which operations?
+No, it's an "internal" mount, so no cloning.
 
-4. Can you mmap the things in O_ALT?  Is this determined per object or
-generically?
+> 2. Can you bind-mount *onto* something inside O_ALT?
 
-5. Would we ever allow FUSE to expose custom things inside O_ALT?
-What contents of O_ALT can a program trust come from the kernel and
-have the expected semantics?
+Again, no, because it's an internal mount, not in any mount namespace.
 
---Andy
+> 3. Whose creds are used for which operations?
 
---=20
-Andy Lutomirski
-AMA Capital Management, LLC
+The creds of the process doing the operation.
+
+> 4. Can you mmap the things in O_ALT?  Is this determined per object or
+> generically?
+
+Per object.
+
+> 5. Would we ever allow FUSE to expose custom things inside O_ALT?
+> What contents of O_ALT can a program trust come from the kernel and
+> have the expected semantics?
+
+I think adding such a plugin would be similar to adding a mount.  So
+I'd suggest allowing it with the same privs (CAP_SYS_ADMIN) and
+constraints (limited to the current mount namespace).
+
+Thanks,
+Miklos
