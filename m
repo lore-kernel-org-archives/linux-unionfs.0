@@ -1,276 +1,845 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F6861F938;
-	Mon, 20 Jul 2026 08:45:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B293F3CBE8F;
+	Mon, 20 Jul 2026 09:04:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784537141; cv=none; b=t2jxTKK4M47Hd99BOwXy1nNxyYc/SSwsbkXmVWusgjN4ccB+eY+cBWMWiqaMqXKzAgafSyglsd4JIvlizU0cNtvP4QKBB+zVJqFi43qoPcSWPe/ZPPMlBLmj7H8W2AybMwhYnjuEEZkNnRPIYgmC8zhJpMqX/bLDfIqCJGGp7tQ=
+	t=1784538296; cv=none; b=OCw0cIRD3PwHP7Y3H/lnrL+J3FXdO8TLl5QbnKLfJkd/Fk3FVa/N7eVTj9yRJnwbJDJqAhldr+VV21fjppBc4MlbpIMH7tB6/tuYlAMsMgjw0eRoMK4bdVPwApvjOn7ZheAU/Yzpt4BTksyF0Ghq1/3bq15DMmeWkGZFC+GzkLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784537141; c=relaxed/simple;
-	bh=7MPWJRCU3rlzlcvJ6Lg2L32JYHbQvX5x+WmSWLO2U4o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BiOpL7wV3Lz/Y8bSYI0PutDEb0zfZsYJzj1hPsyHYsVYCgeHZbgEw3SJ5HiFNM5m8/fR9OlIxsWhU3INglo2G8GxdqZbqdXixdbUvmnt5rETrMnXs5LJChdeqkNAjmWf41K/KHAl6kMPEWdlQMvytKXXtG2ph2WIOD+26sKP4vo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.com; spf=pass smtp.mailfrom=gmx.com; dkim=pass (2048-bit key) header.d=gmx.com header.i=quwenruo.btrfs@gmx.com header.b=UrfSUxwI; arc=none smtp.client-ip=212.227.15.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.com
+	s=arc-20240116; t=1784538296; c=relaxed/simple;
+	bh=gd3WxBaRQ9yNIJGNh9Vec2emKr0DUqfhyAsEPHXZlZ8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Z7A3m9IaVtWPOHneyRhWxx/Eep9uJZgITnXQL6X1EpNGWwnFEy3JkUOqrnks8bHxbdnt3GuV5I3wIK1J4N9I+NaeNvWJnDoQlXS+xDoSIxxUWBxMsha5bs+eZbdebBJODqCFzMQpxjhQgCB5T5apzPsE60FtGDSPryD2HaOI45s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CKnCjr/H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.com header.i=quwenruo.btrfs@gmx.com header.b="UrfSUxwI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.com;
-	s=s31663417; t=1784537137; x=1785141937; i=quwenruo.btrfs@gmx.com;
-	bh=BhZimL4xPZi3pUEoT+oD9wvSLRMP0NFgMCv/77Uro2c=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=UrfSUxwIJy7cdj4Vf2yhqjaTZkGAP8bwkLIZJoVuG3Rwk/gF8cMmkCf29En9Vo6N
-	 n4BKvZnACbXQDlepQvMgiV6a0OPBY0vWEF8+cqCXMbgJOc5Q5j4n/5ZNBi8ABEqCA
-	 fQ+iTz8a6IG3s7IXISrGUyYI/VuUg1bmB/cBoeudUYx6hSK57yAf48QGkkamTCu9U
-	 rIIDqB0gjkkuzhT2iiK4mSqu9HIb/fWZs7tmEmZVgE/gmjVpaFG4dW0kNNTZ0KzLw
-	 gcffwMYhI5VYLLbh0WNlX8aB3B+4xm4OmuDkfhjljNSmAyhyuk8202EA+UEZ6jW/J
-	 fUw8iyN358y1UhtJaA==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
- [212.227.17.184]) with ESMTPSA (Nemesis) id 1MhlKs-1xGPg01zNI-00jpU3; Mon, 20
- Jul 2026 10:45:37 +0200
-Message-ID: <fbfbafef-2b42-4f5e-ac8e-9c680a0be5ad@gmx.com>
-Date: Mon, 20 Jul 2026 18:15:31 +0930
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CKnCjr/H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F081F000E9;
+	Mon, 20 Jul 2026 09:04:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784538294;
+	bh=9y6vqO88Q9FivaUQ8DU2Ezp3Y6e+kCObHy+O9geghSQ=;
+	h=From:To:Cc:Subject:Date;
+	b=CKnCjr/HMv1sA1VHO0l9LCv0cQBetll2XH9sOl8gQW0kLdG/hCoZ0ENEYtJVp5Jeq
+	 QRuZ9JqzalTLpU0cOTljnOJSRjP4q/zQJWbO/3Cttz++PhSdnMKUwmsh82FhnpU83T
+	 T86n0w6pydPFoWxNlViyfV/a7dQt+lNDRSE8dsoPIBIhNpgslmfNKgK6dcEPL8g9XL
+	 aD2WSpFTap3bRhZO/KiWYrZ486ye+zykH4+ptH9sDDkc9pRiqvAVRnj6MkqiCKciMc
+	 3Cs40udIBO/ymtgtZZnHvfudL5us5XDxCd+L+ZkLoBQS7F9eF1QFtkdFzKQmexy+M2
+	 VEHrDOy/ilDcw==
+From: Andrey Albershteyn <aalbersh@kernel.org>
+To: linux-xfs@vger.kernel.org,
+	fsverity@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org,
+	ebiggers@kernel.org
+Cc: Andrey Albershteyn <aalbersh@kernel.org>,
+	hch@lst.de,
+	linux-ext4@vger.kernel.org,
+	linux-f2fs-devel@lists.sourceforge.net,
+	linux-btrfs@vger.kernel.org,
+	djwong@kernel.org,
+	linux-unionfs@vger.kernel.org,
+	david@fromorbit.com
+Subject: [PATCH v12 00/21] fs-verity support for XFS with post EOF merkle tree
+Date: Mon, 20 Jul 2026 11:03:28 +0200
+Message-ID: <20260720090410.3487990-1-aalbersh@kernel.org>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] src/vfs: probe O_TMPFILE support on the base mount in
- the idmapped tests
-To: Christian Brauner <brauner@kernel.org>, Miklos Szeredi
- <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
- Zorro Lang <zlang@kernel.org>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- fstests@vger.kernel.org
-References: <20260615-overlay-idmapped-vfstest-v1-0-c6b3b2228092@kernel.org>
- <20260615-overlay-idmapped-vfstest-v1-1-c6b3b2228092@kernel.org>
-Content-Language: en-US
-From: Qu Wenruo <quwenruo.btrfs@gmx.com>
-Autocrypt: addr=quwenruo.btrfs@gmx.com; keydata=
- xsBNBFnVga8BCACyhFP3ExcTIuB73jDIBA/vSoYcTyysFQzPvez64TUSCv1SgXEByR7fju3o
- 8RfaWuHCnkkea5luuTZMqfgTXrun2dqNVYDNOV6RIVrc4YuG20yhC1epnV55fJCThqij0MRL
- 1NxPKXIlEdHvN0Kov3CtWA+R1iNN0RCeVun7rmOrrjBK573aWC5sgP7YsBOLK79H3tmUtz6b
- 9Imuj0ZyEsa76Xg9PX9Hn2myKj1hfWGS+5og9Va4hrwQC8ipjXik6NKR5GDV+hOZkktU81G5
- gkQtGB9jOAYRs86QG/b7PtIlbd3+pppT0gaS+wvwMs8cuNG+Pu6KO1oC4jgdseFLu7NpABEB
- AAHNIlF1IFdlbnJ1byA8cXV3ZW5ydW8uYnRyZnNAZ214LmNvbT7CwJQEEwEIAD4CGwMFCwkI
- BwIGFQgJCgsCBBYCAwECHgECF4AWIQQt33LlpaVbqJ2qQuHCPZHzoSX+qAUCZxF1YAUJEP5a
- sQAKCRDCPZHzoSX+qF+mB/9gXu9C3BV0omDZBDWevJHxpWpOwQ8DxZEbk9b9LcrQlWdhFhyn
- xi+l5lRziV9ZGyYXp7N35a9t7GQJndMCFUWYoEa+1NCuxDs6bslfrCaGEGG/+wd6oIPb85xo
- naxnQ+SQtYLUFbU77WkUPaaIU8hH2BAfn9ZSDX9lIxheQE8ZYGGmo4wYpnN7/hSXALD7+oun
- tZljjGNT1o+/B8WVZtw/YZuCuHgZeaFdhcV2jsz7+iGb+LsqzHuznrXqbyUQgQT9kn8ZYFNW
- 7tf+LNxXuwedzRag4fxtR+5GVvJ41Oh/eygp8VqiMAtnFYaSlb9sjia1Mh+m+OBFeuXjgGlG
- VvQFzsBNBFnVga8BCACqU+th4Esy/c8BnvliFAjAfpzhI1wH76FD1MJPmAhA3DnX5JDORcga
- CbPEwhLj1xlwTgpeT+QfDmGJ5B5BlrrQFZVE1fChEjiJvyiSAO4yQPkrPVYTI7Xj34FnscPj
- /IrRUUka68MlHxPtFnAHr25VIuOS41lmYKYNwPNLRz9Ik6DmeTG3WJO2BQRNvXA0pXrJH1fN
- GSsRb+pKEKHKtL1803x71zQxCwLh+zLP1iXHVM5j8gX9zqupigQR/Cel2XPS44zWcDW8r7B0
- q1eW4Jrv0x19p4P923voqn+joIAostyNTUjCeSrUdKth9jcdlam9X2DziA/DHDFfS5eq4fEv
- ABEBAAHCwHwEGAEIACYCGwwWIQQt33LlpaVbqJ2qQuHCPZHzoSX+qAUCZxF1gQUJEP5a0gAK
- CRDCPZHzoSX+qHGpB/kB8A7M7KGL5qzat+jBRoLwB0Y3Zax0QWuANVdZM3eJDlKJKJ4HKzjo
- B2Pcn4JXL2apSan2uJftaMbNQbwotvabLXkE7cPpnppnBq7iovmBw++/d8zQjLQLWInQ5kNq
- Vmi36kmq8o5c0f97QVjMryHlmSlEZ2Wwc1kURAe4lsRG2dNeAd4CAqmTw0cMIrR6R/Dpt3ma
- +8oGXJOmwWuDFKNV4G2XLKcghqrtcRf2zAGNogg3KulCykHHripG3kPKsb7fYVcSQtlt5R6v
- HZStaZBzw4PcDiaAF3pPDBd+0fIKS6BlpeNRSFG94RYrt84Qw77JWDOAZsyNfEIEE0J6LSR/
-In-Reply-To: <20260615-overlay-idmapped-vfstest-v1-1-c6b3b2228092@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:NfzMuBdKieQ+KN1k6Ngc51I7yYs8ASE/S6xXJqQEuPykF6Nxx2a
- q1HcAIR7S5voJ1VTg4dg6jrz+scsfDFDEzP389SG7HvjO60AG6re/ydNrXuzQwwLkwLJo3X
- kMts0Pkdvoz7N5paGLLOTOaF1krq7QZoy9RB13qJjAtPoN2gafznVIE3RgROVjzGp2yRfyZ
- jCmsdr78/4frfYHBS23ug==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:3sSAYnCH8hg=;5jNp0y6/EIPtU5GngL9KxJHLVa2
- TA/P6peb0TSmU+beriUKJxrLDMD+ZxiK3lBSERZDokasxj8OvhHLb5SgueY0yMWx18O/MOmvt
- krmRsRzZUQEjcrXEUDjDbamVZVy4zW/+SnywVPdn9+tMfkTdB7OClXwHrm5Kz7XHtJg1NIg/Q
- QAl1eVV/xMuLAzvmjYLkoGHUHwi5ZMMmKf1YCdNyf9qhbAKCpP6EcNWarheU7nGXfRs1YfjLW
- O9NgdRMxMEI2ZgIa0XUGA69psZ0vuu7uIum82lnqgwmYma9fIgvRzi0qwrxiPvq4asJL7iYo7
- +fJ4dvDFJnVrZ+vF++nWFrugXWt8MzVkGFp4kKrag7nMz+AEi6afQwp+mGT0tXg2JshKq9Wyf
- OZDhAMKXbztBD3r5gFKHY8B+SRwGaTlmMLTD8C7IZbFncLeETgZKubFECQBI4jAXa/uhzFdea
- OreaHYsAo4nMTb+Lx6WD+A79Spz4YodJLaFXsTGICJ9uifAtFcIZlj7bEJauAU6X3FM484gA1
- Zx4kl1zc1hxIniMGT2pVcPgh8G9vfGtrUNEy2qrjLfOSz2/Mtk/8WjvmclTKRf04SpsTN0DBb
- s7UAt6/YMPPOLbCjjLXGLzn+Lbw95NB8QRQCOcFAjq1q3aGpUO9iu3v0mWWGZI0bAcunf7iwc
- /JMoMF9yymV4ZzNBtkJEt54moQp5NwLjYplEwIQFNDV+IS4DPgShvJHjFNTYhtuxG64cs7W/L
- QDE9I43qsN6exXaJQ+h7ouFWHDaw6uqwz6GxF1LEtUD/nyI2hekDrABxCQODuuoFc1iBjbnQe
- h48xQRtcyeDQswWhM2KS+MxmnocRXQ8JegYyS6Hhpqyc8dXLPI1sKS4u20Df4lF1Vl9DbtD0E
- ekrpcssh8CqzyRMkU6NlUjlJP6WBXVXgp0fHsPdjU5F6u5jMxkiavmWvNb6RZcva111DqD/qh
- RAAl+tYDFT7BbEYUs0t1wunDKsm3nEzQeEPBCSAmaAPLq9xKg312FBjDQXoNKoYkdZmp3dy0b
- 6iO5NHKG9rcJRGYMvmy4W0Gr0d0f/GjicVfX5cJaokic3240zRx5HZqtYh/tb8VTnQitLuFb1
- KFufQfWRI6MLn4cD35GWtudO2uatuP8nCyMbr1Rohoi/Rijc8+f8cWaUpWyaeP6es7IQdnf6s
- Z7YBd0PE/awUZbT2BXRISqmzDyEPDHfLpFThHxr8YdD5Bu2MoO7Lbr68uspshSJzUAD2CqctF
- +BUBYVI9Pc9WAWvoJo2sDUb5ETuYHyorGOnMCkpsb1RsNJchcn6cObEEvJPK5AYQWWydbSBr/
- LCqi4b8NTgDPcEPTKl9St3Us8/rqirU3W1FwlSUUJzmdMznlA4FtJeuIkRTk1H3lxzO/VX8us
- LtOLbvcZ+/duhnXxjcFs8s74+kIsrDB8p4GfbKxlqTdwSxXmSgRFGtO3zY9Cv+T8ze0BI6HDc
- 9iSLJEuiQkZxCnNErYRVkAMN2/fFDIqzQm3cfe+nAUFPBe9kGsQyTJ2LuEWyuc8a46EOE5qzq
- zZoO63DdsSuYallu21E2Hbe9N/S2R9WuyMiWGjpsuDxb7S7bu7iPKVL5kdI5aHJztynxKfNGR
- Pj8CrqeKj2eLY7hSomjqzzA5OrbGV3foYDaHuUv8lh5w0V9qOlZHVQU2KDbKbXUyEk8/+o0m1
- xk9hstGEGO0X9X0+ae/zJ9/tunWpW40Kx/dwLqjK5df0o0Sxmdm7gtMxX7uLlZLfqbaLwoyKQ
- 5y3szfTAcONvspQo1nrT4+vPBzPqtcHm8xIfZDE1DWz/1H88i9ByA2XKUA7gSv1/6iYJ13Dup
- d2L2En/YmkbjXsPnkvnHw5vdy95gdeEyTLozwtLoCGO4dKIGY1IcavgzupTxMFE3k4l8vPWgn
- R3438Hn55jnBSwsTA0tEclJP+gdNHozbEct5g6MM7ykjLVMsOCANqqgij8fzYIpuFjKxQP9US
- cgtoNDJscYSYKnSR0mhamugQs5Je1UIOwxjgdM0n9nLK3NI+QSLKXHChsH5lZpipBHQEGtBy3
- Lwq2sV40wr3DdS6mzvX6Vnnx/Nj35/ZJuZ8PVslmtt4J4JsWTipOKrsWH1MIUjv59uRjGOGNX
- IzO0rNx3vMdqOsQbsYj+Pn9LboFL2iMT+SpfEnVNadKs3Cd9LeHbjVynWJ5xLiLH7yp/Da5Ok
- +9gqSIQBIoX//8ExDAey4FQFScKWFcmCnTRAnxygEnZA9rUUo24VExbLMlma8c9ThIy0xOrjZ
- D88Ge3bl5l3aVFQiTN/s9qcwDHz/6mmEDymXuMn3Ejr7LjbDmekv3ePYEPvY3Jr/CuWZbT2L9
- mDLqinElsWupqmfnzutuWfyVDLEACSbvF41raKNKVCcazhj8gK/l0gTvm7C8h/cVC6EMQXvGO
- Jmkw4m1zS0gydbCQDBz7YEvdbVarL/ZS3n3aa8SJ+znDYImAyXQ2fLQOVN1m8ein4YRgf2iwR
- OesxuIZScxX4OsTsqEVr4y3KAORC9dIw1MFdnPRo1IW4aMw+Mm4dDrGK+SoQSVRxX2Yv3jLxV
- 3GOoHPiK75R7AB+MMhRj6IW/ocvYevsmEAkGQROY1JvyCX7B8ckgmeZnOyCM8VPwxa536YdD0
- XJWWfLb0jDlB3EQmZNLZWnB885rYWp89GyPbYFobRh/Ty4ioTfTbGgDYF+SJDzjCHyznNFTtU
- 1LT1pgX05QdgPu6WE2nYtcoUjUnBcAKwZCT5mkpR9Ut7w4jxNuvcpgkyrIiKfjg0pWDPhEmZ1
- 3GVam88wv/mah4/kjyt+SFacksF3pgvYuXX+ZNM5GG/iMQvAfKzkfuY+SbsrtDbKLU57h/F33
- rCa4ejy/Hk45emSz6uXllIToN/QnxxJ41Kjp8UhztrMTa/dQ0787YFyeEYZPP2CA4Qy2n67H7
- I/c57ldzEeoCPVS6qGNicB8RKhwlH6ieV524PbLEvZfESNVbHdo1LWzOvJWCVf4ChA5ur3pL3
- J+6NUGt9lttgSmXL7kiIspzZIcn5a3WIMC7PslpM9FgKsaJY+VU8EdoYiGD9h0Qt8Vdoig4M4
- onNZdkWhoQCIhvY40UwZRcZdX/4zG75Niuajcc3YGQoL7OhU1g2aE/Z0aeENGfwfY4arkhOra
- b/ZLfW3MldI9zWmjCE+ZBT0w53N39oNfGDoVJovGjis1EqVkfx3XBnv+2N/nljazmo3l0lCDn
- 8lHEqyEkhyhQYbmqQtHJLNkXzqEDxnaIRJSbwRo8Xv06hokRdrNKr7H7jjpsuZ1XwT9RvtK9+
- FRS+McqUU+QDjJee8VcEsZTJuBII2DfqFt5ZXCAFOx5bHQzMZUknbWWJfjekvmvSBMuDNW7Fr
- uQyJgHcgUte+mwcK4kBjMi7WS+B5p/U5oWUvpGuvllL593BelryiDehFThroc6JCQJX5i6pjX
- yW2BmMU46uYMFxsIlIYVgK0ELk5t7PCNjI9LSI6ieb5UFip8OupXUci6pVAbwBHgrRAKL5ZlH
- z6jotROqE0Se6zq54a3NzTF/kVk6XfzuFZPrNwhyvKSkvW3CsO8R5rQ6JrwsInheO7eQlOII0
- TlxtEBej7AjiXitC8+SngVMHp6aRtOqFeNiqzw0th+/tncwBbk7ZT47n8NsLz87tu9gsW1k5E
- YW363zpy27Jnk3ghA5ZA1/Jw3lGZxun49kYS3DVBLs41kYhicYQHxnbYyNTlU+8oyPV6ZJKJt
- HwPQ5Ntyg+op1ubfrTBYrb+1h3iqGfm7hHR1Qh0HktzRLLtQcYfuWbWH1z+HJkwAN9/Pumc9W
- J3/Np6nF7XaSdLEw4jRcMVYNuKsBqPBuqNhWiApYhMiWpeZcgklmrpiHEXLGuDMUuq3lfQj8K
- +lCzBU2Bkkh7lUGX1QB0ndBKLNwR/vwImtaCfavm7wuV8RhLw8sT2rR7N6L37J+Jf0psbT5s5
- QOIUqDJbuh9tal4Ph+H0dsn/eY2aKhJ9Q/KaTZSLmdAF8aETw7b1qd89gylmCWxDmU5m86ytq
- FIxGkQR5L+vkT+dL4iP6BO9LR4gpGEnNaBkfLA79HjUoEnvjKS0Cpn5iAuBjxseeRbiy7UPxw
- lIOg+DB5yTk5XefvqSUASliZGZIT6hMeiBxKE8GrsauAayD3G4Tl38hMfo1D70P8WXdrXY9v/
- e8ZJTnkThXgostTofMew4ALPQz0MdNufuatm5IJMCxZOgXzN7Q1hqYIbuJEThn9bdkj5Jxle9
- CQy9YvxDDbZAwHCfadpbn4m7HUxzz1XsQ7L2S+pHA3QeHjGurQYor3GNPJg48elv608zSwp5J
- /b20llxv3uA/78Q4JJ8HUOl+i6YObwpKWi9nLJr85XWY5UJLE5q+BrxdrQJlfBMmbdM9IuY46
- OifypTblzL1wTWipfqUkAdRprNXHPr5X4ckE8ABDk28mOuFxb1okO2fJ+r10NsQ53/naonaFN
- tPOBULdzUeeFAu5fRvdTq8HaHDf/VCLRSg+WbJhTnzuP5/xx8IWXeh29+YccoSxp3TOdLWk0R
- e2crVN9r75dpGlO8tEjhY2AAtZkvr2dDajUgXOhIELOf5QIdGfec7PCjR2WcG3tGquarJibAd
- tsod4myB1airIYvenuLJXhTHyX0RY13P0xAoNh0RTrJGs9Br6FzBFZ6zxJKCW0RRGGA2CqIwG
- GhMy1f9oxhVS5uZiJ03XcBqSgRFZUiQzeymRhvibpxTKv18i/kUt2zxVv3P6tTL2ZPZ3A2ymv
- H3F+YZqIaeCik/ePht8D2NXI0TmMKs5c/c/JPSoDwzvvhVv2nKRf9KRGDJlNL2euFL7El3i0B
- Dre10EJYttrDV5pEOkWoFzSiiHytDxx8lzxCQQoCdglAzCBDVX18MO6a40uN83TYlx4X8SmPU
- fyvIvj90zBAiRRsorwHay53LxWSPk0ouN3ZsTjjjb2I/kyXeAT86Y/94bZmDbvrMa8K1HPm1S
- 3iUXgMeK5eUszyJyZo4QUYRZ+U/Xlt1UATJPGV/ViAi+K2oSDhHqg0XmjLqEeAFWPewbAWeXo
- MNquuYuzTnGjZQGs7N0eDtkl41ZsOl6pFiFPvEgIdpunwW4KaBEy264ChTiufgAG+GS5fTu9Y
- cmHvXI7FTJBECLlMvvjRBX9IPT1sXYvoIujLNstjlpyzYho1/7spBiBzN0pPNMi+2j1IF4ZM5
- 2v7iPOWe+Zznz0+qKL6bENMrozMeylG3dSP4NzTMzZLRP58tQY4QvyW2WT2QMnC+ZRvAFXOZV
- Y9f9trrYJSaAHijmB6E8BkCJXx45q5Os1PiMoanf/fBzqcmwGZjjr0lQwrsj/+D3seufRtJBl
- SuB0OLNrrtwXMdiHavq2zEXifA5siJPpjIw5vDu4tTSvgFTLYA83cqR61LpQYPgsQ554W40a7
- ZrjZjf+npLym1EvFrOHWy+5RaI4WLzjO6DVslQANq1AMPTFYakBEeQhJTtj/SqjrxI5S61AzJ
- mbTxdUsYbNNuojoyYZ7vDdFtdnJLoH6OH51HnQi++PenxfFb0hslicfBrJZ+ajkkLXQuiSlR9
- ng3mIoAbRewkmBDKpeykYJg8mMkl4GvSSup/luS1BtsFIvLD1Vqu5WYtZnpX59fDl9MZWZF1h
- WyNMroXMoYA1br1maQmqB0sWxbNkXruCJiqwpxF5rURTwM1VnIjDpUFK73pcShQgkFYrFt983
- uKZFuUnVfelbMz5rDcU1vAWl0SlgR7SurUl+yAd3dgs3VwSV3EIZyOWBBygeW+nIXVs9arv49
- gjt4DAyHJLWJE7ANfm4vudYTW1yo+q
+Content-Transfer-Encoding: 8bit
+
+Hi all,
+
+This is next revision of fsverity for XFS. This revision includes fixes
+for issues found by sashiko.dev (and claude-code scan).
+
+Below are my responses to the sashiko points.
+
+Range-diff with v11 also below.
+
+Patches 5, 6, 7, and 11 are new.
+
+Patches without review:
+[PATCH v12 05/21] fsverity: improve flushing performance of
+[PATCH v12 06/21] fsverity: don't allow setting DAX file attribute on
+[PATCH v12 07/21] fs,fsverity: remove check for fsverity being
+[PATCH v12 10/21] xfs: disable direct read path for fs-verity files
+[PATCH v12 11/21] xfs: don't report dio_mem_align and
+[PATCH v12 12/21] xfs: handle fsverity I/O in write/read path
+[PATCH v12 14/21] xfs: add fs-verity support
+[PATCH v12 15/21] xfs: remove unwritten extents after preallocations
+
+This series based on v7.2-rc4
+
+kernel:
+https://git.kernel.org/pub/scm/linux/kernel/git/aalbersh/xfs-linux.git/log/?h=fsverity
+
+xfsprogs:
+https://git.kernel.org/pub/scm/linux/kernel/git/aalbersh/xfsprogs-dev.git/log/?h=fsverity
+
+xfstests:
+https://git.kernel.org/pub/scm/linux/kernel/git/aalbersh/xfstests-dev.git/log/?h=fsverity
+
+sashiko review:
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org
+
+v11:
+https://lore.kernel.org/all/20260710085256.3464201-1-aalbersh@kernel.org/
+
+v10:
+https://lore.kernel.org/fsverity/20260520123722.405752-1-aalbersh@kernel.org/#r
+
+v9:
+https://lore.kernel.org/fsverity/20260428083332.768693-1-aalbersh@kernel.org/#r
+
+Cc: fsverity@lists.linux.dev
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
+
+Cc: david@fromorbit.com
+Cc: djwong@kernel.org
+Cc: ebiggers@kernel.org
+Cc: hch@lst.de
 
 
+---
+Changes in v12:
+- Refactored xfs_fsverity_cancel_unwritten()
+- Switched to using inode_set_flags()
+- Add a lock for COW fork reading
+- Add pagecache truncation in cleanup path
+- Added ERANGE and EBADMSG to fsverity scrub handling
+- Add missing XFS_FSVERITY_CONSTRUCTION in various xfs_iomap
+- Rebase to -rc3
+Changes in v11:
+- Drop wrong overlayfs patch
+- Drop already merged iomap and fsverity patches
+- Update to I_INO() use instead of ip->i_ino
+- Sashiko.dev fixes. See list of issues below.
+Changes in v10:
+- Rebase to v7.1-rc3 with relevant adjustments
+- Initialize ioend->io_vi to NULL to not get write work onto verity wq
+- Range diff below
+Changes in v9:
+- Fix fsverity_fill_zerohash() parameter names
+- A few fixes found by sashiko.dev:
+	- Replace ip->i_mount->m_attr_geo->blksize with m_sb.sb_blocksize
+	- Don't call xfs_trans_cancel() after xfs_trans_commit() in
+	  xfs_fsverity_end_enable()
+	- Call xfs_fsverity_delete_metadata() if verity enable failed
+	- Change start/end type from xfs_fileoff_t to loff_t
+	- Return xfs_trans_commit() error from
+	  xfs_fsverity_cancel_unwritten()
+Changes in v8:
+- Return fsverity_ensure_verity_info() errors from
+  ovl_ensure_verity_loaded()
+Changes in v7:
+- Move kerneldoc to fsverity_ensure_verity_info() definition
+- Drop patch adding XFS traces
+- Fix overly long line in the comment
+- Make order of fserror and fsverity_error consistent
+- Add overlay patch converting to fsverity_ensure_verity_info()
+Changes in v6:
+- Removed stub for fsverity_ensure_verity_info() as it's optimized out
+- Rename fsverity_folio_zero_hash() to fsverify_fill_zerohash()
+- Merge patches 8 to 10 into one
+- Merge patch gerating zero_hash and fsverity_fill_zerohash() into one
+- Add kerneldoc to fsverity_ensure_verity_info()
+- Add comments to iomap_block_needs_zeroing()
+Changes in v5:
+- Add fserror_report_data_lost() for data blocks in page spanning EOF
+- Issue fsverity metadata readahead in data readahead
+- iomap_fsverity_write() return type fix
+- Use of S_ISREG(mode)
+- Make 65536 #define instead of open-coded
+- Use transaction per unwritten extent removal
+- Fetch fsverity_info for all fsverity metadata
+- Revert fsverity_folio_zero_hash() stub as used in iomap
+- Extend cancel_unwritten to whole file range to remove cow leftovers
+- Drop delayed allocation on the COW fork on fsverity completion
+Changes in v4:
+- Use fserror interface in fsverity instead of fs callback
+- Hoist pagecache_read from f2fs/ext4 to fsverity
+- Refactor iomap code
+- Fetch fsverity_info only for file data and merkle tree holes
+- Do not disable preallocation, remove unwritten extents instead
+- Offload fsverity hash I/O to fsverity workqueue in read path
+- Store merkle tree at round_up(i_size, 64k)
+- Add a spacing between merkle tree and fsverity descriptor as next 64k
+  aligned block
+- Squash helpers into first user commits
+- Squash on-disk format changes into single commit
+- Drop different offset for pagecache/on-disk
+- Don't zero out pages in higher order folios in write path
+- Link to v3: https://lore.kernel.org/fsverity/20260217231937.1183679-1-aalbersh@kernel.org/T/#t
+Changes in v3:
+- Different on-disk and pagecache offset
+- Use read path ioends
+- Switch to hashtable fsverity info
+- Synthesize merkle tree blocks full of zeroes
+- Other minor refactors
+- Link to v2: https://lore.kernel.org/fsverity/20260114164210.GO15583@frogsfrogsfrogs/T/#t
+Changes in v2:
+- Move to VFS interface for merkle tree block reading
+- Drop patchset for per filesystem workqueues
+- Change how offsets of the descriptor and tree metadata is calculated
+- Store fs-verity descriptor in data fork side by side with merkle tree
+- Simplify iomap changes, remove interface for post eof read/write
+- Get rid of extended attribute implementation
+- Link to v1: https://lore.kernel.org/r/20250728-fsverity-v1-0-9e5443af0e34@kernel.org
 
-=E5=9C=A8 2026/6/16 01:03, Christian Brauner =E5=86=99=E9=81=93:
-> openat_tmpfile_supported() in the idmapped mount tests probes O_TMPFILE
-> on the idmapped mount (open_tree_fd) as the test's fsuid -- but that
-> fsuid is not mapped by the idmapped mount under test, so it really asks
-> "can this unmapped caller create a tmpfile through this idmap?" instead
-> of "does the filesystem support O_TMPFILE?".
->=20
-> On overlayfs this is a false negative: the backing tmpfile ends up owned
-> by an unmapped id, overlayfs opens it with O_NOATIME and may_open()
-> returns -EPERM, so the tmpfile sub-tests are wrongly skipped.
->=20
-> O_TMPFILE support is a property of the filesystem, not of the idmapped
-> mount or the caller's mapping. Probe info->t_dir1_fd, the base mount
-> that the caller owns, exactly as the non-idmapped setgid tests already
-> do. The probe then succeeds on every filesystem and the tmpfile
-> sub-tests run as the mapped fsuid.
->=20
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+-- >8 --
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=7
 
-Reviewed-by: Qu Wenruo <wqu@suse.com>
+> Should the online scrub and repair utilities also be updated to handle
+> XFS_DIFLAG2_VERITY?
+> While xfs_dinode_verify() correctly catches invalid verity flags, it appears
+> the scrub and repair paths in fs/xfs/scrub/inode_repair.c and
+> fs/xfs/scrub/inode.c were not updated.
+> If an inode on disk is corrupted with the XFS_DIFLAG2_VERITY bit set when it
+> should not be, xfs_dinode_verify() will correctly fail. When online scrub
+> attempts to repair this via xrep_dinode_core() calling xrep_dinode_flags(),
+> the invalid flag is never cleared because xrep_dinode_flags() lacks the
+> clearing logic for XFS_DIFLAG2_VERITY (unlike REFLINK or DAX).
+> When the repair finishes and xfs_trans_log_buf() attempts to write the
+> repaired inode, xfs_dinode_verify() will trigger again, see the still-present
+> invalid verity flag, and reject the write. Can this cause XFS to forcefully
+> shut down the filesystem during periodic automated online scrub jobs?
 
-Furthermore, since kernel commit 539dce114465 ("fs: refuse O_TMPFILE=20
-creation with an unmapped fsuid or fsgid"), even without overlayfs the=20
-involved tests will fail due to the extra checks.
+The scrub and repair are updated latter in the series and removes this flag if
+fsverity verification of the file fails.
 
-So this is not only affecting overlayfs but all regular fses now.
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=8
 
-I hope we can at least merge this one asap.
+> Does calling fsverity_file_open() here trigger a NULL pointer dereference
+> on inode->i_sb->s_vop?
+> If a crafted XFS image is mounted containing an inode with the
+> XFS_DIFLAG2_VERITY flag set, IS_VERITY(inode) will evaluate to true.
+> This triggers the following path:
+> xfs_file_open()
+>   fsverity_file_open()
+>     __fsverity_file_open()
+>       fsverity_ensure_verity_info()
+>         fsverity_get_descriptor()
+> In fsverity_get_descriptor(), there is an unconditional dereference:
+> fs/verity/open.c:fsverity_get_descriptor() {
+>     ...
+>     res = inode->i_sb->s_vop->get_verity_descriptor(inode, NULL, 0);
+>     ...
+> }
+> Since the XFS superblock's s_vop pointer does not appear to be
+> initialized in this patch, could this result in a panic when attempting
+> to open the file?
 
-Thanks,
-Qu
+This will not show up during bisect, but this is fine to move latter in the
+series when s_vop is initialized.
 
-> ---
->   src/vfs/idmapped-mounts.c | 12 ++++++------
->   1 file changed, 6 insertions(+), 6 deletions(-)
->=20
-> diff --git a/src/vfs/idmapped-mounts.c b/src/vfs/idmapped-mounts.c
-> index ed9992f9..8f8441c9 100644
-> --- a/src/vfs/idmapped-mounts.c
-> +++ b/src/vfs/idmapped-mounts.c
-> @@ -3838,7 +3838,7 @@ int tcore_setgid_create_idmapped(const struct vfst=
-est_info *info)
->   		goto out;
->   	}
->  =20
-> -	supported =3D openat_tmpfile_supported(open_tree_fd);
-> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
->  =20
->   	pid =3D fork();
->   	if (pid < 0) {
-> @@ -4014,7 +4014,7 @@ int tcore_setgid_create_idmapped_in_userns(const s=
-truct vfstest_info *info)
->   		goto out;
->   	}
->  =20
-> -	supported =3D openat_tmpfile_supported(open_tree_fd);
-> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
->  =20
->   	pid =3D fork();
->   	if (pid < 0) {
-> @@ -7733,7 +7733,7 @@ static int setgid_create_umask_idmapped(const stru=
-ct vfstest_info *info)
->   		goto out;
->   	}
->  =20
-> -	supported =3D openat_tmpfile_supported(open_tree_fd);
-> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
->  =20
->   	pid =3D fork();
->   	if (pid < 0) {
-> @@ -7947,7 +7947,7 @@ static int setgid_create_umask_idmapped_in_userns(=
-const struct vfstest_info *inf
->   		goto out;
->   	}
->  =20
-> -	supported =3D openat_tmpfile_supported(open_tree_fd);
-> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
->  =20
->   	/*
->   	 * Below we verify that setgid inheritance for a newly created file o=
-r
-> @@ -8181,7 +8181,7 @@ static int setgid_create_acl_idmapped(const struct=
- vfstest_info *info)
->   		goto out;
->   	}
->  =20
-> -	supported =3D openat_tmpfile_supported(open_tree_fd);
-> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
->  =20
->   	pid =3D fork();
->   	if (pid < 0) {
-> @@ -8536,7 +8536,7 @@ static int setgid_create_acl_idmapped_in_userns(co=
-nst struct vfstest_info *info)
->   		goto out;
->   	}
->  =20
-> -	supported =3D openat_tmpfile_supported(open_tree_fd);
-> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
->  =20
->   	/*
->   	 * Below we verify that setgid inheritance for a newly created file o=
-r
->=20
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=10
+
+> Does XFS actually fall back to buffered I/O for fsverity files?
+> Looking at xfs_file_read_iter() in fs/xfs/xfs_file.c, it doesn't appear
+> to check fsverity_active() before routing the read to the direct I/O path:
+> fs/xfs/xfs_file.c:xfs_file_read_iter() {
+>         ...
+>         else if (iocb->ki_flags & IOCB_DIRECT)
+>                 ret = xfs_file_dio_read(iocb, to);
+>         ...
+> }
+> If an attacker opens an fs-verity protected file with O_DIRECT, won't this
+> bypass the page cache and fsverity_verify_folio() entirely, allowing them
+> to read unauthenticated data?
+> While this patch correctly zeroes out the alignment fields in statx, it
+> doesn't seem to stop an application from issuing an O_DIRECT read anyway.
+
+Again miss-ordered patches, swapped them so fallback patch is first one.
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=12
+
+> Will this check fail if the newly allocated metadata extent is merged
+> with a preceding data extent?
+> Since XFS can aggressively merge contiguous extents, the merged br_startoff
+> might become the start of the data extent, making it less than the metadata
+> offset.
+> If the check fails and IOMAP_F_FSVERITY is omitted, won't the generic iomap
+> writeback code see a folio past EOF without the verity flag and discard it,
+> causing silent loss of the Merkle tree?
+
+I don't think it's the case. The extent merge could only happen when file size
+is exactly 64k and merkle tree extent got allocated in the next physical block.
+The delayed extent or unwritten extent merge is not the case as data is written
+back before building the tree.
+
+Then, if merge happens the read path doesn't care about this as iomap/xfs read
+metadata based on file offset.
+
+The merge could probably happen for merkle tree/descriptor but this is also fine
+as XFS gets descriptor based on the last block of the extent.
+
+> Does this face the same extent merging issue as the check above?
+> If the new metadata extent merges with adjacent data blocks, the offset
+> check will fail and drop the flag.
+
+The same as above.
+
+> Should the source mapping in xfs_zoned_buffered_write_iomap_begin() include
+> the IOMAP_F_FSVERITY flag instead of hardcoding 0 for the iomap_flags
+> argument?
+> Looking at the unaligned write fallback later in this function:
+> fs/xfs/xfs_iomap.c:xfs_zoned_buffered_write_iomap_begin() {
+>     ...
+>     if (!IS_ALIGNED(offset, mp->m_sb.sb_blocksize) || ... ) {
+>         ...
+>         error = xfs_bmbt_to_iomap(ip, srcmap, &smap, flags, 0,
+>                 xfs_iomap_inode_sequence(ip, 0));
+>     ...
+> }
+> During an unaligned write, read-modify-write requires the source mapping.
+> If the IOMAP_F_FSVERITY flag is missing on the srcmap, the iomap layer
+> might assume blocks past EOF should be zeroed.
+> Could this unintentionally zero out previously written Merkle tree blocks
+> and corrupt the fs-verity metadata?
+
+This one looks valid, pass iomap_flags to xfs_bmbt_to_iomap().
+
+> Does this fallback to xfs_direct_write_iomap_begin() drop the newly
+> assigned IOMAP_F_FSVERITY flag?
+> If a file has an extent size hint configured, the delegation skips passing
+> the iomap_flags variable entirely.
+> Without this flag, could the generic iomap write code update i_size when
+> appending the Merkle tree past EOF, unintentionally exposing the internal
+> fs-verity metadata to userspace?
+> [ ... ]
+
+This is actually highlighted the problem that inodes with extent hints won't
+correctly build merkle tree. Enabling this will require to implement fsverity in
+direct i/o path. So, added a check that fsverity can not be enabled on inode
+with extent hints.
+
+> What happens if a read operation (like a large readahead) starts in the
+> data region but spans across the boundary into the fs-verity metadata
+> region?
+> If the starting offset is less than the metadata offset, IOMAP_F_FSVERITY
+> won't be set. Because the returned iomap isn't truncated at the metadata
+> boundary, it will cover the metadata region without the required flag.
+> Will the generic iomap read code then incorrectly zero the folios past
+> i_size in the page cache instead of reading the Merkle tree from disk?
+
+Normal readahead will stop at EOF.
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=13
+
+> Does this completely bypass verification for merged ioends, causing a
+> regression where corrupted data is read as valid?
+> When large contiguous reads are split into multiple bios by the block layer,
+> xfs_end_io() merges the tail ioends into the head ioend's io_list via
+> iomap_ioend_try_merge().
+> Since xfs_end_ioend_read() only passes the head's io_bio to
+> fsverity_verify_bio(), does it leave the merged tail bios completely
+> unverified before iomap_finish_ioends() loops through the entire io_list
+> and marks all of their folios as uptodate?
+
+iomap_ioend_can_merge() returns false for read ioends. So, no merge occurs for
+these.
+
+> Does this strictly serialize fs-verity verification per-inode, causing a
+> severe performance regression?
+> Unlike ext4 and f2fs which allocate a work_struct per bio to allow parallel
+> hashing across CPUs, this reuses the single ip->i_ioend_work per inode.
+> When multiple concurrent reads to the same file complete, they are appended
+> to ip->i_ioend_list. A single worker thread running xfs_end_io() iterates
+> over them and sequentially calls the CPU-intensive fsverity_verify_bio().
+> Could this limit fs-verity throughput for a single file to the hashing
+> speed of a single CPU core?
+
+Yes this is true. This could probably be improved for all read path I/O. As far
+as I understood, the history is that there was high lock and transaction
+reservation usage on random writes. With fsverity ioends we don't need a lock so
+that could be improved.
+
+> Can this result in an unresolvable self-deadlock regression when the block
+> device has integrity checksums enabled?
+> If bdev_has_integrity_csum() is true, xfs_get_iomap_read_ops() forces
+> metadata reads to use xfs_iomap_read_ops.
+> When a data read completes, it queues the per-inode ip->i_ioend_work. The
+> worker calls xfs_end_io() -> xfs_end_ioend_read() -> fsverity_verify_bio().
+> If fsverity_verify_bio() synchronously submits a read for a Merkle tree
+> page, that metadata read completion will eventually call xfs_end_bio() and
+> attempt to queue the exact same ip->i_ioend_work struct while the worker is
+> blocked waiting for the folio lock.
+> Since the work is already executing, the workqueue subsystem merely marks
+> it pending, leaving the worker indefinitely blocked.
+
+If we already got into BIO verification, work item is already executing (the
+pending flag cleared). So, the work item can be scheduled again. In pending
+case, the item will be added to ioend list.
+
+So, no deadlock.
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=14
+
+> Does this leave stale dirty pages in the page cache?
+> If fsverity enablement fails after the Merkle tree blocks have been written
+> to the page cache, xfs_fsverity_delete_metadata() removes the physical extents
+> on disk via xfs_itruncate_extents(). However, it doesn't seem to invalidate
+> the corresponding dirty pages in the page cache.
+> When writeback later attempts to flush these past-EOF dirty pages, could it
+> try to write to extents that no longer exist, causing XFS writeback to fail?
+
+Hmm I added this in previous version but looks like I lost it during squashing.
+Added again.
+
+> Does initializing ip->i_cowfp without holding XFS_ILOCK_EXCL introduce a data
+> race?
+> In xfs_fsverity_end_enable(), xfs_ifork_init_cow() is called without holding
+> XFS_ILOCK_EXCL. Background processes like XFS online scrub take
+> XFS_ILOCK_SHARED to safely inspect inode forks.
+> If scrub runs concurrently, could it see ip->i_cowfp != NULL but read an
+> uninitialized if_format due to a lack of memory barriers, resulting in a crash?
+
+This is valid, add a lock.
+
+> Does direct bitwise modification of inode->i_flags create a data race?
+> Although XFS_IOLOCK_EXCL is held, other VFS paths might modify or read i_flags
+> under inode->i_lock. Modifying the flags using a raw bitwise OR can lead to
+> lost flag updates or torn reads. Should this use inode_set_flags() to ensure
+> atomicity under the inode lock?
+
+Yes, the inode_set_flags() need to be used to match the fsverity_active().
+
+> Does the error path cause a double-unlock of XFS_ILOCK_EXCL?
+> fs/xfs/xfs_fsverity.c:xfs_fsverity_cancel_unwritten() {
+>     ...
+>     xfs_trans_ijoin(tp, ip, XFS_ILOCK_EXCL);
+>     error = xfs_bunmapi(tp, ip, imap.br_startoff, imap.br_blockcount, 0, 1, &done);
+>     if (error)
+>         goto out_cancel;
+>     ...
+> out_cancel:
+>     xfs_trans_cancel(tp);
+>     xfs_iunlock(ip, XFS_ILOCK_EXCL);
+>     ...
+> }
+> Calling xfs_trans_cancel() automatically unlocks the joined inode, but the code
+> then explicitly calls xfs_iunlock(ip, XFS_ILOCK_EXCL). Could this cause a
+> kernel panic due to a double-unlock?
+
+Refactored to handle transaction/locking correctly
+
+> Does this unconditionally advance past incomplete unmap operations?
+> fs/xfs/xfs_fsverity.c:xfs_fsverity_cancel_unwritten() {
+>     ...
+>     error = xfs_bunmapi(tp, ip, imap.br_startoff, imap.br_blockcount, 0, 1, &done);
+>     ...
+>     offset_fsb = imap.br_startoff + imap.br_blockcount;
+> }
+> xfs_bunmapi() limits the number of blocks it unmaps in a single transaction.
+> If it unmaps a partial extent, it sets the done parameter to 0. However, this
+> loop seems to ignore the done variable and unconditionally advances offset_fsb.
+> If fsverity encounters a large unwritten extent, could this leave garbage
+> unwritten metadata blocks on disk?
+
+Added while(!done) loop
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=15
+
+> Does this error path cause a double unlock of the inode if xfs_bunmapi()
+> fails?
+> If xfs_bmapi_read() fails earlier in the loop, jumping to out_cancel
+> works correctly because the transaction doesn't own the lock yet, so the
+> explicit xfs_iunlock() correctly drops it.
+> However, if xfs_bunmapi() fails, xfs_trans_ijoin() has already been called
+> with XFS_ILOCK_EXCL, transferring ownership of the inode lock to the
+> transaction.
+> When xfs_trans_cancel() runs in this scenario, it aborts the transaction
+> and automatically drops any joined locks. Wouldn't the subsequent
+> xfs_iunlock() then try to drop the same lock a second time?
+
+Yes, fixed above.
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=16
+
+> Does exposing this ioctl introduce a path to a double unlock regression?
+> When fsverity_ioctl_enable() is called, it can eventually reach the error path
+> in xfs_fsverity_cancel_unwritten() if xfs_bunmapi() fails:
+> fs/xfs/xfs_fsverity.c:xfs_fsverity_cancel_unwritten() {
+>     ...
+> 		if (imap.br_state == XFS_EXT_UNWRITTEN) {
+> 			xfs_trans_ijoin(tp, ip, XFS_ILOCK_EXCL);
+> 			error = xfs_bunmapi(tp, ip, imap.br_startoff,
+> 					imap.br_blockcount, 0, 1, &done);
+> 			if (error)
+> 				goto out_cancel;
+>     ...
+> out_cancel:
+> 	xfs_trans_cancel(tp);
+> 	xfs_iunlock(ip, XFS_ILOCK_EXCL);
+> 	return error;
+> }
+> Because the inode was already joined to the transaction with XFS_ILOCK_EXCL,
+> wouldn't the call to xfs_trans_cancel() automatically release the ILOCK?
+> If so, the subsequent unconditional call to xfs_iunlock() would result in a
+> double unlock of the rwsem. This could cause an atomic counter underflow,
+> leading to lock state corruption or deadlocks.
+
+Yes, the same as above.
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=18
+
+> Does this code handle all metadata corruption errors?
+> If a file has a verity descriptor with an invalid size,
+> xfs_fsverity_get_descriptor() can return -ERANGE:
+> fs/xfs/xfs_fsverity.c:xfs_fsverity_get_descriptor() {
+>     ...
+>     if (XFS_IS_CORRUPT(mp, desc_size > FS_VERITY_MAX_DESCRIPTOR_SIZE))
+>         return -ERANGE;
+>     ...
+> }
+> Similarly, if the PKCS#7 signature is invalid, fsverity can return -EBADMSG.
+> Without -ERANGE and -EBADMSG in this switch statement, they fall through to the
+> default case. This causes the scrub session to abort and propagate the error to
+> xchk_prepare_iscrub() instead of flagging the inode for repair. Should these
+> codes be added to the list of validation errors?
+
+These two make sense, the other returned by pkcs#7 doesn't seem suitable for
+repair (missing key, key rejected).
+
+--------------------------------------------------------------------------------
+> Can clearing S_VERITY on a live inode race with VFS open?
+> When opening a verity file, fsverity_file_open() evaluates IS_VERITY(inode)
+> without holding the inode's IOLOCK. If it evaluates to true, it calls
+> fsverity_ensure_verity_info(), which eventually enters
+> xfs_fsverity_get_descriptor().
+> If xrep_inode_verity() clears the S_VERITY flag concurrently,
+> xfs_fsverity_get_descriptor() will trigger an assertion failure:
+> fs/xfs/xfs_fsverity.c:xfs_fsverity_get_descriptor() {
+>     ...
+>     ASSERT(inode->i_flags & S_VERITY);
+>     xfs_ilock(ip, XFS_ILOCK_SHARED);
+>     ...
+> }
+> Could this lead to a kernel panic (on debug builds) or use of a
+> partially-cleared verity inode?
+
+This is valid, let's use inode_set_flags() to match the fsverity_active().
+
+--------------------------------------------------------------------------------
+https://sashiko.dev/#/patchset/20260710085256.3464201-1-aalbersh%40kernel.org?part=20
+
+> Does this unconditional inclusion allow modifying verity files when
+> CONFIG_FS_VERITY is disabled?
+> When a kernel is built without CONFIG_FS_VERITY, XFS will mount the filesystem
+> read-write instead of falling back to read-only mode, because
+> XFS_SB_FEAT_RO_COMPAT_VERITY is unconditionally included here.
+> If a user with write permissions calls truncate() on a verity file,
+> open(O_WRONLY) is blocked by a fallback returning -EOPNOTSUPP, but truncate()
+> bypasses this and reaches setattr_prepare().
+> Because CONFIG_FS_VERITY is disabled, setattr_prepare() skips the IS_VERITY()
+> check. XFS would then proceed with the truncate, freeing all blocks past EOF,
+> which could silently destroy the verity Merkle tree and descriptor.
+
+This is valid, addressed with a fix.
+
+--------------------------------------------------------------------------------
+ -:  ------------ >  1:  f950c862b409 fs-verity support for XFS with post EOF merkle tree
+ 1:  c6ec0d36e610 =  2:  c4f1b8cf00c9 fsverity: report validation errors through fserror to fsnotify
+ 2:  c1bc4e09e99d =  3:  7c2c5311c9f6 fsverity: expose ensure_fsverity_info()
+ 3:  46fa567c5396 =  4:  8055613f1a4d fsverity: pass digest size and hash of the all-zeroes block to ->write
+ 4:  bf674d6447c6 =  5:  9545ca3c3399 fsverity: hoist pagecache_read from f2fs/ext4 to fsverity
+ 5:  881ca13124f5 =  6:  cd46c76fe3b4 fsverity: improve flushing performance of fsverity_fill_zerohash
+ 6:  70a3a18d0535 =  7:  e8f9dddb89b9 fsverity: don't allow setting DAX file attribute on fsverity files
+ -:  ------------ >  8:  3ca252cd6be2 fs,fsverity: remove check for fsverity being enabled in setattr_prepare()
+ 7:  8985c8159373 =  9:  a0dc2713a247 xfs: introduce fsverity on-disk changes
+ 9:  f3b835598dfd = 10:  f58409354927 xfs: don't allow to enable DAX on fs-verity sealed inode
+11:  a75ae14156a5 = 11:  de88296b352d xfs: disable direct read path for fs-verity files
+10:  bfe9d1a76b5d = 12:  d0d20df8ad7c xfs: don't report dio_mem_align and dio_offset_align for fsverity files
+12:  873908b75477 ! 13:  a125d7c824f9 xfs: handle fsverity I/O in write/read path
+    @@ fs/xfs/xfs_iomap.c
+
+      #define XFS_ALLOC_ALIGN(mp, off) \
+      	(((off) >> mp->m_allocsize_log) << mp->m_allocsize_log)
+    +@@ fs/xfs/xfs_iomap.c: xfs_direct_write_iomap_begin(
+    + 	if (flags & IOMAP_ATOMIC)
+    + 		iomap_flags |= IOMAP_F_ATOMIC_BIO;
+    +
+    ++	if (xfs_iflags_test(ip, XFS_VERITY_CONSTRUCTION))
+    ++		iomap_flags |= IOMAP_F_FSVERITY;
+    ++
+    + 	/*
+    + 	 * COW writes may allocate delalloc space or convert unwritten COW
+    + 	 * extents, so we need to make sure to take the lock exclusively here.
+     @@ fs/xfs/xfs_iomap.c: xfs_zoned_buffered_write_iomap_begin(
+      	loff_t			count,
+      	unsigned		flags,
+    @@ fs/xfs/xfs_iomap.c: xfs_zoned_buffered_write_iomap_begin(
+      	xfs_filblks_t		count_fsb;
+      	xfs_extlen_t		indlen;
+     @@ fs/xfs/xfs_iomap.c: xfs_zoned_buffered_write_iomap_begin(
+    - 	struct xfs_iext_cursor	icur;
+    - 	int			error = 0;
+    + 				smap.br_startoff + smap.br_blockcount);
+    + 			xfs_trim_extent(&smap, offset_fsb,
+    + 					end_fsb - offset_fsb);
+    +-			error = xfs_bmbt_to_iomap(ip, srcmap, &smap, flags, 0,
+    ++			error = xfs_bmbt_to_iomap(ip, srcmap, &smap, flags,
+    ++					iomap_flags,
+    + 					xfs_iomap_inode_sequence(ip, 0));
+    + 			if (error)
+    + 				goto out_unlock;
+    +@@ fs/xfs/xfs_iomap.c: xfs_zoned_buffered_write_iomap_begin(
+    + 	got.br_state = XFS_EXT_NORM;
+    + 	xfs_bmap_add_extent_hole_delay(ip, XFS_COW_FORK, &icur, &got);
+    + 	ac->reserved_blocks -= count_fsb;
+    +-	iomap_flags |= IOMAP_F_NEW;
+    ++	iomap_flags |= (IOMAP_F_NEW | IOMAP_F_SHARED);
+
+    -+	iomap_flags = iomap_flags | IOMAP_F_SHARED;
+    -+
+    - 	ASSERT(!xfs_get_extsz_hint(ip));
+    - 	ASSERT(!(flags & IOMAP_UNSHARE));
+    - 	ASSERT(ac);
+    + 	trace_xfs_iomap_alloc(ip, offset, XFS_FSB_TO_B(mp, count_fsb),
+    + 			XFS_COW_FORK, &got);
+     @@ fs/xfs/xfs_iomap.c: xfs_buffered_write_iomap_begin(
+      	if (xfs_is_shutdown(mp))
+      		return -EIO;
+13:  9ca0788bde68 = 14:  a65403d233e2 xfs: use read ioend for fsverity data verification
+14:  fd0353ac09d5 ! 15:  6ecf7b9bf300 xfs: add fs-verity support
+    @@ fs/xfs/xfs_fsverity.c
+     +#include "xfs_da_btree.h"
+     +#include "xfs_inode.h"
+     +#include "xfs_log_format.h"
+    -+#include "xfs_bmap_util.h"
+     +#include "xfs_trans.h"
+     +#include "xfs_trace.h"
+     +#include "xfs_quota.h"
+    @@ fs/xfs/xfs_fsverity.c: xfs_fsverity_is_file_data(
+     +	xfs_ilock(ip, XFS_ILOCK_EXCL);
+     +	xfs_trans_ijoin(tp, ip, 0);
+     +
+    ++	truncate_inode_pages(VFS_I(ip)->i_mapping, XFS_ISIZE(ip));
+    ++
+     +	/*
+    -+	 * We removing post EOF data, no need to update i_size as fsverity
+    ++	 * We remove post EOF data, no need to update i_size as fsverity
+     +	 * didn't move i_size in the first place
+     +	 */
+     +	error = xfs_itruncate_extents(&tp, ip, XFS_DATA_FORK, XFS_ISIZE(ip));
+    @@ fs/xfs/xfs_fsverity.c: xfs_fsverity_is_file_data(
+     +	 * files are read-only
+     +	 */
+     +	if (xfs_is_cow_inode(ip)) {
+    -+		if (!ip->i_cowfp)
+    -+			xfs_ifork_init_cow(ip);
+    ++		xfs_ilock(ip, XFS_ILOCK_EXCL);
+    ++		xfs_ifork_init_cow(ip);
+    ++		xfs_iunlock(ip, XFS_ILOCK_EXCL);
+     +		xfs_bmap_punch_delalloc_range(ip, XFS_COW_FORK, 0, LLONG_MAX,
+     +				NULL);
+     +	}
+    @@ fs/xfs/xfs_fsverity.c: xfs_fsverity_is_file_data(
+     +	xfs_iunlock(ip, XFS_ILOCK_EXCL);
+     +
+     +	if (!error)
+    -+		inode->i_flags |= S_VERITY;
+    ++		inode_set_flags(inode, S_VERITY, S_VERITY);
+     +
+     +out:
+     +	if (error) {
+15:  48eb71d0d46f ! 16:  9a5ec524c5db xfs: remove unwritten extents after preallocations in fsverity metadata
+    @@ Commit message
+
+      ## fs/xfs/xfs_fsverity.c ##
+     @@
+    + #include "xfs_inode.h"
+    + #include "xfs_log_format.h"
+    + #include "xfs_trans.h"
+    ++#include "xfs_defer.h"
+    + #include "xfs_trace.h"
+    + #include "xfs_quota.h"
+    + #include "xfs_fsverity.h"
+      #include "xfs_iomap.h"
+      #include "xfs_error.h"
+      #include "xfs_health.h"
+    @@ fs/xfs/xfs_fsverity.c: xfs_fsverity_delete_metadata(
+     +{
+     +	struct xfs_mount	*mp = ip->i_mount;
+     +	struct xfs_trans	*tp;
+    -+	xfs_fileoff_t		offset_fsb = XFS_B_TO_FSB(mp, start);
+    ++	xfs_fileoff_t		offset_fsb = XFS_B_TO_FSBT(mp, start);
+     +	xfs_fileoff_t		end_fsb = XFS_B_TO_FSB(mp, end);
+     +	struct xfs_bmbt_irec	imap;
+     +	int			nimaps;
+     +	int			error = 0;
+     +	int			done;
+     +
+    -+
+     +	while (offset_fsb < end_fsb) {
+     +		nimaps = 1;
+     +
+    -+		error = xfs_trans_alloc(mp, &M_RES(mp)->tr_write, 0, 0,
+    -+				0, &tp);
+    ++		error = xfs_trans_alloc(mp, &M_RES(mp)->tr_write, 0, 0, 0, &tp);
+     +		if (error)
+     +			return error;
+     +
+     +		xfs_ilock(ip, XFS_ILOCK_EXCL);
+    -+		error = xfs_bmapi_read(ip, offset_fsb, end_fsb - offset_fsb,
+    -+				&imap, &nimaps, 0);
+    ++		error = xfs_bmapi_read(ip, offset_fsb,
+    ++				end_fsb - offset_fsb, &imap, &nimaps,
+    ++				0);
+     +		if (error)
+     +			goto out_cancel;
+     +
+    @@ fs/xfs/xfs_fsverity.c: xfs_fsverity_delete_metadata(
+     +			goto out_cancel;
+     +
+     +		if (imap.br_state == XFS_EXT_UNWRITTEN) {
+    -+			xfs_trans_ijoin(tp, ip, XFS_ILOCK_EXCL);
+    ++			done = 0;
+     +
+    -+			error = xfs_bunmapi(tp, ip, imap.br_startoff,
+    -+					imap.br_blockcount, 0, 1, &done);
+    -+			if (error)
+    -+				goto out_cancel;
+    ++			xfs_trans_ijoin(tp, ip, 0);
+    ++
+    ++			while (!done) {
+    ++				error = xfs_bunmapi(tp, ip, imap.br_startoff,
+    ++						imap.br_blockcount, 0, 1,
+    ++						&done);
+    ++				if (error)
+    ++					goto out_cancel;
+    ++
+    ++				error = xfs_defer_finish(&tp);
+    ++				if (error)
+    ++					goto out_cancel;
+    ++			}
+     +
+     +			error = xfs_trans_commit(tp);
+     +			if (error)
+    -+				return error;
+    ++				goto out_unlock;
+     +		} else {
+     +			xfs_trans_cancel(tp);
+    -+			xfs_iunlock(ip, XFS_ILOCK_EXCL);
+     +		}
+    ++		xfs_iunlock(ip, XFS_ILOCK_EXCL);
+     +
+     +		offset_fsb = imap.br_startoff + imap.br_blockcount;
+     +	}
+    @@ fs/xfs/xfs_fsverity.c: xfs_fsverity_delete_metadata(
+     +	return error;
+     +out_cancel:
+     +	xfs_trans_cancel(tp);
+    ++out_unlock:
+     +	xfs_iunlock(ip, XFS_ILOCK_EXCL);
+     +	return error;
+     +}
+ 8:  d782cf032d1d = 17:  9ac4bd88f99a xfs: initialize fs-verity on file open
+16:  312d09ecc4e2 = 18:  eff55c20dd50 xfs: add fs-verity ioctls
+17:  57d88dcd36dd = 19:  f78ba16752fe xfs: advertise fs-verity being available on filesystem
+18:  856c3ff6b1db ! 20:  a283ffc94e16 xfs: check and repair the verity inode flag state
+    @@ fs/xfs/scrub/common.c: xchk_inode_count_blocks(
+     +	case -EINVAL:
+     +	case -EFSCORRUPTED:
+     +	case -EFBIG:
+    ++	case -ERANGE:
+    ++	case -EBADMSG:
+     +		/*
+     +		 * The nonzero errno codes above are the error codes that can
+     +		 * be returned from fsverity on metadata validation errors.
+    @@ fs/xfs/scrub/inode_repair.c: xrep_inode_unlinked(
+     +
+     +	if (xchk_inode_verity_broken(sc->ip)) {
+     +		sc->ip->i_diflags2 &= ~XFS_DIFLAG2_VERITY;
+    -+		inode->i_flags &= ~S_VERITY;
+    ++		inode_set_flags(inode, 0, S_VERITY);
+     +
+     +		xfs_trans_log_inode(sc->tp, sc->ip, XFS_ILOG_CORE);
+     +	}
+19:  52de4f439ac7 = 21:  01d4b6059dc8 xfs: introduce health state for corrupted fsverity metadata
+20:  ee884674c76c = 22:  cb4acb76a9b3 xfs: enable ro-compat fs-verity flag
+
+Andrey Albershteyn (19):
+  fsverity: report validation errors through fserror to fsnotify
+  fsverity: expose ensure_fsverity_info()
+  fsverity: pass digest size and hash of the all-zeroes block to ->write
+  fsverity: hoist pagecache_read from f2fs/ext4 to fsverity
+  fsverity: improve flushing performance of fsverity_fill_zerohash
+  fsverity: don't allow setting DAX file attribute on fsverity files
+  fs,fsverity: remove check for fsverity being enabled in
+    setattr_prepare()
+  xfs: introduce fsverity on-disk changes
+  xfs: don't allow to enable DAX on fs-verity sealed inode
+  xfs: disable direct read path for fs-verity files
+  xfs: don't report dio_mem_align and dio_offset_align for fsverity
+    files
+  xfs: handle fsverity I/O in write/read path
+  xfs: use read ioend for fsverity data verification
+  xfs: add fs-verity support
+  xfs: remove unwritten extents after preallocations in fsverity
+    metadata
+  xfs: initialize fs-verity on file open
+  xfs: add fs-verity ioctls
+  xfs: introduce health state for corrupted fsverity metadata
+  xfs: enable ro-compat fs-verity flag
+
+Darrick J. Wong (2):
+  xfs: advertise fs-verity being available on filesystem
+  xfs: check and repair the verity inode flag state
+
+ fs/attr.c                      |   2 +-
+ fs/btrfs/verity.c              |   6 +-
+ fs/ext4/verity.c               |  36 +--
+ fs/f2fs/verity.c               |  34 +--
+ fs/file_attr.c                 |   5 +
+ fs/verity/enable.c             |   4 +-
+ fs/verity/open.c               |  22 +-
+ fs/verity/pagecache.c          |  57 +++-
+ fs/verity/verify.c             |   4 +
+ fs/xfs/Makefile                |   1 +
+ fs/xfs/libxfs/xfs_bmap.c       |  11 +
+ fs/xfs/libxfs/xfs_format.h     |  35 ++-
+ fs/xfs/libxfs/xfs_fs.h         |   2 +
+ fs/xfs/libxfs/xfs_health.h     |   4 +-
+ fs/xfs/libxfs/xfs_inode_buf.c  |   8 +
+ fs/xfs/libxfs/xfs_inode_util.c |   5 +-
+ fs/xfs/libxfs/xfs_sb.c         |   4 +
+ fs/xfs/scrub/common.c          |  55 ++++
+ fs/xfs/scrub/common.h          |   2 +
+ fs/xfs/scrub/inode.c           |   7 +
+ fs/xfs/scrub/inode_repair.c    |  36 +++
+ fs/xfs/xfs_aops.c              |  81 +++++-
+ fs/xfs/xfs_bmap_util.c         |   8 +
+ fs/xfs/xfs_file.c              |  67 +++--
+ fs/xfs/xfs_fsverity.c          | 485 +++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_fsverity.h          |  28 ++
+ fs/xfs/xfs_health.c            |   1 +
+ fs/xfs/xfs_inode.h             |   6 +
+ fs/xfs/xfs_ioctl.c             |  14 +
+ fs/xfs/xfs_iomap.c             |  29 +-
+ fs/xfs/xfs_iops.c              |  12 +-
+ fs/xfs/xfs_message.c           |   4 +
+ fs/xfs/xfs_message.h           |   1 +
+ fs/xfs/xfs_mount.h             |   4 +
+ fs/xfs/xfs_super.c             |   7 +
+ include/linux/fsverity.h       |  10 +-
+ 36 files changed, 981 insertions(+), 116 deletions(-)
+ create mode 100644 fs/xfs/xfs_fsverity.c
+ create mode 100644 fs/xfs/xfs_fsverity.h
+
+-- 
+2.54.0
 
