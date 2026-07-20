@@ -1,41 +1,41 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C34E0346AD6;
-	Mon, 20 Jul 2026 08:42:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F6861F938;
+	Mon, 20 Jul 2026 08:45:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784536934; cv=none; b=mj0J6XToXvPr7/y/0G7ztixMpPWE3pLp+b659gWKggE+QxwOwIz7+Bq4J8Q2OMQtlmumrtQ8aFU9NKeXZyBmWIMhmeqreZMAZMFQ1qpLyFFu7Ga9j4G04WNIUaBqJnIh/NzCtKh6Pa5SlJ4ayv2V44uhmBrUemyuZITqCAenyWw=
+	t=1784537141; cv=none; b=t2jxTKK4M47Hd99BOwXy1nNxyYc/SSwsbkXmVWusgjN4ccB+eY+cBWMWiqaMqXKzAgafSyglsd4JIvlizU0cNtvP4QKBB+zVJqFi43qoPcSWPe/ZPPMlBLmj7H8W2AybMwhYnjuEEZkNnRPIYgmC8zhJpMqX/bLDfIqCJGGp7tQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784536934; c=relaxed/simple;
-	bh=nI99RKEQaOznpgP3tAPD0uhF5MOyKzJhOFNy2RFqLoM=;
+	s=arc-20240116; t=1784537141; c=relaxed/simple;
+	bh=7MPWJRCU3rlzlcvJ6Lg2L32JYHbQvX5x+WmSWLO2U4o=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lTWxlgbKPmrgf9BoRP9xNEsPNrZEEXPZMcCv+G02i3Jz2rHURExU5YIspa68GyTOcAdkhVKz1x6ODdZOE9ytjL4pbT0Pdlupe9/ZXpQF9dx7+Jysq+9aT5/BmIM6f5GENOWv3L9t6lcywFtUokHXzRaxERS8yvi9ScpUtmUUrYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.com; spf=pass smtp.mailfrom=gmx.com; dkim=pass (2048-bit key) header.d=gmx.com header.i=quwenruo.btrfs@gmx.com header.b=srmRA4gE; arc=none smtp.client-ip=212.227.15.19
+	 In-Reply-To:Content-Type; b=BiOpL7wV3Lz/Y8bSYI0PutDEb0zfZsYJzj1hPsyHYsVYCgeHZbgEw3SJ5HiFNM5m8/fR9OlIxsWhU3INglo2G8GxdqZbqdXixdbUvmnt5rETrMnXs5LJChdeqkNAjmWf41K/KHAl6kMPEWdlQMvytKXXtG2ph2WIOD+26sKP4vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.com; spf=pass smtp.mailfrom=gmx.com; dkim=pass (2048-bit key) header.d=gmx.com header.i=quwenruo.btrfs@gmx.com header.b=UrfSUxwI; arc=none smtp.client-ip=212.227.15.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.com header.i=quwenruo.btrfs@gmx.com header.b="srmRA4gE"
+	dkim=pass (2048-bit key) header.d=gmx.com header.i=quwenruo.btrfs@gmx.com header.b="UrfSUxwI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.com;
-	s=s31663417; t=1784536929; x=1785141729; i=quwenruo.btrfs@gmx.com;
-	bh=Kp84QlBWz5kesqACP/yIHTY2nkNZw8oqLOoXuaa2+KI=;
+	s=s31663417; t=1784537137; x=1785141937; i=quwenruo.btrfs@gmx.com;
+	bh=BhZimL4xPZi3pUEoT+oD9wvSLRMP0NFgMCv/77Uro2c=;
 	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
 	 References:From:In-Reply-To:Content-Type:
 	 Content-Transfer-Encoding:cc:content-transfer-encoding:
 	 content-type:date:from:message-id:mime-version:reply-to:subject:
 	 to;
-	b=srmRA4gEiOUnyyUCbZVq/wi/BbdbZz0ehwxSKWyVkJ8kvV2FLT70JPcpcrzG4RGS
-	 0pU3hF5TGcLXGzPdA6q13usSx+K6DOjTwzMcHV33OJzF5qU7jtC7RbsfuDIVue0ES
-	 L15aGcLk4iFl5oYrFKC0+ahbqsQvHHplxVom79SPTrASifNaDONitXknt0l3+n/K5
-	 KmJeBqBaFfkJgK1n9UoVO3PRj+eSIFhcS9WPw2+9Ckvrc0mTWMq7vb00bFHYkjvbQ
-	 ChFB7tcatxXDznDAVdRqXFzdVaZ0ogcSOP0jL3Z68Z+gr44K83QcJGOG5L+1o0y88
-	 st17THlPOZQe+AXtCA==
+	b=UrfSUxwIJy7cdj4Vf2yhqjaTZkGAP8bwkLIZJoVuG3Rwk/gF8cMmkCf29En9Vo6N
+	 n4BKvZnACbXQDlepQvMgiV6a0OPBY0vWEF8+cqCXMbgJOc5Q5j4n/5ZNBi8ABEqCA
+	 fQ+iTz8a6IG3s7IXISrGUyYI/VuUg1bmB/cBoeudUYx6hSK57yAf48QGkkamTCu9U
+	 rIIDqB0gjkkuzhT2iiK4mSqu9HIb/fWZs7tmEmZVgE/gmjVpaFG4dW0kNNTZ0KzLw
+	 gcffwMYhI5VYLLbh0WNlX8aB3B+4xm4OmuDkfhjljNSmAyhyuk8202EA+UEZ6jW/J
+	 fUw8iyN358y1UhtJaA==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx004
- [212.227.17.184]) with ESMTPSA (Nemesis) id 1MtfNl-1x05Ow1AJL-016z77; Mon, 20
- Jul 2026 10:42:09 +0200
-Message-ID: <b09076d9-e459-4c15-8d66-5c9c33da7562@gmx.com>
-Date: Mon, 20 Jul 2026 18:12:04 +0930
+Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
+ [212.227.17.184]) with ESMTPSA (Nemesis) id 1MhlKs-1xGPg01zNI-00jpU3; Mon, 20
+ Jul 2026 10:45:37 +0200
+Message-ID: <fbfbafef-2b42-4f5e-ac8e-9c680a0be5ad@gmx.com>
+Date: Mon, 20 Jul 2026 18:15:31 +0930
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -43,14 +43,15 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fstests: vfstest: skip rejected tmpfile creation
-To: Christoph Hellwig <hch@infradead.org>, Qu Wenruo <wqu@suse.com>
-Cc: fstests@vger.kernel.org, linux-btrfs@vger.kernel.org,
- Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>,
- Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org,
- linux-fsdevel@vger.kernel.org
-References: <20260717070717.113517-1-wqu@suse.com>
- <al3YDuYk81NY9mBE@infradead.org>
+Subject: Re: [PATCH 1/2] src/vfs: probe O_TMPFILE support on the base mount in
+ the idmapped tests
+To: Christian Brauner <brauner@kernel.org>, Miklos Szeredi
+ <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
+ Zorro Lang <zlang@kernel.org>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ fstests@vger.kernel.org
+References: <20260615-overlay-idmapped-vfstest-v1-0-c6b3b2228092@kernel.org>
+ <20260615-overlay-idmapped-vfstest-v1-1-c6b3b2228092@kernel.org>
 Content-Language: en-US
 From: Qu Wenruo <quwenruo.btrfs@gmx.com>
 Autocrypt: addr=quwenruo.btrfs@gmx.com; keydata=
@@ -77,181 +78,199 @@ Autocrypt: addr=quwenruo.btrfs@gmx.com; keydata=
  Vmi36kmq8o5c0f97QVjMryHlmSlEZ2Wwc1kURAe4lsRG2dNeAd4CAqmTw0cMIrR6R/Dpt3ma
  +8oGXJOmwWuDFKNV4G2XLKcghqrtcRf2zAGNogg3KulCykHHripG3kPKsb7fYVcSQtlt5R6v
  HZStaZBzw4PcDiaAF3pPDBd+0fIKS6BlpeNRSFG94RYrt84Qw77JWDOAZsyNfEIEE0J6LSR/
-In-Reply-To: <al3YDuYk81NY9mBE@infradead.org>
+In-Reply-To: <20260615-overlay-idmapped-vfstest-v1-1-c6b3b2228092@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:EnSUZbDOdKCpd73uYZ3ue/Lw3gDXyCUgpjVvYP4aon1NXoTh+7l
- k3jAMwVvp90Ru1uOS79m7o9NlsvxljGdX6zq/0kZVw/jl3zpUjGpLZOeWa6Ftv6t+ciUxYv
- kXGUrtCF9gNpDN6bnkUfJ230xS7lbWwsrZNK+sfB1wIYol/zi1GhZacC8sJzOLOXPrZn/IX
- fU/A6AekJ8hxh0dCaYuZQ==
+X-Provags-ID: V03:K1:NfzMuBdKieQ+KN1k6Ngc51I7yYs8ASE/S6xXJqQEuPykF6Nxx2a
+ q1HcAIR7S5voJ1VTg4dg6jrz+scsfDFDEzP389SG7HvjO60AG6re/ydNrXuzQwwLkwLJo3X
+ kMts0Pkdvoz7N5paGLLOTOaF1krq7QZoy9RB13qJjAtPoN2gafznVIE3RgROVjzGp2yRfyZ
+ jCmsdr78/4frfYHBS23ug==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:E+5mf6ST7yM=;6IVyGYswul1WjwJntQdaTJuwCa3
- 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
- kmI5TYQa2+cPeaZVzs5W3mOn+KiIzZ
+UI-OutboundReport: notjunk:1;M01:P0:3sSAYnCH8hg=;5jNp0y6/EIPtU5GngL9KxJHLVa2
+ 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
+ gjt4DAyHJLWJE7ANfm4vudYTW1yo+q
 
 
 
-=E5=9C=A8 2026/7/20 17:40, Christoph Hellwig =E5=86=99=E9=81=93:
-> Christian indicated the fixes for this are in the (somewhat confusingly
-> titled) "[PATCH 0/2] Support overlayfs in the idmapped mount tests"
-> series.
+=E5=9C=A8 2026/6/16 01:03, Christian Brauner =E5=86=99=E9=81=93:
+> openat_tmpfile_supported() in the idmapped mount tests probes O_TMPFILE
+> on the idmapped mount (open_tree_fd) as the test's fsuid -- but that
+> fsuid is not mapped by the idmapped mount under test, so it really asks
+> "can this unmapped caller create a tmpfile through this idmap?" instead
+> of "does the filesystem support O_TMPFILE?".
 >=20
-> It would be good to get a proper review for this as it's beyond my
-> pay grade.
+> On overlayfs this is a false negative: the backing tmpfile ends up owned
+> by an unmapped id, overlayfs opens it with O_NOATIME and may_open()
+> returns -EPERM, so the tmpfile sub-tests are wrongly skipped.
+>=20
+> O_TMPFILE support is a property of the filesystem, not of the idmapped
+> mount or the caller's mapping. Probe info->t_dir1_fd, the base mount
+> that the caller owns, exactly as the non-idmapped setgid tests already
+> do. The probe then succeeds on every filesystem and the tmpfile
+> sub-tests run as the mapped fsuid.
+>=20
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Thanks a lot for pointing that series out.
+Reviewed-by: Qu Wenruo <wqu@suse.com>
 
-That series hit me but the name didn't ring my bell initially.
+Furthermore, since kernel commit 539dce114465 ("fs: refuse O_TMPFILE=20
+creation with an unmapped fsuid or fsgid"), even without overlayfs the=20
+involved tests will fail due to the extra checks.
 
-But the commit message of the first patch makes more sense now, and=20
-please drop this patch.
+So this is not only affecting overlayfs but all regular fses now.
 
-This one is really masking the problem, meanwhile that first patch of=20
-that series is fixing it in a better way.
-
-Please drop this patch.
+I hope we can at least merge this one asap.
 
 Thanks,
 Qu
+
+> ---
+>   src/vfs/idmapped-mounts.c | 12 ++++++------
+>   1 file changed, 6 insertions(+), 6 deletions(-)
 >=20
-> On Fri, Jul 17, 2026 at 04:37:17PM +0930, Qu Wenruo wrote:
->> Since kernel commit 539dce114465 ("fs: refuse O_TMPFILE creation with a=
-n
->> unmapped fsuid or fsgid"), tmpfile creation can be rejected with
->> EOVERFLOW, so also skip that error number to avoid false alerts like th=
-e
->> following:
->>
->>   FSTYP         -- ext4
->>   PLATFORM      -- Linux/x86_64 btrfs-vm 7.2.0-rc3-custom+ #411 SMP PRE=
-EMPT_DYNAMIC Fri Jul 17 16:24:34 ACST 2026
->>   MKFS_OPTIONS  -- -F /dev/mapper/test-scratch1
->>   MOUNT_OPTIONS -- -o acl,user_xattr /dev/mapper/test-scratch1 /mnt/scr=
-atch
->>
->>   generic/633  1s ... - output mismatch (see /home/adam/xfstests/result=
-s//generic/633.out.bad)
->>      --- tests/generic/633.out	2022-05-11 11:25:30.816666664 +0930
->>      +++ /home/adam/xfstests/results//generic/633.out.bad	2026-07-17 16=
-:25:45.033967541 +0930
->>      @@ -1,2 +1,4 @@
->>       QA output created by 633
->>       Silence is golden
->>      +utils.c: 948: openat_tmpfile_supported - Value too large for defi=
-ned data type - failure: create
->>      +utils.c: 948: openat_tmpfile_supported - Value too large for defi=
-ned data type - failure: create
->>      ...
->>      (Run 'diff -u /home/adam/xfstests/tests/generic/633.out /home/adam=
-/xfstests/results//generic/633.out.bad'  to see the entire diff)
->>   Ran: generic/633
->>   Failures: generic/633
->>   Failed 1 of 1 tests
->>
->> Signed-off-by: Qu Wenruo <wqu@suse.com>
->> ---
->>   src/vfs/utils.c | 6 +++++-
->>   1 file changed, 5 insertions(+), 1 deletion(-)
->>
->> diff --git a/src/vfs/utils.c b/src/vfs/utils.c
->> index 0b435afe..d2922cc3 100644
->> --- a/src/vfs/utils.c
->> +++ b/src/vfs/utils.c
->> @@ -941,7 +941,11 @@ bool openat_tmpfile_supported(int dirfd)
->>  =20
->>   	fd =3D openat(dirfd, ".", O_TMPFILE | O_RDWR, S_IXGRP | S_ISGID);
->>   	if (fd =3D=3D -1) {
->> -		if (errno =3D=3D ENOTSUP) {
->> +		/*
->> +		 * Kernel commit 539dce114465 ("fs: refuse O_TMPFILE creation
->> +		 * with an unmapped fsuid or fsgid") will reject such operation.
->> +		 */
->> +		if (errno =3D=3D ENOTSUP || errno =3D=3D EOVERFLOW) {
->>   			errno =3D 0; /* Don't report misleading errno. */
->>   			return false;
->>   		} else {
->> --=20
->> 2.51.2
->>
->>
-> ---end quoted text---
+> diff --git a/src/vfs/idmapped-mounts.c b/src/vfs/idmapped-mounts.c
+> index ed9992f9..8f8441c9 100644
+> --- a/src/vfs/idmapped-mounts.c
+> +++ b/src/vfs/idmapped-mounts.c
+> @@ -3838,7 +3838,7 @@ int tcore_setgid_create_idmapped(const struct vfst=
+est_info *info)
+>   		goto out;
+>   	}
+>  =20
+> -	supported =3D openat_tmpfile_supported(open_tree_fd);
+> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
+>  =20
+>   	pid =3D fork();
+>   	if (pid < 0) {
+> @@ -4014,7 +4014,7 @@ int tcore_setgid_create_idmapped_in_userns(const s=
+truct vfstest_info *info)
+>   		goto out;
+>   	}
+>  =20
+> -	supported =3D openat_tmpfile_supported(open_tree_fd);
+> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
+>  =20
+>   	pid =3D fork();
+>   	if (pid < 0) {
+> @@ -7733,7 +7733,7 @@ static int setgid_create_umask_idmapped(const stru=
+ct vfstest_info *info)
+>   		goto out;
+>   	}
+>  =20
+> -	supported =3D openat_tmpfile_supported(open_tree_fd);
+> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
+>  =20
+>   	pid =3D fork();
+>   	if (pid < 0) {
+> @@ -7947,7 +7947,7 @@ static int setgid_create_umask_idmapped_in_userns(=
+const struct vfstest_info *inf
+>   		goto out;
+>   	}
+>  =20
+> -	supported =3D openat_tmpfile_supported(open_tree_fd);
+> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
+>  =20
+>   	/*
+>   	 * Below we verify that setgid inheritance for a newly created file o=
+r
+> @@ -8181,7 +8181,7 @@ static int setgid_create_acl_idmapped(const struct=
+ vfstest_info *info)
+>   		goto out;
+>   	}
+>  =20
+> -	supported =3D openat_tmpfile_supported(open_tree_fd);
+> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
+>  =20
+>   	pid =3D fork();
+>   	if (pid < 0) {
+> @@ -8536,7 +8536,7 @@ static int setgid_create_acl_idmapped_in_userns(co=
+nst struct vfstest_info *info)
+>   		goto out;
+>   	}
+>  =20
+> -	supported =3D openat_tmpfile_supported(open_tree_fd);
+> +	supported =3D openat_tmpfile_supported(info->t_dir1_fd);
+>  =20
+>   	/*
+>   	 * Below we verify that setgid inheritance for a newly created file o=
+r
 >=20
 
