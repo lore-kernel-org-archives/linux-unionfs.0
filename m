@@ -1,80 +1,77 @@
-Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F75D34F498
-	for <linux-unionfs@vger.kernel.org>; Wed, 22 Jul 2026 16:29:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25AD3F0ABE
+	for <linux-unionfs@vger.kernel.org>; Thu, 23 Jul 2026 08:00:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.177
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784737777; cv=pass; b=oifGJ4G3wJMkypGqIHLzBo2OmMDC+MExAMpRKf+4QL0Ye72l55JufGHU6fvnxtsyyfu+e29A0E+2k7YIICRQZIIl/ZEn7TGoE6ueu6siNDiYp4X3D0e62ldxr2KPPXSF1HVMjTFScr6d/CH2+/PDzrTSm90I2xgK556jgZhhIAs=
+	t=1784793629; cv=pass; b=P2N50RwXOiz9mxlHM+eq13kXbOG6e+/N7jOCJ1w9zMxxL0rL6rIIkVcw8AWZO55ITIdwdWlBahRbe0pzBwpqzcDvfebc9IEgP9t+F45XQhSV7hqj1Bab8czcoZUCPTPCT0SjtxH2l8PWaqwHcQSxOHZsDaVQT39e6DvyDc8YHa8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784737777; c=relaxed/simple;
-	bh=U+1oSlhoto9RzC80eRCQEK7mIW4plZHyLlmXaf+c5ZI=;
+	s=arc-20240116; t=1784793629; c=relaxed/simple;
+	bh=01lHwYFuZnQbN8PHIAgwHtlEdJ/vNcJ+QxlGxzJvbrk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KQcMGy4BUvYY3+I2Y7VzXSuJQcX0WaYPw5gLAE19NnxlDjCDhLCTH8BHd7o0doCffrp8NHQQ+wzz+zZNUuR77IZ+JvJSh/z8XmijiUH+H+VkE4VLTaL6Ck++Uq6xux014NNwbyAiBZGSgbe4FHa2BNn2AYE6CRBE214ETVs/764=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net; spf=pass smtp.mailfrom=amacapital.net; dkim=pass (2048-bit key) header.d=amacapital-net.20251104.gappssmtp.com header.i=@amacapital-net.20251104.gappssmtp.com header.b=CGqtQ8Ar; arc=pass smtp.client-ip=209.85.167.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amacapital.net
+	 To:Cc:Content-Type; b=oCxgOYtdFWuUlcptzE53nIBhTzhNb2NhOnOBIfrCmkuWxJZNrkRgi2n1TXMeuim+XdKAEjKs6FbI/d5vwiZgwbjiISvx1/4IL4ceUYRE2ifVe7YZtzwAmD3RbJWjxxoEyIOHs5y/wYWAdfeIo90IHaaTHrdRHZZUMgpjlA4hqpM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=fyKFttsW; arc=pass smtp.client-ip=209.85.160.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amacapital-net.20251104.gappssmtp.com header.i=@amacapital-net.20251104.gappssmtp.com header.b="CGqtQ8Ar"
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5b2a44a3b66so2646154e87.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 22 Jul 2026 09:29:36 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784737774; cv=none;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="fyKFttsW"
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-5276d598b96so2732941cf.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 Jul 2026 01:00:27 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784793627; cv=none;
         d=google.com; s=arc-20260327;
-        b=kX/x0s9zcow7mwbtPtaLV2iousnTfH9lw1jf0KnOuc95rVw7MkVmU0rFhxkzLnKlN8
-         ye7N3Uf8oyp7EVo7QEkHQ6mlT8AQD/iZykLJ3L5s0TxsvhBP2BwYPqvaLWzFwWn6XnSj
-         Z5zKkC9X8tV/Mo+MBcoCQgbrBRIvchs9m4h0uqK+3V4vblG+KFZ41avP9bD7AKce5lXE
-         3aPTKlWYhXA+MU3nhOoPAUc1SxSk7V2GF8JhmCHyN7bH44O/2rEp3NnvZGf/N5STq2NZ
-         oE3D43wMV4US2o4FPYo9AnAb16B33VF+HQZZ4HjmoVPcBXFLqR527G5eKermn9Puonj1
-         T30Q==
+        b=ZBAFk4f46sd+CczCt7YtOYtpO4QzPfRUrDLE3YQd5j/CMjwxlTGJzvzNqHTQKgXlFL
+         Wqx2trLVbBhZLikY4QQXgrX8jimi4hYpmlKDSIPBWHxx3+l0xMmVRiC9PV+IakYjZtcL
+         Ew1QzCWCJCxHVKnMs/CLgpT3XQl20cYGxpTQ5aOiUMvWR3UvBh5+FKR9lC5p8aB9fBwc
+         6AoBg7Scs+JyF8YS5IhCLJQZYv/F912JK2fLLdJwE1XsTTy093O0FuJmTyGOxL2Jac9V
+         +V8R/pWpO6rLKdhZriCuv2y8W7Z368Oy/F9C4RbzUeJB9MZHPY7GCSnkyCtafjwQHgyx
+         y8wg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=InkY2TqArSmQXaSwMOCoeFzsMAyO72A+PE6OTrxgjrQ=;
-        fh=/kCIVio9XmY51wF2kGUqpyuMLqACEqW/vwd0YoQYvF4=;
-        b=eL4slJcUKTN+w0JtmGoQHySpZez+852b0NvL1dSoFgoNR1eEfEQmM9IQLRSwAe9mfu
-         Wy7NLJKugSZCCkeHSv+BE26HlNqwG6TgYo+embuOa3ZAalVoBjkFVo2QBAToQoM5aI4k
-         DhUAWNziznXq+1F5kstUdOF1I+HejYNlwnuOhvLLYi+P435zErNYiscO64B5gxV8OzEK
-         Th4lw9oSO8Yf0lCdAcW4kkPdkRRjMf2fm0z2IZtzjaZrp8nRy3CTo1DV7TryB6Nt5D0L
-         lEvjLYggSRhFY29K8iD247t/bv79Cy6WESmRjB31UerFskQoUnJj8NfjNKj9UEQk95HU
-         AOHg==;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=aJJyvzLCovMudd4JAugLONkO2PNspQZPslZQeXuUmI0=;
+        fh=QzEtLlB7+AkchvEiOMNToKg0RrKqWXCR6LdRjRaJdrk=;
+        b=c5zd88kZVDkq2zE/Qdn5YBcQteMbXuf6lK7v366pA4L8qgufJfZjt7afwYj8jZCzNa
+         p4WdaH9NuIRkXl9NtGMMNlW20B48+kqClgFqtoyuJkQa1367JHEOH/p026A/Ybe1miSy
+         ucru68YKy6Q9/M5cQ1R/27wn7oMVPJiD6U0yI7+0yDCO5z83993YtaWp2kLil6xqrr24
+         rA9aSCByna8irdnAnKlfcQJfCiBr720q31ZePoD0oOiQ/C00N3ZfMwwmkdMeQM4eOgg9
+         n+tjQ+L/5F4SYaXpZFyxNaOQfa7iAbInJmMC68yXpEH2qfgn3eyiEyJ+IuUH6dcjxgKX
+         OeCA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amacapital-net.20251104.gappssmtp.com; s=20251104; t=1784737774; x=1785342574; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=InkY2TqArSmQXaSwMOCoeFzsMAyO72A+PE6OTrxgjrQ=;
-        b=CGqtQ8Ar9zATM56qjLFdcqHMiqXEoB/rmSEZ7gVqOvBXFlL9pqCFP1YfXO4bJXVCKH
-         h1t04PL3WCBYh11ZgmBZo7o98zYRUFiU5RsOhFysRGQ6iJIRjAdtEhrCb9pc7F0SVPwu
-         iJAGNc9Cr1Avds7+BUX2dhUQkUGpWuR3auL+Bp4o2L0ReFhEO3BAEna2eJ4MM7pubBjK
-         CNOGlOkWmm+Q+BTWYPNu8VwJnS/SkJCsWfXEcRB8q1tavuBqCDhFz34/W9ndHTe/kgql
-         5MLp/y803L8iPsCXtq01aLZPPox/RU6/V0x0OtAXvvKCnYHnfc35oeKks/YVI5ebUqPP
-         5Hog==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784737774; x=1785342574;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=szeredi.hu; s=google; t=1784793627; x=1785398427; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=InkY2TqArSmQXaSwMOCoeFzsMAyO72A+PE6OTrxgjrQ=;
-        b=atW9KVpt0r1ZuxqS6lu9GD034QrRCfn3cYSo1yJN77wtJ/wz/EaLqFMsGq4Kiar9mS
-         uYFViNm3E+Fv1mm33MyT8ZOEpUbYlv49B2Rc9YbntidLYX0RqTZAGb1o+PAAC7gTrLIc
-         +rPwANKkufLsap5HCnZJ9/0QrLXfU0v5wfR70HhRAHBgC6mwiwGYbYEIGpWrYqAL1ZRS
-         IPM727Y4dJjNaIH21SLUBqOr7c6fiJ+wZyhlBZ5Tic0XXs13UvtypN1ds4idYEwbSGsX
-         sngOyw3kvrBum0HPNwqXJVsQDkH+JsBTW+5K2ZW/1EYcPHL0TEtB4v7P/siYGseh8C8d
-         /hRA==
-X-Forwarded-Encrypted: i=1; AHgh+RqW907olhzwO7gNbRej291HrBoblJzJpuFOMGmuGevoOiEgOjsgvEXJJs7mZSRyw2G5JyJSs4xlbVG1mLx6@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy35GAURXcnTycOJW/AQHSRqed3VSzky30GAHakGwxuqyD+WXum
-	R2SGXqI6x+eGZ34xjx3j76QJ3lbcYMW+LR9lzcQFotr8VLztUDG3AsSRr1wACemkMBhkcs9fweS
-	HJt1aJC3lr7GEIA7n7OhrQ22RaDJ3DbMyj5Pd2n6C
-X-Gm-Gg: AR+sD100fnvaIChpvWhRdG8YeHFE+LJzTj7+i+ZFwSxSvoYAV3pmECw8IDLMVkYJa0s
-	QpcYcl4LWqlaeslss1FFratJ4bfxuOv2yDV7nTgQo/7euJY+CWepvcGnaElm6uLOcHZg1Ki/MpN
-	k3UewGqQRJxBIQjoIO3WKmKz602KVTW+ccLl+hXiKrAuty9EdSJKSR8I/F7FU1nriwK6MYzicJy
-	s2spk5JAYwWkGmRqtmvBNHFZQEq99sCE2MvDPMA0ODSRGCKv/6TxRPB31AJyw==
-X-Received: by 2002:a05:6512:1328:b0:5b0:eda:de2a with SMTP id
- 2adb3069b0e04-5b28f998d04mr4374814e87.35.1784737774129; Wed, 22 Jul 2026
- 09:29:34 -0700 (PDT)
+        bh=aJJyvzLCovMudd4JAugLONkO2PNspQZPslZQeXuUmI0=;
+        b=fyKFttsWz2DOyLtPnYauQQPYmkm2e/OIaFutCA19BKBPecaxcRba025AoAZzkU/f7E
+         6/vfvMqYq6V5IXujJaouvPuU/8eQoL0+HIIlp+uJ7/S33XYv9XS13w5FLMGpcJgHiEIn
+         ccX0LqfKPXnNSpHD9q/Mm+8q9hdsD9NDhRAiE=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784793627; x=1785398427;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=aJJyvzLCovMudd4JAugLONkO2PNspQZPslZQeXuUmI0=;
+        b=GI8y+cB78+KYaq1FvV39h9FCq9RbNKo9Cs4m3Hb1RB2Sw3cAkEg9wo3AA0sMld/fDF
+         KAW3rRjYw/Lo4stJkp/cORmmMLTgQzyCrtXXOf7/Y6whqE9ZoYc55B4IEL/q9mALkW+J
+         G3OKBIEEse2Uc/XyBoTcOCiA1kxK/wyTgmCrgxvGPzVNUtvrNCG/Hr3989/FkUoeSWyg
+         CpCkt674AlPyE98U60/09o5oiKR7gTV5rUhrq800fjiI1USr++7Bo0v0cL3VApLX7YZq
+         9Eu/E0R8QSk2sgTeSpfGQbKAHSkq1pZV8p9tfWdq90/yq2762HYtJQYLpCs7blqFHw5R
+         vvLQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqdT1gYXqlg1VpudbY4UfKJYh22x2OSwxcWQJ6c0/7WGf5446XMmAHzAXdh5aosYz5t/MHkkk0q5q/4pY//@vger.kernel.org
+X-Gm-Message-State: AOJu0YxWzBCsoqdbsJZpEilyC56qTJAG15CNYLxnEPWgcNhOAIgCHCDE
+	ujMhhuhPTx87S+4vVc5G1cfVZ3XOQFGh61LBn5uShR7g/axcLL07xCFVGff/xCigI75/bNOFtG0
+	F/VTPPyFDASuAeH2hcGwYkSY+jWlWHftOROWPsMr+Sw==
+X-Gm-Gg: AR+sD10k073Z+3ORhJqIgLrb4URAWLw3M8wDPzPbS7hXp+6RO8KTrYjGMRrdsdSCYDh
+	JIx/JpeVOYfAl+1wE0RsBKq5WcJVWd61X5M/9EerpkhqvIQ9seU8LqNJYxe+FQ8KmE7ym/kYV4H
+	y2WjdYzLc37Z1uvN/hMGta5pMzUpCi1i3W0QlMZ2hANSZ9yHemQdPcA8cYHJ9JY3hmA5yKdmHmw
+	BMWXUoafLAQCvKF9RgMAI8i3z+x6UJaWq8qX0GSGawBINb7Z5oosmL33E4930XgUYhrVf2QOWbC
+	igzrG9smD41NUUr9EQ==
+X-Received: by 2002:a05:622a:a06:b0:528:3ae6:14b1 with SMTP id
+ d75a77b69052e-5283ded5b58mr17799601cf.43.1784793626482; Thu, 23 Jul 2026
+ 01:00:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -83,10 +80,10 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260715101107.973997-1-mszeredi@redhat.com> <20260722-fundort-zogen-kormoran-09fb867f1b59@brauner>
 In-Reply-To: <20260722-fundort-zogen-kormoran-09fb867f1b59@brauner>
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Wed, 22 Jul 2026 09:29:22 -0700
-X-Gm-Features: AUfX_mwycQYWu9rMPFRhnxWdDLtR5J98EpUP47SKtC-4N4S0g7pVJ9n5XWZrccs
-Message-ID: <CALCETrU9KdLsvZzUE-5sh7KkP5-cPh=hwErGmN=THsDatFJLfA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Thu, 23 Jul 2026 10:00:14 +0200
+X-Gm-Features: AUfX_mxrAWDoGqE_Z2q7dsB9hEn4mw686sbiCfQ_kvnOWqvfJ8QAiTiMbX_EDHA
+Message-ID: <CAJfpegs9Mzx2bPTmWWzGWv7D2jF5Nspns-U6jf=KeAufiFMXyA@mail.gmail.com>
 Subject: Re: [RFC PATCH] fs: allow opening overlayfs/erofs layers through O_ALT
 To: Christian Brauner <brauner@kernel.org>
 Cc: Miklos Szeredi <mszeredi@redhat.com>, Giuseppe Scrivano <gscrivan@redhat.com>, 
@@ -94,26 +91,112 @@ Cc: Miklos Szeredi <mszeredi@redhat.com>, Giuseppe Scrivano <gscrivan@redhat.com
 	linux-api@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
 	Amir Goldstein <amir73il@gmail.com>, Gao Xiang <hsiangkao@linux.alibaba.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 22, 2026 at 9:06=E2=80=AFAM Christian Brauner <brauner@kernel.o=
-rg> wrote:
+On Wed, 22 Jul 2026 at 18:06, Christian Brauner <brauner@kernel.org> wrote:
 
-> Like I said before: I'm fine with an API where we can use open_tree() to
-> see through into underlying layers, and given the right permission pull
-> a mount out of it. That is a narrow, checkable primitive and it needs
-> none of this. No new open flag, no second ->show_options, no metafs, no
-> mnt_devname surgery. That part we can potentially do.
+> We've added a primary set of apis to retrieve mount options. I really
+> dislike the idea of introducing a completely orthogonal layer to do the
+> same thing (or more) and also make it filesystem based while at it.
 
-What, exactly, do you mean as the distinction between "[seeing]
-through into underlying layers" and "[pulling] a mount out of it".  I
-have a guess, but I'm not convinced that my guess is right.
+Fair enough.
 
+> The other proposal of moving it into procfs doesn't lower the creepiness
+> factor. It just paints it a different color. My objection is to the
+> shape of this not where the entry point lives.
 
-Other than that question, I think I generally agree with you.  The
-interesting operations here (getting an fd to something that was
-previously inaccessible) are different enough from normal path lookups
-that I think they deserve to be explicit syscalls or syscall modes,
-not magic links.
+Also fair point.  The reason I like the proc entry point is that it
+makes this accessible in the global namespace.
 
---Andy
+> Like, I'm fine having an api where we can use open_tree() to see through
+> into underlying layers and given the right permission pull a mount out
+> of it. That seems something we can potentially do.
+
+That's exactly what I was proposing.  The "retrieve all mount options"
+was a bad idea.  Will drop it.
+
+> There's a few issues on top of that. O_ALT is silently ignored unless
+> you spell the open as openat(dirfd, relative, ...). path_init() only
+> looks at LOOKUP_ALT in the dirfd branch. open("/abs", O_ALT) and
+> openat(AT_FDCWD, "rel", O_ALT) fall straight through and open the real
+> file.
+
+Good point.   It should either reject the non fd case (including plain
+open(2) or use cwd as the base.  I'm leaning towards the former.
+
+> The layer symlinks are an unchecked jump into internal, out-of-namespace
+> mounts. Following mount/options/upperdir/0 ends in nd_jump_link(). That
+> doesn't do permission checks and no mnt_ns check.
+
+It should do the permission check, will fix.
+
+It's jumping into an anonymous mount, why should it check mnt_ns?
+
+> The overlay upper/lower layers are internal mounts with no mountpoint in
+> any namespace. So any unprivileged process that can open the overlay
+> root gets an O_PATH handle to a layer root it has no search-permission
+> path to and on a mount outside its namespace and can then use it as a
+> dirfd.
+
+It's just missing the permission check in metafs_path_get_link().
+
+> Pulling the mount out is gated by CAP_SYS_ADMIN, but the handle and the
+> traversal are not. That's exactly Andy's "whose creds" question, it's
+> inherent to the design, and the procfs variant has it too.
+
+Maybe I'm not getting something.   Why would the metafs based design
+be more limited in how it checks permission and with which creds than
+any other interface?
+
+>
+> get_options() forks ->show_options() permanently. It's added
+> alongside the existing method and mnt_show_options() now tries one then
+> the other.
+>
+> That leaves the tree split forever or commits us to a flag-day
+> conversion of everything. The new thig is also heavie and loses the
+> seq_file overflow-retry. All so the 99% of filesystems that will never
+> expose a path option can carry a more complicated interface.
+
+This is something that would be useful anyway.  Would prevent the back
+and forth escaping for statmount.  I can do a full conversion patch
+either with coccinelle or claude in a couple hours.   And nothing is
+lost, the layer above seq_file is just an abstract class, could make
+it call exactly the same seq_file ops as before.
+
+> mnt_devname to s_devname move is a behavioral change. alloc_super()
+> records fc->source only on the sb-create path in sget_fc(). Sharing an
+> existing sb path never updates it. For filesystems that share a
+> superblock across mounts every mount now reports the first mounter's
+> source in /proc/self/mountinfo and statmount().
+
+Well, drat.  Doesn't really matter, though.
+
+> And the smaller details really show how inelegant this model is and why
+> Al and I have opposed it multiple times before. Scalar options are
+> modeled as symlinks and non-path options are dangling links whose
+> readlink still returns the value while for path options readlink returns
+> the option string but following the link jumps somewhere else entirely.
+
+Hey, this is was a prototype to show that this can do what Giuseppe
+needs.  Not with nicely polished interfaces.
+
+Completely agree with you, that's a shitty interface that I've done in
+there.  Not proud of it.
+
+But that's completely besides the point.  The point is that it would
+allow a lot of things to be done more elegantly, without adding
+special interfaces all over the place.
+
+> But a generic metadata interface layered on top of yet another magic
+> filesystem whether it's mounted or hidden behind procfs I feel very
+> strongly about. I also have great difficulty seeing Al supporting it.
+
+Me too, as you have obviously noted.
+
+I'm going offline for two weeks starting this weekend, so no lengthy
+and heated discussions for a while.
+
+But I'll be back!  HA HA HA ha
+
+Thanks,
+Miklos
