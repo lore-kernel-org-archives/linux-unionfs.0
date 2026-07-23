@@ -1,139 +1,209 @@
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1F06418A21
-	for <linux-unionfs@vger.kernel.org>; Thu, 23 Jul 2026 09:21:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784798474; cv=pass; b=epS3YXWem/PpZaKQNOX7zSX1yn8c6QKnOb90k9q1w/D+BNz+sYYHyyjIt6+gLW4WwKh4FTKw/GDgQyPR11p+kfjYzPG8mOOdlcJSLTloNUp0ZhdbwTmmLnBWSfk0lrahBihJwx/dckjvrjV1Hw4+3TscxXaJtC7ZXbjvH/nkfR4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784798474; c=relaxed/simple;
-	bh=sGg6RHbGOFfY3wrPJw9iaoWvo2EuJQxmnM6MAF2FK6s=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jMxLpdWT/So4vp9KfFGaJdjutFjJj0pTKylO4vAyNd2bBQWLnjnOYK9edu/+Zc+Ay7vuY+nms5GO078zYYGdivChrzC0AsarLoRoGfjl1aPsA3FEhs95oI7Eu4wEfB0IOnoCxDKMtwyjYKLAdLL5WYwTBGheCSzwzdnS9DUT2jg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g/chcEIJ; arc=pass smtp.client-ip=209.85.208.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 096E24749F2
+	for <linux-unionfs@vger.kernel.org>; Thu, 23 Jul 2026 11:48:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784807343; cv=none; b=q25amM8d7/mIt6axkSdfuzFI+lja5E1bJGehYxDDfM7sPEpx34qWIoLp9rPG2Lg7fZ7nXCW5+6VzGRFtG+aXntu2x1PpsvuMG2XNqxygikIuiGqqxtnOv/OTzpS3Bb5Tmc8AhV29Dyhy6eacpyDbPnwaN+5NaYf35VwsmQ6K148=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784807343; c=relaxed/simple;
+	bh=x+d1jypuxETb9FgFseEPTf2up4i16XU24UDMe1Itres=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rtRj/lPdv46hTWr/yJRyCJrEFml/T5rRVg3+E6o7ZkVzT+Ahd7mfStue7TGaIod4YVqAco1Lv1Jx4fMNx4auHwvXVwNbU/bMrE4eaF1HdgsdFlJ0xSiuQklhplJleBMP32WcXLbUCv290h8hVNkkPNxRhu3W2tF/tlRe7FKuKPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rkyoa6CP; arc=none smtp.client-ip=209.85.218.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g/chcEIJ"
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-698e5859a3cso609171a12.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Jul 2026 02:21:07 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784798465; cv=none;
-        d=google.com; s=arc-20260327;
-        b=Lh9hBRifLiJf5pzMlIx2qZxK5ZoHNGrj2ou6fid1YRrJIeqL4XaAf5TwqKlS4ikBsr
-         T3jbZ0bsL2qwuBK2T7SiOCFVHcFnb0HHTK5aFEqIUhTPd0jCYhYGJ9d/PodMy/cpNBRs
-         Idx8yT8ihLgIebzfnVwm8DQmNHEzlFB0htevO8E9d0RCKmDrBz5QCRHtthALtLkN20Iz
-         HA+N5+4aiiV6iD1ltfMnZ0u/SoTlJrCdP+xvBLFsgCvCLCKPX7ezUkXUeZK5PWYNovPH
-         j79ahjTbp3uzI2wNh8XRL3R8bDp+NEvk78lCjfnko7ztO1J9LnXDoKuGRAacFdh1sJ+q
-         IgKA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=QUS1duImiuxRUZ48Ef5krHiYH/CmsP1C8hfnRFBWu6E=;
-        fh=62vitDa0emw0bBr/MTfKtLoMhriCcf0U9ESRdEXr5qc=;
-        b=PMdoMUT99a4mximAc9xLpPBDjJi4atdivKOJYaZG2AHJAN54S6MTbiJ9sePPtDPB5u
-         tpLFBkRjZNoLloh1zEoGhXrqKyjLeN5dDnrVYNmnQfyzIPfWPx0HsjnDvZBhHQmDhwca
-         Z+ekcO4OYxjrO4YvOL67wDVljHyhWjOeSTxrPDA/HSPE+rtK2ge8GOoSSzE98C82qa7R
-         JJYU/gT1pa2nwTNGFLbPs8mgZSoG5OXK5pscfL70nxV61VW2hUV5jIh1CHE5wUj7MOU9
-         i4ClI0NdCx8psPc0tkthQQjlU2x/6y5tbz3JPKpfI0dK9zGFZei8LEHk0EtulVocsYsb
-         HVUQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rkyoa6CP"
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c1671ec8692so71464066b.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 Jul 2026 04:48:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784798465; x=1785403265; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=QUS1duImiuxRUZ48Ef5krHiYH/CmsP1C8hfnRFBWu6E=;
-        b=g/chcEIJ6/GuA081rNIAaKAaWX/CudeYHOxgArtcCJwkdcODlvQWpmc6AToa0FezFB
-         c4Ww/SsHx2f7aIzZogx9iA46Il/dSKyEsoiMbglDvkb3erWvpix3+UIpa1fMsca9ACql
-         8p02kztGDe3G5binL/egF7FcyOgO/RD2+PD8ueffzRXu6Bs8TETxxj2+TFVw7SUwGd9M
-         bAY5PByaDoUgs3y84vKm9xSkd4DdfBimj60ERjE63BZ8fbDQSUgqtMxRXKIMNdoPU388
-         nblSvNNqfdXi2OLmCzSOdhqT2uQwclp1bncG4vKEUJuV321S5AFRWGZK+KuZ1RGGTy7M
-         fbHQ==
+        d=gmail.com; s=20251104; t=1784807333; x=1785412133; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=WK5d6Q5O0McCeEqTCK8B2ifbG3I72Iar45UioZAgOqw=;
+        b=rkyoa6CPKvaIHiYjgwY1jt2K/ET/IwoZPhafKRNSXs7vqdCqINMVMYQovBwZ63+54f
+         0tzOquFSWS6vdQ9JG8lV6v2oGwfwYR6/FeFjZoTXBr9YoPPSeNpxZWdFXRIz9WYD7xSX
+         oVUbUyssxT1lgwCU4oFDdnzPepYUXGKSyIFoZRp6eG4iczwg0FclW8ujaY+3QIFf4XkJ
+         lai5gPmKZqGLj7DrEh7iunTignGWt63RcCBm5Yvpgjn6BJbi/0oCBQzRl6G2usjS1rHF
+         q6+uXhb0sql6WhOji6ZhtFTn1UT+abBbIEY0muO7FW5r0J3+CoA29+Hzd6KIkMWCMYli
+         9n+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784798465; x=1785403265;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=QUS1duImiuxRUZ48Ef5krHiYH/CmsP1C8hfnRFBWu6E=;
-        b=aSj+54y6OFAwpVwIspY458f1gL9tf4StZs6GtpsQaFnZyUZlK4uFmaJ3up+SXS2Wys
-         ZPFFrs/3cKACtizguB6Q8jy2YqTcKyjpYPMV2bEOTXfb0udc02Gw9zJBjozsOKzqR4Fu
-         IFrYZdOw6rePkLylagvzyYjzE6wbPwFQa7OJyY2Oaj9orhG6xJC2grngc7sp/MIRUJEG
-         mCaTAxWpzarkndunNdn7ykRnjocHPgvSleEeGIksUOev6GzHrc33yM/paR9SYKRBcVxt
-         cd1bG+h8IXR/bqbhgLL/LQRxUm0C02lzEUk0nqYNOCS84OIaXXO6p6Xh7BIvYtzY8nJg
-         YgUg==
-X-Forwarded-Encrypted: i=1; AHgh+RpJEcVEepUo/R6VpsHcN19t1vQZo3ABymL8iz5KIzyd29q4Uc+16VswUZDW7K6uYzs+XzLZfDyHdw8TPoxF@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy9Www0GufRJlFi07Skob29P5V1+lTwsZHuaNaHaoB5371KXcUq
-	7Dg0RdifQruDdtR7v27qZ5TP6O+ysM+xKOpWb4cXd2BVAFAbmXAHZKJYCT4kBF1gtcvlVA9IOCG
-	ehueY592KIBMtoOf1Bl6J5SQHHiXjNyg=
-X-Gm-Gg: AR+sD13fstvRcbo+97wVuByiUBYSm6sBjVUCu/RcYd6v7OiUP9JI7tKAkVErF8hxbwh
-	YX3+UeGCxwxNZwwZT7zSPZqKCqCOHc4sSS7QZUj33RENTwEK/hEJ+oLP+eStWSPRuLUdvz0oDWe
-	Dpu9xr/QEZ56yMTXYSRDGjaWppSP+VBe/yxeAmAcVG+KRekvqrmUf95WNHRUfzoHHfHonFtv5v1
-	gIbeAuu2Bbn0Z2zKv2vJpZJkqzeGaA0WnjsnnJjJKdVv6i4t8OUvXYjDO6zRec=
-X-Received: by 2002:a05:6402:2c5:b0:698:a9fe:2eb3 with SMTP id
- 4fb4d7f45d1cf-69f7473bb1emr481810a12.9.1784798464605; Thu, 23 Jul 2026
- 02:21:04 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1784807333; x=1785412133;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=WK5d6Q5O0McCeEqTCK8B2ifbG3I72Iar45UioZAgOqw=;
+        b=GW4Ok9eAg4coNm7bVnQum1naBCoq5dxDeu/GguUsBS/RBpWSNoIqExxLvHmgEKnAGm
+         oubPOQcDu1ewWUCGjEVATMICzYlAxxoA4XsRM5tL3VsRSSQlPpi/uCufc97cNerfgkEQ
+         SroQJEpgLZcMue1lyNOgWcJqnJ58Gi4rLx9MKO2Lnyz04nsu8QMqwRif4f3TTHc3GexW
+         CXcWPxy+8WR5VAGG8ie3HoF0Ut0KUTJ3fsExC7Q8Socqf0ICfEBVqpB6eeRfsWyZ9q8N
+         q7MzTwXlhZYZ9DkicUAqtuSUG++NmDIi63oKPfF6AfGpLaofjna9hgHelJNfUVfGrIBm
+         DeIg==
+X-Forwarded-Encrypted: i=1; AHgh+RoB5S6ivoQt3SOBlU5Q1Z5qRpgEWaHwJd85X/laZsMDZtxxSdeLM5uCv/bqv9Yia9OA8K/KJZUbsroCrZ0q@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywy1Dsz8+NO21v6n4bpNtJL8cOwjVjKV4gTfxCSgrqGlMQw3lvX
+	6NInIDSt7FMW0WN5llZ5U+3g19AMYz19NV661fqyc2CT5nAAUZBJVi5U
+X-Gm-Gg: AR+sD111wi0kh7NTY8ZLo7CNqUx9BJDRJo9H4oIYGLvXcylwoBu7bNf5jffAxD0vSnn
+	DcpdvLRg05PdM5Wu5SP/RwYHUtA1BUVikQBX4okaHqcokMxZk+q2GUd2paimSAIxvi6ec1LVXKC
+	m/36ktiFtdaxaMLkQa9vcAjkEwspptBpWL82f3I3OsJOHmkygTj9BgZg5z2iiq6Ck5JC+aPxvNA
+	dp2t/NM7Qzz9PvbcdW985Hf3hQiN5KDzQbLgIgr9ZwiqEj8RU1Krp+03bERnzeTnGa368aFMBMj
+	ycJtwW+kNhFpCdFTU5SN5clZaKaxVuTozz3RjDik81+qQ3PyzZNhfiT83OM9bmZEij7P7OXHf7L
+	PasFeH2bNLMyhKe1YWlHSDV2FgetDbdxF2rrCmXRidr4KbqnyryaCFAGtE+qFv5cPfKgusUl2qz
+	2fPnYDlE2xEputQy7V0tQ0nxbnkC+AP1donK+2BA==
+X-Received: by 2002:a17:907:a609:b0:c1c:5eb7:2ff0 with SMTP id a640c23a62f3a-c1c5eb73200mr32656266b.48.1784807333131;
+        Thu, 23 Jul 2026 04:48:53 -0700 (PDT)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c1c32ac6ff3sm219006266b.19.2026.07.23.04.48.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Jul 2026 04:48:52 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Daan De Meyer <daan.j.demeyer@gmail.com>,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [RFC][PATCH 3/5] fs: add support for copy file range to another fs
+Date: Thu, 23 Jul 2026 13:48:46 +0200
+Message-ID: <20260723114848.1212429-4-amir73il@gmail.com>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260723114848.1212429-1-amir73il@gmail.com>
+References: <20260723114848.1212429-1-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260715101107.973997-1-mszeredi@redhat.com> <20260722-fundort-zogen-kormoran-09fb867f1b59@brauner>
- <CAJfpegs9Mzx2bPTmWWzGWv7D2jF5Nspns-U6jf=KeAufiFMXyA@mail.gmail.com>
-In-Reply-To: <CAJfpegs9Mzx2bPTmWWzGWv7D2jF5Nspns-U6jf=KeAufiFMXyA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 23 Jul 2026 11:20:51 +0200
-X-Gm-Features: AUfX_mzGhC5ulgDl4H2_S8AB0-LW8RqyX4r61JB4nfZ8oT5YdWhv684RFp1OggQ
-Message-ID: <CAOQ4uxhqmh47w46x0zhOzqJ54iiL0KDpuuAqr2oPyjm4AOgDYQ@mail.gmail.com>
-Subject: Re: [RFC PATCH] fs: allow opening overlayfs/erofs layers through O_ALT
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <mszeredi@redhat.com>, 
-	Giuseppe Scrivano <gscrivan@redhat.com>, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-api@vger.kernel.org, 
-	linux-erofs@lists.ozlabs.org, Gao Xiang <hsiangkao@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-> > And the smaller details really show how inelegant this model is and why
-> > Al and I have opposed it multiple times before. Scalar options are
-> > modeled as symlinks and non-path options are dangling links whose
-> > readlink still returns the value while for path options readlink returns
-> > the option string but following the link jumps somewhere else entirely.
->
-> Hey, this is was a prototype to show that this can do what Giuseppe
-> needs.  Not with nicely polished interfaces.
->
+Implement copy to other fs in vfs_copy_file_range() -
+vfs must call the operation on the source filesystem and the source
+filesystem (e.g. overlayfs) will typically call vfs helpers to write
+to the other fs, so avoid taking freeze protection and fsnotify write
+hooks in vfs_copy_file_range().
 
-I want to do a sidebar regarding "what Giuseppe needs".
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/read_write.c | 43 ++++++++++++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 15 deletions(-)
 
-As I wrote I am all for introspection of overlayfs layers, but I was never
-fully convinced that getting an open fd was the correct API.
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 78596d9c89119..846db21ac05ca 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1478,6 +1478,7 @@ enum {
+ 	FS_COPY_SAME_FS = 2,
+ 	FS_COPY_CROSS_FS = 3,
+ 	FS_COPY_FROM_OTHER_FS = 4,
++	FS_COPY_TO_OTHER_FS = 5,
+ };
+ 
+ /*
+@@ -1498,6 +1499,8 @@ static int copy_file_fs_cmp(struct file *f_in, struct file *f_out,
+ 		return FS_COPY_SAME_FS;
+ 	else if (f_out->f_op->fop_flags & FOP_CROSS_FS_COPY)
+ 		return FS_COPY_FROM_OTHER_FS;
++	else if (f_in->f_op->fop_flags & FOP_CROSS_FS_COPY)
++		return FS_COPY_TO_OTHER_FS;
+ 	else if (file_inode(f_in)->i_sb == file_inode(f_out)->i_sb)
+ 		return FS_COPY_SAME_SB;
+ 	else
+@@ -1534,8 +1537,9 @@ static int generic_copy_file_checks(struct file *file_in, loff_t pos_in,
+ 	 */
+ 	if (fscmp == FS_COPY_SPLICE) {
+ 		/* cross sb splice is allowed */
+-	} else if (fscmp == FS_COPY_FROM_OTHER_FS) {
+-		/* Copy from other fs is allowed */
++	} else if (fscmp == FS_COPY_FROM_OTHER_FS ||
++		   fscmp == FS_COPY_TO_OTHER_FS) {
++		/* Copy from/to other fs is allowed */
+ 	} else if (file_out->f_op->copy_file_range) {
+ 		if (fscmp != FS_COPY_SAME_FS)
+ 			return -EXDEV;
+@@ -1587,6 +1591,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	ssize_t ret;
+ 	bool splice = flags & COPY_FILE_SPLICE;
+ 	int fscmp = copy_file_fs_cmp(file_in, file_out, flags);
++	const struct file_operations *fop =
++		(fscmp == FS_COPY_TO_OTHER_FS) ? file_in->f_op : file_out->f_op;
+ 
+ 	if (flags & ~COPY_FILE_SPLICE)
+ 		return -EINVAL;
+@@ -1611,30 +1617,33 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	 * Make sure return value doesn't overflow in 32bit compat mode.  Also
+ 	 * limit the size for all cases except when calling ->copy_file_range().
+ 	 */
+-	if (splice || !file_out->f_op->copy_file_range || in_compat_syscall())
++	if (splice || !fop->copy_file_range || in_compat_syscall())
+ 		len = min_t(size_t, MAX_RW_COUNT, len);
+ 
+-	file_start_write(file_out);
++	if (fscmp != FS_COPY_TO_OTHER_FS)
++		file_start_write(file_out);
+ 
+ 	/*
+ 	 * Cloning is supported by more file systems, so we implement copy on
+ 	 * same sb using clone, but for filesystems where both clone and copy
+ 	 * are supported (e.g. nfs,cifs), we only call the copy method.
++	 * Cross-fs copy (FROM_OTHER_FS / TO_OTHER_FS) is handled by whichever
++	 * side declared FOP_CROSS_FS_COPY.
+ 	 */
+ 	switch (fscmp) {
+ 	case FS_COPY_SPLICE:
+ 		break;
+ 	case FS_COPY_SAME_FS:
++	case FS_COPY_TO_OTHER_FS:
+ 	case FS_COPY_FROM_OTHER_FS:
+-		ret = file_out->f_op->copy_file_range(file_in, pos_in,
+-						      file_out, pos_out,
+-						      len, flags);
++		ret = fop->copy_file_range(file_in, pos_in, file_out, pos_out,
++					   len, flags);
+ 		break;
+ 	case FS_COPY_SAME_SB:
+-		if (file_in->f_op->remap_file_range)
+-			ret = file_in->f_op->remap_file_range(file_in, pos_in,
+-							file_out, pos_out, len,
+-							REMAP_FILE_CAN_SHORTEN);
++		if (fop->remap_file_range)
++			ret = fop->remap_file_range(file_in, pos_in,
++						    file_out, pos_out, len,
++						    REMAP_FILE_CAN_SHORTEN);
+ 		/* Fallback to splice for same sb copy for backward compat */
+ 		if (ret <= 0)
+ 			splice = true;
+@@ -1645,7 +1654,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 		break;
+ 	}
+ 
+-	file_end_write(file_out);
++	if (fscmp != FS_COPY_TO_OTHER_FS)
++		file_end_write(file_out);
+ 
+ 	if (!splice)
+ 		goto done;
+@@ -1676,13 +1686,16 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 			fsnotify_access(file_in);
+ 			add_rchar(current, ret);
+ 		}
+-		fsnotify_modify(file_out);
+-		add_wchar(current, ret);
++		if (fscmp != FS_COPY_TO_OTHER_FS) {
++			fsnotify_modify(file_out);
++			add_wchar(current, ret);
++		}
+ 	}
+ 
+ 	if (fscmp != FS_COPY_FROM_OTHER_FS)
+ 		inc_syscr(current);
+-	inc_syscw(current);
++	if (fscmp != FS_COPY_TO_OTHER_FS)
++		inc_syscw(current);
+ 
+ 	return ret;
+ }
+-- 
+2.54.0
 
-The starting point of the use case is a userspace daemon that wants
-to reuse mounted erofs images, which are used as lower layers.
-
-When considering a single daemon (e.g. composefs) this reuse
-would be better done completely in userspace without kernel involvement.
-
-The reason for a need for kernel UAPI for introspection of layers was
-to allow cross daemon optimizations, so that containerd could reuse
-erofs images mounted by composefs.
-
-This optimization works under the assumption that the image file
-or the image file hash is a unique identifier of the desired lower layer.
-
-But what if composefs mounted the image with idmapping or some other
-property?
-
-And how many container runtimes are there out there?
-Is it really worth the elaborate effort to provide introspection
-to this level?
-
-My intuition is that introspection should provide static information
-like uuid/fsid/fhandle rather than an open fd.
-
-I am willing to be convinced otherwise with the proper arguments.
-
-Thanks,
-Amir.
