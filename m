@@ -1,117 +1,154 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B0E843C05F;
-	Thu, 30 Jul 2026 13:57:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785419866; cv=none; b=Z7CJiyOznFBWZXp9TJO4YuM76F+KQS1UBNqz8LQ+sNV2yQJIHara/yKim4V+aB/s0sN722kKU2Aq9sJju692pxKr02NMgMxNCY0RhxYVqQTq8SW4keQm2eZbZrXbKjT1MVzCb+URw/+zGFDSup+MzA6TYKywpOASs8u2CcdKGX4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785419866; c=relaxed/simple;
-	bh=2oUqXrJBrUSAW81GOPAYq1YFLd+s+3pMz3/WFFP9Uq4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PbW/1XAPgi3JQwia8s2KvUntJ32Ugo1uU3rn3+/dXiSZnrYCTrclG/ZsdxvWiKpY0g1KPBJagYraMhy27S1X2dIDFeZHKRzMGz5/vhTSAOPnOlxnpt028bsSN26RQ79ZsjkAnkKXBlcU58i4eWhlcdErob5YFpN6qB6Tm5JFBVQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LQdH+7OV; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF5B238D686
+	for <linux-unionfs@vger.kernel.org>; Sat,  1 Aug 2026 18:54:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785610472; cv=pass; b=c241BObDbaKwAXoY4sFakbLGyeTI95mKGlbkkxjDO/nHPOWVR4XZLQtxhvTcUyC3KkVj61kxzH/8NRICGKzu44wQgH/A7sdsTdOylkP5WbRqUg55HxBAiig6Y9lHpFELTTqn7DtbCFViA/7595fGeAyjWJIO8KkUUJErdRm2jM0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785610472; c=relaxed/simple;
+	bh=s5Gfpg0zgBC841yiwSBnIRqhIhRvVPkWqEeOCqHbcEY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Content-Type; b=DJJff5R6fYDAcM/1bGVzfLs/d/h5o1030H0x98VjVd362PHfAxpt4cWuXJbvNVTSYTP5Z2lxfe3n5RQQC/lgYWe09sg1e8thHRWLkKsrQaP3WjkYhkqwW5JE0WsX0zni8bNSpyOmHB2dJ/kKtfWqJvu3mRYCqLH1/b1cxbuMJIA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Q+kHRWES; arc=pass smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LQdH+7OV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C50981F000E9;
-	Thu, 30 Jul 2026 13:57:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785419863;
-	bh=Oz4ni0SjIgyNOKjMms23AjFfChPcr687pUNnZOhDNiU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=LQdH+7OVwpD5K5PFll7+cMZ/zkdcnC8rrqvUd5QCrSMPMFLsaTjY4JD8IvC/k+lL0
-	 M5h/ls8lB70tE8dGkOcBsuafwnLo26cXwEQCiZc7+stA3uq2wHgQnr8rDvq3y4uFX+
-	 o8t3Sl6slP5vlNAiJmoP5e2KKXhUrfrpAOD7T8f/cLKM/Bs7Xxd1U4QfsK57ZBUy0w
-	 EZQ+hqgfJOu5NwLpvr2FXM/AS/Ca27liMWuzIyt88onqnqoX/w1pO4wbUuNk1ng6wd
-	 D/bW9TlMRWV+MxQJJL3SdMXzJnPoQT0Ms/vbObQfOUvIf2yO6FX4eb8EUNQA2OB8Mw
-	 B6+11xIphVEeg==
-Date: Thu, 30 Jul 2026 15:57:39 +0200
-From: Christian Brauner <brauner@kernel.org>
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, 
-	Giuseppe Scrivano <gscrivan@redhat.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-api@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
-	Amir Goldstein <amir73il@gmail.com>, Gao Xiang <hsiangkao@linux.alibaba.com>
-Subject: Re: [RFC PATCH] fs: allow opening overlayfs/erofs layers through
- O_ALT
-Message-ID: <20260730-abwesend-raumgewinn-teppich-12ac54467d14@brauner>
-References: <20260715101107.973997-1-mszeredi@redhat.com>
- <20260722-fundort-zogen-kormoran-09fb867f1b59@brauner>
- <CALCETrU9KdLsvZzUE-5sh7KkP5-cPh=hwErGmN=THsDatFJLfA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q+kHRWES"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-69c5fda04a8so3808741a12.1
+        for <linux-unionfs@vger.kernel.org>; Sat, 01 Aug 2026 11:54:30 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785610469; cv=none;
+        d=google.com; s=arc-20260327;
+        b=mUDyR+xqyOvulXLp6/QTLlrQaWyervfam4Pk8nZ0fFBOEBHnmOjZKmF9OGET+Y1fL4
+         rXdnHh94h1l2+axX0z3EPGzlAwA3bccaaltbYDV/45RjgxjtOvAOxmQWa6xBbSJx8Kdd
+         pHzJMgnyL0xbNvZDiVMLy0t0s0g6VCqapvvqDw4NPoWBZwxTNWk+Bgl2wXBcOh+8kFsS
+         kfJxmn78rQci/KNPwYvt0ANGfojoy4JGdocpTuygfFsIJp7kcE41/kfMbcqIgLlMtcDH
+         jynsodNYcKNwARmsOgwYuAY29vFjLfvjCWeDZKY8exrYR643dV9NgJ3T7KzusGqXlVM4
+         2flQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=72LrGKvsXvQhEBxFk1sMzgi9EvOeboavfgQ4tZHipRM=;
+        fh=+STfu/UGXGOy6Y2UcP0aM+vjgCLcwELz1LBT2lqtwYo=;
+        b=LgIrWq2unFiylL+va8+GSGfzUnmOgnN3+tydJ5nLzyOs2IBVWQQpyiWx2loLZh+jYt
+         rt+s/qdG0JLDomK9KXAABEAO2ytUgaq+sD+T1NMOV2Gj/+0DTqGIbs2DvVTUt3XC4g6J
+         p4NTvnt6cadHleJIlm2uPfTAqG5E8Fs/VdQtQUcKGKfIwnur3L5gHJomDsERxzoHJ0qE
+         SapS8IAAYmt31BSIAWvX4j02YGwbnUfURzdiSB0Buvd7OIGDFIbGG6m2utIWhj6XWC55
+         McWkARCvAmw8ad4vpAP6sJ3y7YEBZZv3ZtKbjPp4fvY4E5ZeNPwL4us5Bcart+lMUvzj
+         Pjjg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785610469; x=1786215269; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:to:subject:message-id:date
+         :from:in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=72LrGKvsXvQhEBxFk1sMzgi9EvOeboavfgQ4tZHipRM=;
+        b=Q+kHRWESE+/mDhPdNUEaTBiI0dlSMlGRS9I+KEQcijy7NatsihntEg8uxW2LNdePLu
+         iOYY3eLTxM2xfGqsBSRRhZzGsboAiQ6zIiX5VQ+0C6yBy0EiJVFUSjtiAzH+NP093fby
+         JQRGgB9sTlGQtIcCPfQtt9QLBxfNoH+pdRM/xUY7bz28Cf/27PFw5DCdpc75zy0rdj6c
+         yc0N0WZTj/wh+NVsVUd4ZpODTGSJpbNJmP+KpO2OJz6xYYNjmZ8EzEdW3VgDrMvXVixY
+         FOLVs9+xwo1dsmgbD3ypIyt/6Ku36WLWj57eePHrUMbRNtB/JzAz9GzYbpISOJkbjIvW
+         h1Ww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785610469; x=1786215269;
+        h=content-transfer-encoding:content-type:to:subject:message-id:date
+         :from:in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=72LrGKvsXvQhEBxFk1sMzgi9EvOeboavfgQ4tZHipRM=;
+        b=hfh08frIWxMqH8fG9ezI00JCKK0DbLXHrUjGQhwtUVnqSbqaC4HaFGyf6G01YzkYum
+         1B9SVjThgeNarNu+5NVF0xhFNl5SW4i9iYhEYIXLf1irxYBvyD+Q17xXrCL3VlMMHI/9
+         DzzfNAv3xqbJ0zI/HBvK0WuLQrYdvaPiLxLZMZVIokHv1d6Ld+6alpnv/4OrLGNeFwG8
+         rWfvuQNx+V/fUhLSTqb0hML+27K8AoFjO8uo+OoeRDkPfPZYn3Df6fcyvkD4hIy4Bxf7
+         60uRMBnsn3jJLrlwlHiCSI0BRchlJ7ctRvbDDH1ByDGTXeeh6Y5IYJhLF8pUyYqgbulh
+         p8pQ==
+X-Forwarded-Encrypted: i=1; AHgh+Rr+Di5UwlyOdDfPIzZYHeCZJ+JP73WHZqk6qkLC5yydoyxGRMUf3HNC0rtAagUTC52lKdFbnCf5anh6cGUz@vger.kernel.org
+X-Gm-Message-State: AOJu0YzdrIQRnklpdkVgf1bvP8DAt2y+42lc2C5166Jqx5/xvGF8JOTH
+	7X1+t4AB+iSfWcMDexth2CpfIERERLkH+p3KBJyFAa9a0zAWZStn3fzWYojaNGsrIv9cw8OXFvI
+	IAEpkKOWh+39dRxQS53GEKqT1OZZ+30g=
+X-Gm-Gg: AR+sD100lDmeHc0gvFa3K34qitd4QW+irPxHYlMqhngg/9Fe7Tywc57GV6ASXUfP/RY
+	c/nLsmYqnd94GvxXWQlwIEIjcgWOOr0IQ7HREjdf1V8xfC2uJqY/vBc3wsrlcQ1HGzICqLNiIl3
+	J8lQCZGkVXiPvwf/XDGfQ+C1YZcDlbiDD3oyOfdz9h/23x5winAvJdafVIWFGt591VPr/61Z2X7
+	DJGm16/Ec0Yc8Jjp1UYdp2a2EsboFrMV785q54YAmQv6oQCCEkhH/Y3Npvruj2+bvo9CV6QM1ju
+	DvEFu+y8EMudM+FY/zeJd1GktYxoOFf2zDbRTO/lC6EmVg==
+X-Received: by 2002:a05:6402:52c9:b0:698:ac8a:9a21 with SMTP id
+ 4fb4d7f45d1cf-6a0a7c5e513mr2672190a12.8.1785610468878; Sat, 01 Aug 2026
+ 11:54:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALCETrU9KdLsvZzUE-5sh7KkP5-cPh=hwErGmN=THsDatFJLfA@mail.gmail.com>
+References: <20260723114848.1212429-1-amir73il@gmail.com> <amKjyp78ngW2Kmku@debian>
+In-Reply-To: <amKjyp78ngW2Kmku@debian>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 1 Aug 2026 20:54:17 +0200
+X-Gm-Features: AUfX_mycy3CLDRPo1M1-mDD8CDdSTIfqZUV4MPkGVFCoOu90Y4JLcLs7KyDRwqw
+Message-ID: <CAOQ4uxgcU1EzsOfWZRMzubso1bd-QfQ54w_TfBBCniQVSAHoiQ@mail.gmail.com>
+Subject: Re: [RFC][PATCH 0/5] Proposal for Cross-fs copy_file_range()
+To: Amir Goldstein <amir73il@gmail.com>, Christian Brauner <brauner@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Daan De Meyer <daan.j.demeyer@gmail.com>, 
+	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 22, 2026 at 09:29:22AM -0700, Andy Lutomirski wrote:
-> On Wed, Jul 22, 2026 at 9:06 AM Christian Brauner <brauner@kernel.org> wrote:
-> 
-> > Like I said before: I'm fine with an API where we can use open_tree() to
-> > see through into underlying layers, and given the right permission pull
-> > a mount out of it. That is a narrow, checkable primitive and it needs
-> > none of this. No new open flag, no second ->show_options, no metafs, no
-> > mnt_devname surgery. That part we can potentially do.
-> 
-> What, exactly, do you mean as the distinction between "[seeing]
-> through into underlying layers" and "[pulling] a mount out of it".  I
-> have a guess, but I'm not convinced that my guess is right.
+On Fri, Jul 24, 2026 at 1:29=E2=80=AFAM Gao Xiang <xiang@kernel.org> wrote:
+>
+> Hi Amir,
+>
+> On Thu, Jul 23, 2026 at 01:48:43PM +0200, Amir Goldstein wrote:
+> > Hi all,
+> >
+> > Daan De Meyer requested a way to do copy_file_range() from overlayfs
+> > to/from another fs, where if that fs is the base fs of overlayfs layer
+> > the copy could be an efficient clone.
+> >
+> > TBH, he also requested support also for cross-fs clone_file_range(),
+> > but I am not happy about providing that.
+> >
+> > copy_file_range() already supports cross-sb efficient copy (e.g. with
+> > NFS/SMB server-side copy).
+>
+> I once had a long-term goal of supporting copy_file_range() between
+> overlayfs and EROFS
 
-Two operations that the proposal merges into one.
+Between EROFS and overlayfs?
+I think the proposed API is general enough to support this -
+first the dest fs (overlayfs) copy method is called, which calls
+vfs_copy_file_range() from erofs to (e.g.) the upper xfs and then
+the erofs cross copy method is called to copy from backing file to upper fs=
+.
 
-Seeing through is introspection. You want to know that the overlay has
-three lower layers, that lower[0] is an erofs, which image it came
-from, what its fsid is. That's information. It should come back as
-data, from statmount(), the way every other mount property does. It
-hands out no new reachability, so it needs no new permission model, and
-it's roughly what Amir is arguing for in this thread. I think he's
-right that this half covers most of the actual use case.
+> for file-backed mounts, as long as the EROFS inodes
+> are plain (i.e. uncompressed). Such cross-fs copies could be decomposed
+> into one or more sub-copies from the EROFS backing file to the
+> overlayfs upper file, so the underlying backing filesystem can perform
+> the actual data transfer. If the backing filesystem supports reflinks,
+> those operations could even be implemented as efficient reflinks.
+>
+> This would greatly optimize overlayfs copy-up for file-backed EROFS
+> mounts.
 
-Pulling a mount out is acquisition. You want a usable mount for that
-lower layer. That's a capability transfer and the layer is an internal
-mount with no mountpoint anywhere, and afterwards you can walk it. That
-needs to be an explicit, privileged operation with a single call site,
-and what it hands back should be a detached mount fd, which is exactly
-what open_tree(OPEN_TREE_CLONE) already gives you. Same lifetime rules,
-same move_mount() to attach it, nothing new to reason about.
+This optimized copy up does not require copy from EROFS to overlayfs,
+only copy from from file backed EROFS to upper basefs:
+- erofs should support for copy file range to another fs (similar to patch =
+5)
+- ovl_copy_up_file() should use vfs_copy_file_range() instead of
+  vfs_clone_file_range() - or some variation of this
 
-The reason to keep them apart is that they have entirely different
-security answers, and merging them into one path walk is precisely what
-forces "whose creds" to be answered per node instead of once. Split,
-the introspection half never has to ask, and the acquisition half
-answers it at the top, before anything is reachable.
+>
+> I think this should be feasible, although I haven't had time to work
+> on it yet. If clean interfaces in this area make that easier, I'd be
+> very happy to make use of them and enable this later.
 
-And neither half needs O_ALT. Introspection is statmount() with more
-fields. Acquisition is a flag on open_tree()/open_tree_attr(), or an
-operation on a mount fd. No new resolution mode, no second namespace
-hanging off every fd, nothing for a symlink to accidentally point into.
-That is the whole of my objection to the RFC, and dropping the mount
-options half doesn't address any of it.
+I think it should be pretty straightforward to implement this in erofs
+however, calling vfs_copy_file_range() with the backing file would
+populate its page cache, so maybe you would want to limit this to
+when the destination file and backing file are on the same fs which
+supports clone, perhap via a flag COPY_FILE_REMAP to
+vfs_copy_file_range().
 
-Which I think is close to your capability-fd sketch minus the tree. You
-wanted privilege captured by the call that hands you the fd rather than
-rechecked on use. If the only thing that call returns is a mount fd,
-that's already how it behaves. And we don't have to invent a per-node
-cred model or a new set of rules about what a dirfd is and isn't
-allowed to do.
-
-Giuseppe, this is also your requirement. What you actually
-need is something persistable, so a restarted daemon can find the erofs
-mount again without anyone having to hold an fd open for it. That's the
-introspection half producing a stable identifier and the acquisition
-half consuming one. Much narrower to specify than a generic metadata
-tree, and it doesn't require settling anything about O_ALT first.
-
-> Other than that question, I think I generally agree with you.  The
-> interesting operations here (getting an fd to something that was
-> previously inaccessible) are different enough from normal path lookups
-> that I think they deserve to be explicit syscalls or syscall modes,
-> not magic links.
-
-Yes.
+Thanks,
+Amir.
