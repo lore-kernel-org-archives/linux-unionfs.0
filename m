@@ -1,354 +1,193 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C853EC8EB;
-	Sun,  2 Aug 2026 18:01:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 998EEB672
+	for <linux-unionfs@vger.kernel.org>; Mon,  3 Aug 2026 12:05:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785693665; cv=none; b=Rp2VMC/ukuYr1mG5Kv02MNHlRi26E+sP7CwFWDauZBqaFTfJuwaNXq0cOEtlRotwufSA9OLvjOwBSVRWdGA1G9YoP5I1K4RopfYQYB55QjqCNtPEdcvvBE7NfpI2fC9skrAn6O9Jf5pT8H6W7wJujvQddcKLrQNvLD6kh1KASlk=
+	t=1785758752; cv=none; b=LHa2YTDbwFz8GOztE6I96WaBOffXvVm4/1M7Xd3S9Vrc4mUn6XIUwD2dYDsdUnZS2TkNipB4pyKvZirtjG0aZAqcDXuF/4Ji2pC7bEw0nQ8hq5QN1NrlKVIN1aZ4mLwkd+Iy1Hunag1NmZDqhhAKHonQDic3TbWOTlM1EBPxlzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785693665; c=relaxed/simple;
-	bh=qDRJ7E22DEznk9+Q2R6uF7IWUA4oDIXitLC6nj5xlLI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=nviKKAsE10omk/9QXWZr02lLtETPqxplJ+gy9an2garudm8xkzdKnIm6r+cM2srNWoHXdzbtFiwTjp30aj39d4/TU8512N/XzzKTFtILkYr13hJzZ7bZkq2x2c6vUqwgoUFHfYIy19bhKsqlljlSJQRb20vPiVknYBKE3IRmSJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nJZ/Zhqp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785758752; c=relaxed/simple;
+	bh=nqTzNRCJO3wqJREleUU77/xKkveMfYlnLcF68EY26ZY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AZz2umyURZ/eBgta5/5hV4fZineMDCy/k7CdnQPdTjHbf5mLyniN4iHo4gdTL0xMd6+Z6OPM40xpoQiUf0HFEEueltLoAUF5vnLJXcGHObeW1P8LzbYYloEA72tiJ9DEIR1J0kMjHH5MBSdtGrBBndoRzuxOmz+1NqR/QKPikdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=qR6eKlKw; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=BZAiIMkw; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=eLdxZkJc; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=vGVVMShC; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nJZ/Zhqp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C66D21F00A3D;
-	Sun,  2 Aug 2026 18:01:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785693663;
-	bh=gsGb3DyU1rE+X3NhCHX1jw/pkRSQtfiqt69SPUGhWe8=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=nJZ/ZhqpFyFfyz8MrzX5b+8t3wdFraUa0ZagbVtqyn7Aqc9BO8fuivRYsQJ5nZwo7
-	 SmAGSGyd8QwBOs9Uae9MXrUY2iiWvVxzKPyUM/A7PxjqMdwY/bxJljwFdrTzbD8/e8
-	 WEa7Jo2x4CFtJrzJ0jo5xI9y8SjmnaMEx6LLd24nvpNZVNF9LY9oJq13Q/TplAi35w
-	 QW1cQvcEpgQirrosUznTOwi7pVdM7Zh22TZRfpDvr1bmP5PAdJm1Kzya78ioj6KeeX
-	 mFk1FLkQL7kOPQQLonfGI80Qe4EPMbqbaIYgbRWNrjUXdPyEokPtMP3egs7JSRnO1w
-	 94my4wCHCyjDg==
-From: Christian Brauner <brauner@kernel.org>
-Date: Sun, 02 Aug 2026 20:00:45 +0200
-Subject: [PATCH 3/3] selftests/filesystems: test completing a context from
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="qR6eKlKw";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="BZAiIMkw";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="eLdxZkJc";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="vGVVMShC"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 8199D7F0A0;
+	Mon,  3 Aug 2026 12:05:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1785758744; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=8XrW9jPvYLT+yJolHSZeV1xbelIgml749r9l2fLqeHI=;
+	b=qR6eKlKwsVqJ2fBOlPW1CERKuW5dfE+bdWJIPXJpRCetRMTFRTSgZMIpcvOMg55PYQ0+6b
+	uaTtErYcQ+XDggYDyWZznr7UMOefcejeHS31EAM4Ynm3Ysd8CCkXF+qTmB8kBzQQx4/nYn
+	Y5n4T1zJLJR6EF3F07uY1ldMe4K4Ii8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1785758744;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=8XrW9jPvYLT+yJolHSZeV1xbelIgml749r9l2fLqeHI=;
+	b=BZAiIMkwuhb/qHEtkW6r/ImNKzfl8pHpLKDer45EvsQZCeUvE8iP2gMB+KVkYVentFzyB8
+	akCTrXS1lYZW4EBQ==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1785758740; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=8XrW9jPvYLT+yJolHSZeV1xbelIgml749r9l2fLqeHI=;
+	b=eLdxZkJcyym2hya8zcTwZUAt93qjx2KZ+287tbxat+dgcMMYVUceXOJ4YfIR4HaDvHj5xM
+	IN8MU0c/aH5LFUOH6HcJMQ/+RkeDsyk+elIfR9LjFuJI+X3Qd20N/8ZXxCI1731sptJ8Nm
+	V0Sco1KxyiapNkmQT6/Und2Qpatb7OM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1785758740;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=8XrW9jPvYLT+yJolHSZeV1xbelIgml749r9l2fLqeHI=;
+	b=vGVVMShCSxEqBi+PBGqchTq5etMt0X1X5CpcTAnY7JNa+Bh/UW3yFjkw9oQw9XtWB3cMaK
+	P2x7U7WPKmFP9GAw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 76A1F779C1;
+	Mon,  3 Aug 2026 12:05:40 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 5BXxHBSEcGruNAAAD6G6ig
+	(envelope-from <jack@suse.cz>); Mon, 03 Aug 2026 12:05:40 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 1B061A13A4; Mon, 03 Aug 2026 14:05:36 +0200 (CEST)
+Date: Mon, 3 Aug 2026 14:05:36 +0200
+From: Jan Kara <jack@suse.cz>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Kees Cook <kees@kernel.org>, 
+	Laurent Vivier <laurent@vivier.eu>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, 
+	stable@vger.kernel.org
+Subject: Re: [PATCH 1/3] ovl: don't warn when the mount is completed from
  another user namespace
+Message-ID: <s47cadp2vvo4ybfbivknswng3ze3fvldlcspm7mygzkmxo3aas@tivvzq4d2f6k>
+References: <20260802-work-fill_super-warn-v1-0-4e987911a39a@kernel.org>
+ <20260802-work-fill_super-warn-v1-1-4e987911a39a@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260802-work-fill_super-warn-v1-3-4e987911a39a@kernel.org>
-References: <20260802-work-fill_super-warn-v1-0-4e987911a39a@kernel.org>
-In-Reply-To: <20260802-work-fill_super-warn-v1-0-4e987911a39a@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
- Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
- Kees Cook <kees@kernel.org>, Laurent Vivier <laurent@vivier.eu>, 
- linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, 
- "Christian Brauner (Amutable)" <brauner@kernel.org>
-X-Mailer: b4 0.16-dev-f2f85
-X-Developer-Signature: v=1; a=openpgp-sha256; l=8360; i=brauner@kernel.org;
- h=from:subject:message-id; bh=qDRJ7E22DEznk9+Q2R6uF7IWUA4oDIXitLC6nj5xlLI=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTlt15er8WwZ6UJ2/sLMfyrDSNV7np0eXy13tFdGqW7Y
- e0W2fmVHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPp1WL475vxwneK/vT19g9f
- LJhkstFHakLX2orPm/ye83j5ZP7qjmdkWCthey0+t6v3aHdxmc8JSZkD5WdFJvV/0tG9dC8qJj+
- IEQA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260802-work-fill_super-warn-v1-1-4e987911a39a@kernel.org>
+X-Spam-Score: -3.80
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	URIBL_BLOCKED(0.00)[suse.com:email,suse.cz:email,imap1.dmz-prg2.suse.org:helo];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MISSING_XM_UA(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[11];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_COUNT_THREE(0.00)[3];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[gmail.com,szeredi.hu,vger.kernel.org,zeniv.linux.org.uk,suse.cz,kernel.org,vivier.eu,kvack.org];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_TLS_LAST(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,imap1.dmz-prg2.suse.org:helo,suse.cz:email]
 
-fsopen() records the caller's user namespace in fc->user_ns and hands
-back an ordinary file descriptor, so the task that issues
-FSCONFIG_CMD_CREATE need not be the one that created the context.
-mount_capable() authorizes that for a caller holding CAP_SYS_ADMIN in an
-ancestor of fc->user_ns, which any unprivileged user has over a user
-namespace it just created.
+On Sun 02-08-26 20:00:43, Christian Brauner wrote:
+> fsopen() records the caller's user namespace in fc->user_ns and hands
+> back an ordinary file descriptor. Nothing ties the task that calls
+> fsconfig(FSCONFIG_CMD_CREATE) to the task that created the context. The
+> fd is inherited across fork() and exec() and it can be passed over a
+> unix socket.
+> 
+> Completing a context from another user namespace is allowed on purpose.
+> vfs_cmd_create() authorizes the create with mount_capable(), which for
+> FS_USERNS_MOUNT checks ns_capable(fc->user_ns, CAP_SYS_ADMIN), and that
+> succeeds for a task holding CAP_SYS_ADMIN in an ancestor of fc->user_ns.
+> So an unprivileged task can reach the WARN_ON() in ovl_fill_super():
+> create a user and a mount namespace in a child, call fsopen("overlay")
+> there, send the fscontext fd to the parent and let the parent issue
+> FSCONFIG_CMD_CREATE. Both namespaces come from a plain unshare(1) and no
+> capability is needed anywhere:
+> 
+>   WARNING: fs/overlayfs/super.c:1551 at ovl_fill_super+0x7b9/0x1e20 [overlay]
+>   CPU: 3 UID: 1000 PID: 3243376 Comm: fswarn
+>   Call Trace:
+>    get_tree_nodev+0x71/0xa0
+>    ovl_get_tree+0x15/0x20 [overlay]
+>    vfs_get_tree+0x2a/0x100
+>    vfs_cmd_create+0x60/0xf0
+>    __do_sys_fsconfig+0x4b2/0x500
+> 
+> The child needs the mount namespace because fsopen() itself gates on
+> may_mount(), which asks for CAP_SYS_ADMIN in the user namespace owning
+> the caller's mount namespace. fsconfig() doesn't repeat that check.
+> 
+> It is a WARN_ON() and not a WARN_ON_ONCE(), so the condition can be
+> raised in a loop to taint the kernel and flood the log, and it panics a
+> kernel booted with panic_on_warn.
+> 
+> Keep refusing the mount and stop warning about it. ovl_parse_param()
+> already spells a user namespace check this way for Opt_override_creds.
+> 
+> Fixes: 1784fbc2ed9c ("ovl: port to new mount api")
+> Cc: stable@vger.kernel.org # v6.5+
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-binfmt_misc and overlayfs used to WARN_ON() the mismatch. Add a test for
-both. Also cover the handover within one user namespace. That is a
-supported thing to do and has to keep working.
+Obvious enough :). Feel free to add:
 
-Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
----
- tools/testing/selftests/Makefile                   |   1 +
- .../selftests/filesystems/fscontext_ns/Makefile    |  10 +
- .../filesystems/fscontext_ns/fscontext_ns_test.c   | 239 +++++++++++++++++++++
- 3 files changed, 250 insertions(+)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
-index 8d4db2241cc2..b622052ec3e9 100644
---- a/tools/testing/selftests/Makefile
-+++ b/tools/testing/selftests/Makefile
-@@ -42,6 +42,7 @@ TARGETS += filesystems/fuse
- TARGETS += filesystems/move_mount
- TARGETS += filesystems/empty_mntns
- TARGETS += filesystems/fsmount_ns
-+TARGETS += filesystems/fscontext_ns
- TARGETS += firmware
- TARGETS += fpu
- TARGETS += ftrace
-diff --git a/tools/testing/selftests/filesystems/fscontext_ns/Makefile b/tools/testing/selftests/filesystems/fscontext_ns/Makefile
-new file mode 100644
-index 000000000000..7e3506294757
---- /dev/null
-+++ b/tools/testing/selftests/filesystems/fscontext_ns/Makefile
-@@ -0,0 +1,10 @@
-+# SPDX-License-Identifier: GPL-2.0
-+TEST_GEN_PROGS := fscontext_ns_test
-+
-+CFLAGS += -Wall -O0 -g $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
-+LDLIBS := -lcap
-+
-+include ../../lib.mk
-+
-+$(OUTPUT)/fscontext_ns_test: fscontext_ns_test.c ../utils.c
-+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
-diff --git a/tools/testing/selftests/filesystems/fscontext_ns/fscontext_ns_test.c b/tools/testing/selftests/filesystems/fscontext_ns/fscontext_ns_test.c
-new file mode 100644
-index 000000000000..0f30a3e6e197
---- /dev/null
-+++ b/tools/testing/selftests/filesystems/fscontext_ns/fscontext_ns_test.c
-@@ -0,0 +1,239 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2026 Christian Brauner <brauner@kernel.org>
-+ *
-+ * Test that completing a filesystem context from another user namespace
-+ * doesn't warn.
-+ *
-+ * fsopen() records the caller's user namespace in fc->user_ns and hands
-+ * back an ordinary file descriptor. The task that issues
-+ * FSCONFIG_CMD_CREATE need not be the one that created the context: the fd
-+ * is inherited across fork() and exec() and it can be passed over a unix
-+ * socket. vfs_cmd_create() authorizes the create with mount_capable(),
-+ * which for FS_USERNS_MOUNT checks ns_capable(fc->user_ns, CAP_SYS_ADMIN),
-+ * and that succeeds for a task holding CAP_SYS_ADMIN in an ancestor of
-+ * fc->user_ns.
-+ *
-+ * binfmt_misc and overlayfs used to WARN_ON() that mismatch, which let an
-+ * unprivileged user taint the kernel, flood the log and panic a kernel
-+ * booted with panic_on_warn. The mount must still be refused, but it must
-+ * not warn.
-+ */
-+#define _GNU_SOURCE
-+
-+#include <errno.h>
-+#include <sched.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/socket.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+#include "../wrappers.h"
-+#include "../utils.h"
-+#include "../../kselftest_harness.h"
-+
-+#ifndef FSCONFIG_CMD_CREATE
-+#define FSCONFIG_CMD_CREATE	6
-+#endif
-+
-+/* TAINT_WARN, i.e. bit 9 of /proc/sys/kernel/tainted. */
-+#define TAINT_WARN_BIT		9
-+
-+static bool taint_warn_set(void)
-+{
-+	unsigned long taint = 0;
-+	FILE *f;
-+
-+	f = fopen("/proc/sys/kernel/tainted", "r");
-+	if (!f)
-+		return false;
-+	if (fscanf(f, "%lu", &taint) != 1)
-+		taint = 0;
-+	fclose(f);
-+
-+	return taint & (1UL << TAINT_WARN_BIT);
-+}
-+
-+static int send_fd(int sock, int fd)
-+{
-+	char cmsgbuf[CMSG_SPACE(sizeof(int))] = {};
-+	char b[1] = { 'x' };
-+	struct iovec iov = { .iov_base = b, .iov_len = sizeof(b) };
-+	struct msghdr msg = {
-+		.msg_iov	= &iov,
-+		.msg_iovlen	= 1,
-+		.msg_control	= cmsgbuf,
-+		.msg_controllen	= sizeof(cmsgbuf),
-+	};
-+	struct cmsghdr *cmsg;
-+
-+	cmsg = CMSG_FIRSTHDR(&msg);
-+	cmsg->cmsg_level = SOL_SOCKET;
-+	cmsg->cmsg_type = SCM_RIGHTS;
-+	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-+	memcpy(CMSG_DATA(cmsg), &fd, sizeof(int));
-+
-+	return sendmsg(sock, &msg, 0) < 0 ? -1 : 0;
-+}
-+
-+static int recv_fd(int sock)
-+{
-+	char cmsgbuf[CMSG_SPACE(sizeof(int))] = {};
-+	char b[1];
-+	struct iovec iov = { .iov_base = b, .iov_len = sizeof(b) };
-+	struct msghdr msg = {
-+		.msg_iov	= &iov,
-+		.msg_iovlen	= 1,
-+		.msg_control	= cmsgbuf,
-+		.msg_controllen	= sizeof(cmsgbuf),
-+	};
-+	struct cmsghdr *cmsg;
-+	int fd = -1;
-+
-+	if (recvmsg(sock, &msg, 0) <= 0)
-+		return -1;
-+
-+	cmsg = CMSG_FIRSTHDR(&msg);
-+	if (!cmsg || cmsg->cmsg_type != SCM_RIGHTS)
-+		return -1;
-+	memcpy(&fd, CMSG_DATA(cmsg), sizeof(int));
-+
-+	return fd;
-+}
-+
-+/*
-+ * Create a context for @fsname in a child and complete it here. With @nest
-+ * the child first creates its own user namespace, so that the context is
-+ * created in a descendant of the namespace completing it. The child needs a
-+ * mount namespace of its own as well: fsopen() gates on may_mount(), which
-+ * asks for CAP_SYS_ADMIN in the user namespace owning the caller's mount
-+ * namespace.
-+ *
-+ * Returns the result of FSCONFIG_CMD_CREATE with errno set, or -ENODATA if
-+ * the child could not create the context at all.
-+ */
-+static int create_from_child(const char *fsname, bool nest)
-+{
-+	int sock[2], fd, ret, status;
-+	pid_t pid;
-+
-+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sock))
-+		return -ENODATA;
-+
-+	pid = fork();
-+	if (pid < 0) {
-+		close(sock[0]);
-+		close(sock[1]);
-+		return -ENODATA;
-+	}
-+
-+	if (pid == 0) {
-+		close(sock[0]);
-+
-+		if (nest && unshare(CLONE_NEWUSER | CLONE_NEWNS))
-+			_exit(1);
-+
-+		fd = sys_fsopen(fsname, 0);
-+		if (fd < 0)
-+			_exit(1);
-+		if (send_fd(sock[1], fd))
-+			_exit(1);
-+		_exit(0);
-+	}
-+
-+	close(sock[1]);
-+	fd = recv_fd(sock[0]);
-+	close(sock[0]);
-+	wait_for_pid(pid);
-+	waitpid(pid, &status, WNOHANG);
-+
-+	if (fd < 0)
-+		return -ENODATA;
-+
-+	errno = 0;
-+	ret = sys_fsconfig(fd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
-+	status = errno;
-+	close(fd);
-+	errno = status;
-+
-+	return ret;
-+}
-+
-+FIXTURE(fscontext_ns) {
-+	bool warn_before;
-+};
-+
-+FIXTURE_SETUP(fscontext_ns)
-+{
-+	self->warn_before = taint_warn_set();
-+
-+	if (setup_userns() != 0)
-+		SKIP(return, "setup_userns failed");
-+}
-+
-+FIXTURE_TEARDOWN(fscontext_ns)
-+{
-+}
-+
-+/*
-+ * The condition the kernel used to WARN about. It has to be refused, and it
-+ * has to be refused quietly: an unprivileged task reaches this.
-+ */
-+FIXTURE_VARIANT(fscontext_ns) {
-+	const char *fsname;
-+	int expected_errno;
-+};
-+
-+FIXTURE_VARIANT_ADD(fscontext_ns, binfmt_misc) {
-+	.fsname = "binfmt_misc",
-+	.expected_errno = EINVAL,
-+};
-+
-+FIXTURE_VARIANT_ADD(fscontext_ns, overlay) {
-+	.fsname = "overlay",
-+	.expected_errno = EIO,
-+};
-+
-+TEST_F(fscontext_ns, create_from_descendant_userns)
-+{
-+	int ret;
-+
-+	ret = create_from_child(variant->fsname, true);
-+	if (ret == -ENODATA)
-+		SKIP(return, "%s unavailable", variant->fsname);
-+
-+	ASSERT_EQ(-1, ret);
-+	ASSERT_EQ(variant->expected_errno, errno);
-+
-+	/*
-+	 * Only meaningful if nothing had warned before us. Note that an
-+	 * unrelated warning racing this test would look like a failure.
-+	 */
-+	if (self->warn_before)
-+		TH_LOG("TAINT_WARN already set, not checking for a new warning");
-+	else
-+		ASSERT_FALSE(taint_warn_set());
-+}
-+
-+/*
-+ * The same handover within one user namespace is a supported thing to do and
-+ * has to keep working. binfmt_misc takes no options, so the create succeeds
-+ * outright and this also shows the test really drives the create path.
-+ */
-+TEST(create_from_same_userns)
-+{
-+	int ret;
-+
-+	if (setup_userns() != 0)
-+		SKIP(return, "setup_userns failed");
-+
-+	ret = create_from_child("binfmt_misc", false);
-+	if (ret == -ENODATA)
-+		SKIP(return, "binfmt_misc unavailable");
-+
-+	ASSERT_EQ(0, ret);
-+}
-+
-+TEST_HARNESS_MAIN
+								Honza
 
+> ---
+>  fs/overlayfs/super.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 60f0b7ceef0a..60b808b85fc4 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1544,7 +1544,8 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+>  	int err;
+>  
+>  	err = -EIO;
+> -	if (WARN_ON(fc->user_ns != current_user_ns()))
+> +	/* The fscontext fd may have been passed to another user namespace. */
+> +	if (fc->user_ns != current_user_ns())
+>  		goto out_err;
+>  
+>  	ovl_set_d_op(sb);
+> 
+> -- 
+> 2.53.0
+> 
 -- 
-2.53.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
