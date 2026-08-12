@@ -1,175 +1,78 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAE8F12B94
-	for <linux-unionfs@vger.kernel.org>; Mon, 10 Aug 2026 09:15:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.49
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786353326; cv=pass; b=gFosPMMXEG+dHwLgBaFgH8LUKQ05r5iKAUwNM0edgnRlBPmJKOdn2xUd9WhJa8L1f7+KBTJeJITTdawJRcL2rP4niqMr59mxlO+6aZxI7QlCNA4qcdJR7fJD5fdYF2JxhwNmtFpDO++FvSvufj3Iv2jCtAsgTJmvknpPPQ69Z+c=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786353326; c=relaxed/simple;
-	bh=o5G0Zcy7sHVm1gE0JnQBefYO/WTPXUEBfTEx9SCAFkA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pQ5MLZVrz8+OA3tznLBObuE6HpwmyfAkxaDrBzUuCznmxvG/WeT/R3oENQVgtgjbhfGBVUk4ft6Yvz+g/ObrXyKfazaNufTw52GkUOqvZkzGqWKxRvzoVK+eFj9yC9xzo7tICCW5wyXwkx/vdcNOcB7zyzj3eDTEmaI4q/e8AOI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FcKQpe6O; arc=pass smtp.client-ip=209.85.208.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED34386576;
+	Wed, 12 Aug 2026 07:27:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786519674; cv=none; b=mvwEdYeSjTtyR2udKJvBAyt2QNzVSfp+a4TuSfglPIQn9K7oiPoQHHwFs/6bXYIDMd9qj0mFck0+cxlz+yXGX9AcwHKcAMun8FXjkXnL945rENPxWTukFchWdI8FMyG1LenyOkonMicNW7emoITbLirPez7Eg7iV41hNTCztEcc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786519674; c=relaxed/simple;
+	bh=AA40xgGlrspag9jqHVzMXxRdaRl75ymLBMBcmaeUDn4=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=Z5lZZZpMIRtrPSWhz0OpD1uKWb6UMxyfTDfESJtCxRo06x3EwLb8GyvT8/t9SmCbTJPk1DEnPMU3g+4Wg2Hc66g2R3ryxEY5HqriWzr5TmfNGdEwf9DxZTaBnnStXwS0iDEvAyRNBIijnaw7pK+kR3reDDKfYA0dip2Q18dTZBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TFOZ9YQ5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FcKQpe6O"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-6a051904222so1753748a12.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 10 Aug 2026 02:15:24 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786353323; cv=none;
-        d=google.com; s=arc-20260327;
-        b=fYOt/iEG3W2GYyohAxKw42AfPGiWrMXffKI9As2u9IALWfvaJX5mMw3zHlo05Py5r5
-         tM62NuGC+StM0F0h8LWCBydnIHkZMp262sdEgHv22HJJgyjInnVFve+G6MRNrcbKsoEf
-         7p0mk3mv0BxrLq6phHNwqVp4I/ZRdGNtUMYDZVu6uUnnH0636okdb9LXUICNhZlIfd5V
-         z+xGm0dpASiO5wlsmUBIIWwYm4ZacidF63uLLYFFXxgRTtKm5w84XGQ2u3AYc2LdVCKY
-         0oc+erxbqlM2PMa4ct/YIwfhJrga4ElvWL6B8M02IXBqJKtzGOXQ07ptJ9e/Ni7Xgbbp
-         4nEw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=LTFByqnQi1kWXDSzDHe+kTNA6IO1jhkvAauO0MSqkJs=;
-        fh=HfnMIbS6yrOnwpgJyTPFXj3IBpk6BTqTlRr4JRpX+nQ=;
-        b=Q0iL/HVmrYGiFIlWGcmGJ3Y+Bd+bcRdCXgx4ltLx9xoa9Z84ajvs4aR7XuGNFojFc8
-         pr/0Lrd/TvM8oW5KwsJ9L68mhPyTuAu0cTIfACjdV/LRe1ZGjRMJO7QHyyI4XqX2vQMG
-         U0k7IXirw0bhr05NV/OjJluLalglrFZ1RF4YHsnyBCcPGbGCcrLFvKJsXXSK94sqr2PD
-         WGiqT00eCCQlUCdDgkfhcAN9uY1jA6B/r7BFhGbaXCgC4XawTcnyBQKfBVydVl7uJGBD
-         QpMhzApELtldQxRioubm3rrNXrmiG8Sr6yewin1oLgq9qXd/dQ8DacRZf6DB1wKId83k
-         Dp8w==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786353323; x=1786958123; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=LTFByqnQi1kWXDSzDHe+kTNA6IO1jhkvAauO0MSqkJs=;
-        b=FcKQpe6O1bLjRA0BviknKiE5U7Dqvfu2YL623gUfGXHOwPF0cYOLzP5Xj6SS8M6+o2
-         eXPnNUERGG9neQy2nHOqgy3Iyssp631Mb/m8jPl66vL7fM1HICg+NLBqBvPyJjhRtEzZ
-         mtP1ji9KldwkULUjQY+wZ9zFCTr1C3fHDmXboPLZl+XhK6MOWZ23EH9tItqMiJppT0tc
-         t8U+IOEDLmYmQW6bfiHg+z3+JZ0+HfHyfdH1p6C8eTX2sIbPSWG9Pr2RjPhnTT5nXeeg
-         uvOvFHx6OxBSkIJ+tdSTFpXn3qPQnfmL4J8K2Oavva8MAkg/HHs/xCFYc5Z4JEQmOV84
-         B02Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786353323; x=1786958123;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LTFByqnQi1kWXDSzDHe+kTNA6IO1jhkvAauO0MSqkJs=;
-        b=Kuq36CAepXoFEAVTsBKYAyzWe2VN74OL6J/XZ7kP8s4GISv1zmP1gJxztLOo0KCjr9
-         PPf74ykqSgxXXkUGsBa7pkv5XYyYpnMNTYdeT9m3tcVUKHa/ptS12YPN9lxX3wkI9fRP
-         WXIyYI8kWxZ1G1lhT+O+Ov9/gnHTbrsUfx014NwchesxIFo5+x902IpOadKL7q4SFdHP
-         Zh8LkOpRVmh/h/lKkw79MZeEH1leGmSGH60+yWqvt7xClJjdvI7TnCzY8p1/sB8FyCVv
-         s1FCraSbpN00cu/DujN+Eazd6tkk+6veXvfWla8cl7uALzJ9gNKPo/n8yb7/GYg/XDNn
-         9d2Q==
-X-Forwarded-Encrypted: i=1; AHgh+RoVnXDW9Nu4Puwx+RxufAP1BYpMqM9M3bryQsGzh317Yz5EvPv2t3sgOrNtAIWeBGfv3JvDhHmOVx2uQMG+@vger.kernel.org
-X-Gm-Message-State: AOJu0YzflELPZCF6b8T0/jS0YlyyRJ+jpxC2KRIAfHo18+BzdE+uDNMO
-	aNJJHi1fzWdI4xRpgz8+B+7OsSAFyCYdRy8ikNDHAqTDVPB7xQcBh/0+xgHBJA4zj4oYOPisXse
-	Bw75/xn1Gq4DAtzLsTbtrcin5Ww3hiDD8EuRYXyE=
-X-Gm-Gg: AR+sD10666sdriFLmHafsnGXG2ynXNBEClV8qlXmyT0igFdVVK5qzBd+JSOZP/IMrfY
-	QTNlzpDZInG7tLpCJZACoeUY3x+rVWgLMlSPrv7VsmAGxU+ea2T2IIet78JFSget5Jbgor2f1uL
-	HJcfwGVx3IpdEb3ouOs34fmUqKY8IUX7GrkiwaVoDi0nX5o8mX5Nw9/nCX4OumJluM1wGFDxPvM
-	wicNPgF4tKX3uL0uU4AjaD6hxifN9vWR9NT3gwKuAb6tlcgmU0z/AXAPHBKhf3dQE4jr6g5GtrQ
-	3HqIz80JqK1igFWDoPj+TiygtTIFHwY4tat7n0dNCsM1GQ==
-X-Received: by 2002:a05:6402:28c5:b0:6a1:dbd:bfe with SMTP id
- 4fb4d7f45d1cf-6a14f0badf1mr20065456a12.7.1786353323008; Mon, 10 Aug 2026
- 02:15:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TFOZ9YQ5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 418541F00ACF;
+	Wed, 12 Aug 2026 07:27:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786519669;
+	bh=eWhuCJo4Sc0ofWnzOquBMPtCZHU/TwETIJ0Lz4nmSvs=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=TFOZ9YQ5etXFlZ5iW6fKnLRkmj7pdcjDNEciAaVDi9vc3i7mYxgpR/wFBEZshOwHE
+	 tO8RLycCZJMBiKkA5T4g3aj4ZvInk6InXRp21hpovxhbDg5q2v4EBxfHlO49nBaraV
+	 f2rZgelPSuehMa0DiYclFlxu6eWZBiP+YGh8s7TAxFp6hj2ETejbVtg2Uf6NWBpdAM
+	 tQNFG4WCYR8pk7H09DlPxB/FMzmoMODicO7qrmETikvI7UQ1SOujR9T8enyUcPBeTN
+	 9ZgWL8l+CI9q71MQrb9jH4B4SPJ4kdcKvjvkEQTi25PS/eY5t28AJdefGfM+vauXH1
+	 z7nuTrs+V2CsA==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org, Baokun Li <libaokun@linux.alibaba.com>
+Cc: miklos@szeredi.hu, amir73il@gmail.com, viro@zeniv.linux.org.uk, 
+ jack@suse.cz, paul@paul-moore.com, serge@hallyn.com, 
+ linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ stable@vger.kernel.org
+In-Reply-To: <20260804034204.3487077-1-libaokun@linux.alibaba.com>
+References: <20260804034204.3487077-1-libaokun@linux.alibaba.com>
+Subject: Re: [PATCH] fs: fix user path of nested backing files
+Message-Id: <20260812-auszog-rehkitz-wonach-182a7eaad0ca@brauner>
+Date: Wed, 12 Aug 2026 09:27:43 +0200
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260807-kasan-v1-1-50da6e58cc20@oss.qualcomm.com>
-In-Reply-To: <20260807-kasan-v1-1-50da6e58cc20@oss.qualcomm.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 10 Aug 2026 11:15:11 +0200
-X-Gm-Features: AUfX_mxOOOch9AOz5VO1lclI0_03muckuyYM2TPL6OIe9AtqSW91bux7GOIJYEY
-Message-ID: <CAOQ4uxjKzqH6g41_Gtx_WWE8y69cUrzg8VVsVhg-4PgkOLxLoA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix NULL pointer dereference in ovl_i_path_real()
-To: Varadarajan Narayanan <varadarajan.narayanan@oss.qualcomm.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Miklos Szeredi <mszeredi@redhat.com>, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.17-dev-362b8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=864; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=AA40xgGlrspag9jqHVzMXxRdaRl75ymLBMBcmaeUDn4=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTVKBTdfMmqKGl4X3jx7MlHdr9ebJz1jJVLU5D/y7RS5
+ vLIHXu3dJSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEzkqSUjw/TQIqWlqeL53t0u
+ Be+bDDvnbDeXPP7pz+QHLycX/09t+sbwT3PhM6vNS7+VbquWOVujU2Ua4fLe5XVMa+X9pT7y849
+ O4AAA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-On Fri, Aug 7, 2026 at 9:05=E2=80=AFAM Varadarajan Narayanan
-<varadarajan.narayanan@oss.qualcomm.com> wrote:
->
-> KASAN reported a NULL pointer dereference in ovl_permission() when it
-> called mnt_idmap(realpath.mnt):
->
->         BUG: KASAN: null-ptr-deref in ovl_permission+0x150/0x190
->         Read of size 8 at addr 0000000000000018
->
-> ovl_i_path_real() can return a path with a valid dentry but a NULL mnt.
-> This happens when the inode has an upper dentry, but ovl_upper_mnt()
-> returns NULL, for example on an overlay without an upper layer. The calle=
-r
-> then dereferences realpath.mnt and crashes.
+On Tue, 04 Aug 2026 11:42:04 +0800, Baokun Li wrote:
+> fs: fix user path of nested backing files
 
-An overlayfs without an upper layer should not have an inode with an
-upper dentry.
+Applied to the vfs-7.3.misc branch of the vfs/vfs.git tree.
+Patches in the vfs-7.3.misc branch should appear in linux-next soon.
 
->
-> Also avoid dereferencing lowerpath when it is NULL.
->
-> Fix this by checking lowerpath before using it, and by clearing
-> path->dentry when no upper mount is available. This makes ovl_i_path_real=
-()
-> return NULL and lets callers use their existing error handling path.
->
-> Call trace:
->          ...
->          __kasan_check_read+0x1c/0x24
->          ovl_permission+0x150/0x190
->          inode_permission+0x7c/0x204
->          may_open+0x84/0x14c
->          path_openat+0xdf0/0xf60
->          do_filp_open+0xbc/0x148
->          do_sys_openat2+0x268/0x2bc
->          do_sys_open+0xd4/0x108
->
-> Signed-off-by: Varadarajan Narayanan <varadarajan.narayanan@oss.qualcomm.=
-com>
-> ---
->  fs/overlayfs/util.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
->
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index b41f4788e4f0..ec423e16cbbd 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -380,10 +380,16 @@ struct inode *ovl_i_path_real(struct inode *inode, =
-struct path *path)
->
->         path->dentry =3D ovl_i_dentry_upper(inode);
->         if (!path->dentry) {
-> -               path->dentry =3D lowerpath->dentry;
-> -               path->mnt =3D lowerpath->layer->mnt;
-> +               if (lowerpath) {
-> +                       path->dentry =3D lowerpath->dentry;
-> +                       path->mnt =3D lowerpath->layer->mnt;
-> +               } else {
-> +                       path->mnt =3D NULL;
-> +               }
->         } else {
->                 path->mnt =3D ovl_upper_mnt(OVL_FS(inode->i_sb));
-> +               if (unlikely(!path->mnt))
-> +                       path->dentry =3D NULL;
->         }
->
->         return path->dentry ? d_inode_rcu(path->dentry) : NULL;
->
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-This patch is wrong because it defends against conditions that should
-not be possible.
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
-If this is reproducible, then there might be a bug somewhere else that
-needs fixing,
-use after free or what not.
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
 
-Thanks,
-Amir.
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs-7.3.misc
+
+[1/1] fs: fix user path of nested backing files
+      https://git.kernel.org/vfs/vfs/c/ffb5dde2f64a
+
