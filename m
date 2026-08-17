@@ -1,35 +1,44 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAF573B47C3;
-	Mon, 17 Aug 2026 07:20:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C111542376F;
+	Mon, 17 Aug 2026 15:37:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786951207; cv=none; b=MeyG5xmAgztU6+HdiTex34Ca+wcNEz4RYlYRzsfMROA8VFQHTDMCedj+myXz7HolwovcC3+8ys0i92Dx/PNixsFnHHM0a/VOxXEGsCniF7or9S7VQkTUKA4UHq73LR+qMkQEifKjx2IQFyI29wFa6oXu0SnFAO8iLIIDydKWzHo=
+	t=1786981040; cv=none; b=LKMj58gKScNP2xQ4nKI5Vcf2QTSMcBWFlbKwFZ6DBSUUMFjUFiSVHXdkdjBktK0NO34C80XlIz36nw+7jq3zHeDvAMzMZTwCMcR+h0VWcaBHfOD8xt7theiAkbXgZjT121zW8YQVum7o6k2w1jwmtqa4tZrAOd8dEfnc97dgAA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786951207; c=relaxed/simple;
-	bh=myeqPs/5HjoaiaENp6VOEIO9ZPDU1o1pXiX7ZccVRHI=;
+	s=arc-20240116; t=1786981040; c=relaxed/simple;
+	bh=FYWamzuJoFxSWCKL5fNKW+4hDr4mdtZK1qgkB3I75c8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fktVRMoIlnXq4fem+p4zujSBZEfXhycyOvA0oVedTpWxIL02rvhxVa7FFlLg7TEsMQmFoIRcKIUL+GzzIboQFfSxF8C/bY3HpSmzcAHgI2etWqbKNhxYroliu4uVWkmnbdgCT3OIYufxNu2lzwm2r8DpiqBOrD42yosW5QNEtSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 65CDA68D07; Mon, 17 Aug 2026 09:20:00 +0200 (CEST)
-Date: Mon, 17 Aug 2026 09:20:00 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Andrey Albershteyn <aalbersh@kernel.org>
-Cc: djwong@kernel.org, ebiggers@kernel.org, hch@lst.de,
-	Jens Axboe <axboe@kernel.dk>, Carlos Maiolino <cem@kernel.org>,
-	fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
-	linux-block@vger.kernel.org, linux-ext4@vger.kernel.org,
-	linux-f2fs-devel@lists.sourceforge.net, linux-btrfs@vger.kernel.org,
-	david@fromorbit.com, Tal Zussman <tz2294@columbia.edu>
-Subject: Re: [PATCH v15 17/25] xfs: use read ioend for fsverity data
- verification
-Message-ID: <20260817072000.GD17371@lst.de>
-References: <20260814092448.1818082-1-aalbersh@kernel.org> <20260814092448.1818082-18-aalbersh@kernel.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=QWqjFgDv+0Yawn2u4rYN+Zw7t81RVQ3uIlmjEMpokcunBf2PccYr+JeZB/TEzgimXStGRvpVHmxI/o/VXJw8PS7pSUhvDU6nla0Gp6eZfYMCda3P5TfGGizCpQtRTyaMM+irFLB+Lnyk3KxgBmEMYv+EzpjXAWOHHzGccgcuMoA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YGUAcbzZ; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YGUAcbzZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C56531F000E9;
+	Mon, 17 Aug 2026 15:37:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786981039;
+	bh=SiFMhNBo85XeONQYI7xMysmswB/FDKlJ+i51HWi9xO0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=YGUAcbzZ5cNJGgU4kbM36LvX8HXYWptaedVRNfDWS7UgO1DwWF/UPjl03V1ss/rQj
+	 hUFeQX8CoOWt3AwUeaPDRSsM0CKLuOXtG5McpewY2MmN/xtH15oo2JytenZjFrUKzB
+	 ja8fV4RBqzEiERzmEZ3HasocYKuInrX8t346KnDsYft2AmUpzevAFurIxUsthbhjfA
+	 mq+I+pACO2iP41xjR27lbtgwcgo20gce2YbwGNpYAbc7NIo3YijQPTnWxfnaPc9y4L
+	 VdJ0DnhYiFn80BuTXB/SLOsb5AoQ1C8us5MgfDk7SSBsMvlo8rqq9zUNhEz5lQoLMC
+	 QOLHcx0Z5GUPw==
+Date: Mon, 17 Aug 2026 17:37:13 +0200
+From: Andrey Albershteyn <aalbersh@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: djwong@kernel.org, ebiggers@kernel.org, Jens Axboe <axboe@kernel.dk>, 
+	Carlos Maiolino <cem@kernel.org>, fsverity@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
+	linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-block@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, 
+	linux-btrfs@vger.kernel.org, david@fromorbit.com, Tal Zussman <tz2294@columbia.edu>
+Subject: Re: [PATCH v15 00/25] fs-verity support for XFS with post EOF merkle
+ tree
+Message-ID: <aoMZaqbKxmp9lhKs@aalbersh-thinkpadx1carbongen13.rmtcz.csb>
+References: <20260814092448.1818082-1-aalbersh@kernel.org>
+ <20260817070240.GA17371@lst.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -38,90 +47,46 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260814092448.1818082-18-aalbersh@kernel.org>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <20260817070240.GA17371@lst.de>
 
-On Fri, Aug 14, 2026 at 11:24:34AM +0200, Andrey Albershteyn wrote:
-> Use read ioends for fsverity verification. Do not issue fsverity
-> metadata I/O through the same workqueue due to risk of a deadlock by a
-> filled workqueue.
+On 2026-08-17 09:02:40, Christoph Hellwig wrote:
+> On Fri, Aug 14, 2026 at 11:24:17AM +0200, Andrey Albershteyn wrote:
+> > Hi all,
+> > 
+> > This is next revision of fsverity for XFS.
+> > 
+> > Range-diff with v14 also below.
+> > 
+> > Patches without review:
+> > [PATCH v15 07/25] block: add task-context bio completion
+> > [PATCH v15 08/25] block: don't delay bio task completions
+> > [PATCH v15 16/25] xfs: handle fsverity I/O in write/read path
+> > [PATCH v15 18/25] xfs: make xfs_free_eofblocks() work with fsverity
+> > 
+> > The patchset include some patches from lazy-bounce@hch-misc series for
+> > BIO completion in task context
 > 
-> Pass fsverity_info from iomap context down to the ioend as hashtable
-> lookups are expensive.
-> 
-> Add a simple helper to check that this is not fsverity metadata but file
-> data that needs verification.
+> A different version of that landed in the block tree.  
 
-> -	const struct address_space	*mapping)
-> +	const struct address_space	*mapping,
-> +	loff_t				position)
->  {
+oh didn't know that
 
-Hmm, "position" is new for these kinds of arguments.  We tend to call
-them "pos", "off", or "offset", but I guess this completes the matrix :)
+> So let's hash
+> out how we want to handle this for the 7.4-rc merge window after the
+> dust for the current merges settles.
 
-But maybe stick to pos to match the naming of the helpers used by the
-callers.
+7.3-rc?
 
+> I can have the lazy bounce series
+> ready early for the merge window, and should be able to send it out
+> once all depdendency trees hit mainline.  Does that sound good?
+> Or should we split the minimum requirements into a separate
+> branch?
 
->  	struct xfs_inode		*ip = XFS_I(mapping->host);
->  
-> -	if (bdev_has_integrity_csum(xfs_inode_buftarg(ip)->bt_bdev))
-> +	if (bdev_has_integrity_csum(xfs_inode_buftarg(ip)->bt_bdev) ||
-> +			xfs_fsverity_is_file_data(ip, position))
->  		return &xfs_iomap_read_ops;
->  	return &iomap_bio_read_ops;
+Then the only patches I will need is IOMAP_IOEND_INTEGRITY with the
+helper. This is probably a bit too small change for separate series,
+but this will also work.
+I'm fine with waiting for lazy bounce, as I still will have at least
+one more revision.
 
-Nit: While this is one of the standard Linux indent styles for long
-ifs, the other one would seem more readable here:
-
-	if (bdev_has_integrity_csum(xfs_inode_buftarg(ip)->bt_bdev) ||
-	    xfs_fsverity_is_file_data(ip, position))
-
-> +#include "xfs_errortag.h"
-> +#include "xfs_fsverity.h"
->  #include <linux/bio-integrity.h>
-> +#include <linux/fsverity.h>
-> +
-> +static void
-> +xfs_end_fsverity_io_read(
-> +	struct work_struct	*work)
-> +{
-> +	struct iomap_ioend	*ioend =
-> +		container_of(work, struct iomap_ioend, io_work);
-> +
-> +	if (!ioend->io_bio.bi_status)
-> +		fsverity_verify_bio(ioend->io_vi, &ioend->io_bio);
-> +
-> +	iomap_finish_ioends(
-> +		ioend, blk_status_to_errno(ioend->io_bio.bi_status));
-
-Indentation looks odd here, this should be:
-
-	iomap_finish_ioends(ioend,
-		blk_status_to_errno(ioend->io_bio.bi_status));
-
-or maybe add a local bio variable given that you use ioend->io_bio
-three times, and this would fit onto a single line.
-
-> diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-> index 0959b97e641b..f329a57d6ee9 100644
-> --- a/include/linux/iomap.h
-> +++ b/include/linux/iomap.h
-> @@ -454,6 +454,7 @@ struct iomap_ioend {
->  	sector_t		io_sector;	/* start sector of ioend */
->  	void			*io_private;	/* file system private data */
->  	struct fsverity_info	*io_vi;		/* fsverity info */
-> +	struct work_struct	io_work;	/* fsverity blocking I/O */
->  	struct bio		io_bio;		/* MUST BE LAST! */
->  };
-
-Please don't add new fields to iomap structures in xfs patches.
-
-And I really don't like adding it here given that struct work_struct is
-rather big and not useful in other ways here.  So maybe just do the
-alloc a struct for the workqueue and queue it up using
-fsverity_enqueue_verify_work approach the other file systems do.
-Or add something like the block complete in task thing to fsverity
-and simplify all these so that they only need a list entry
-(which we already have in the ioend).
+-- 
+- Andrey
