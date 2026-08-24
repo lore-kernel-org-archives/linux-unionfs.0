@@ -1,281 +1,216 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633343A450C
-	for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2026 10:25:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34B141B8E6
+	for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2026 12:46:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787567107; cv=pass; b=QsutFYogmKwirqIAz5JsxbvXDxbt5HIW7yi5YFmJkxOG2OzYy77GBAMZ+jqnssn/AANBPR0udWQGSVaOv5ITbt7vkLUGHZQsh8jcuAWN9jlzGk5t4o31fnLeUws+Ce6gFavHPa56wp0I1i+Jsnv8eyrGTCx/Iyhx9kMhcMzga1g=
+	t=1787575585; cv=pass; b=DosCh7ceHZPyfPB0axXPvWt3XAMopsi7370bgg4bqGa/Mu/btCFbt/x12ZFakXYPO79H5nuT1WYI4kwC3R0ifJVPa6XOdp+JXp2qNhfZqQjerKF9/rjFFnSESq5nIhQZi8QNG313MX/wtvpnUtwjHC+m91h0Kj0LUFvT1MSjl7A=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787567107; c=relaxed/simple;
-	bh=jRJL+B6j0aZfEM9lAWSydnaja8lrBWvr5WIn6RxtOjM=;
+	s=arc-20240116; t=1787575585; c=relaxed/simple;
+	bh=na8JIQo75Pdth4y82rNFxeTKyWYOOf3LctSL+0RAXJc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qR+ZWuMQjHJJJ/oGHZBowfg+n5MJeaox457tPNZ6UKzBBR5KsblWsjO+Q6hkqJI2MyVQ8EjIIJJ3euoJuh0Prm3LwpjurMSLRZoB9x2X+FKO0ahVcUVnsKqoW0pUVYVn4pDcaqT3LNRq2XqJgRebHoZZDS1fDF7LSfzZ5sKNGIM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RXwkXphs; arc=pass smtp.client-ip=209.85.208.52
+	 To:Cc:Content-Type; b=kTM7vCNAzqTcjy3y5S/roCieDMss/SVNYw9ZEKP8f1pYVxCUtjpuBdVCqrOsZbWHgITQv+mvpAY2wImV8vK5unXO69KyekEnqg+yEKQv0r2G7a6VsbwSW6bmy9ZSc5n+etbr7CIrb2B2MB5wyAOos8G2hBq7WYr68ztzjysKdGw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wtgu/cLJ; arc=pass smtp.client-ip=209.85.208.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RXwkXphs"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-69fc9f25118so3517874a12.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2026 03:25:05 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1787567103; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wtgu/cLJ"
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6a157f90752so5760527a12.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2026 05:46:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1787575582; cv=none;
         d=google.com; s=arc-20260327;
-        b=Ife4dGiMA5TeBc+mKchtzfiBfH11l0Sk9DRuRIFgUEMXZjnjfCag5KU1LFewsvtDHz
-         1CDG3q8QZEqhUVSh83GPmnv6LcxY/EUF7rrXqdZM40gndLhOw9qfZxb8mFtHxAjZy+C1
-         BZhOHFnagf/g2Mz2clJLA5XPtz/4TesqxWpYZeo2vJB8CNP2emJW89idUZd9s6b34GEe
-         Il4qJjW754xfbevtNkhCrkPcqSlReJVmspU2FDV4gd6+6v+hus7yV2v5RBoHteeY/5Aq
-         y+Ge+4W6os5VdLqHG9/XZURo7zvgWIb+yqK8XVLremw4u6qbChID0tL5amysAT4TIJ8n
-         0FvQ==
+        b=KYAZsHJCMuteBkfu9Is2iXsGQNErP0EXqolUjYCqal0F0BXc03NoL2rUI7U1Mg56W0
+         2cH5qnoLgNN0xemKsunLEC9mKPQ8l3oJlERzmRDihpmHpqx+h62TuW5ua4oxTBNcUH7J
+         XgxC38888LCUIpZ34EcgSEH+LN3OhkBf0MFBJYNhTSnaY271YG3DnHJNamHV8j1SPNGq
+         KzCHQXr9Lt0SdXTBEmEuTrUBdE69eF0wgb11cXoMAMc/KY+1y0EW/9IMnMobQdyAjuK0
+         XcGU3hqqU5WrWTtYWb6jdqqFltsW41LEg3RhcAXOgWELDmJy5OxjZa1sneR3xaBp8ZaU
+         PNlg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=LSumoM54yBXiaUL9AWh3ThNUFhGpK8Wl7lBf/KLJkXI=;
-        fh=chbdOfnFdo3lrMxfO55pGejD2by4degkwxGq69eGaag=;
-        b=NxUxuzwt1QleY+XPyTxXrOsFUxBMJOx7JnU+9V0YJZar2s32a+h9rPvLSxroRPZfEm
-         JTvd35YKlQMVH1gD+MF5r+F0uiudxgI3Wg0sVQC+w+1EdDsbO3LasmScdGLU/aU97rps
-         tRU2O4mh5V4dmlFr2DVFq2LaE3PFubRq7SsBonyv2i8FxcRsacECPlCDarDm3Ktx873/
-         r8mXp2Cx1NxY8lkB9GNMFEbZL9ZuEQWAfMVsagqBpN5k0ZXkXJO7Opa8h4C3i0qzfID5
-         c2K6BlCrTnPmeCUwvfyPFo34L1qwnPVncANBq9cZOqkwT9VLxzMGvxTNq2/rRVj2aPO6
-         hVFA==;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=/VypvkIcJcp7e/WBgYqncsZyzB3T37OpxbL4nvoiDJU=;
+        fh=Vk8iy24IzdOIFGuuGl7eejJxqFrKrFbX8rhtpqod7Ck=;
+        b=MrYbHkqaI6WpVK0MCwYi/XgwqF18As6T0zG9sF0lzZ8hKJZfCnZni4HAYqFFZ9o5+8
+         RgtiwZJhB2wiRjKpb4bqcgXH9uCe+yXzxnCkprttAnf46UletTmkvO6e64BjWq86DhsC
+         uWap5R1otNHaOA8UuqyS5in3JCK2BrIlscqO9jf2rhWbN3A4JWjgiLBtD45M5029hQoc
+         2dlPDZ2EZd6Uq3K979m/UlgdLqkO0cH/NLmfeCNVHnNuMC6Xtvl+OU5U8LHAAncA1lAZ
+         2B5pwFAuZX0tImM+6q0QmSqPTGEyoYOq8usZjnn5qkuVD2WyB+/cbWU6mN5DeRUvLRai
+         g/PQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787567103; x=1788171903; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=LSumoM54yBXiaUL9AWh3ThNUFhGpK8Wl7lBf/KLJkXI=;
-        b=RXwkXphscnFVjx1mhyrjMJNTDGthQAwJK5l+eSkMw+32GLuXbnCJKLvr+R5VZdCdp8
-         mNL7up4FsjU9ZV9nH1UFV/f3kcbJ28e6QR1PiGpZ2d4xRIZDgarI3Hyv6vy627ROiPGk
-         0KX7/HL+9FrIRcbuqSD7XP431miFg/u3sswWe71y7rlgrqsFHNjfhlm2MlUtgkjRn+GM
-         Pj32kzhrpdVEWg7rCvafMDTVYvx30HPZ/Aud9PoXcPbJUMZs39rmkikpLrabtRCFwRwK
-         F5web4QN6bUC8pOuX86nmcGh5bN5pDzUcmTn4krCxECYq4LHDg04OAQsTBCVPRBeufkX
-         yVbg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787567103; x=1788171903;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=gmail.com; s=20251104; t=1787575582; x=1788180382; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=LSumoM54yBXiaUL9AWh3ThNUFhGpK8Wl7lBf/KLJkXI=;
-        b=dRyw3s82ZaFtif+viS01YUbjsxEw/jXmJIDnoNqb+1W3aX994gi0UoSPnsGDemV04A
-         PXkhByNLaAR6/TxBMKPDouH+ZbLr+e0bc0nN5uOXojph8pGo9Bv5V7+/ZzJpFki5WwqA
-         SRGq5Ev+Sf2YOD18+fSh1I2enOaeDtBRLVupr3MFfsEPj6n36jRar2ZPpZkpMCUVeSyS
-         t/1J3XANZUwNboxXiObN0duNYwBAQdn7NmAQsPSjtY3WxT/xrCr8K5p6W3tedy5AegOn
-         vs+8ZahgjoWa9XO7QJ7oihk9c/NrHWC6OAxQDHWq0XTrEPOchsu4qr2IknmhYaE7alhz
-         z1Gw==
-X-Forwarded-Encrypted: i=1; AHgh+Rp2jDPtcXSRacMd9oitAxgJ33X2n2NUjZFZ+vpvmYr9Tqeh+VLbVN6PV3ABoFhpVv9K/BnTqubElBTlOFLd@vger.kernel.org
-X-Gm-Message-State: AFuF++kcZPRqr11w02gp02q8xftwG5qR4diEcWHWJ0IxgrGxnIGfdoa1
-	kdtQfp3s3SeBw4fOW3hR7D/JiVT56v93ytdfyU8hWAru2nfi4SvcDUJcx3a9ZB7TQQXS13Vx1qG
-	LPgr5H3zCpuPyXlpL50LhMj0SmVVE8N0=
-X-Gm-Gg: AR+sD13kYy/q+MVXN5O+/baFN8ePzmnNd34VC+ziDi5kS/bA9+trUWlnIBPFGyS805P
-	Pa4P14FSdiXlFVGsOSju9neh+nAYLjKbwel8tKz376jZyGpeEBonPMNL/KCL19DSJeVbypgRrVR
-	Ok38Hqr89MXzLd9ajk0fw1UmZC9bSM3XJlbvXNP2D5NWNyrTuWmoOZkO2tfEoOXAtJY5D72G0cC
-	lUPZHxgmMjXtYuVxmMLWMfZQFnMT9z24u6docPIQbXImBIYvPAh/P6ZhdJDeB5Y1KEMDCASXzcr
-	yAAXFhqdPyvXXGrXot94hN90SUP51BBcEe1/AUYH/iMzqqBp033dv5X6ZMp/cA==
-X-Received: by 2002:a05:6402:3805:b0:6a1:1bea:8ea0 with SMTP id
- 4fb4d7f45d1cf-6a42f0f7634mr31264358a12.3.1787567103269; Mon, 24 Aug 2026
- 03:25:03 -0700 (PDT)
+        bh=/VypvkIcJcp7e/WBgYqncsZyzB3T37OpxbL4nvoiDJU=;
+        b=Wtgu/cLJY8viz6pUVKSsXFQFEKIwOqnnN8fSbTrdAwaooIItY4lokfK1PkEbFgyXsi
+         ug77jG4wGcopDpD3DTRQvnMdir4oHF8V67I9C1ruR47wBU6wF9gG0Red2qX1iJyvKiAo
+         KkX2kSiO8+9WIiaKJF7Warj1/93Jh01g9kycDIrgAKPNU4bMaQf2NRoe/w036TuATmrQ
+         1nnjou1z6DfRgcC/esTbR1pJMYoKK/VxNpEm2F5nbrGgKD8UZRaOkElCnrOeC2/j5A7i
+         4NO1nVOmg7NgCpi/tA0UJh/h8onvpka3HevqYqlIye7Sfk/3xWAUbs4KghfDzRZaS1U4
+         uRvw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787575582; x=1788180382;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=/VypvkIcJcp7e/WBgYqncsZyzB3T37OpxbL4nvoiDJU=;
+        b=TEO3/cXHlB3tA7H75CPtFaogtVZIfyFqp6V1BgYSvW6e0smvvY0Zsl5DjsOANsPfhM
+         Wkqu6nwMcK7/b4tgwJo7+2c+NY6oe3ZkTj6oS+gQ+S3N5qrFXxb0kA5UesimwsuGDIda
+         EcwI5vP0Zq8jww8buQ2cQ2khuNpKSXnJPDCxPNgsQ1KqCL5b7zfdQ/b5FBdLlIeaN5dL
+         yuf17v8y48tkQtLh9kuDbRfYyPRw88fOO+Jca2OD9lP7BKcV4MT878IxS+tex2sb9AEu
+         iuY1mZiYVOc8e+ZkUj9wq5PyhZrc+JOYaESXM5VMrtMg/+EcYgmlfLGEsp1jK58Ccy9m
+         il3A==
+X-Forwarded-Encrypted: i=1; AHgh+Rr6TzpbdvYqbVDbrPh1Tw7H6p0vLKyjUzpDqcRV+IopJqt3PWtPDZhY4rkrwWKtzhJky7p7pNR3zqqypNBO@vger.kernel.org
+X-Gm-Message-State: AFuF++k/vxz7193Q7+a9wFYCAxnJQluSDVKZM/EHDxEostUFwzwXSL54
+	vUVUxxmAaNuxp0+CjIsZnEAx9uypoksCTv3Y5DuH+9uUxSLZZ3rdtd5Gvh4x5MIAxlUeFteaFGQ
+	JtemDibxyUoWR9vLkYaEFok56Re6rIDlMMRVx
+X-Gm-Gg: AR+sD12AMX7k+1BzqWHL2xQT0YYwT6F3vh9+KtAYgoZSivgAanETi6kR5QHEI2ZWfBa
+	ELohFlYoUDNTY35fKN9mrTrLHwnRFoym7ET1aXXE3UOOG4id4lfJRwvxcshTOb5xbnGbjaKOZ5h
+	8rjX55IhhVmDP5W2OE+qyrdbOgWGoHJQRzOL6B0G2A21Rs4H5nHs1jy4xxI1FfeFXbBfQGFdxQ4
+	zxmnSfuZkhkC4teU9XtP3J4ZHbn0KvFOAh5Z8EgMRaswFEaDdzRrbQsoV/9xl5G1Vjt0b/oxB6f
+	gydWZVBneQ0uSAHv1ZLgQ4Prneikjfg7CmqWXe4EmHQzAA==
+X-Received: by 2002:a05:6402:e09:b0:69f:fa13:ed3 with SMTP id
+ 4fb4d7f45d1cf-6a42f229682mr31280179a12.16.1787575581425; Mon, 24 Aug 2026
+ 05:46:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260824091040.155481-1-vladimir.riabchun@virtuozzo.com> <95d27da3-8fa1-44c0-bba7-b6e0adc77d7f@virtuozzo.com>
-In-Reply-To: <95d27da3-8fa1-44c0-bba7-b6e0adc77d7f@virtuozzo.com>
+References: <2026082150-autograph-perky-e3cb@gregkh> <20260823224256.2724025-1-fahad@codepure.com>
+ <CAOQ4uxjhfpNVvoVrTayj46H2CViTOc3oxzM6xdb8+E7ikE2CSA@mail.gmail.com>
+ <CAJfpegt1WinKmP5nOGv8Yx9VLf4Mk1ojg7e3xR5iUz=7yDAh0Q@mail.gmail.com>
+ <CAOQ4uxj+GRa8CaCONwPQzLCjx=R8MRr6PTYYC+QW7VrK0PEhMQ@mail.gmail.com> <CAJfpegsVoUyqy0dYkTvBGRZvgdv_nmzmCw_uF+LP-Vq3EhEkSg@mail.gmail.com>
+In-Reply-To: <CAJfpegsVoUyqy0dYkTvBGRZvgdv_nmzmCw_uF+LP-Vq3EhEkSg@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 24 Aug 2026 12:24:51 +0200
-X-Gm-Features: AcwNN1Xs_qLBBhNAVxziekZSTd1UtG9oWXxBqKNYPBFx3OcWCY-VBlVvhitmZks
-Message-ID: <CAOQ4uxgVb48iYiHgiq+gH2CoAunjJtOE2i0TvTtGmeuUiMmgAw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Fix NULL dereference in ovl_get_index_name_fh
-To: Vladimir Riabchun <vladimir.riabchun@virtuozzo.com>
-Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, wangzhaolong1@huawei.com
+Date: Mon, 24 Aug 2026 14:46:09 +0200
+X-Gm-Features: AcwNN1WWxmYJPrVM9Ge5X6sHe7OCCLwjKJKIFqRT9clkb6H4QXavLQpEQacWmu8
+Message-ID: <CAOQ4uxhX_neohTAjZDOT0oSWC-JNiqNWqnfE5YSa7Ln05QPQ-A@mail.gmail.com>
+Subject: Re: ovl_copy_xattr() can write uninitialised heap into the upper
+ file's xattr
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Fahad Alharbi <fahad@codepure.com>, security@kernel.org, 
+	overlayfs <linux-unionfs@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="0000000000008a79c60659ca5f1a"
+
+--0000000000008a79c60659ca5f1a
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 24, 2026 at 11:22=E2=80=AFAM Vladimir Riabchun
-<vladimir.riabchun@virtuozzo.com> wrote:
+On Mon, Aug 24, 2026 at 11:49=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu>=
+ wrote:
 >
+> On Mon, 24 Aug 2026 at 11:30, Amir Goldstein <amir73il@gmail.com> wrote:
 >
+> > It's not really a retry loop, it is an opportunistic buffer auto grow
+> > loop, see
+> > e4ad29fa0d22 ("ovl: use a minimal buffer in ovl_copy_xattr")
 >
-> On 8/24/26 11:10, Vladimir Riabchun wrote:
-> > We observed several crashes in overlayfs with the following trace:
-> > [ 2300.870181] BUG: kernel NULL pointer dereference, address: 000000000=
-0000005
-> > [ 2300.871537] #PF: supervisor read access in kernel mode
-> > [ 2300.872577] #PF: error_code(0x0000) - not-present page
-> > [ 2300.873595] PGD 800000010a18f067 P4D 800000010a18f067 PUD 10730c067 =
-PMD 0
-> > [ 2300.874900] Oops: Oops: 0000 [#1] SMP PTI
-> > [ 2300.875742] CPU: 1 UID: 0 PID: 5419 Comm: criu ve: 0 Kdump: loaded N=
-ot tainted 6.12.0-211.39.1.16.6.vz10.x86_64 #1 16.6 PREEMPT(voluntary)
-> > [ 2300.878057] Hardware name: Acronis OpenStack Compute/Virtuozzo, BIOS=
- 1.16.1-1.vz9.2 04/01/2014
-> > [ 2300.879684] RIP: 0010:ovl_get_index_name_fh+0x18/0x70 [overlay]
-> > [ 2300.880859] Code: 66 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90=
- 90 66 0f 1f 00 0f 1f 44 00 00 41 54 49 89 f4 be c0 0d 00 00 55 53 48 89 fb=
- <0f> b6 7f 05 48 01 ff e8 bc 42 2f ea 48 85 c0 74 33 0f b6 53 05 48
-> > [ 2300.884128] RSP: 0018:ffffd32582e0f7c0 EFLAGS: 00010246
-> > [ 2300.885153] RAX: 0000000000000010 RBX: 0000000000000000 RCX: ffff8ba=
-4497480a8
-> > [ 2300.886480] RDX: ffff8ba45535dc00 RSI: 0000000000000dc0 RDI: 0000000=
-000000000
-> > [ 2300.887824] RBP: ffff8ba68f9daa80 R08: ffff8ba4497480a8 R09: 0000000=
-00000030e
-> > [ 2300.889139] R10: 0000000000000000 R11: ffff8ba44862d6d0 R12: ffffd32=
-582e0f800
-> > [ 2300.890498] R13: 0000000000000000 R14: ffff8ba497cb0110 R15: ffff8ba=
-517548cc0
-> > [ 2300.891838] FS:  00007f5a2f492880(0000) GS:ffff8bab9fc80000(0000) kn=
-lGS:0000000000000000
-> > [ 2300.893376] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > [ 2300.894476] CR2: 0000000000000005 CR3: 000000033403a005 CR4: 0000000=
-0003726f0
-> > [ 2300.895807] Call Trace:
-> > [ 2300.896397]  <TASK>
-> > [ 2300.896938]  ? show_trace_log_lvl+0x1b0/0x2f0
-> > [ 2300.897854]  ? show_trace_log_lvl+0x1b0/0x2f0
-> > [ 2300.898748]  ? ovl_create_index+0x82/0x260 [overlay]
-> > [ 2300.899766]  ? __die_body.cold+0x8/0x12
-> > [ 2300.900582]  ? page_fault_oops+0x148/0x160
-> > [ 2300.901562]  ? exc_page_fault+0x7f/0x150
-> > [ 2300.902406]  ? asm_exc_page_fault+0x26/0x30
-> > [ 2300.903298]  ? ovl_get_index_name_fh+0x18/0x70 [overlay]
-> > [ 2300.904435]  ovl_create_index+0x82/0x260 [overlay]
-> > [ 2300.905406]  ovl_copy_up_workdir+0x30a/0x330 [overlay]
-> > [ 2300.906427]  ovl_do_copy_up+0x10d/0x2e0 [overlay]
-> > [ 2300.907387]  ovl_copy_up_one+0x456/0x720 [overlay]
-> > [ 2300.908376]  ? xa_load+0x7b/0xb0
-> > [ 2300.909090]  ? _raw_spin_unlock+0xe/0x30
-> > [ 2300.909913]  ? list_lru_add+0x11b/0x160
-> > [ 2300.910736]  ovl_copy_up_flags+0x81/0x110 [overlay]
-> > [ 2300.911740]  ovl_create_object+0x51/0x130 [overlay]
-> > [ 2300.912719]  vfs_mkdir+0x194/0x250
-> > [ 2300.913470]  do_mkdirat+0x14c/0x180
-> > [ 2300.914223]  __x64_sys_mkdir+0x46/0x70
-> > [ 2300.915019]  do_syscall_64+0x7d/0x160
-> > [ 2300.915798]  ? do_sys_openat2+0x9c/0xe0
-> > [ 2300.916672]  ? syscall_exit_work+0xf3/0x120
-> > [ 2300.917540]  ? syscall_exit_to_user_mode+0x32/0x190
-> > [ 2300.918518]  ? do_syscall_64+0x89/0x160
-> > [ 2300.919316]  ? syscall_exit_work+0xf3/0x120
-> > [ 2300.920181]  ? syscall_exit_to_user_mode+0x32/0x190
-> > [ 2300.921173]  ? do_syscall_64+0x89/0x160
-> > [ 2300.921991]  ? exc_page_fault+0x7f/0x150
-> > [ 2300.922814]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-> > [ 2300.923823] RIP: 0033:0x7f5a2f8de3eb
+> Ah, okay.
 >
-> Seems to be the same case as in
-> https://lore.kernel.org/all/20250429001308.370040-1-wangzhaolong1@huawei.=
-com/#t
-> Please, take a look at it as well.
+> The logic is too complicated, though.
+>
+> I'd still go with a separate helper  that gets passed (..., void
+> **bufp, size_t *bufsizep). Single caller of ovl_getxattr_value() can
+> also be converted to that.
 
-Thanks for finding this partial dup.
-Miklos' comments partly apply to the fixes in fs/overlayfs/copy_up.c
-Those seem to be moot when passing 0 size to ovl_*setxattr().
+OK. something like this?
 
-> >
-> > It seems that after commit 5b02bfc1e7e3 ("ovl: do not encode lower fh
-> > with upper sb_writers held") fh may be NULL and it is dereferenced
-> > without check in ovl_get_index_name_fh.
-> > In our case NULL value came from !capable(CAP_DAC_READ_SEARCH)
-> > in ovl_can_decode_fh.
-
-The index feature should not be enabled if the mounter does not pass
-the ovl_can_decode_fh() permission check in ovl_make_workdir() and
-ovl_copy_up_one() should be called with mounter creds, so what is
-really happening in your splat?
-Why did !capable(CAP_DAC_READ_SEARCH) fail?
-Do we have a bug upstream? a bug in 6.12 LTS or a bug in vz kernel?
-Please explain.
-
-> >
-> > Fix this by checking fh before using its fields,
-> > if fh is NULL - use buf =3D NULL and len =3D 0.
-> > For ovl_get_index_name_fh use empty string with length 1 so
-> > the following bin2hex and kfree(name.name) are fine.
-
-That's no good.
-The index has to be a valid fh name
-An empty index name makes no sense that's why those helpers
-are gated with the index feature which pre-checks the can_decode
-condition on mount.
+Fahad, can you test it with your fuse reproducer?
 
 Thanks,
 Amir.
 
-> >
-> > Fixes: 5b02bfc1e7e3 ("ovl: do not encode lower fh with upper sb_writers=
- held")
-> > Signed-off-by: Vladimir Riabchun <vladimir.riabchun@virtuozzo.com>
-> > ---
-> > There is one more place where I can see the possibility of this problem=
-:
-> > ovl_get_indexdir calls ovl_get_origin_fh which can return NULL, fh is
-> > then passed to ovl_verify_origin_fh -> ovl_verify_set_fh -> ovl_verify_=
-fh,
-> > which doesn't check fh for NULL and dereferences it.
-> >
-> > I'm not very familiar with the code, so I'd like to hear what should be
-> > returned there in !fh case (my guess - return 0 if ofh is NULL as well
-> > and -SOME_ERROR otherwise).
-> >
-> >   fs/overlayfs/copy_up.c | 5 +++--
-> >   fs/overlayfs/namei.c   | 6 ++++--
-> >   2 files changed, 7 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 4388004a319d..63a783473b60 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -492,7 +492,7 @@ int ovl_set_origin_fh(struct ovl_fs *ofs, const str=
-uct ovl_fh *fh,
-> >       /*
-> >        * Do not fail when upper doesn't support xattrs.
-> >        */
-> > -     err =3D ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh->buf,
-> > +     err =3D ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh ? fh-=
->buf : NULL,
-> >                                fh ? fh->fb.len : 0, 0);
-> >
-> >       /* Ignore -EPERM from setting "user.*" on symlink/special */
-> > @@ -510,7 +510,8 @@ static int ovl_set_upper_fh(struct ovl_fs *ofs, str=
-uct dentry *upper,
-> >       if (IS_ERR(fh))
-> >               return PTR_ERR(fh);
-> >
-> > -     err =3D ovl_setxattr(ofs, index, OVL_XATTR_UPPER, fh->buf, fh->fb=
-.len);
-> > +     err =3D ovl_setxattr(ofs, index, OVL_XATTR_UPPER,
-> > +             fh ? fh->buf : NULL, fh ? fh->fb.len : 0);
-> >
-> >       kfree(fh);
-> >       return err;
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index efa2a072aa69..81607a24589f 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -721,12 +721,14 @@ int ovl_verify_index(struct ovl_fs *ofs, struct d=
-entry *index)
-> >   int ovl_get_index_name_fh(const struct ovl_fh *fh, struct qstr *name)
-> >   {
-> >       char *n, *s;
-> > +     size_t len =3D fh ? fh->fb.len : 1;
-> > +     const char *buf =3D fh ? fh->buf : (const u8 *)"";
-> >
-> > -     n =3D kcalloc(fh->fb.len, 2, GFP_KERNEL);
-> > +     n =3D kcalloc(len, 2, GFP_KERNEL);
-> >       if (!n)
-> >               return -ENOMEM;
-> >
-> > -     s  =3D bin2hex(n, fh->buf, fh->fb.len);
-> > +     s  =3D bin2hex(n, buf, len);
-> >       *name =3D (struct qstr) QSTR_INIT(n, s - n);
-> >
-> >       return 0;
->
-> --
-> Best regards, Riabchun Vladimir
-> Linux Kernel Developer, Virtuozzo
->
+--0000000000008a79c60659ca5f1a
+Content-Type: text/x-patch; charset="US-ASCII"; 
+	name="0001-ovl-fortify-ovl_copy_xattr-against-underlying-layer-.patch"
+Content-Disposition: attachment; 
+	filename="0001-ovl-fortify-ovl_copy_xattr-against-underlying-layer-.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mt78bqic0>
+X-Attachment-Id: f_mt78bqic0
+
+RnJvbSBiOTgzYzJiZTNmN2Q0MDRiMzYyYWE0M2RmZDRmM2M2YzJjMjllZTgwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDI0IEF1ZyAyMDI2IDEzOjM4OjI5ICswMjAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
+OiBmb3J0aWZ5IG92bF9jb3B5X3hhdHRyKCkgYWdhaW5zdCB1bmRlcmx5aW5nIGxheWVyCiBtb2Rp
+ZmljYXRpb25zCgpBZGFwdCBvdmxfZ2V0eGF0dHJfdmFsdWUoKSB0byBiZSB1c2VkIGZyb20gb3Zs
+X2NvcHlfeGF0dHIoKSwgYnkKYWxsb3dpbmcgdG8gcGFzcyBpdCBhIHByZS1hbGxvY2F0ZWQgYnVm
+ZmVyLCB3aGljaCBjYW4gYmUgcmVzaXplZAphbmQgYnkgaGFuZGxpbmcgdGhlIEVOT0RBVEEvRU9Q
+Tk9UU1VQUCByZXR1cm4gY29kZXMgaW4gdGhlIGNhbGxlci4KCkNoZWNrIHRoYXQgdGhlIHNpemUg
+cmV0dXJuZWQgZnJvbSBnZXR4YXR0ciB3aXRoIG5vbi1OVUxMIGJ1ZmZlcgptYXRjaGVzIHRoZSBz
+aXplIHF1ZXJpZWQgd2l0aCBOVUxMIGJ1ZmZlci4gSWYgaXQgZG9lc24ndCB0aGF0Cm1lYW5zIHVu
+ZGVybHlpbmcgbGF5ZXIgbW9kaWZpY2F0aW9uIHNvIHJldHVybiAtRUlPLgoKUmVwb3J0ZWQtYnk6
+IEZhaGFkIEFsaGFyYmkgPGZhaGFkQGNvZGVwdXJlLmNvbT4KU3VnZ2VzdGVkLWJ5OiBNaWtsb3Mg
+U3plcmVkaSA8bWlrbG9zQHN6ZXJlZGkuaHU+Ckxpbms6IGh0dHBzOi8vbG9yZS5rZXJuZWwub3Jn
+L2xpbnV4LWZzZGV2ZWwvQ0FKZnBlZ3NWb1V5cXkwZFlrVHZCR1Jadmdkdl9ubXptQ3dfdUYrTFAt
+VnEzRWhFa1NnQG1haWwuZ21haWwuY29tLwpGaXhlczogZTRhZDI5ZmEwZDIyICgib3ZsOiB1c2Ug
+YSBtaW5pbWFsIGJ1ZmZlciBpbiBvdmxfY29weV94YXR0ciIpClNpZ25lZC1vZmYtYnk6IEFtaXIg
+R29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQogZnMvb3ZlcmxheWZzL2NvcHlfdXAu
+YyB8IDY0ICsrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxl
+IGNoYW5nZWQsIDMyIGluc2VydGlvbnMoKyksIDMyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
+L2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMgYi9mcy9vdmVybGF5ZnMvY29weV91cC5jCmluZGV4IGU5
+NjM3MDFiNGM4NzcuLmVlZTIyNTgxYjE0ZjEgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9jb3B5
+X3VwLmMKKysrIGIvZnMvb3ZlcmxheWZzL2NvcHlfdXAuYwpAQCAtNzIsNiArNzIsOSBAQCBzdGF0
+aWMgaW50IG92bF9jb3B5X2FjbChzdHJ1Y3Qgb3ZsX2ZzICpvZnMsIGNvbnN0IHN0cnVjdCBwYXRo
+ICpwYXRoLAogCXJldHVybiBlcnI7CiB9CiAKK3N0YXRpYyBzc2l6ZV90IG92bF9nZXR4YXR0cl92
+YWx1ZShjb25zdCBzdHJ1Y3QgcGF0aCAqcGF0aCwgY2hhciAqbmFtZSwKKwkJCQkgIGNoYXIgKip2
+YWx1ZSwgc3NpemVfdCAqdmFsdWVfc2l6ZSk7CisKIGludCBvdmxfY29weV94YXR0cihzdHJ1Y3Qg
+c3VwZXJfYmxvY2sgKnNiLCBjb25zdCBzdHJ1Y3QgcGF0aCAqb2xkcGF0aCwgc3RydWN0IGRlbnRy
+eSAqbmV3KQogewogCXN0cnVjdCBkZW50cnkgKm9sZCA9IG9sZHBhdGgtPmRlbnRyeTsKQEAgLTEy
+OSwzMCArMTMyLDEyIEBAIGludCBvdmxfY29weV94YXR0cihzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNi
+LCBjb25zdCBzdHJ1Y3QgcGF0aCAqb2xkcGF0aCwgc3RydWN0IGRlCiAJCQlicmVhazsKIAkJfQog
+Ci1yZXRyeToKLQkJc2l6ZSA9IG92bF9kb19nZXR4YXR0cihvbGRwYXRoLCBuYW1lLCB2YWx1ZSwg
+dmFsdWVfc2l6ZSk7Ci0JCWlmIChzaXplID09IC1FUkFOR0UpCi0JCQlzaXplID0gb3ZsX2RvX2dl
+dHhhdHRyKG9sZHBhdGgsIG5hbWUsIE5VTEwsIDApOwotCisJCXNpemUgPSBvdmxfZ2V0eGF0dHJf
+dmFsdWUob2xkcGF0aCwgbmFtZSwgJnZhbHVlLCAmdmFsdWVfc2l6ZSk7CiAJCWlmIChzaXplIDwg
+MCkgewogCQkJZXJyb3IgPSBzaXplOwogCQkJYnJlYWs7CiAJCX0KIAotCQlpZiAoc2l6ZSA+IHZh
+bHVlX3NpemUpIHsKLQkJCXZvaWQgKm5ldzsKLQotCQkJbmV3ID0ga3ZtYWxsb2Moc2l6ZSwgR0ZQ
+X0tFUk5FTCk7Ci0JCQlpZiAoIW5ldykgewotCQkJCWVycm9yID0gLUVOT01FTTsKLQkJCQlicmVh
+azsKLQkJCX0KLQkJCWt2ZnJlZSh2YWx1ZSk7Ci0JCQl2YWx1ZSA9IG5ldzsKLQkJCXZhbHVlX3Np
+emUgPSBzaXplOwotCQkJZ290byByZXRyeTsKLQkJfQotCiAJCWVycm9yID0gb3ZsX2RvX3NldHhh
+dHRyKE9WTF9GUyhzYiksIG5ldywgbmFtZSwgdmFsdWUsIHNpemUsIDApOwogCQlpZiAoZXJyb3Ip
+IHsKIAkJCWlmIChlcnJvciAhPSAtRU9QTk9UU1VQUCB8fCBvdmxfbXVzdF9jb3B5X3hhdHRyKG5h
+bWUpKQpAQCAtMTA1NSwyNiArMTA0MCwzOSBAQCBzdGF0aWMgYm9vbCBvdmxfbmVlZF9tZXRhX2Nv
+cHlfdXAoc3RydWN0IGRlbnRyeSAqZGVudHJ5LCB1bW9kZV90IG1vZGUsCiAJcmV0dXJuIHRydWU7
+CiB9CiAKLXN0YXRpYyBzc2l6ZV90IG92bF9nZXR4YXR0cl92YWx1ZShjb25zdCBzdHJ1Y3QgcGF0
+aCAqcGF0aCwgY2hhciAqbmFtZSwgY2hhciAqKnZhbHVlKQorc3RhdGljIHNzaXplX3Qgb3ZsX2dl
+dHhhdHRyX3ZhbHVlKGNvbnN0IHN0cnVjdCBwYXRoICpwYXRoLCBjaGFyICpuYW1lLAorCQkJCSAg
+Y2hhciAqKnZhbHVlLCBzc2l6ZV90ICp2YWx1ZV9zaXplKQogewogCXNzaXplX3QgcmVzOwogCWNo
+YXIgKmJ1ZjsKIAotCXJlcyA9IG92bF9kb19nZXR4YXR0cihwYXRoLCBuYW1lLCBOVUxMLCAwKTsK
+LQlpZiAocmVzID09IC1FTk9EQVRBIHx8IHJlcyA9PSAtRU9QTk9UU1VQUCkKLQkJcmVzID0gMDsK
+KwlyZXMgPSBvdmxfZG9fZ2V0eGF0dHIocGF0aCwgbmFtZSwgKnZhbHVlLCAqdmFsdWVfc2l6ZSk7
+CisJaWYgKHJlcyA9PSAtRVJBTkdFKSB7CisJCXJlcyA9IG92bF9kb19nZXR4YXR0cihwYXRoLCBu
+YW1lLCBOVUxMLCAwKTsKKwkJLyogWGF0dHIgY2hhbmdlZCB1bmRlcm5lYXRoIHVzPyAqLworCQlp
+ZiAocmVzID49IDAgJiYgcmVzIDw9ICp2YWx1ZV9zaXplKQorCQkJcmV0dXJuIC1FSU87CisJfQog
+Ci0JaWYgKHJlcyA+IDApIHsKLQkJYnVmID0ga3phbGxvYyhyZXMsIEdGUF9LRVJORUwpOworCWlm
+IChyZXMgPiAqdmFsdWVfc2l6ZSkgeworCQlidWYgPSBrdm1hbGxvYyhyZXMsIEdGUF9LRVJORUwp
+OwogCQlpZiAoIWJ1ZikKIAkJCXJldHVybiAtRU5PTUVNOwogCiAJCXJlcyA9IG92bF9kb19nZXR4
+YXR0cihwYXRoLCBuYW1lLCBidWYsIHJlcyk7Ci0JCWlmIChyZXMgPCAwKQotCQkJa2ZyZWUoYnVm
+KTsKLQkJZWxzZQotCQkJKnZhbHVlID0gYnVmOworCQlpZiAocmVzIDwgMCkgeworCQkJa3ZmcmVl
+KGJ1Zik7CisJCQkvKiBYYXR0ciBjaGFuZ2VkIHVuZGVybmVhdGggdXM/ICovCisJCQlpZiAocmVz
+ID09IC1FUkFOR0UpCisJCQkJcmV0dXJuIC1FSU87CisJCQlyZXR1cm4gcmVzOworCQl9CisKKwkJ
+a3ZmcmVlKCp2YWx1ZSk7CisJCSp2YWx1ZSA9IGJ1ZjsKKwkJKnZhbHVlX3NpemUgPSByZXM7CiAJ
+fQorCiAJcmV0dXJuIHJlczsKIH0KIApAQCAtMTA4NSw3ICsxMDgzLDcgQEAgc3RhdGljIGludCBv
+dmxfY29weV91cF9tZXRhX2lub2RlX2RhdGEoc3RydWN0IG92bF9jb3B5X3VwX2N0eCAqYykKIAlz
+dHJ1Y3QgcGF0aCB1cHBlcnBhdGg7CiAJaW50IGVycjsKIAljaGFyICpjYXBhYmlsaXR5ID0gTlVM
+TDsKLQlzc2l6ZV90IGNhcF9zaXplOworCXNzaXplX3QgY2FwX3NpemUgPSAwOwogCiAJb3ZsX3Bh
+dGhfdXBwZXIoYy0+ZGVudHJ5LCAmdXBwZXJwYXRoKTsKIAlpZiAoV0FSTl9PTih1cHBlcnBhdGgu
+ZGVudHJ5ID09IE5VTEwpKQpAQCAtMTA5Myw3ICsxMDkxLDkgQEAgc3RhdGljIGludCBvdmxfY29w
+eV91cF9tZXRhX2lub2RlX2RhdGEoc3RydWN0IG92bF9jb3B5X3VwX2N0eCAqYykKIAogCWlmIChj
+LT5zdGF0LnNpemUpIHsKIAkJZXJyID0gY2FwX3NpemUgPSBvdmxfZ2V0eGF0dHJfdmFsdWUoJnVw
+cGVycGF0aCwgWEFUVFJfTkFNRV9DQVBTLAotCQkJCQkJICAgICZjYXBhYmlsaXR5KTsKKwkJCQkJ
+CSAgICAmY2FwYWJpbGl0eSwgJmNhcF9zaXplKTsKKwkJaWYgKGNhcF9zaXplID09IC1FTk9EQVRB
+IHx8IGNhcF9zaXplID09IC1FT1BOT1RTVVBQKQorCQkJY2FwX3NpemUgPSAwOwogCQlpZiAoY2Fw
+X3NpemUgPCAwKQogCQkJZ290byBvdXQ7CiAJfQpAQCAtMTEyMyw3ICsxMTIzLDcgQEAgc3RhdGlj
+IGludCBvdmxfY29weV91cF9tZXRhX2lub2RlX2RhdGEoc3RydWN0IG92bF9jb3B5X3VwX2N0eCAq
+YykKIAlvdmxfY2xlYXJfZmxhZyhPVkxfVkVSSUZJRURfRElHRVNULCBkX2lub2RlKGMtPmRlbnRy
+eSkpOwogCW92bF9zZXRfdXBwZXJkYXRhKGRfaW5vZGUoYy0+ZGVudHJ5KSk7CiBvdXRfZnJlZToK
+LQlrZnJlZShjYXBhYmlsaXR5KTsKKwlrdmZyZWUoY2FwYWJpbGl0eSk7CiBvdXQ6CiAJcmV0dXJu
+IGVycjsKIH0KLS0gCjIuNTUuMAoK
+--0000000000008a79c60659ca5f1a--
