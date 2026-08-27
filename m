@@ -1,168 +1,165 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+Received: from mail-qv1-f41.google.com (mail-qv1-f41.google.com [209.85.219.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488DC36683B
-	for <linux-unionfs@vger.kernel.org>; Thu, 27 Aug 2026 17:07:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28086246770
+	for <linux-unionfs@vger.kernel.org>; Thu, 27 Aug 2026 19:39:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787850445; cv=none; b=P+hTSpDLUUIRgopXSIC0YeZdJPf7Bjd7QfuSyKjQf/aqUPo7hs6azAOoxW4xf4sLJq/1PHYqpeNWJ3Jj7IxqnW7Rx6Jzz2AGyfNsjIsgrWM1VB8iNSOOpmHEAVd8oMeWuC5f9apT3BrMS8GowuPXHl4PYgg9hmcMgjw2RowhQi0=
+	t=1787859554; cv=none; b=joueIOekro3Lgm1oZC7CRKWpvXtoPCGQcVAc8uFP/hc08CLD/6RYnH1IretvquefXuM0ezq0bw5ziIZM/T7UPCPyf3jNiLM/s3m38xHECJKsC7v0VdeUgMV78ADsRdKaLgjoHqVJ0GTQbYb9oI8PVMOo2prULjbL8OpA6lcZPBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787850445; c=relaxed/simple;
-	bh=2SFNXBxgdI0HCVXFzGJAFG6tOT9qdrVngpU9Gwe0KHE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GopLreYsmcrXEJ0NOrrwXJylO5XMvUnUuL5cPQ579If90lV+wVMDDPsJ00nYE+3l8mrm86DyvsTwBVFF5D2xWyNB67OgUYoyzDModWABOr9vn5I14mg+9oZZARUSJOhX7W5MWT+ncp+K9I0PWjCWrTHAqBOdlIy5qJZPF55sknU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PUhq3qtS; arc=none smtp.client-ip=209.85.216.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787859554; c=relaxed/simple;
+	bh=iPf7ChaqIsVoGcvfLFkYqgjfgPL7ty9oLZe40l5pQ94=;
+	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
+	 References:In-Reply-To; b=V2QfnbnpsGn6aui5uiBkfxAblrOIgzishOgj/sN1NpPArH9FP/AY7yMfCV/+at9NrpH4VtiFrc9TRY6sbMassuOuKcBEtOkE3F7fHONZlQjPQ9YsregoTCBaRfl/nB0nUetbRFZQUFYTrY1xpJGb+4gDnfTrmC1JSk0FtKqtYQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=HpOZ5ZZW; arc=none smtp.client-ip=209.85.219.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PUhq3qtS"
-Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-39675172593so237606a91.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Aug 2026 10:07:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="HpOZ5ZZW"
+Received: by mail-qv1-f41.google.com with SMTP id 6a1803df08f44-90cbdb54616so1082436d6.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Aug 2026 12:39:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787850443; x=1788455243; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Gi6YEr+DF1axBW1gXA4gs50+nTUaB9ghIFL8GIX9VQU=;
-        b=PUhq3qtSGzfTiI+W/6GQtOzgY6s0ItbAYjJ+f8M7BfVwG5OJCsCUTklHGx4IDLzg+t
-         p8RmH1CBuIq7DfeyT02KnLx/tXw8l8lN1B65pwGs04oDnszptMseMdR/PWS6KBlgE6MR
-         ml86aQ5jlZi8LjTquEmvL2YihcvFAp5C3ZNboqkbWcacmSm+MZhtK4/2HaKOQcbDrV1F
-         xTt7ZYL0eI8E/lY+ZnUy+Bl+4m8tvHv1c64eJiatsVK0nFiA8tjCHI5R1WPdqc3NAGJm
-         tmzoGPeg846rrujaeubPhBSmCo38gW/SA0tKjrsWXqpA54ZkvMOcOXJ9GR1Jfk5i3pxc
-         4PHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787850443; x=1788455243;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=paul-moore.com; s=google; t=1787859552; x=1788464352; darn=vger.kernel.org;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Gi6YEr+DF1axBW1gXA4gs50+nTUaB9ghIFL8GIX9VQU=;
-        b=ITenpRUMl+31Wn3RJlEY+rGP3MPTAniN5ijR+say4Eo/n7yK7QuClbLlG3nijOYywu
-         GnBsIFEgrKeU95EcbRKHM7Nykv2NtT6aLFEdDptHhMUhAkxr5tc5bv6XWKC3PdOE2v9D
-         3rbWeOsYQxe3rVj7gUZzQ5p3p04WEBx5QlOcnLTdBkF0naFmaiHxBwD33AW4attHhQC4
-         iIY4+azzbZSoFOyRSqTPXE1TRiWbh9WtC0oiJxlyTXx6RFgSlS2fyKeFZU4KomQZVjCl
-         yLQFuKE6x3g+JkdKzoyEGPrgUd7aqhISJr5bu3NxVitCffzCHOKtkLlPIf22GofFFSuq
-         sxPA==
-X-Gm-Message-State: AFuF++k4T+o7th5tx5unvLLRxmSf45W63knyY0asHlvBrR5plXFCgQyq
-	EybgxYAJf2cgEtEeF3eH/+t60AkUyUnxOAr2ldo+QF3ga/SgqOAK4ohN
-X-Gm-Gg: AR+sD100uU79soLjbDFTNvoGpkwJeYIQVr7fVvWPGfVwWbqWSxTJ+jUSBs3yelc28Or
-	rRImQVf82ZMcebZ0qwWwr53G3gGvCc9f2mngDwN1cutQOx3jAdyNNumcDC6JuLQuxaz8StmGeEu
-	GfWs45VXIOZvoXHpd51WmfXNk1UA/PF9ejVFlAAlK3Y9ZDpuwFgIXQSH2xHLCTqEZcmMIyVKppL
-	0YiyhkLY/4PsO3bfHU5F6EhZvObaHdsH8vACvcRRlJGiCrstqB4Guhf9dZQapZqwlBYFE947mhJ
-	dI7mtUkmTFO0K44l5RNRLAc57U6tbg0NHgkJEX4WpsvHj+X+dds5Ic014TufUVLH9tKCUUjQuCO
-	O+s1IFavfQfmwPX/bVgle3n1DRY3tcHs3yO7rytr4Hs4hx0VW5bEuF/tzpCPOjqxRxKjMRliTG0
-	0RipNg581qCzxOmTFJH43g0yI+zROAZBv0ypsJLZRbGP2by+h4lc7wasC9PVJRQZ/vYUhLBtbvU
-	KFZn5Q8pGFeA7bWr9mz2Vf/WHjGkFmaHDBHmiMVHB2YAhMfMbbH5JuUX/OBVOldFtKFhBLwdwrb
-	LEV63kk=
-X-Received: by 2002:a17:90b:3a45:b0:396:5785:843 with SMTP id 98e67ed59e1d1-396d0f09a46mr1214506a91.8.1787850443311;
-        Thu, 27 Aug 2026 10:07:23 -0700 (PDT)
-Received: from DESKTOP-TJS95SS.localdomain (36-232-192-191.dynamic-ip.hinet.net. [36.232.192.191])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39675922253sm2628890a91.4.2026.08.27.10.07.20
+        bh=mtXig1FMjrSYmMbsrTikOQfn2mLp1bwY+1B2vUa6dN4=;
+        b=HpOZ5ZZW8h78vYnfkwrPzKV8DX0KqSCR//l4g862xZTEXiKVVxyIcR2zzsem301V5o
+         P/4fPlMtdSMoYxb3tqRXMVZnPeaLd4uWE713kzq1d3jwoxdnDwKE5FuOY3gZXTJblRak
+         QQkjj5JncGdZ3w3Dq4iveA73hPubX69bFD3/I2G82ECysx4QaH/2KgUtdEPDvEFenTUZ
+         jYRhuLyJ4KzX9ZoAcjQsDbqtuBA+6TRMr+uxDibVsiMXe118kJGre5+Ic8Hx+0fusc5z
+         T/YZ+lgB4Ojagsb3774ECWnXt5iNCShHu3rzfaJJAIEAqIXHvT20aofkChCffRUTrvk/
+         fmtQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787859552; x=1788464352;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=mtXig1FMjrSYmMbsrTikOQfn2mLp1bwY+1B2vUa6dN4=;
+        b=ge350fd/qiZaiHDtOZdw04fsAGqb7OwgwhVABBTum0boOa1+sR2otNHKeGc15HYQLI
+         NmRJi0ptiVtUJoKJaSMhz2vNbvK65L5nuwZA4CDIH94w0OrcaVrO2dbR9Q0h00fyR76R
+         UrETymQ5qUZLISRh8bVCf92O90NiUNoLe/n97pn9R23m2RSLknlAuTAsLgba+wEi7zO2
+         6qtNUI5bUaGDsGszpLIp1EbU/BzRgsAodY7lx06kSzcg80+9QlIhrAUxuz5M11qSpox/
+         E5KBiRA22VL3scAr6VrPQOgbqYA9O7qtv5IZleQ8zwfLXoHNiwXhuQCnE17QeV1IDfiO
+         qzeg==
+X-Forwarded-Encrypted: i=1; AHgh+RqFov32tmjNVwoyjKDqDwjuQfQh3ceJBJQn2cGk+DIp/M+hLNohXXp3TN/vQjFIQiiM6x3P+uPEAd6GeQb7@vger.kernel.org
+X-Gm-Message-State: AFuF++nTV2Sg2eL+QjaHC1ZcQngVZ/Dw9AFc8XJOnEpP3YlgMKqTR5Gi
+	4q8tR0mIe+4HuKWkDqzGHQK7KK3todKfvVQoDO5uoSOpcgfq9eKKJ0CeNudQe60wjw==
+X-Gm-Gg: AR+sD11nm4bQOTn0jBUeud2dRapgXVrxj5Hvgey/msTrCmMRrKC81uxS/SPc3HBO0/1
+	ZxDZZSs9M3+9YdEWXgaYj+Ig9jUGwjY3YD15DriceeSaCSM25yoDqban2GLcPthhVHSXpZrGiYK
+	yoelSmZb7h6lr7q7yRW7qMzx60XV2jiV6nS3Ace1TYEUDYcPnZW4f1sDZNbp/nBVanN2K87E/Pr
+	JWe5dlbsaFNjwTw80E0zitrDI/9fOwRczQxXDjY4SFi7h+/D5UzY0g+A5NGuZr95Qb04ptB4BaG
+	aCFgNb3iL+GfDcSXrNFkzbdYofytVxtR7joZVqPQ9sWWZAOQ9vn7zIRvqebzVFwXybf0AME335I
+	UpsNR628rhBsagMY44QTvdTdxsqZ295ePfp21XV4x0OEL/cNRlDomh740MTfOvDC0REuBfb30kw
+	AHgXPhvmo6hFXbCuhmqkdv0XsPRMOdqVfZGxz4TASzfT9v440+6aifElKI3QIzrpUvMSD1J3vWG
+	/5K606axT8r5TGH/aFAl4alcjZjoaAbsXgXW1KwtTKY
+X-Received: by 2002:a05:6214:e43:b0:908:9fd5:ed42 with SMTP id 6a1803df08f44-90ce0f06bdbmr20681366d6.28.1787859551742;
+        Thu, 27 Aug 2026 12:39:11 -0700 (PDT)
+Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90cd73fc28dsm24026946d6.34.2026.08.27.12.39.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Aug 2026 10:07:22 -0700 (PDT)
-From: Yuan-Hao Hsu <aa9736195201@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Yuan-Hao Hsu <aa9736195201@gmail.com>
-Subject: [PATCH] ovl: implement ->get_unmapped_area()
-Date: Fri, 28 Aug 2026 01:07:18 +0800
-Message-ID: <20260827170718.497-1-aa9736195201@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        Thu, 27 Aug 2026 12:39:10 -0700 (PDT)
+Date: Thu, 27 Aug 2026 15:39:10 -0400
+Message-ID: <5fa5ef078f41cd57d0e52ab2ab023094@paul-moore.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0 
+Content-Type: text/plain; charset=UTF-8 
+Content-Transfer-Encoding: 8bit 
+X-Mailer: pstg-pwork:20260827_1122/pstg-lib:20260827_1501/pstg-pwork:20260827_1122
+From: Paul Moore <paul@paul-moore.com>
+To: Karl Mehltretter <kmehltretter@gmail.com>, selinux@vger.kernel.org
+Cc: Karl Mehltretter <kmehltretter@gmail.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v2] selinux: preserve user SID across nested backing files
+References: <20260820175832.44512-1-kmehltretter@gmail.com>
+In-Reply-To: <20260820175832.44512-1-kmehltretter@gmail.com>
 
-ovl_mmap() passes realfile to the underlying filesystem, so the VMA it
-returns is backed by realfile, not by the overlayfs file.
+On Aug 20, 2026 Karl Mehltretter <kmehltretter@gmail.com> wrote:
+> 
+> SELinux saves the user file SID in a backing-file security blob so it
+> remains available after mmap() replaces vma->vm_file with a backing file.
+> 
+> For nested backing files (overlayfs over overlayfs, or FUSE passthrough
+> backed by overlayfs), user_file may itself be a backing file.  Its
+> fsec->sid is the SID of the mounter that opened it, rather than the user
+> that opened the top-level file.  mprotect() then checks fd { use } against
+> the mounter SID.  This can incorrectly deny access without a domain
+> transition, or check the wrong target SID after one.
+> 
+> Copy the saved user SID when user_file is a backing file.  Keep using the
+> regular file SID for the first backing layer.
+> 
+> With two nested overlayfs mounts and SELinux enforcing,
+> mprotect(PROT_READ) returns EACCES with an fd { use } denial against the
+> mounter SID.  With this change, mprotect() succeeds.
+> 
+> Fixes: 82544d36b172 ("selinux: fix overlayfs mmap() and mprotect() access checks")
+> Cc: stable@vger.kernel.org
+> Assisted-by: Codex:gpt-5.6-sol
+> Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> Changes in v2:
+> - Add selinux_file_user_sid() helper instead of open-coding the lookup
+>   (Amir).
+> 
+> Tested on arm64 QEMU at fd6e2388a3ea with SELinux enforcing and two
+> nested overlayfs mounts. The policy omitted only
+> base_t -> mounter_t:fd { use } among the relevant cross-domain allows:
+> 
+>   baseline: mprotect(PROT_READ) returned EACCES with that denial
+>   patched:  mprotect(PROT_READ) succeeded; test exited 0
 
-Address selection is not delegated.  __get_unmapped_area() looks at the
-overlayfs file's f_op, ovl_file_operations does not implement
-->get_unmapped_area(), and the mapping lands wherever
-mm_get_unmapped_area() puts it.  ext4, xfs and btrfs all point
-->get_unmapped_area() at thp_get_unmapped_area(); none of that is reached.
+If you could share the distro and some more details on the testing
+methodology that would be helpful.
 
-vaddr - file_offset is then not a multiple of PMD_SIZE,
-thp_vma_suitable_order() rejects the VMA, and the PMD-sized folios the
-underlying filesystem already has in the page cache are never mapped by
-a PMD.
+> This patch fixes SID propagation only. backing_file_user_path() still
+> resolves to the middle layer for a nested mapping, so the audit path and
+> inode do not correspond to uf_sid, and that layer's mounter is not
+> re-checked. Preserving the full user path likely needs a VFS-side change,
+> such as having backing_file_open() store file_user_path(user_file).
 
-Delegate to the file ovl_mmap() will use.  Calling thp_get_unmapped_area()
-here instead would force alignment on filesystems that deliberately do
-not implement ->get_unmapped_area(), which commit 34d7cf637c43 ("mm:
-don't try THP alignment for FS without get_unmapped_area") avoided.
-fs/proc delegates the same way in pde_get_unmapped_area().
+Additional comments below, and while this patch is useful in fixing some
+of the problems (thank you!), we obviously need to fix the others as
+well.  Is this something you think you will be able to work on?
 
-Reading a 1025M ext4 file through mmap(NULL, ...), 97% of its page cache
-in PMD-sized folios, 15 runs:
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index 1ead2eee1944..171b90412ff1 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -3843,13 +3843,20 @@ static int selinux_file_alloc_security(struct file *file)
+>  	return 0;
+>  }
+>  
+> +static inline u32 selinux_file_user_sid(const struct file *file)
+> +{
+> +	if (unlikely(file->f_mode & FMODE_BACKING))
+> +		return selinux_backing_file(file)->uf_sid;
+> +	return selinux_file(file)->sid;
+> +}
 
-                     PMD congruent  minor faults  page tables
-  ext4, directly             15/15           764          68K
-  overlayfs, before            0/5         16186        2056K
-  overlayfs, after           15/15           764          68K
+I'm a little concerned that this only works for one additional level of
+filesystem stacking.  Yes, I know that OVL_MAX_NESTING and
+FILESYSTEM_MAX_STACK_DEPTH are currently set at "2", but it's not an
+unreasonable concern that at some point in the future that number will
+increase without proper notification or testing and we will once again
+have a problem.
 
-Fault counts had 0 stddev.  Median read time 17.4ms -> 4.80ms, against
-4.92ms for the same file on ext4.
+At the absolute minimum we should have a BUILD_BUG_ON() for the stacking
+depth.  It would be good if we could watch both the overlayfs and vfs
+constants, but the overlayfs constant isn't available outside
+fs/overlayfs/inode.c (thankfully it is currently set to the vfs limit).
 
-Assisted-by: Claude:claude-opus-5
-Signed-off-by: Yuan-Hao Hsu <aa9736195201@gmail.com>
+  BUIILD_BUG_ON(FILESYSTEM_MAX_STACK_DEPTH > 2);
 
----
- fs/overlayfs/file.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+Ideally, the code would be written to keep diving down the stack until
+it hit the true backing file.  No one likes to see recursion, but at the
+point where this function is called there should already be a reasonable
+bound on the stacking depth and the work involved.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index f3d97eb146e8..0d985025f4c8 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -13,6 +13,7 @@
- #include <linux/security.h>
- #include <linux/fs.h>
- #include <linux/backing-file.h>
-+#include <linux/sched/mm.h>
- #include "overlayfs.h"
- 
- static char ovl_whatisit(struct inode *inode, struct inode *realinode)
-@@ -465,6 +466,30 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- 		return vfs_fsync_range(upperfile, start, end, datasync);
- }
- 
-+static unsigned long ovl_get_unmapped_area(struct file *file,
-+					   unsigned long addr, unsigned long len,
-+					   unsigned long pgoff, unsigned long flags)
-+{
-+	struct ovl_file *of = file->private_data;
-+	struct file *realfile = of->realfile;
-+
-+	/*
-+	 * ovl_mmap() hands realfile to the underlying filesystem, so the vma
-+	 * ends up backed by realfile.  Let that filesystem pick the address
-+	 * too, or one that needs a specific alignment - to allow PMD mappings,
-+	 * for example - never gets asked for one.
-+	 */
-+	if (realfile->f_op->get_unmapped_area)
-+		return realfile->f_op->get_unmapped_area(realfile, addr, len,
-+							 pgoff, flags);
-+
-+#ifdef CONFIG_MMU
-+	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
-+#endif
-+
-+	return addr;
-+}
-+
- static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct ovl_file *of = file->private_data;
-@@ -654,6 +679,7 @@ const struct file_operations ovl_file_operations = {
- 	.write_iter	= ovl_write_iter,
- 	.fsync		= ovl_fsync,
- 	.mmap		= ovl_mmap,
-+	.get_unmapped_area = ovl_get_unmapped_area,
- 	.fallocate	= ovl_fallocate,
- 	.fadvise	= ovl_fadvise,
- 	.flush		= ovl_flush,
-
-base-commit: 26260251022fbc2f248a3d747a9b2b961b18d2d8
+--
+paul-moore.com
