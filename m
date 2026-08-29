@@ -1,124 +1,131 @@
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71063389455
-	for <linux-unionfs@vger.kernel.org>; Sat, 29 Aug 2026 19:39:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2790A41D23A
+	for <linux-unionfs@vger.kernel.org>; Sat, 29 Aug 2026 21:33:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788032381; cv=none; b=KW1MS1db766DDSpe1V4SeMgutBY5vVBlymE0htuH5Bjn55cK3u/3eaeWmOwPuROtGBQTs0icm+KhnitEyhRT7Rgkyu1s5lc4wmDOr1SHPkLM8xOaDVNG1ZQ2Tr1/IWrDp3Bn8TX6Nx4w5HmP1O1bo0FiyuC4gzfkX94E33SKkEU=
+	t=1788039188; cv=none; b=AX7/Yedqk7rzdLJiKFsw3rn8WV2lmat0k2Qrb1G1M4f7mcKHffirWOISt6wAmk4y9OOaQr1vAy3U49MaUY7z+swwSwC9MideFtMWFhBvjM8BFgTpfw+QyZbq9RqQhx4c36ule3Uqzg5AqRYbZecioNHhkXO8hPbjSuUq47W2jA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788032381; c=relaxed/simple;
-	bh=gkO1W3ObxBr6XereedmZqfdrV9UxNONJJ28AxekcxPM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FoSVRY8HnWVk7SN73qy2oCPyJuv0ajGHGrmhMrtE15FMEZP3juIdWE/1oeEv+pOZEY8EVsoKdJs6HjsfAzL/WQDSsSx2N04Zm46J0PziVAHW+kKw0dotYciQ9byYyHPhXETWp5H39OPH50P9JCwLu17bniKhG0DKFrldG6gjOPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=juz1vDmN; arc=none smtp.client-ip=209.85.128.46
+	s=arc-20240116; t=1788039188; c=relaxed/simple;
+	bh=Zt6xM5ByKMqjss0Ju9Pq8lrUfSmBQl0+BHJmcT0gcU4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NlcEKjesz1lPHgovttwlr2tcR5qDpX0Lf3mivH+CVJsWlUSHKGO/QpID6WNpQlkiZeW3CzzjISU+8V1JNe/OEZQUNyJk9cDiOq4UCi3wPSqs4qQNqVK10I87G8/nAzusr0vLi/YNwsiKbY6S4/gw0ezC90eQxVLhFYo/mOpBhOw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A1pRPMGO; arc=none smtp.client-ip=209.85.221.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="juz1vDmN"
-Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-499840a2575so13222125e9.3
-        for <linux-unionfs@vger.kernel.org>; Sat, 29 Aug 2026 12:39:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A1pRPMGO"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-47c2b362ee2so1836014f8f.1
+        for <linux-unionfs@vger.kernel.org>; Sat, 29 Aug 2026 14:33:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788032377; x=1788637177; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=UShLfcgJlf7RvYRGLM1vPTMOukbxlvSi4Y6K8vtIScI=;
-        b=juz1vDmNRZ/FuXlg+SAfayAh8fNIjTZKoo79cMpuBMQncphksc+mpu31FZGP3sm7j4
-         0uJ6OXOmylD0XGLpKh65vpAJINtNxwXIlRHSedIJ55bqzOMQfkGW0F/V1WHAdfe6IxNe
-         0nLw6y6xwqdqZZSm7m1zn9FLTXe6GzGs447BAOdpyUbOiSDhVxYSC5I2QR1QMtTeZYJ/
-         uSLtEKZ4LOcpGaptnyIPUCO43lgGCd63sbIUwIt0AZVmg1Ij3rGNPIapRHY1KLzIPPqO
-         MP+zYnuPXoGI991fj9kYgF1zvYP51iRL3TuwU3wIL8TEHq2UY8GrMBnCRYv0iFoV5BdQ
-         yXtw==
+        d=gmail.com; s=20251104; t=1788039185; x=1788643985; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ucnD2vvZKQodkVcezxvV4KyyS73dxyfqz8xpesSWdQI=;
+        b=A1pRPMGONSvtnDEQSeM88hjsR4UhzcAQhj0khTIC7Kcg4ylw7Hs2Pp1ze0Wzml5xEY
+         vuEw+SVSZ/VOCZzx44S2OhfeEa97fyg++wvqcJ+h7khmMFjcxME3guYCom6RXQU2XX3v
+         TScKUqTfBJVT4IgbmJfe9G5pEfClUwmBXHlXLZTwtgnRhmGsgirYEHf6khLFQR1JnU3g
+         9X8Rtk5up1uqY+KmUDI1pXc7QLqp0I+sTCALkRSD3QZPa8kiXhJ3yffXwH06sl93+gcU
+         QnU57sOzivcNJ8juYFAMciOxBoJlyzZlFGKYTIrbMvpoq22mHXzt8bYXuIKTF4Zrmqgm
+         YgwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788032377; x=1788637177;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=UShLfcgJlf7RvYRGLM1vPTMOukbxlvSi4Y6K8vtIScI=;
-        b=CXso2MZ2233vXgXltSAujo79vUWh/lzJ18Ioax5U61cIzC9fhTIlp4eotbOiqMrIDS
-         ZfwR5pyZROWWLWV+uLuy+9RVxYtjrVKdxP3xk2yBt1sBWnK4Q5flkd29i5iILsBzgLR3
-         RcsnrMoS/NvUrP4Gg7Mh/ZPp+sIuKES8VMWKxgcG3S82b88ZAzlGtoZGPJFMkRojFqy6
-         sBkcJQVdkKLGPxxXvkTzVqt9qU01hFoVMV40mG1VZeboy0duilOCgmp3ummvMRLdLGEA
-         vGdT88p6dIK1BOicn5fPl+tER5v/1sLvYsK50NIlzeyph6oQxQEfsmRMb19hAuJsaW4G
-         WCoA==
-X-Forwarded-Encrypted: i=1; AHgh+RorSJhTGjp2NXWeamXcoLXZ7jxWU7YQ9r4XuP52zgb69L4MYnlg3jUN0bWAURPTXtYT2uGPFMjmqYh2gSHu@vger.kernel.org
-X-Gm-Message-State: AFuF++nU4VxtSuKXKgtpBTLPkTNtou01DTttzEByzL5H0vl6QJihZgXO
-	y48GAJVwJmR8QVsVTMgHTAqpwejy2liNndBY8zG0YEwFuhynsjqYoyNp
-X-Gm-Gg: AR+sD12dNvNRSxMoeYdoQ7NX8kXxogDRO0E3UlNLHCuUh3Dfn0fM3Jp1u5SD6wgSfCI
-	e8wQiogxohzkuN+RBQNZzXc7xxaGd9eL/zY/xPjgj/07/eBms8s7yyKYPzMpMaLgaIZEQCBu7IA
-	h0a9iQnFiAZ560kBoZ+PcnKyTJVPcQNd4ClnGUe+ZrDwKqmstJzIe0v6LVKKU0Xd9K8KdAH7HOo
-	h1b8E0qt7JFI3/bjTtORmjqW1+1zINUWXkMiGz9cZzLNROCQp+nBvLD770tni5mTFi2soKsp1+I
-	ImzRj+DzBCAUpQ0xIQXN4ZFa29Kha6flnCyoPIgRX3V+7Qd8NL21CD9xmsq0xWBpE2/3Tuj/xZa
-	xDGhTYZZleI8AzxRTIvOA+GH+Pd/1PzuB9JxURbxxrEfFePTNcWsNlY+MkXXOcRzHGRCmiKYp/6
-	eKDgcC49/+PYl7yGmSW+wo3K1DrgHYHDW4EiH4laXBlKiNqsNnPexB3i4NQJcFW7L8beAP/GwCn
-	IWRnSSv37xdxuMOWqPV6Ue4lVeuWo/rMSr7N8ObXf9AlBjkHe3kno1/pleoNkdhLwfWCj7zkW72
-	kk9brfF5TsQQvrudPfrfNKKD9ihcaHCEj4z+0M1cu2OKXZXg429QoFIcJrZ7ZT0Fyg==
-X-Received: by 2002:a05:600c:6215:b0:499:5a50:b022 with SMTP id 5b1f17b1804b1-49b91c1bb18mr241886805e9.3.1788032377274;
-        Sat, 29 Aug 2026 12:39:37 -0700 (PDT)
-Received: from unknown748F3CBA5068 (dynamic-2a02-3100-ae86-1b01-80e2-8851-4221-68d8.310.pool.telefonica.de. [2a02:3100:ae86:1b01:80e2:8851:4221:68d8])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49b95013ce4sm132840095e9.14.2026.08.29.12.39.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 29 Aug 2026 12:39:36 -0700 (PDT)
-Date: Sat, 29 Aug 2026 21:39:33 +0200
+        d=1e100.net; s=20251104; t=1788039185; x=1788643985;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ucnD2vvZKQodkVcezxvV4KyyS73dxyfqz8xpesSWdQI=;
+        b=WMQag5MKuxutwI3L89+03twz2GBC5Mc9xD8sqt0RUYd6mkB+4zInwczs8WHpfGDgUn
+         RB56IbwXIo/+4IQGphbo08MdPQBTsgx0KFoJR2wZh/QyJqsD7S/ueycgfQdr0aq2T5eT
+         5bCO3bEkOTQ4FUPdpVdMoT3hFY+yqTOsLZZNynr5FyeD22YntCnMBR3gyE3oZydOzkRq
+         UEDXNZY/5shzFSCGO4bzWOpj0cQ8z0kefAQ6TjrZpvhRTVl06o4MD2vWkBx+gyDH+y2S
+         48UV+PU2UN0nYBKl9MbiXT8EATMVYUTtlC7w6LyjtQMiIS6MAWvP+bKkZ5binvp3yXwU
+         KtMA==
+X-Forwarded-Encrypted: i=1; AKwUvBwyXX386ePDfVJu/WeryfZt3p1RSyx/n9jtO+Fy1em1wXNGfIfMZhBmUqb5uVUqsQedaaIbFxP+/U8AyhOi@vger.kernel.org
+X-Gm-Message-State: AFuF++nrHKKp9H0mDKB+NsxTVh2NK2u7ibWHIvHOgX2cRgcX8ymWtBJO
+	AnMHk84SF9GO8kkq1iOkQL9bdIpnoJrQXgLreaEIRVsYGbArsac00XAL
+X-Gm-Gg: AYBFou1jza4AGx/TvIDjvIDwzzJSJ07YeZE0/uGeIQczvVvlvXPx7IX/PLN72OyKU29
+	MOmsM6ajlRXHK7Y0l9RwVsTAzb1sp/3bJ5PN2uma8GK3JN3wM/99JXq24w3oeVWGw8TGXeVKK86
+	jR5iybsQKBN+ELKqYVO4bhZIzwtPk3+QFyXhw2TZFNS5oXI8SZp0CpS3lZ+1gP9V3LFMKd/6jlb
+	Pl1vbzfXChH6CMHJYds2xRqoM9juz/XXcQahKKAKn3YZtMUZJyTS7oiuL/hW0jmHS/b9ASlDToL
+	sWd4neGZmMuL27d47aDv8mV2loOe2n83jwdWFJ8JUHqaGDm0OC1b1YakTU/hbndhtrMYORZZ/a0
+	N4f09Jam9KC/+pvaxHLCW+OCXnwXG7P2jVAmbIbPfvKIt2PnnuHK68c8/Mog/c+rk1CL9fqK4M7
+	fd61tZ86uDyLhdmLJynYhvbVw9TAFkv55Xe9NJPGo+YjFU+gD7+T8T1vVpdp9lznptmCte4yh1u
+	PdpQhaopdDE9CxJyDg7VF1KUpaVuWY4CwEBy0Ll29Ts47VKN3HQktbyhebYphIyMGf6uklEyVab
+	vXnE9EGhOeeiYs8/lfVUsDmeBs9I9OavykJ8f1Deag1Lx8J5fh5HkDbZ2/XLASpaBDpqAI9O8hH
+	HlA==
+X-Received: by 2002:a05:6000:38f:b0:484:3315:1a38 with SMTP id ffacd0b85a97d-48433152785mr8141778f8f.28.1788039184984;
+        Sat, 29 Aug 2026 14:33:04 -0700 (PDT)
+Received: from localhost.localdomain (dynamic-2a02-3100-ae86-1b01-80e2-8851-4221-68d8.310.pool.telefonica.de. [2a02:3100:ae86:1b01:80e2:8851:4221:68d8])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-482fbb33070sm12540616f8f.36.2026.08.29.14.33.03
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sat, 29 Aug 2026 14:33:03 -0700 (PDT)
 From: Karl Mehltretter <kmehltretter@gmail.com>
-To: Paul Moore <paul@paul-moore.com>
-Cc: selinux@vger.kernel.org, 
-	Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
-	Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v2] selinux: preserve user SID across nested backing files
-Message-ID: <apM0QvxDHBuH1hXd@gmail.com>
-References: <20260820175832.44512-1-kmehltretter@gmail.com>
- <5fa5ef078f41cd57d0e52ab2ab023094@paul-moore.com>
+To: selinux@vger.kernel.org
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+	Paul Moore <paul@paul-moore.com>,
+	Stephen Smalley <stephen.smalley.work@gmail.com>,
+	Ondrej Mosnacek <omosnace@redhat.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Christian Brauner <brauner@kernel.org>,
+	Baokun Li <libaokun@linux.alibaba.com>,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH v3 0/2] selinux: fix nested backing-file mprotect checks
+Date: Sat, 29 Aug 2026 23:32:54 +0200
+Message-Id: <20260829213256.51527-1-kmehltretter@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5fa5ef078f41cd57d0e52ab2ab023094@paul-moore.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Aug 27, 2026 at 03:39:10PM +0100, Paul Moore wrote:
-> If you could share the distro and some more details on the testing
-> methodology that would be helpful.
+Patch 1 preserves the top-level user file SID across nested backing files.
+Patch 2 preserves and rechecks each intermediate path, mounter SID, and
+file-description SID during mprotect(), including execmod checks.
 
-The original test used a small BusyBox initramfs.
+The series is based on cf72cbb39da8, which contains
+commit f2381b546e7e ("fs: fix user path of nested backing files"). Neither
+patch needs that fix to apply or build, but without it the top-level check
+still resolves to the intermediate inode. It is already marked for stable.
 
-I repeated it on arm64 QEMU with kernel v7.2-rc1-9-gfd6e2388a3ea, using
-both BusyBox and Fedora Cloud Base 44 userspace. Both gave the same result
-with SELinux enforcing:
+The intermediate list is allocated only for nested backing files. It is
+captured at backing-file allocation time and remains immutable afterwards.
+Capturing it in the mmap hook would require synchronization between
+concurrent mappings of the same file.
 
-  unpatched: mprotect(PROT_READ) failed with EACCES and the expected
-             base_t -> mounter_t:fd { use } denial
-  patched:   mprotect(PROT_READ) succeeded
+Tested on arm64 QEMU with a small BusyBox initramfs, SELinux enforcing, and
+two nested overlayfs mounts. The original SID propagation test passes.
+Direct mmap(PROT_EXEC) and mmap(PROT_NONE) followed by mprotect(PROT_EXEC)
+are both denied against the intermediate inode when that permission is
+omitted. /proc/self/maps reports the top-level path.
 
-The test mounted two nested overlays as mounter_t, changed back to base_t,
-mapped the outer file, then called mprotect(). Both guests used the same
-purpose-built policy, not the Fedora stock policy.
+Changes in v3:
+- Add the intermediate-mounter fix as patch 2.
+- Allocate intermediate state only for nested backing files.
+- Rebase and retest on mainline containing f2381b546e7e.
+- Document the BusyBox test environment.
 
-> Additional comments below, and while this patch is useful in fixing some
-> of the problems (thank you!), we obviously need to fix the others as
-> well.  Is this something you think you will be able to work on?
+Changes in v2:
+- Add selinux_file_user_sid() instead of open-coding the lookup (Amir).
 
-I also tested current mainline commit cf72cbb39da84, which contains
-f2381b546e7e ("fs: fix user path of nested backing files"). That fixes the
-top path and inode, but exposed the remaining intermediate-mounter issue:
+v2: https://lore.kernel.org/selinux/20260820175832.44512-1-kmehltretter@gmail.com/
 
-direct mmap(PROT_EXEC) was denied against middle_file_t, while
-mmap(PROT_NONE) followed by mprotect(PROT_EXEC) succeeded.
+Karl Mehltretter (2):
+  selinux: preserve user SID across nested backing files
+  selinux: recheck intermediate backing files on mprotect
 
-I implemented a second patch which preserves and rechecks each intermediate
-path, mounter SID, and file-description SID. With both patches, direct mmap
-and deferred mprotect are denied against middle_file_t, and the original SID
-propagation test still passes.
+ security/selinux/hooks.c          | 150 ++++++++++++++++++++++++++----
+ security/selinux/include/objsec.h |  10 +-
+ 2 files changed, 142 insertions(+), 18 deletions(-)
 
-Together with f2381b546e7e, this covers the remaining issues. I will send v3
-as a two-patch series.
 
-Thanks,
-Karl
+base-commit: cf72cbb39da84b6f02f90c07f33b102fc10b16f0
+-- 
+2.53.0
+
