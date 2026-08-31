@@ -1,137 +1,133 @@
-Received: from mx0a-00154904.pphosted.com (mx0a-00154904.pphosted.com [148.163.133.20])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1E1352032;
-	Mon, 31 Aug 2026 10:42:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.133.20
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788172923; cv=none; b=dyqVb3KZ7FA/k/ZGYPfS5KM1pIyQI+rQGr9QrQ9AJzlwvE/eNe9pm9mqwDQwMZQOTeT6QZMMuMABeQi4hG/+X1vYm6Z5qYnPLZ8Jm0a/+qhV46l3JFeJ/qfY/N/pGuiJHXK1DEkEytXr9VU16pAebH89uv8U+D9wWxRnIC/Gedc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788172923; c=relaxed/simple;
-	bh=biG4tuVaVme28ivO62VsAA91axklyoUIA3+z1VgN7e0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=h5pOYT0Fpc9bEcOgSJ7em/hLlOM1zgXZ4SBEORxp6I16QBNapobMXJqBiTh4SioB1smmGrFxOUgoHmK54SFeZ8Wa0XTfY3umviPlmcRPoSyenD/X5I0byaMvmNsZ9EJ3RDw/U9+QZSoNLhDNBzdez+bEu2VP5UOpRPZdyNHvsoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com; spf=pass smtp.mailfrom=dell.com; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=TCW63Qgy; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=chMMqsSa; arc=none smtp.client-ip=148.163.133.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dell.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C146B3E022B
+	for <linux-unionfs@vger.kernel.org>; Mon, 31 Aug 2026 11:19:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788175167; cv=pass; b=b/BEB5QzJAvk72tbCOccbs8ZcBMPghrQvy6dLi4uBH53aSEO9VGypVrp4ojDQE/+NCEk8S6kIRllM7cVlrESR3kWwqas76DhyYJpOaAG8Tm5w46052s4YxwhSd2lx6sSTxJ8gwXX/zjZdOyrudJ2PTveuhRBYLXnt91WXaLiIfg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788175167; c=relaxed/simple;
+	bh=sPwZ2rjGa4ORrMcBhiUq14r5UiTivTsJ0F6CWmTx5Uc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=eemvDs9AZ+yxeTN6boPjXDdvuD30+rlgT8Fu95pVBVXLu1/A5Tu4WnFn9tas6fTBje9c+akiEYujjkCmtkc9KMLQQ0EazdAyVFJzHDfc4Z9uu5929+kqJA14nITQrxq968/QaSO5qa3jp43yX1nXIkR4Z5C5DSYQ8Yf0IrToPaI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qyCq6hqb; arc=pass smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="TCW63Qgy";
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="chMMqsSa"
-Received: from pps.filterd (m0170390.ppops.net [127.0.0.1])
-	by mx0a-00154904.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67V7xCOj1070549;
-	Mon, 31 Aug 2026 06:42:02 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=smtpout1; bh=zPo6yZ59DC0vHL0rWRlduX1wLxaA8YY0uMne
-	MpBJVS4=; b=TCW63Qgy2SgT0PfO5/J2LFek7VO/IF07c8LsLjlHOjkgbNHbQZNc
-	v1sHHIcsER3JdLkYXWjV5Qt1fnw/0opMLyJC8EHzH+BglVJHjIXYUKcPH0EGzn5/
-	MkKDaiGoeJyqqUZMG+fp0H2PeizOyHkCiJ7ny3wPVlK3uPTX960O0oyHwFYi3t7y
-	SOGKVAlV9xhHHa6aXJpGfXT/b7l0Ftz2rLXGadJPFd5itn5AQq1NQXmpz9ODDqiP
-	HukknJR9SBTu9xDixJEL9EcdlvIss/LQTYdURgdeVSh9pNrNd53F+kQBpwjiH7lo
-	BmiFZWFkaZnkicmZPbg4r60WKbYNIxN5xQ==
-Received: from mx0b-00154901.pphosted.com (mx0b-00154901.pphosted.com [67.231.157.37])
-	by mx0a-00154904.pphosted.com (PPS) with ESMTPS id 4gbtfwdf27-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Mon, 31 Aug 2026 06:42:01 -0400 (EDT)
-Received: from pps.filterd (m0144102.ppops.net [127.0.0.1])
-	by mx0b-00154901.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67V8PdCi2742967;
-	Mon, 31 Aug 2026 06:42:00 -0400
-Received: from esapsmtplv07.us.dell.com (esapsmtplv07.us.dell.com [143.166.203.154])
-	by mx0b-00154901.pphosted.com (PPS) with ESMTPS id 4gd63g9dpw-2
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=FAIL);
-	Mon, 31 Aug 2026 06:42:00 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qyCq6hqb"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6a5f968ada7so6701757a12.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 31 Aug 2026 04:19:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788175163; cv=none;
+        d=google.com; s=arc-20260327;
+        b=CANrIYqmcBirvhsh7RvHiHjffmVAkjfnG9zfsZ83/7mUJqH69RpcW/Amw6Xa3Sv47u
+         w6BGMfl3AFX9aYHlgeN1viQdmk2OKTrL2ARoIh2vc3aFuMtsJfcTBTynWt8vMQalxBSI
+         o8l2Bx4dH82xllB6UvrjBOScjl+qlcJIsC7g17bBZZFg7XPsUCkFsVVk6iEnc42H2vvQ
+         /EcglvmSnxtpzeusQ0OgUTVuQ7z1F9tRQmqIRQx6BSrNrF5qW0Wo3EYz/ZJww56FWoT+
+         +ZJW0Eybg2mQMQaIbJRDseiWp0gYCldTLwhj7hHE4vaohMt6KfJa1A+4z3scbW1BsncY
+         +D1w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=WPMZR1wY182SIo0vTA+fOa1hLZEIFYqeqqv+4/YgvXM=;
+        fh=L52ytDfRonJT3McK7Tfv96H0RxU6rbFWUU2QClYtMpI=;
+        b=mKyqJRlJfpFUaR/IXmdBeMUpPE0RAd9KrXpq7eSqZzDhNffNMFaG2QITwTsqA81SUO
+         vEttCCiv6W3ptx8t/mqAwd+yVkkh3lPLT2Cjb7WMeSQbI24zuxQvLTDnstx5mgB+rdXL
+         YvbBtTaQTOysIm2Qu+yaYWKdE52fjBOd2x50aLvWOEIrcfYQuFicAg3YMHgJy1SpNUv8
+         OmhlY32j3ek0fLQUWlQjrLK9ThrbnNoEWGgdTES66m8RmTqHmAUHv6fm6T8S8kJ9f+UE
+         vQi7Ym/ajpekQp6TxXyRMfdnjb5Hk96fxyQlfPtVWTa39xa1PLqwSVql54s1f8gPyiRD
+         JqxQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=dell.com; i=@dell.com; q=dns/txt; s=smtpdev1;
-  t=1788172920; x=1819708920;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=zPo6yZ59DC0vHL0rWRlduX1wLxaA8YY0uMneMpBJVS4=;
-  b=chMMqsSaX1bLBsXCsz+5rI9NpFc6rXRdZHlbCY2/BhSnh1KJx9CglrE1
-   /AA06P0+ACmKr21ytOhUyZZ1TPfKJh19s0NuzAODd2o/lULDWYBE/3Zw8
-   zwIkn1XoJBUMQPX3BlpUbbwdUNsmP+cpha6izzEjVuu/kdWaNGPHxAByu
-   RNF8ANPejxkdKd+Du9kMOwOXQ1sFL2y221j+3qQPpoIvt7dWcQwHtLPcg
-   xfe3DKBeCZ/R1tb8Vux2QGLkyqnBzXlTyyMKWE/JIgrDm7NrTk07+VvLE
-   ltR4EzOnoD7YYIaQowErvw6li4TKo+oSeHgNEe17ajU28vQvegBnQS6vN
-   w==;
-X-CSE-ConnectionGUID: mT/iJs/YS9C/WljRyNu9WQ==
-X-CSE-MsgGUID: +XIdgUeQRcSx2z7XuWc7vQ==
-X-LoopCount0: from 10.94.8.206
-X-MS-Exchange-CrossPremises-AuthAs: Internal
-Received: from w-96j1th4.apac.dell.com (HELO W-96J1TH4.blr.amer.dell.com) ([10.94.8.206])
-  by esapsmtplv07.us.dell.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 31 Aug 2026 10:41:57 +0000
-From: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
-To: fstests@vger.kernel.org
-Cc: Prabhakar Pujeri <prabhakar.pujeri@dell.com>,
-        Zorro Lang <zlang@kernel.org>, Amir Goldstein <amir73il@gmail.com>,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH] overlay/081: add missing _require_scratch_nocheck check
-Date: Mon, 31 Aug 2026 10:41:54 +0000
-Message-ID: <20260831104154.2256-1-prabhakar.pujeri@dell.com>
-X-Mailer: git-send-email 2.53.0
+        d=gmail.com; s=20251104; t=1788175163; x=1788779963; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=WPMZR1wY182SIo0vTA+fOa1hLZEIFYqeqqv+4/YgvXM=;
+        b=qyCq6hqbVGW3o82MQ3x5y0C96Bqw50li1H4cx77OkHq51awNsfIvR/foHHpn+ZHRr3
+         D+C5xJKEBydK3vchTAB0YNr+oGMnHELUm+ks+L7nZafvP//EOrtVZzkglkpXNo7+jPGE
+         IOplyxsfZtWrkn03S5h87VXCGZCt8s/+GlAII32GKfg8KuGS4+1/7iCye63UNEft/+Rm
+         8jCcVScaqmv0GSOIfGa3LGMx3pq29i/WkExRBc2KYWoq9kj5MbNzzWaHi1tnVe3oSYn/
+         DJxUi4hzUDBV9onSNZb1xXIthRx44S/kaG26z+VKrOpn802C+p9LaIbH2vsEggM7RMDs
+         RuvA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788175163; x=1788779963;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=WPMZR1wY182SIo0vTA+fOa1hLZEIFYqeqqv+4/YgvXM=;
+        b=ClfuKGZBf2/AVSJ7a6u3PwEnVw1NAu1Hd7tN+YZLWCiv9T7LXS38ykjivPLhkpECd6
+         uQP1Mcb4J8sAVnro88ZecOZ2Z0RCUoHGW+DN/nk2H1VhqyKBDpwS5KNJiDiln9lCeKK7
+         y6d2aXiXwluxAVh8QmwGJRj6YMB92ictwsKOH/RbuoJfDH7gWONc/C+VEPF6x4ETeEek
+         ui4cJ9LuDEQJNuIfR+p8reSP/hzxnmMge8xjtNeZL6HUsLYLB7pKMwG/ZQSlNTmdqAeb
+         0AFxTKM9XPUCJc8EHIb0IwYA2tKcUu3HBFHZv+eLSLpdmHkRPxO3/JIv8L4VOgf4ZYAS
+         V8eQ==
+X-Forwarded-Encrypted: i=1; AKwUvByrftecRHx34ypwlapK23SbTEVVvam0I4X1Q0pH2SMjgy8nxNvasU3eHfFt/ib75WbaPyLs8M8e3irFwHOD@vger.kernel.org
+X-Gm-Message-State: AFuF++nlhQyfN8Ysx1wAQRF7y27Af6MJGckkK2D5EIg3l1FyxRVDOKUz
+	fMrT8JWsbex36SktC8EWf1Rpkw95H0H4PndQnxaj0KYefOzM27e4g9V1gdNQRcsec9DLQxJ2SdG
+	FGx7rn+SVQWK/BdTo/lzXMTHh/eLPfZ8=
+X-Gm-Gg: AYBFou2JZ9Y1b2h/Craa7E5qyr7g/uEKiKEY2/1uABKbuRDTX5Uk9gKQHrsj+Osx4LC
+	nGwdQEEJWZ67tVriQUU6pCs1Tncnsg+CkKlbMM//ZsSHJWKO0+rlGaRQYMpKkKP7DhLZLjZMJ3U
+	bTXzna1jnFAQflc5pCDHFcRKluC4EvKIlP9CO2kU6B8wPbmxFrzE8M8+vCQ98NcmOp4xKZivGXs
+	k7oCqQHlhA1ECe10XM2H/kzLpRVYlIb6gZK5DPW422/YsEed13HaTZU3ILWXpxiksMV4ifsYJbk
+	PjHXRvWyQK9ukS/zgCWJtaQDAdD9cndD7xfzo+ONfDxfDg==
+X-Received: by 2002:a05:6402:21c1:b0:6a6:32e2:fb49 with SMTP id
+ 4fb4d7f45d1cf-6a647796951mr4553257a12.11.1788175162309; Mon, 31 Aug 2026
+ 04:19:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-31_03,2026-08-27_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 clxscore=1011 malwarescore=0 spamscore=0 adultscore=0
- bulkscore=0 lowpriorityscore=0 priorityscore=1501 phishscore=0
- impostorscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2608310091
-X-Authority-Analysis: v=2.4 cv=BdToFLt2 c=1 sm=1 tr=0 ts=6a955a79 cx=c_pps
- a=Z2e5DKjA+8LiMDv5v6mwwA==:117 a=FlBIjDbFArVVlnHZBJJA7g==:17
- a=Sv0fKeRqtYgA:10 a=ke5jqHz-1hQA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=6gNNCFAoQcIphELLPWWu:22 a=sEWawkeXllE7TocFc0N_:22 a=iLNU1ar6AAAA:8
- a=jOwvOZWArAZ5x76Gcs0A:9 a=hlJyneSgMmFPbskH-t2w:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODMxMDA5MiBTYWx0ZWRfX9Pl0LnBZs3nT
- 63sLIwYWkYhhpEbp4rqORXlcLnevu7TnTZVNPjmtJw6ngiahucwEsQC9qXylNmHc2YzRszGFzno
- ElAoRSXZ+a8HC9RtEL385HOlweyjPesK/A1okHEi/SCzTdc2CL/A/FVn7QFQdvMI5Hf1KoTWPOe
- 9PoUJYdoj98bVeZ0wvixj5FYmeeD65QVx8KtGBv+mJxqtlQ/ys2/1Xt/k70wlJ0GQPHRlqv5QGU
- jOCorVF8G/3nMkERV5osRbfMLpToSFUork50FXPn9phSLMd2mz4h/+TSk7JFtPcyvmKJ4D4WMgy
- +oGn2mK8dtLhGbibKmBWJ6Ey3XxhaycfxyGRTsRfqJh/eylIhsiY0jCEGIcqtXRI16o04fF4+Vx
- 0Nof5HWtzltGWCyDMP0lcfAGzENxOmi7MuwWCgwtuqIqxerK81v8ACmYm8eSBDncQlFhdjFvmvs
- y1V3f9cJxMpNDv8CJLA==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODMxMDA5MiBTYWx0ZWRfX+e0SyqAISZfd
- eu0oIo4e/06F3aa1k7OIWGnFLHY1hIvWw5n/bTytwn4mZato7m7wkmXAsse/+vkkejDNVgbZp0E
- j++BbBrJLO54jVptxUrPkd5DDaBDgwI=
-X-Proofpoint-GUID: QH3B06ak2HVLFNPucLzlT2Ag8L1B1oXz
-X-Proofpoint-ORIG-GUID: QH3B06ak2HVLFNPucLzlT2Ag8L1B1oXz
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0
- lowpriorityscore=0 suspectscore=0 bulkscore=0 impostorscore=0
- priorityscore=1501 adultscore=0 phishscore=0 spamscore=0 clxscore=1011
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608310092
+References: <20260831104154.2256-1-prabhakar.pujeri@dell.com>
+In-Reply-To: <20260831104154.2256-1-prabhakar.pujeri@dell.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 31 Aug 2026 13:19:11 +0200
+X-Gm-Features: AcwNN1XbV_zf11XWhT_g0nhVI9-LiZR6z645IAaToD4j_bzMvZZShqeTlCOznoU
+Message-ID: <CAOQ4uxhg5qtjYHoCvGU=NCawg664HJmDkdau7HNScDRrV0-xSw@mail.gmail.com>
+Subject: Re: [PATCH] overlay/081: add missing _require_scratch_nocheck check
+To: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+Cc: fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The test runs _scratch_mkfs without first requiring a scratch device, so
-it fails messily instead of skipping when no scratch device is
-configured.  Use _require_scratch_nocheck like the neighbouring tests
-overlay/079 and overlay/080, as the test mounts overlay on the base
-scratch fs.
+On Mon, Aug 31, 2026 at 12:42=E2=80=AFPM Prabhakar Pujeri
+<prabhakar.pujeri@dell.com> wrote:
+>
+> The test runs _scratch_mkfs without first requiring a scratch device, so
+> it fails messily instead of skipping when no scratch device is
+> configured.  Use _require_scratch_nocheck like the neighbouring tests
+> overlay/079 and overlay/080, as the test mounts overlay on the base
+> scratch fs.
+>
+> Signed-off-by: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+> ---
+>  tests/overlay/081 | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/tests/overlay/081 b/tests/overlay/081
+> index 2270a04..a13b785 100755
+> --- a/tests/overlay/081
+> +++ b/tests/overlay/081
+> @@ -14,6 +14,9 @@ _begin_fstest auto quick
+>  . ./common/filter
+>  . ./common/attr
+>
+> +# We use non-default scratch underlying overlay dirs, we need to check
+> +# them explicitly after test.
+> +_require_scratch_nocheck
 
-Signed-off-by: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
----
- tests/overlay/081 | 3 +++
- 1 file changed, 3 insertions(+)
+This copied comment is not true for this test
+Not that it matters much because fsck.overlay is not maintained for
+a long time, but I don't like to spread this wrong pattern, so please
+use _require_scratch in this test.
 
-diff --git a/tests/overlay/081 b/tests/overlay/081
-index 2270a04..a13b785 100755
---- a/tests/overlay/081
-+++ b/tests/overlay/081
-@@ -14,6 +14,9 @@ _begin_fstest auto quick
- . ./common/filter
- . ./common/attr
- 
-+# We use non-default scratch underlying overlay dirs, we need to check
-+# them explicitly after test.
-+_require_scratch_nocheck
- 
- _scratch_mkfs >>$seqres.full 2>&1
- 
--- 
-2.55.0
+Otherwise you can add
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
+Thanks,
+Amir.
