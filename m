@@ -1,184 +1,120 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B734A9D76;
-	Wed,  2 Sep 2026 16:07:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90DC4AA58D
+	for <linux-unionfs@vger.kernel.org>; Wed,  2 Sep 2026 19:34:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788365269; cv=none; b=SZHkDmF/Kf03QqRVRZDLYwRbijXZEZTkkPeRr2T0w5pOv0yWt02Z/ZG4MrVlB/FnrFDNOGWnJ02+kSwzRe1Gh9hHSO6DEhgoeCyGc8dUuPFFgVwGox/qkIeWtp6+Cja6kvEt4sKY2fgUv4JjIVEh+JXeSv4WuyOzmFDHCPCUBFE=
+	t=1788377696; cv=none; b=l8vyFXLKky6/T38qwrHyWhWyMIUM+fELUEYmzUfcBEfxPebgYop7iLUULtJkPr2TiAnZwiw37zcRRlm8CdEk2tX4/8LQQsh1ea3OZYxjoi0ZzDSTBaJt2wzaT8xvJnP7frwTJ0y7ZH370vmndb7sjQZxA+iUrfmGDVZcU9aWrlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788365269; c=relaxed/simple;
-	bh=P6CyjnQCD6Ueg6/odmAdFf71SxIvposEfb5XFt0XTH4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=heFO5EHKX2AvAnQrWyO0BANsm5jGW7v04JYnxIX87U9Auxh2cpAemA4ld7rcrQsnoNoo+T13bkaNYEvdZ9DejImKa84ogOPNZ2Ny2yWr39VIsOxGQte8bBTt7Uh/4oKeERYLW6hXuw3nzdSsObjI38xaIMmerjXIuVBF/7sAj54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=A0G0EV6U; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=wMfk1JD4; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=J2u0vrLQ; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=jhVZVvvG; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1788377696; c=relaxed/simple;
+	bh=eh+it0zb54ufEP/JnblEMEpySL7Prj/F5s/H28111ro=;
+	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
+	 References:In-Reply-To; b=Lna0KyIhQ8x8sTn5V/o+cGxDrv4338bQztBbh6VaNex4E1NosvE+Y9M7Tn2sfXaCnxfRLtRwjhIXC5U6AIpNUTBMdFuGm8itasOGa8epQ0583qNZ2AaCfcZvLc/Do1OzxhDGvSM4cHSsphJ1MMo+O5ULYbKaQd7pui5yMvbMEKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=BApmi94N; arc=none smtp.client-ip=209.85.219.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="A0G0EV6U";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="wMfk1JD4";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="J2u0vrLQ";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="jhVZVvvG"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id D984721CF1;
-	Wed,  2 Sep 2026 16:07:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1788365260; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GyyAayOiVnv3aCFB/W1ne3d6kkITO1+ebE/Tmz3HhRc=;
-	b=A0G0EV6UhbB6YIvOcpkFyIfobvY9/e8i/ReIi8HVus8DxK9g5Hk5ISsE5espVhhlivJZOU
-	ImQ51Lja4jGOm1Tf6aRccvgqzCLff2nf22JUKY5mlzlEFKzQFTn60qtuyKgzDV0AOBqIUV
-	lfAJu0mnlzJXGa3I9wqiz48JnlJ1ZdE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1788365260;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GyyAayOiVnv3aCFB/W1ne3d6kkITO1+ebE/Tmz3HhRc=;
-	b=wMfk1JD4823uYOsl8fRyyPrX6HKmco8UqVmxSlHr5EdUleJzoOC6hSE544UQHcxcMbS1Rq
-	p9SnsXWpu3kNZmDg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1788365255; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GyyAayOiVnv3aCFB/W1ne3d6kkITO1+ebE/Tmz3HhRc=;
-	b=J2u0vrLQuKQxOjcCTVhxFLjobpvG5TMTIE29WBZx0Kfd6B7+2rH4mLAdzP/e+YRYBfkhi1
-	/dsloXZkTXfiA7rJdHeBBTbJgSCdbgHK7Gnw0uA41QQrTbKKpIkmlh8noKS+0iuqcNcXcg
-	zx/wQArVMHi8TVda+qCcK9L3pWQap+c=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1788365255;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GyyAayOiVnv3aCFB/W1ne3d6kkITO1+ebE/Tmz3HhRc=;
-	b=jhVZVvvGm3fLLJuX6gV+8KGwP9KoKX/mo0qHd/+V2P87KOQvfzzvsovffSqZZ5hvtPLeGP
-	YaEYZs6Z2naE0oBg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B91D713515;
-	Wed,  2 Sep 2026 16:07:35 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id AAStLMdJmGrnegAAD6G6ig
-	(envelope-from <jack@suse.cz>); Wed, 02 Sep 2026 16:07:35 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 64656A13B5; Wed, 02 Sep 2026 18:07:35 +0200 (CEST)
-Date: Wed, 2 Sep 2026 18:07:35 +0200
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, 
-	Seth Forshee <sforshee@kernel.org>, Paul Moore <paul@paul-moore.com>, 
-	linux-security-module@vger.kernel.org, Mimi Zohar <zohar@linux.ibm.com>, 
-	linux-integrity@vger.kernel.org, Ilya Dryomov <idryomov@gmail.com>, ceph-devel@vger.kernel.org, 
-	Carlos Maiolino <cem@kernel.org>, linux-xfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
-	Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, 
-	Namjae Jeon <linkinjeon@kernel.org>, linux-cifs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 27/27] fs: make nop_mnt_idmap and invalid_mnt_idmap const
-Message-ID: <zjaeoapknslc6sxdf7ycgkytk2fr6ougieqz7icejptlfzkuhd@sr47lzi4ldex>
-References: <20260901-work-idmap-const-v1-0-54ccd48e100b@kernel.org>
- <20260901-work-idmap-const-v1-27-54ccd48e100b@kernel.org>
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="BApmi94N"
+Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-90ccb6102a1so12547036d6.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 02 Sep 2026 12:34:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1788377687; x=1788982487; darn=vger.kernel.org;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=GJ6syoQl7zUGKH+u6+bqTcHjjLcFH2wSt0NVpBp7lDc=;
+        b=BApmi94N0haia63+fWtF0lO8gtf7CPbnhyiBUjO2IH+nYwAJb4uJXYRK7Cr6JJKpFk
+         YxGptCgPyiA1YZmnPhS3FOGlqVAlbkwTb/eVF5NtLCuLuSICFUx37nq/Nns4yNA2zgH0
+         CFYc13B4d2J1cC4nKVeZUp+yNmFJrn0DoYd6ScYOlVDpCIQWM8wV9IJ51HJQi6KW+GVF
+         nI2FzCFnKFMfXHpWkki8P6hmZ4q8a2BhC/Xez0+PIPWLa+R4Uc0B91tXHiwfcP+6AsP1
+         FRMH/M4HjtVOxsSROaRN5mJYZjmLY8FnTjlOzEo1VRpzChFgoAHEReRUhVrJL43U/Yma
+         Kkhg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788377687; x=1788982487;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=GJ6syoQl7zUGKH+u6+bqTcHjjLcFH2wSt0NVpBp7lDc=;
+        b=s6uJ1stgvaAkSupMZX6WfuJLwRmrwcUgjlip4F+xT3w58STKeLGK179b0iYacvHUyX
+         kETawZsABPscC4ucvNRPbSKEHNRlzEXVUPkpT8fb9HZqBr8HlLFaozlhlJeOUPu60z52
+         FtTKRlrboBNv3jKPRk86K0VAlpAcb2u0c0YTAcMzJNcPAAqE96fqC7SZo8z4u9ZEu4bi
+         VFPaKhBJ/uJcyOlcx0V7ETT3IBxXrbP2zFh1CnklyEhhV7jOi17jZFZ0hSRsNojWrxtY
+         3RpoVGS6pakYMnbuKisKn2VriYiMaWzvA/6EszF/6QzUG2+6V9ynD03U9Dk9FoLQD50T
+         A49Q==
+X-Forwarded-Encrypted: i=1; AKwUvByLui208kdirBYVybwZ6ocXyrR30XUyFMvFfGCEFo7KiSFAS3+M9z5qhLZiLnC0VgsKAo/ov/2i/OZG92ye@vger.kernel.org
+X-Gm-Message-State: AFuF++kn5mslKtj9IqaIANoKDzHHPmpk85sh3QfK+l8t2NtLO/baXZqb
+	eldUnnvQfgBJ5yQ7AEdYfl137eqIXCJrS5tivrro3KAVdC8pOGUNDgdR50fZWqqFOg==
+X-Gm-Gg: AYBFou3btAusDHAdix0GVG2MaOs7eklwEnd9MDXu7RG35V/fAHjGj2zkLQ0lFhw5ONf
+	eRvCi1Gkji0tixuMAzZE7nbMZM6XjxKfHHVU1H5fPS1pH0/9r4+nGu5Awv7gMxIuGHoqD9Bq1/s
+	zGCkf0ooCNn/N55tQmoCIgGY/tLJiOJ62DxE9gZrLjiGPhGYmkNL61sF9Yh6A6NFoD1bkgxUho0
+	6iSsdOdwBNCO6XkiKSc8GbBSAh+qR5177s+5/r6OlLIBhQliGkWnjJ3wQfOEhUUCGmuOGJTcTaS
+	3v0k6BUkSFKmxk7AviZmasMzj5EaZUX71ETBGAJCtoMz2prINmw0NkMO4nSjZBC36qUcnRnJGz2
+	abGGLZMDJ9VBrKOVciuB+ShKp0BXuwn6VN0A4L4Cvp6XAdpBFZ0lRJ4xnXZmHi04DUpOGhr9eqJ
+	qbdFj6qFxP8VGOD1hcWo4vp6q2XARVhVbtEct3Bpb2RSAicBDv0kQ6OCWMlDnPrPOGQdiof4x4D
+	vngDQ0EV7sryJuSxYcM7yYzZ9ib5QlS+Q==
+X-Received: by 2002:a05:6214:e85:b0:90e:7de2:d81f with SMTP id 6a1803df08f44-90ebabbac8emr90744936d6.20.1788377687526;
+        Wed, 02 Sep 2026 12:34:47 -0700 (PDT)
+Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90e9ee08710sm25176366d6.2.2026.09.02.12.34.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Sep 2026 12:34:46 -0700 (PDT)
+Date: Wed, 02 Sep 2026 15:34:46 -0400
+Message-ID: <e266759fa7a20e9620b16c1b5a717744@paul-moore.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260901-work-idmap-const-v1-27-54ccd48e100b@kernel.org>
-X-Spam-Level: 
-X-Spam-Score: -3.80
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-3.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[20];
-	RCVD_COUNT_THREE(0.00)[3];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_TLS_LAST(0.00)[];
-	FREEMAIL_CC(0.00)[vger.kernel.org,zeniv.linux.org.uk,suse.cz,lst.de,kernel.org,paul-moore.com,linux.ibm.com,gmail.com,szeredi.hu];
-	TO_DN_SOME(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,imap1.dmz-prg2.suse.org:helo,suse.cz:email]
+MIME-Version: 1.0 
+Content-Type: text/plain; charset=UTF-8 
+Content-Transfer-Encoding: 8bit 
+X-Mailer: pstg-pwork:20260902_1319/pstg-lib:20260901_1604/pstg-pwork:20260902_1319
+From: Paul Moore <paul@paul-moore.com>
+To: Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, Seth Forshee <sforshee@kernel.org>, linux-security-module@vger.kernel.org, Mimi Zohar <zohar@linux.ibm.com>, linux-integrity@vger.kernel.org, Ilya Dryomov <idryomov@gmail.com>, ceph-devel@vger.kernel.org, Carlos Maiolino <cem@kernel.org>, linux-xfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, Namjae Jeon <linkinjeon@kernel.org>, linux-cifs@vger.kernel.org, linux-kernel@vger.kernel.org, "Christian Brauner (Amutable)" <brauner@kernel.org>
+Subject: Re: [PATCH 11/27] fs: port acl to const mnt_idmap
+References: <20260901-work-idmap-const-v1-11-54ccd48e100b@kernel.org>
+In-Reply-To: <20260901-work-idmap-const-v1-11-54ccd48e100b@kernel.org>
 
-On Tue 01-09-26 14:14:52, Christian Brauner wrote:
-> Make both static maps const so they end up in rodata. Any attempt to
-> modify them now faults instead of silently corrupting the initial
-> idmapping.
+On Sep  1, 2026 Christian Brauner <brauner@kernel.org> wrote:
+> 
+> Convert to const struct mnt_idmap.
+> 
+> A mount's idmapping is immutable. The only thing that is allowed to be
+> modified afterwards is the reference count and that is hidden behind
+> mnt_idmap_get() and mnt_idmap_put(). Everything else only ever reads
+> from the idmapping. This is the same model that struct cred uses and the
+> idmapping is also rather sensitive.
+> 
+> So make the idmap argument const wherever we can. The conversion is done
+> from the bottom up so callers can continue to pass a non-const pointer
+> to a const parameter until the conversion is finished.
+> 
+> No functional changes.
 > 
 > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
-
-Looks good. Feel free to add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
+> Reviewed-by: Jan Kara <jack@suse.cz>
 > ---
->  fs/mnt_idmapping.c            | 4 ++--
->  include/linux/mnt_idmapping.h | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/mnt_idmapping.c b/fs/mnt_idmapping.c
-> index 26704eeb7318..bed57094cef0 100644
-> --- a/fs/mnt_idmapping.c
-> +++ b/fs/mnt_idmapping.c
-> @@ -28,7 +28,7 @@ struct mnt_idmap {
->   * mapping. This means that {g,u}id 0 is mapped to {g,u}id 0, {g,u}id 1 is
->   * mapped to {g,u}id 1, [...], {g,u}id 1000 to {g,u}id 1000, [...].
->   */
-> -struct mnt_idmap nop_mnt_idmap = {
-> +const struct mnt_idmap nop_mnt_idmap = {
->  	.count	= REFCOUNT_INIT(1),
->  };
->  EXPORT_SYMBOL_GPL(nop_mnt_idmap);
-> @@ -37,7 +37,7 @@ EXPORT_SYMBOL_GPL(nop_mnt_idmap);
->   * Carries the invalid idmapping of a full 0-4294967295 {g,u}id range.
->   * This means that all {g,u}ids are mapped to INVALID_VFS{G,U}ID.
->   */
-> -struct mnt_idmap invalid_mnt_idmap = {
-> +const struct mnt_idmap invalid_mnt_idmap = {
->  	.count	= REFCOUNT_INIT(1),
->  };
->  EXPORT_SYMBOL_GPL(invalid_mnt_idmap);
-> diff --git a/include/linux/mnt_idmapping.h b/include/linux/mnt_idmapping.h
-> index b445c7660040..78eeef4c2996 100644
-> --- a/include/linux/mnt_idmapping.h
-> +++ b/include/linux/mnt_idmapping.h
-> @@ -8,8 +8,8 @@
->  struct mnt_idmap;
->  struct user_namespace;
->  
-> -extern struct mnt_idmap nop_mnt_idmap;
-> -extern struct mnt_idmap invalid_mnt_idmap;
-> +extern const struct mnt_idmap nop_mnt_idmap;
-> +extern const struct mnt_idmap invalid_mnt_idmap;
->  extern struct user_namespace init_user_ns;
->  
->  typedef struct {
-> 
-> -- 
-> 2.53.0
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+>  fs/ntfs/ea.c                          |  4 ++--
+>  fs/ntfs/ea.h                          |  2 +-
+>  fs/ntfs/namei.c                       |  2 +-
+>  fs/ntfs3/inode.c                      |  2 +-
+>  fs/ntfs3/ntfs_fs.h                    |  4 ++--
+>  fs/ntfs3/xattr.c                      |  4 ++--
+>  fs/posix_acl.c                        |  6 +++---
+>  include/linux/lsm_hook_defs.h         |  8 ++++----
+>  include/linux/posix_acl.h             |  4 ++--
+>  include/linux/security.h              | 16 ++++++++--------
+>  security/integrity/evm/evm_main.c     | 10 +++++-----
+>  security/integrity/ima/ima_appraise.c |  4 ++--
+>  security/security.c                   |  8 ++++----
+>  security/selinux/hooks.c              |  6 +++---
+>  security/smack/smack_lsm.c            |  6 +++---
+>  15 files changed, 43 insertions(+), 43 deletions(-)
+
+Acked-by: Paul Moore <paul@paul-moore.com> (LSM, SELinux)
+
+--
+paul-moore.com
