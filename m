@@ -1,36 +1,36 @@
-Received: from mta1.migadu.com (out-117.mta1.migadu.com [95.215.58.117])
+Received: from mta1.migadu.com (out-6.mta1.migadu.com [95.215.58.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 603D346D09E
-	for <linux-unionfs@vger.kernel.org>; Thu,  3 Sep 2026 09:11:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.117
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E08633EB110
+	for <linux-unionfs@vger.kernel.org>; Thu,  3 Sep 2026 09:48:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.6
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788426715; cv=none; b=Tw46dyzmH4qDsPsFh8wq1WQOYfEWU/9PUqBenfv6jT8PiKEu9BOSDPpgyNIGqEOvR1t7qYXPMsgqdU50vNmey2Ws3vVvll0UxYhx1k42wJCfKG+05V8RWx6/DBVS4yi7IgCraJeCzi/jk66gyjPN3XisbrUsUNlKyo+cRphglyc=
+	t=1788428904; cv=none; b=LWibzu7YvlvZLugLLumoHVsudc4JfFT8rmkD7Uxre+hINkusLUPeYuXDNsxc57qnGi0N1C9striDpaCHQWthG8cYf8XXtfqQTlbsQTW9bbXB1bHXMJxmkB3FYe09GLIskarDFxcX864gM9W0ce9LBXy9AMQTjcsxNJXuyogKVuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788426715; c=relaxed/simple;
-	bh=CgN0w/eudyXQY8rZE9Aqh7i7PEtWKIBv4uyTbWxNO1Y=;
+	s=arc-20240116; t=1788428904; c=relaxed/simple;
+	bh=Ik9huR8Fv3jP0fCrZ51BXyUeLfQ8zJYSoZb9a4mFbQ8=;
 	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=SizJ3T7cD3EDHv1D7mMPkHSD7G09WJNV1xn7EXOZCp9oivS+y2YWBZ/VQ5bqT2YuS4fcSbPsbC7fK8Uj6gf6unY5T6My/CDE/Lf+3B+41R9L14MwkLq/FfCW1SG0g5wTNwMRLwteRpg7qNOpF+/4EFjF40VOJ6w7YGbPqByJgz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=U0YZPEd5; arc=none smtp.client-ip=95.215.58.117
+	 In-Reply-To:Content-Type; b=KrK3BDq9RY8YcUtivSW0IhfpO9h7zNHcJHM6es8sNWReXvmVQ0zlBt92RvpGJPwq/qF+B6GqSy5EJLyAquTDvuEwIlyZje8yDSxrUuSZYl4BJir+7M6b2Oc7CgpDbvbwUkqcfsDTUWLf+TqemlBiELQYOmLreW4YFQVILFHf96Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=MLRV92Pw; arc=none smtp.client-ip=95.215.58.6
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="U0YZPEd5"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="MLRV92Pw"
 X-Envelope-To: linux-unionfs@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=CgN0w/eudyXQY8rZE9Aqh7i7PEtWKIBv4uyTbWxNO1Y=;
+DKIM-Signature: a=rsa-sha256; bh=Ik9huR8Fv3jP0fCrZ51BXyUeLfQ8zJYSoZb9a4mFbQ8=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1788426711; v=1; x=1789031511;
- b=U0YZPEd59LOhBnogDT2ZWC1ubJL2uoJtbrC2Zalq5Nd11i76bq5xsgpGGuuW9/0ZUpC+2Jvk
- tBu2UcxxkRS+NxNpANcb4Wg7h7D6Tn3UsRfpn3uDFyvUU8+aUF9H6JS/99n3A9xZXHXGNR52zt8
- vt/SGPT67mXTd/a/tUghFtPM=
+ t=1788428899; v=1; x=1789033699;
+ b=MLRV92PwNPHgIaBNkqa+JaiPUhyqm19FLmwYk5EmBIwdO4w4otzGaFtU6bRuRIyiCgM8wTYe
+ f1L7PFoRNvBE3k0WbiTKHtWPEGWlqb49wPgnSn036jnPOZiBmgu967MPRl1HOMvBXQimD1wmXqh
+ v28olR/t6lbuh21mFn+zw+Po=
 X-Envelope-To: linux-unionfs@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 4466a18d953500fa;
-	Thu, 03 Sep 2026 09:11:41 +0000
-X-Mizu-Trace-ID: 4466a18d953500fa
+Received: by smtp.migadu.com with ESMTPS id 4ed958fe3d1258f7;
+	Thu, 03 Sep 2026 09:48:19 +0000
+X-Mizu-Trace-ID: 4ed958fe3d1258f7
 X-Migadu-Flow: FLOW_OUT
-Message-ID: <de02c1f0-c675-4050-a2ee-2584eda63499@linux.dev>
-Date: Thu, 3 Sep 2026 17:11:37 +0800
+Message-ID: <65de40ce-50bb-495f-8ad8-a396bbaa0a3f@linux.dev>
+Date: Thu, 3 Sep 2026 17:48:14 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -40,57 +40,122 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Cc: cui.tao@linux.dev, linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
  linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
- Tao Cui <cuitao@kylinos.cn>
-Subject: Re: [PATCH] ovl: reject verity= together with userxattr
+ brauner@kernel.org, jlayton@kernel.org, Tao Cui <cuitao@kylinos.cn>
+Subject: Re: [PATCH] overlayfs.rst: document cross-layer file lock and lease
+ semantics
 To: Amir Goldstein <amir73il@gmail.com>
-References: <20260903064504.1052841-1-cui.tao@linux.dev>
- <CAOQ4uxhZOBv93_y4K0mc4PofprdPfSN8c45KW226LR-JO_BEkw@mail.gmail.com>
+References: <20260903033359.1042529-1-cui.tao@linux.dev>
+ <CAOQ4uxgyPhJQueqUJuwS8=4wGxTAC1Nhy+gfFxrEfaL5A5-EOw@mail.gmail.com>
 From: Tao Cui <cui.tao@linux.dev>
-In-Reply-To: <CAOQ4uxhZOBv93_y4K0mc4PofprdPfSN8c45KW226LR-JO_BEkw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgyPhJQueqUJuwS8=4wGxTAC1Nhy+gfFxrEfaL5A5-EOw@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 Hi Amir,
 
-在 2026/9/3 16:09, Amir Goldstein 写道:
-> On Thu, Sep 3, 2026 at 8:45 AM Tao Cui <cui.tao@linux.dev> wrote:
+在 2026/9/3 16:34, Amir Goldstein 写道:
+> On Thu, Sep 3, 2026 at 5:34 AM Tao Cui <cui.tao@linux.dev> wrote:
 >>
 >> From: Tao Cui <cuitao@kylinos.cn>
 >>
->> userxattr forces metacopy off, and copy-up only computes and stores
->> the verity digest for metacopy inodes.  With "userxattr,verity=on"
->> (or verity=require) the mount succeeds, verity is advertised in
->> mountinfo, but no digest is ever generated and no lowerdata is ever
->> verified - the option silently does nothing:
+>> Locks and leases taken through an overlay attach to the overlay inode,
+>> while opens of the same on-disk file through its real upper/lower path
+>> operate on the underlying inode.  The two do not conflict, so an
+>> "exclusive" flock/POSIX/OFD lock or a write lease held via the overlay
+>> is silently bypassed by anyone reaching the file through the layers
+>> directly, e.g. backup tools walking a container's upperdir or another
+>> overlay mount over the same layers.
 >>
->>   $ mount -t overlay ovl -o lowerdir=$l,upperdir=$u,workdir=$w,userxattr,verity=on /mnt
->>   (mount succeeds; after copy-up the upper inode carries only the
->>    origin xattr, no metacopy xattr, no digest)
+>> Locking through the overlay succeeds and appears to work, so the lack
+>> of mutual exclusion only shows up as data corruption when the two
+>> sides write concurrently.  Document the semantics, the affected
+>> scenarios and the recommended practice.
+>>
+>> Signed-off-by: Tao Cui <cuitao@kylinos.cn>
+>> ---
+>>  Documentation/filesystems/overlayfs.rst | 27 +++++++++++++++++++++++++
+>>  1 file changed, 27 insertions(+)
+>>
+>> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+>> index 16c35b491dad..546b77e66016 100644
+>> --- a/Documentation/filesystems/overlayfs.rst
+>> +++ b/Documentation/filesystems/overlayfs.rst
+>> @@ -884,6 +884,33 @@ The "-o userxattr" mount option forces overlayfs to use the
+>>  useful for unprivileged mounting of overlayfs.
+>>
+>>
+>> +File locks and leases
+>> +---------------------
+>> +
+>> +File locks (flock, POSIX record locks and OFD locks) and file leases
+>> +taken on a file through the overlay attach to the overlay inode.  The
+>> +same on-disk file opened through its real upper or lower path is a
+>> +different inode object, so locks and leases acquired through one path
+>> +do not conflict with locks and leases acquired through the other.
+>> +
 > 
-> If metacopy is disabled, then the data of the upper file is in the upper file
-> there is not supposed to be a verity signature for the upper file data
-> verity signature is to attest the data of the lower file, so this report
-> is strange.
+> Hi Tao,
 > 
-> Moreover, even though metacopy=off does not create new meta copies,
-> it still respects existing metacopy xattr, which may very well also contain a
-> verity digest, so the statement "silently does nothing" is inaccurate.
+> Thanks for your contribution, but it is not acceptable as it is.
 > 
-> I admit that user xattrs for verity digest is an odd combination, but it does
-> what it is supposed to do.
+> Everything written above may be true, but a document needs to be coherent
+> and this text was written without regard to the context of the document.
 > 
-> If you want to report a bug please explain how the security model gets
-> broken.
+> The most relevant context is:
+> 
+>   Changes to underlying filesystems
+>   ---------------------------------
+> 
+>   Changes to the underlying filesystems while part of a mounted overlay
+>   filesystem are not allowed.  If the underlying filesystem is changed,
+>   the behavior of the overlay is undefined, though it will not result in
+>   a crash or deadlock.
+> 
+> TBH I am not enthusiastic about documenting what may happen
+> on changes of the underlying layer beyond this statement.
+> 
+> I am fine with clarifying a bit about the lock scope, but not as much
+> as you did -
+> keep it to bare minimum which is useful.
+> 
+> Also when writing text in this document you need to use terminology of
+> the document, for example, "same on-disk file" is incoherent with how
+> this document refers to underlying layers.
+> 
+>> +An "exclusive" lock or a write lease held by a task that opened the
+>> +file through the overlay does not prevent another task from acquiring
+>> +the same lock or opening the file if the latter reaches the file
+>> +through the underlying layer directly, e.g.:
+>> +
+>> +- a tool running outside the container accesses the container's
+>> +  upperdir/workdir or the image layers below it directly,
+>> +- a second overlay mount is stacked over the same upperdir,
+> 
+> This is really a disaster setup. I won't even discuss what could go
+> wrong with sharing an uperdir
+> 
+>> +- the same layers are shared between different overlay mounts.
+> 
+> This is obviously normal so not sure why it is relevant
+> 
+>> +
+>> +Locks and leases do provide mutual exclusion between tasks that all
+>> +reach the file through the same overlay mount, and a lease taken
+>> +through the overlay is broken by opens through that overlay.
+>> +
+>> +Do not rely on file locking for mutual exclusion between overlay
+>> +users and anything that may touch the underlying layers directly.
+>> +
+>> +
+> 
+> These two statements are the only ones that seem relevant to me
+> and I would add them in the context of
+> "Changes to underlying filesystems" not as a separate section.
 > 
 
-Thanks for the explanation.  I hadn't considered that pre-existing
-metacopy xattrs are still respected regardless of the mount option,
-and that with metacopy off the copy-up data lives in the upper file
-where there is nothing to attest.  The patch gets this wrong, please
-drop it.
-
-The fs-verity section in overlayfs.rst does spell this out; I read
-it too narrowly.
+Thanks for the review.  Understood - the note belongs in the context
+of "Changes to underlying filesystems" and should stay minimal, in
+the document's terminology.  I'll follow up with a v2.
 
 Thanks,
 Tao
