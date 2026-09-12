@@ -1,259 +1,209 @@
-Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED313DA7EC
-	for <linux-unionfs@vger.kernel.org>; Fri, 11 Sep 2026 22:37:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.225.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F40773603D5
+	for <linux-unionfs@vger.kernel.org>; Sat, 12 Sep 2026 16:52:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.46
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789166281; cv=pass; b=OoFZvt1mQFvt2D/U2F1puCgwW8KsV74UXBAF2VY148d/DB7bMh7E1uLIengrKCStcmP3+b0LSjKjyqNgIlAteWWWUD8YIAQAgfqaGh+TG0YeELDAKPqB336tcQINdCqn+aQcjOm5oqzLitFX4+AhvF6ipBF/rns8DRib5aJMANg=
+	t=1789231967; cv=pass; b=PkjCNERVDKO8bTcCu01eG6qh9uE7IcwzYmE0iFioBJTBpxHyBQJTCqeMw1uvLoltOjWchH4dEMHuINYhS8nnlVOO0GDRgkvduzAXPYjS7WaiUCwhTBai8v23H2YAbwc5dWCxgD4y1gWHUMeZFPfw5SEZdHxKL8swLdETBfJkeAc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789166281; c=relaxed/simple;
-	bh=fAQ57UM8Ut+gTpCHkm0nB+q9GoOd0B/RFpTXH57H3dU=;
+	s=arc-20240116; t=1789231967; c=relaxed/simple;
+	bh=Mn3bV2YTV3fY3wgcVkjvDuSV16K+mD+3WN4ZrWA9Sio=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AsT1iCa1NPrVUGSs0t4B2vr/8M9TKbrHR2E8mRR8zUd8aDcysc4rPqg3HarKb80ZdFibrw8UqHeBi+bcmfpeatr/bkAMZNh4lQVJlNRAPYBdlCAN6y+SnmAWKSqn4B/KjSmnWDmPwZACl+kfVrWuIqjswztsntXA92NcnMW1hv8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M7nUQxpK; arc=pass smtp.client-ip=74.125.225.76
+	 To:Cc:Content-Type; b=YkLxinjJGBmden8FqO7g6bblfIA1WNmS2CtT8wxFm0v9Nc0z615Ly0GqfKPMhwjItytvi5UsmOjJJtB1LWaYmNQvjpkHLUDFAJE7ecT9p7sXZ3HKM281uATODZkpTgpT5FBHoH3Bla9IC4gaj7K3b4ibs3dUfaeMSD++cWp48S8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EmG0vUHZ; arc=pass smtp.client-ip=209.85.218.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M7nUQxpK"
-Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-4834977ae75so160366f8f.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 11 Sep 2026 15:37:59 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789166278; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EmG0vUHZ"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c2946dc8dbfso276925966b.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 12 Sep 2026 09:52:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789231962; cv=none;
         d=google.com; s=arc-20260327;
-        b=M1K/ZAwBWL+8J9BIOsWlhI0P4R+O0PVXyi9tFJyfD7x6U7/V1K6wSQVc48vEgNLl4v
-         vdyHYxWy447TTfRrXdme7oq+n63cptZ1CKL+jcdPoDMaqWod/w5QII/taJLVk86mAZ2I
-         +49sTnS0hDIfbYbjVFj9lp1j87DQSxy6bh++DKu7sECaEk0tVaiPjOpfFTsEdnr9t80H
-         XrU0XF7UJf4U1fFURgb6inxojuaoMzTbMHyHk/JGF5FhCOw7+Qk0O766gotxa6tIeN8a
-         RPJ47m2vTswU8mPcIwnSWu9fOWbdBi0D4Q7H4iFFNYj6D2UiFa3nSBIg13QbJ/dP2blW
-         FVcA==
+        b=lsvDdy6l3ejLkAnFrwn3m2/XyDaGb3AnrG93b2IcCsYzRhJQcvlP6e01xMcvf0+iHv
+         QQCZoI6K/9BTttdkjZcY+OzMAG66Y8XqgQDV49+SOlf4qYGgBaGmAVIJht3aFHQ0Hffp
+         YrL/5IaJCYF+0QR+nDnb2dPhwCUpN3Y7bJSiKlg7dTowPtDMLH85k1VKEkxhgF3Qhc76
+         Kkk/Ex7v1x+uyx5zULgO1AE4km3QcoZLTPxP3TJ3wNZSRd4eOtFJFNa2/T+3IQlMYNEJ
+         Nb2UVjLVuPh8qT+2NA6yX+6E0KobvFrbAffAasfr7Bm+gAnfO40cOjgRHTe38cVZ2DiV
+         HufA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=2C/u/+Db/N6QJbNwjbEuOzl+1ZJl0iDu5MsAK9vhCFw=;
-        fh=5ihK7rtmT3VXBQmD8bSZCRwnh9eT4ZFp/i++/HaPG2A=;
-        b=Ipyob9PRYkpKwEFCM6OJ5fzBCKvttlGM4GVbSuGl2l1S+ZLQnpU29PmJASjU1iJZr7
-         cpqdF40wMihwY/KyJScwsxSy4E3v+B7spm7pD9V3IcO/tAMjLRS/NKPLI4u2yiwpU4XV
-         uokTxg3HpCT0kdq90RPbqXM9KwHy8N1FDH9iM4v3caRm6mT13pTlsWzTcNN89a3w8r8h
-         aIfThfeUq4wDOfIXISXAO4AfYC24w7ZOh42MgK7xbbdBQPgF/MDoXDBTDFibQCcnAexM
-         Ij0aCp2bX+tBkxF7uhatUVYT9vYoUYkt1iO/JrSt0/HiX6Ho7R/7jWznj4vWv9RsMPMh
-         t4Nw==;
+        bh=WYjmIdJ8LduD7wlvhhTNqhhpsCJcLpX0vY1PJ++UAE8=;
+        fh=Q5P8IAz5An+xHXmWVQTk48A6FAbqABHGFJzxdFx7HjU=;
+        b=CGCIn/IoXBt+O8kW27FE+lACvqXr8QHqeofQbhT2u9jxR/eueWkCOcW3tN7nizjK06
+         85jSVszGjZHtRGPySIPwaYPDLx6ciVOwj1mRXCk2dIzI5/zxl3Npv6NitY+ziOfobBIN
+         IsHFpGfw8U6FzpmZ+d/B6vSafY+/qIvHyXZdisJKrr6n7iI3E9LwW1CzJgv6NU4b7JZ+
+         5A/7DSvBqV2FNDoP2vqt0NckPR0OCNkG+04dPI3B4VI990NuFtuF36/TDwx2WctgEyUo
+         daG9xmAOS7j5HVgG7BYtae4Wh/o2+PCpqaHgVYmW570uVd1LO4TTfZRw3DtxtyoRFI+U
+         v4GA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789166278; x=1789771078; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1789231962; x=1789836762; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=2C/u/+Db/N6QJbNwjbEuOzl+1ZJl0iDu5MsAK9vhCFw=;
-        b=M7nUQxpKlTFGAiDYL1YLcWC0vQIytIBCbE90wSnMPcbSCrXoYOERMnqKCnWFkZ2bGa
-         OtbZWT9kLLqhIVmDk3UAu1Hho9WohhrGl7MbenicWq4kF9kvPCh3q9j8bOY4sHYvjJif
-         SGsk4YQbza1QzjnrPerZaUVNQO6YtveO9MQPnxX3JNEGXtLSIVJImgJe0WH7FF96n8/8
-         tdMFJYyF5OSIGt9B7eM+GdIWO9g+29NvkUP7DeHd0uUFsywbwquYDJW3FG5WJahoQ4gi
-         eZ5PLu0T7aM0VizjmNWK98YVdmEQMJh6CLGJ8pJLvJOPBmL6naFQKsCG0ZO6YCXXh8Y8
-         09/g==
+        bh=WYjmIdJ8LduD7wlvhhTNqhhpsCJcLpX0vY1PJ++UAE8=;
+        b=EmG0vUHZvJfJpze8V/5BkRsKaw65yDjBt+jX5Iq2HmvrH5zUU68EYRFX77M1iZoDhj
+         5bUrg8J9dkDuOdjANk2PTGfoPPID364czNO+AtbT3oDD1ADY/VjrOehPrc1YogSVbxCC
+         h5qyE6kJLFR78EkTkek5wU2Slo7w6A9J39NpXlCpgGCYNDBs4iKujM0Kb4G1CyiweTQj
+         0+9URfOSECOYH2UxyVyI5UHb9UgnNPBzD904r0vbLpoCBQvtzTOfNs7pyMLQZN5sM2+1
+         0/H3vm25RwUGJutcDRuwWgdYrToivjholjuY2uZAagxXTgjSJcTZsIO4W9W+buWBB5k9
+         oCMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789166278; x=1789771078;
+        d=1e100.net; s=20251104; t=1789231962; x=1789836762;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=2C/u/+Db/N6QJbNwjbEuOzl+1ZJl0iDu5MsAK9vhCFw=;
-        b=dvMOz2UM5k+mCUmphvJzfeH8bLCmV3o8MfD/hOdIx/o+lZi4e64+aRnwmywSQ/0xrM
-         GOG0iHuxiSej7h5ZEJFX6VSrhaZEsqb7o6vFriQkRxUEOFd+zgR/XVlE4Uus773MHgZ8
-         B4AUj+llSYEuIvjPs9qTPArKvuaAjvec5CMDgt3QuZjpUYP5mcTxiGbzmb5iwQDLFGqv
-         u3bKnCqmdKuwRUen5uGClEChvXisi5uLn2Xc8iGQYzzMZQR8oNt0wNC2l5jT4nCuvfeR
-         jxEte6j2HLlsyHA+dqkPe+Dh2YIlyNsPWZ1yaaTGxhoiWcYlUC8CW79hf/JqXl1rptip
-         vDYQ==
-X-Forwarded-Encrypted: i=1; AKwUvByaHCYa11lPZ4nJhH+q8Xx7PgHfGz571PwSgt59myCvaW8V2vUzaxX4KMOJ18yQyLnCxcSBBGNJv56TguHX@vger.kernel.org
-X-Gm-Message-State: AFuF++nQo1/nEtHSvMXaJ/i/riFtOFDmaKRD4wVijiW+Y8gUcFHdrpLE
-	sfU7bAP0dvpmKZ5ulNDzMUTdqvomUJPPen/9bDGNMpGEFBkOlIDfbVqk6W4dp7gZa3T673pxyHc
-	uHQihQZJNmL8ghhbYj7Y2PqqJHvsd976VitafE+w=
-X-Gm-Gg: AYBFou3fWaoAfTXGpHG2rKHvJUJD+R/udRVgwWwwC2eMG5o9qyLeH58Zc+OW2lkdTG/
-	M1ahARyG+3AAtaUK2N5sSJmFig5ksDCz8LNrbUjIDY4U4x9QGzA2l3ozwCcvvtIqvxWp0s3G9an
-	4xSMCr39vef5WTaF2Xt+uO8FwwSDyqKGRK9S0qvJqYgRjjPZ8/KEsn9+c+uk6oAYnRek9IjXXtE
-	pHgm6mxvYYnFiVd5hQ6jg2PCliOWqoUZmRKmy/OuElVsncXG5mTbeuOeqjg2nMzN14Q/NiZR0vX
-	oGv2hVBNhFV+n9zuJ+ll8xZyVHaSzRNzowL1HGeoElS3g+C6UssL5hMcqkHim00BRT/4zsSOcO3
-	2+LXX0urMduNsrFC6AsmJXIv9lkPARDDTAaxteg==
-X-Received: by 2002:a05:6000:29d8:b0:486:f4b1:8c4a with SMTP id
- ffacd0b85a97d-486f4b18d31mr3477162f8f.10.1789166278133; Fri, 11 Sep 2026
- 15:37:58 -0700 (PDT)
+        bh=WYjmIdJ8LduD7wlvhhTNqhhpsCJcLpX0vY1PJ++UAE8=;
+        b=Or9gM+TqOY4qdzDbjEM3oSNBwdaw1m46LxWJasi89Yt3fjymVtka3wJgFF2BrvKqMB
+         3cJscmkB7ym0XOi7Q8t90hxahCZ2SOeUfNOEBEHWHs+3/WVL4yn7Rz/m25JfBAad3GTc
+         BoSIcHlZ+MQ3wGfHcb1CN3YWSJcGc/D1ki9dXB+EC+vZ/GopQZ1K6ER+dQbKTW0R9rnS
+         bAHYKj9O/ExQyu47aUy5b9X11X5nYZYJB4U+tgosso16dy1zhcg706OPQ9+hXF3toh6t
+         Vpq8wGT9tHzB10RyyLRvb3EaTFPxQZ4Yuif+zp3CLACEQEq4WLOayyT/kT4r9IDIc2EH
+         AGDg==
+X-Forwarded-Encrypted: i=1; AKwUvBwESr95ugORVe997poZ1d3NvT/Y7YJ3vt69aGN8owTooy5aBOOvUv5AfsXuLnk8dZij3TIuNuDK2puFe+XM@vger.kernel.org
+X-Gm-Message-State: AFuF++m+MjGVyen6dm9tSRMwfS60LB5K92ufLj5xV37tXzRslDK1hayW
+	yr8eZVAtdenADM8s5HIhG4B+4WLA+SvjFMtwofsfkNV58iwEkNf8FlSgbPF2Vu6IYKlBTfRxESQ
+	3f9llppcEFbodlziAUs/+vrNLLj+Ezg5Xxsz4UmU=
+X-Gm-Gg: AYBFou0l0T39alrDNzxhekYt+cj6GaYk1BlhF4cBvt3dVyQNlQFCouAz7qWYwyuJ/Wi
+	hZ+gMXZuyc8DTAqrdxH+KXf5p/WxBFwDKJ7P4+ESPOesko31ql7bfsedwSSgTWnzzWhCOWXyXyI
+	lJWDW7yD84NEkE9WKorptcIZ4aBLLY1sU9UigrvFFmXkczWQAhDrgkqDY+oKJczIlFrJ3Cb4NqR
+	KiiL9YVZ77fX4SRajB8dyD1N9rs80jQ0CJXeXY/vcYL4yjjq8uHxXtrvYvpnkh5Q1P9xv4+BElR
+	RX0MGXkLw15KD8qTyDICmRaBedy0gF2mqoWFUDTT4x9vOvvS3cXeMSWi
+X-Received: by 2002:a17:907:6e8e:b0:c29:57c4:cb92 with SMTP id
+ a640c23a62f3a-c29661bfe7dmr492375566b.0.1789231961918; Sat, 12 Sep 2026
+ 09:52:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260516004004.1455526-1-joannelkoong@gmail.com> <CAOQ4uxhbbfn7pnq3YNMKpYDAjyZXdZcJoBpnkzjJwOdeDw9jow@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhbbfn7pnq3YNMKpYDAjyZXdZcJoBpnkzjJwOdeDw9jow@mail.gmail.com>
-From: Joanne Koong <joannelkoong@gmail.com>
-Date: Fri, 11 Sep 2026 15:37:45 -0700
-X-Gm-Features: AcwNN1XM9lXWFvwHUJVKCKA37U20dCm8sizz9HYVpSbmw9jZoH5lqCCqd8qTAuc
-Message-ID: <CAJnrk1aBBVOY_bi0s8-FZm9EST2NNePW7jkX3J7ygQ3vaer7Tw@mail.gmail.com>
-Subject: Re: [PATCH v2 00/21] fuse: extend passthrough to inode operations
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
-	linux-unionfs@vger.kernel.org
+References: <20260911194201.1334086-2-Jeremy.Jean@oss.cyber.gouv.fr>
+In-Reply-To: <20260911194201.1334086-2-Jeremy.Jean@oss.cyber.gouv.fr>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 12 Sep 2026 18:52:30 +0200
+X-Gm-Features: AcwNN1X2hsG0LWaEdwwmkhExP2hV4_8kmcR6MDl78nbl3JF3NiU0DSwRS2ESr0U
+Message-ID: <CAOQ4uxjF4xEFRMqb+Owex8Jx_QzeHyJd5LyN5H_SGvo23kMBHQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: disable index and nfs_export with different lower idmaps
+To: =?UTF-8?B?SsOpcsOpbXkgSmVhbg==?= <Jeremy.Jean@oss.cyber.gouv.fr>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Christian Brauner <brauner@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 11, 2026 at 5:56=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Fri, Sep 11, 2026 at 9:43=E2=80=AFPM J=C3=A9r=C3=A9my Jean
+<Jeremy.Jean@oss.cyber.gouv.fr> wrote:
 >
-> On Sat, May 16, 2026 at 2:51=E2=80=AFAM Joanne Koong <joannelkoong@gmail.=
-com> wrote:
-> >
-> > This series extends fuse passthrough to support inode operations (getat=
-tr +
-> > setattr) and directory readdir.
-> >
-> > The existing FUSE_PASSTHROUGH mode attaches a backing file to a fuse in=
-ode
-> > only when a passthrough file is open. This series introduces
-> > FUSE_PASSTHROUGH_INO, a stricter mode requiring one-to-one inode number
-> > mapping, which allows attaching a backing file for the lifetime of the =
-fuse
-> > inode.
-> >
+> Overlay file handles identify a backing filesystem, but not the lower
+> mount used to decode it. If lower layers share a superblock and use
+> different idmaps, a file handle can decode through the wrong layer and
+> initialize the overlay inode with the wrong owner.
 >
-> Hi Joanne!
+> Disable index and nfs_export when this layout is found. Both features
+> rely on persistent lower file handles, which cannot distinguish
+> same-superblock layers with different idmaps. Without them, OverlayFS
+> uses normal path lookup and keeps the layer chosen during lookup.
 >
-> I wanted to see how we can unblock this patch set
-> (did someone say conference driver development?)
->
-> The main contention point for me on v2 was the fuse_entry2_out API.
-> And the suggestion to do a composite LOOKUP+STATX defers this patch
-> set to the unknown future of fusex.
->
-> My favorite solution to a problem is to avert it.
->
-> The question is how to include the backing_id with lookup/readdirplus
-> reply. The answer is that there is no need to include it.
->
-> I have already discussed with Miklos changing the UAPI to
-> widen the backing_id to 64bit and to let the server choose the id [1].
->
-> Considering the fact that FUSE_PASSTHROUGH_INO literally means
-> one-to-one inode number mapping, it seems a bit idiotic that the backing
-> id (should it be widened to 64bit) be anything other than nodeid.
->
-> The new 64bit UAPI is something like:
->
->  struct fuse_backing_map_v1 {
->         int32_t         fd;
->         uint32_t        flags;
->         uint64_t        padding;
->  };
->
->  #define FUSE_BACKING_FLAG_INO_ATTACH
->
->  struct fuse_backing_map {
->         int32_t         fd;
->         uint32_t        flags;
->         uint64_t        nodeid;
->         uint64_t        ops_mask;
->  };
->
->  #define FUSE_DEV_IOC_BACKING_OPEN      _IOW(FUSE_DEV_IOC_MAGIC, 1, \
->                                              struct fuse_backing_map_v1)
->  #define FUSE_DEV_IOC_BACKING_CLOSE     _IOW(FUSE_DEV_IOC_MAGIC, 2, uint3=
-2_t)
->  #define FUSE_DEV_IOC_BACKING_ADD         _IOW(FUSE_DEV_IOC_MAGIC, 3, \
->                                              struct fuse_backing_map)
->  #define FUSE_DEV_IOC_BACKING_DEL         _IOW(FUSE_DEV_IOC_MAGIC, 4, uin=
-t64_t)
->
+> Fixes: bc70682a497c ("ovl: support idmapped layers")
+> Assisted-by: Codex:gpt-5
+> Signed-off-by: J=C3=A9r=C3=A9my Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+
+Hi Jeremy,
+
+Nice catch.
+Do you have a reproducer which shows privilege escalation?
+Please add test cases to selftests/filesystems/overlayfs/idmapped_mounts.c.
+
 > ---
+>  fs/overlayfs/super.c | 26 +++++++++++++++++++++++++-
+>  1 file changed, 25 insertions(+), 1 deletion(-)
 >
-> - Server calls BACKING_ADD before open or before lookup
-> - fuse_backing is stored in backing_map hash table instead of idr
-> - With flag FUSE_BACKING_FLAG_INO_ATTACH:
-> -- If fuse_inode of same the nodeid exists, fuse_inode_backing is attache=
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index bd0a3f9039d2..00e1b9fccb4f 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -944,6 +944,22 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, co=
+nst uuid_t *uuid)
+>         return true;
+>  }
+>
+> +static bool ovl_lower_mnt_idmap_mismatch(struct ovl_fs *ofs,
+> +                                        const struct path *path)
+> +{
+> +       unsigned int i;
+> +
+> +       for (i =3D 1; i < ofs->numlayer; i++) {
+> +               struct vfsmount *mnt =3D ofs->layers[i].mnt;
+> +
+> +               if (mnt->mnt_sb =3D=3D path->mnt->mnt_sb &&
+> +                   mnt_idmap(mnt) !=3D mnt_idmap(path->mnt))
+> +                       return true;
+> +       }
+
+I don't like introducing this potential quadratic search on all ovl mounts.
+I prefer to store a lower_idmap field per ovl_sb, which is set to the idmap
+of the first lower layer which is found to have this ovl_sb and then
+ovl_lower_mnt_idmap_mismatch() only needs to match it.
+
+> +
+> +       return false;
+> +}
+> +
+>  /* Get a unique fsid for the layer */
+>  static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+>  {
+> @@ -956,8 +972,16 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const st=
+ruct path *path)
+>         bool warn =3D false;
+>
+>         for (i =3D 0; i < ofs->numfs; i++) {
+> -               if (ofs->fs[i].sb =3D=3D sb)
+> +               if (ofs->fs[i].sb =3D=3D sb) {
+> +                       if ((ofs->config.index || ofs->config.nfs_export)=
+ &&
+> +                           ovl_lower_mnt_idmap_mismatch(ofs, path)) {
+> +                               ofs->config.index =3D false;
+> +                               ofs->config.nfs_export =3D false;
+> +                               pr_warn("different idmaps in same lower f=
+s '%pd2', falling back to index=3Doff,nfs_export=3Doff.\n",
+> +                                       path->dentry);
+> +                       }
+
+I *think* there is no justification to disabling index, only nfs_export.
+It matters because some distros enable index by default and not
+breaking hardlinks on copy up is not a "feature" it is a correctness issue.
+
+While as you write "both features rely on persistent lower file handles"
+I cannot think of any case where index=3Don alone uses decode of
+file handles from the wrong layer leads to bypass permission checks on
+lower inode -
+
+The index to lower inode is created only on copy up of a lower inode
+that has hardlinks.
+This copy up is performed on an overlayfs dentry that was composed by
+ovl_lookup() through the correct lower layers.
+Copy-up reads uid/gid through the lower dentry's layer idmap and writes the=
+m
+onto the upper/index inode through the upper layer idmap.
+After that, overlay ownership comes from the upper, not from lower inode.
+
+It's probably worth adding some test cases to the idmapped_mounts
+selftest to cover copy up.
+
+If the same lower inode is visible from different lower layers
+with different idmaps I do not consider that overlayfs job to deal with.
+Whichever lower inode is copied up first is the metadata that will be copie=
 d
-> -- On instantiate of new fure inode, if fuse_backing exists with this nod=
-eid,
->    it is auto attached the the fuse inode
-> -- This attachment lives until inode is evicted (same as in this patch se=
-t)
-> -- requires FUSE_PASSTHROUGH_INO
-> - Without flag FUSE_BACKING_FLAG_INO_ATTACH, backing is attached
->   to inode on open as today and detached on last close
-> - The server attached backing survives inode evict and it is up to the se=
-rver
->   to do BACKING_DEL on forget if it wants to
-> - BACKING_DEL only removed from the backing_file hash table -
->   it does not detach fuse_backing from the inode (as today)
-> - BACKING_ADD to already mapped backing or already attached inode fails
->
-> FUSE_OPEN reply does not need to include an explicit backing_id.
-> It's enough to set FOPEN_PASSTHROUGH because the backing file
-> is already attached to the inode.
->
-> Similarly FUSE_LOOKUP and readdirplus do not need to change at all -
-> server just does ioctl BACKING_ADD before the reply.
->
-> For backward compat, FUSE_PASSTHROUGH can use the old
-> BACKING_OPEN/CLOSE with a naive 32bit id allocator.
->
-> [1] https://lore.kernel.org/fuse-devel/CAJfpegve9GMTRwvoA5y7AzUSD4e_EDJFz=
-sqhCVN8xQ+RjQ=3D+Sw@mail.gmail.com/
->
-> What do you think of this plan?
+to upper inode and to the overlayfs in-core inode.
 
-Hi Amir!
+TBH, I'm not even sure if there is a legit case for overlayfs mount
+of lower layers with same sb and mismatching mntid, but there could be.
 
-Thanks for your detailed email.
-
-I think this plan/idea is smart and it makes sense to me, but I'm
-confused what the plan is for fusex.
-
-If fusex is going to materialize, then in my opinion it would be
-cleanest for passthrough in fusex to work via either:
-
-a) fusex is fuse-over-io-uring first. All or almost all (excluding
-interrupts, notifications, etc) requests go through the io-uring
-protocol. For passthrough, since the reply is going through io-uring
-(which bypasses the setuid security problems Jann identified in [1]),
-the backing fd and ops mask can be passed directly as a reply to
-lookup (eg as a reply compounded to ENTRY + STATX replies), which
-allows dropping the idr/hashtable, a bunch of kernel-side logic(eg
-fuse_backing_id_{alloc(), free(), lookup()}, fuse_backing_{open(),
-close()}), and a bunch of uapi stuff (eg struct fuse_backign_map,
-FUSE_DEV_IOC_BACKING_{OPEN,CLOSE}). I think this also would nicely
-simplify things server-side (eg server doesn't have to maintain its
-own map to kernel backing ids and release them on FORGETs).
-
-or
-
-b) if fusex is not fuse-over-io-uring first, then imo passthrough
-passing back the backing id in the lookup reply (in the new + expanded
-reply struct) seems cleanest to me. Then there wouldn't need to be two
-separate registration mechanisms and the extra kernel-side logic for
-supporting auto-attach, or solve weird edge cases that might arise (eg
-races between concurrent opens in iocache mode and
-FUSE_DEV_IOC_BACKING_ADDs).
-
-
-If fusex will be abandoned, it still seems like the entry reply will
-have to be expanded anyway (either with a v2 struct or by piggybacking
-off compound requests) for Luis's lookup handle work to land. If
-that's happening regardless, imo having inode passthrough reuse /
-piggyback off that infrastructure seems cleaner to me (but also
-unfortunately a lot longer of a timeline given the dependencies :()
-than adding the FUSE_DEV_IOC_BACKING_ADD registration mechanism /
-logic.
-
-What are your thoughts on this? What is your preference?
+CC Christian for his thoughts.
 
 Thanks,
-Joanne
-
-[1] https://lore.kernel.org/linux-fsdevel/CAG48ez3ZX8R9kRAQhung2_e3wjowu5cP=
-h7WL3U866mkga-kftQ@mail.gmail.com/
-
->
-> If you are on board, do you want to take the lead or shall I try to alloc=
-ate
-> the time for it?
->
-> Thanks,
-> Amir.
+Amir.
