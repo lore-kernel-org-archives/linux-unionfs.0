@@ -1,75 +1,78 @@
 Received: from mx0a-00154904.pphosted.com (mx0a-00154904.pphosted.com [148.163.133.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55C43EEAEA;
-	Tue, 15 Sep 2026 15:36:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27C60415B60;
+	Tue, 15 Sep 2026 16:44:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.133.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789486582; cv=none; b=Pr7SjUSmGu+V3PmERd0AYb3yjUZQNxWB24LVnXskKw3yn1Y5OAC/IKVnxsiBFmIE9tQMp+9rhquHXEe2wXvM3jvStoRQmsj33Ii3V4kF2wyXnpnk34bdTbAGLpaNESIVCfJVGaz2fd40qtmV7qMOaJOrBzeqry3mGMZ39Bq6Utw=
+	t=1789490674; cv=none; b=N79JSLrn9YTiIkDXFGfLpZnQLwSJk1KhkK9lzYBTXH5zA6lQP9O/Z9zggImxPDBH8Tqi6Yjr6t5O8VRoKNx+u7+/ca/SbD++dbPoTwPhQIr/Xs+fkyAydM0O8KmBi+xBedo1Q8Kqqv2njD1F58Mmw9ilnyyY/x4r7aCFVaZN97E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789486582; c=relaxed/simple;
-	bh=jmMrl2ynUp112f6yy7Zz7vxkblJ1F7JZ82+i73cw4mY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=q4jfQtJdMOX8XHk9xFMLP3Lp3jo5+hnikH/bgSyErVxBNoubI+uJDJFj40HRcpB/2n1teI6jn6U2zvXWeoBjcUfCJhtoIwKSheJmWUqAeh3GSqzr8fCRU8M8nbp15fcmHaVc6sregYvGtMn4r3QKnD8OanslChRZrLIxsAK60pM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com; spf=pass smtp.mailfrom=dell.com; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=Vbwv3NuS; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=CpFy768F; arc=none smtp.client-ip=148.163.133.20
+	s=arc-20240116; t=1789490674; c=relaxed/simple;
+	bh=cyZbHAUWM7KDcyZfNdNEZ5jRfh1aR2gD/Lg3eL1i7BM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LLiAc1ZgcMyHMAEID4i10vdoqvWbouEBRdsZZIteZWfbaXsibgrVSIyOSESThLe7KEHPW3WX8BjKZ8I0x0RVgdrCDAI2EmMGjOZYbdznSkqkucarpvCQiB8YlFWUa5t0cRG61xy5sJD3ZnYQ1kOX7Mpj50Yv/Wukqb5C8RYXXCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com; spf=pass smtp.mailfrom=dell.com; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=HW66NxeM; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=FJ1Kp9P1; arc=none smtp.client-ip=148.163.133.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dell.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="Vbwv3NuS";
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="CpFy768F"
-Received: from pps.filterd (m0170393.ppops.net [127.0.0.1])
-	by mx0a-00154904.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FF7AoQ625114;
-	Tue, 15 Sep 2026 11:36:20 -0400
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="HW66NxeM";
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="FJ1Kp9P1"
+Received: from pps.filterd (m0170390.ppops.net [127.0.0.1])
+	by mx0a-00154904.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FD1ePI2980031;
+	Tue, 15 Sep 2026 10:17:55 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=cc
-	:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=smtpout1; bh=+s8S2msFt/xA
-	u6LeZCVAsMleI4hCwb/yp5QfLq0NvqM=; b=Vbwv3NuSYYfjegx0Mz1w1lTNzyGb
-	rwyJpbZGa0shno1CmzwbhLP2p/8oempwXz+jTMmdbtIdwI8NmDDsaJBylyI46bwC
-	IWs0lgWvIeoXQEOX2M4NxYuIoncStGycTIigI0g+ZJIcJfHlQTtViVjyPTPFhmV3
-	pyPZ3lmz7zSx4licKfTR6aWBmUHFVNwrQgZ5//HDMhfI5xW8K0jKjyKNouMASSIC
-	0+WQ/ZiWtF23c24TGJ8X/28X7W9Z0trWjW/Xcxmc6042aR6MDQqZUA79SRTrghM5
-	w+IBErZwJzpME/GYz44P39FlZHURdqWl/qOY1Wy0LpvCe3kiOOUG2qGQJw==
-Received: from mx0b-00154901.pphosted.com (mx0b-00154901.pphosted.com [67.231.157.37])
-	by mx0a-00154904.pphosted.com (PPS) with ESMTPS id 4gn22gc5yk-1
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=smtpout1; bh=988TgQoS7paHUwcJekFHCNErcojXHWon2mhW
+	c/T1nOs=; b=HW66NxeMMOKLPd5KSj41xxqzT5JRlY/l3kvALTtJjZ1HciDCoJsO
+	Nzx3dAuyeasH9HJMRVT3pd6OenIRfsOexZ9XdYUg/TyMjDjm7PVlEaClpBBlQJ8w
+	nLOAEaya6QaiZwNDP98QNfRtjfo5QmwavGwQgU/JJ52Zu6+uzctRgAq7lQn0OTf1
+	jHG0v4cQ0W3GvBtDjGPLL38QwP+Xz8pXgUZPM/mwK9h5/7jyszjECGQ6NsrVZn2h
+	l8fP0z2JLJVoPFmTGmUnr+8mLhCiTD2162XGXSTietWhHop42Zg15+nDPkuWqlSq
+	PgATC064aV1Cz0DZCmmmcqun2yxoaaAaqQ==
+Received: from mx0a-00154901.pphosted.com (mx0b-00154901.pphosted.com [67.231.157.37])
+	by mx0a-00154904.pphosted.com (PPS) with ESMTPS id 4gn1sy3rkn-1
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Tue, 15 Sep 2026 11:36:19 -0400 (EDT)
-Received: from pps.filterd (m0144103.ppops.net [127.0.0.1])
-	by mx0b-00154901.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FFX5E52279432;
-	Tue, 15 Sep 2026 11:36:18 -0400
-Received: from esapsmtpat04.us.dell.com (esapsmtpat04.us.dell.com [143.166.211.147])
-	by mx0b-00154901.pphosted.com (PPS) with ESMTPS id 4gq6ksjp7y-4
+	Tue, 15 Sep 2026 10:17:54 -0400 (EDT)
+Received: from pps.filterd (m0089484.ppops.net [127.0.0.1])
+	by mx0b-00154901.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FDxS9C3661268;
+	Tue, 15 Sep 2026 10:17:54 -0400
+Received: from esapsmtpat02.us.dell.com (esapsmtpat02.us.dell.com [143.166.211.150])
+	by mx0b-00154901.pphosted.com (PPS) with ESMTPS id 4gq4m0k5v9-1
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=FAIL);
-	Tue, 15 Sep 2026 11:36:18 -0400 (EDT)
+	Tue, 15 Sep 2026 10:17:53 -0400 (EDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=dell.com; i=@dell.com; q=dns/txt; s=smtpdev1;
-  t=1789486579; x=1821022579;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=+s8S2msFt/xAu6LeZCVAsMleI4hCwb/yp5QfLq0NvqM=;
-  b=CpFy768F2mKaZLiFS0bprjdFTU7KvAK4KQ6XW7Ve1fzFWqH4yucrSZu/
-   ItHkhZpr6cWSjaHVavk3/yYnRFOt5VZBJ8VgL3G36FPn+xAjgNagJlvfn
-   LxpwEmj0cSoVMZNNGc7Ijjvi4Ubj74rboMQ/HWpcxs9kjweCfiAv6wcGA
-   eYDaFGtzbabHhkLbfeixfXv+Gqjouj5OwUgzOSBpzkwUqUcLdnLq4cOKw
-   W18FstxdysT+y/Po1YnPjxJ0QPjJa++o+QwbYlwEQ7dk4UExN0X9XKzG/
-   jIzx/UMn/X7Uw4LmIMmvEWz6EjqJIo/Wsh/oQf+TYrva+pVgqYn+OPoK9
-   A==;
-X-CSE-ConnectionGUID: aDq8IP3DSaakwj9SqR0i1A==
-X-CSE-MsgGUID: WcflPtxcT92xh436XGX9Yg==
+  t=1789481874; x=1821017874;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=988TgQoS7paHUwcJekFHCNErcojXHWon2mhWc/T1nOs=;
+  b=FJ1Kp9P1yR2NPgq8xCh0ssGvjYNSvYMBUA+lk3TU6Gjf5M7FwC2TP2Gy
+   QotfsPU4s/CZ9NBQ/GlkKkuX31mbcXIlg6j9VtmdAuzSMcRtlhOhe7jqX
+   w63lDMcm15pRBZOH2+hap0/LKgJCbpV1ATNKflTKLKG8kxCJbAeMHii6d
+   lZunEEGAnqBALEbFYznzZCftY5e6tZr1lvM/fjo6ooLIXkMrbb6zIAUHS
+   DDpEIOVQNINTNJxuDQ5N9Xev2nRZdKUmbEOIPCkeF/zArUIGzDE/i2hqN
+   1BMOrembSZrkzpk/z7/I0qvhfpeAidIqr3eURDGwMlYYrhDZR4+T1iW/q
+   w==;
+X-CSE-ConnectionGUID: 7YLh5tLUSvWO+o0wcNw0JQ==
+X-CSE-MsgGUID: xdf7yzi3SBi1NpfElWHKPQ==
 X-LoopCount0: from 10.94.9.174
 X-MS-Exchange-CrossPremises-AuthAs: Internal
 Received: from w-96j1th4.apac.dell.com (HELO W-96J1TH4.blr.amer.dell.com) ([10.94.9.174])
-  by esapsmtpat04.us.dell.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 15 Sep 2026 15:36:17 +0000
+  by esapsmtpat02.us.dell.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 15 Sep 2026 14:17:49 +0000
 From: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
 To: fstests@vger.kernel.org
 Cc: Prabhakar Pujeri <prabhakar.pujeri@dell.com>,
-        Zorro Lang <zlang@kernel.org>, Amir Goldstein <amir73il@gmail.com>,
+        Zorro Lang <zlang@kernel.org>, "Darrick J. Wong" <djwong@kernel.org>,
+        Qu Wenruo <wqu@suse.com>,
+        Johannes Thumshirn <Johannes.Thumshirn@wdc.com>,
+        Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <chao@kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>, Anand Jain <asj@kernel.org>,
+        Filipe Manana <fdmanana@suse.com>, quwenruo.btrfs@gmx.com,
+        linux-f2fs-devel@lists.sourceforge.net, linux-btrfs@vger.kernel.org,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH 3/3] overlay/081: require uuid via _require_scratch_overlay_features
-Date: Tue, 15 Sep 2026 15:36:07 +0000
-Message-ID: <20260915153608.5197-4-prabhakar.pujeri@dell.com>
+Subject: [PATCH v3 0/6] xfstests: add missing _require_scratch checks
+Date: Tue, 15 Sep 2026 14:17:39 +0000
+Message-ID: <20260915141745.4299-1-prabhakar.pujeri@dell.com>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260915153608.5197-1-prabhakar.pujeri@dell.com>
-References: <20260915153608.5197-1-prabhakar.pujeri@dell.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -79,73 +82,85 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-15_04,2026-09-15_01,2025-10-01_01
+ definitions=2026-09-15_04,2026-09-14_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 spamscore=0 clxscore=1015 suspectscore=0 adultscore=0
- malwarescore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
- phishscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
- definitions=main-2609150227
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDIyNyBTYWx0ZWRfX4SO6sD2Q6yVZ
- yxiRE0r7vjYievzrpcHU561zhSCbAjNE5uqN6ywPbON/NqaTwP1rrQP3x2rRooPgg6lAzNdrnOl
- qw+i5yR7dPGO30kAIMsffV58ZnBhjj1Pfcq2iuzXMWIqIS3Vatwb6BRvz+k7TkUX74PRHWSx647
- dfSwd9pTaZy+1qR7ZC7qV02XQzYMAeJiPzDQedlggYyj/RkxInELrhjbF/K1/TmFhCMC4FIuVxG
- qtYi86ThC/cD4lQtpw+FPhRYmSVXxAAnFKf1QqScUl2twFErwoXx+JiULgQKL56S5feKB1wXNgt
- +4+WrECi9ccCUR8wYtW0flABfgVZ3fL/zXnf83bqvX++dUt5IdR25014uEs2D61Q8XL5sBEG1fU
- mwKtt8wVnXVtY+bnc5TtZtDTyIE24XqwG7HlqhHHSpHszXN14DUqkiRwoaI1q/ehlZl21LUllGt
- LHscqnwzPdmvZZAqfcA==
-X-Proofpoint-GUID: MQwRUxQQfCravCNRwOIdsT7lxbwwCUuw
-X-Proofpoint-ORIG-GUID: MQwRUxQQfCravCNRwOIdsT7lxbwwCUuw
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDIyNyBTYWx0ZWRfX/hVPCkSJnRl4
- 3HMay2C+tKOlyxEhm6VB35SHMYPGOS1jxMsmaK5sba9L85VTpsvl46cQrwvsjSrFzH/aWryRJBY
- G7+PsMnIVbosy8N4DNlgnupBdmeVytM=
-X-Authority-Analysis: v=2.4 cv=T+UZ3PKQ c=1 sm=1 tr=0 ts=6aa965f3 cx=c_pps
- a=Z2e5DKjA+8LiMDv5v6mwwA==:117 a=xQoiRHjKKYbJmV+sD1MyuQ==:17
- a=VdqzKS8jKosA:10 a=ke5jqHz-1hQA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=6gNNCFAoQcIphELLPWWu:22 a=2Lpba0WeoN7BYVdwMO11:22 a=iLNU1ar6AAAA:8
- a=9yejNmaYs_PoGxmwCHYA:9 a=hlJyneSgMmFPbskH-t2w:22
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0
- phishscore=0 priorityscore=1501 adultscore=0 clxscore=1015 bulkscore=0
- lowpriorityscore=0 spamscore=0 suspectscore=0 impostorscore=0
+ priorityscore=1501 clxscore=1015 malwarescore=0 impostorscore=0 phishscore=0
+ spamscore=0 bulkscore=0 suspectscore=0 lowpriorityscore=0 adultscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150227
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150207
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDIwOCBTYWx0ZWRfXy2izKdu5663A
+ PaJ9TiQUkj+z2GnspR2/rL10538Ru59IM0hEzOUZ6NdosseGUx4VTSy/WfSvieOoeZP4Ds1H9SL
+ XQnF/LrPxCJ+N1oQ3K6Px+AT3+Ujxug=
+X-Authority-Analysis: v=2.4 cv=FtyQbGrq c=1 sm=1 tr=0 ts=6aa95392 cx=c_pps
+ a=Z2e5DKjA+8LiMDv5v6mwwA==:117 a=i8a7nF7jFa3EbZrjgrQYpA==:17
+ a=VdqzKS8jKosA:10 a=ke5jqHz-1hQA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=6gNNCFAoQcIphELLPWWu:22 a=sEWawkeXllE7TocFc0N_:22 a=VwQbUJbxAAAA:8
+ a=iLNU1ar6AAAA:8 a=EjSTBG_SgHjXaJ5rYncA:9 a=hlJyneSgMmFPbskH-t2w:22
+X-Proofpoint-GUID: SAmdIxzceeLNuBvbBfLcobUJw-PdDxxP
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDIwOCBTYWx0ZWRfXxSwF33Gsva9k
+ RadiwCJX5KOOjvFr+Fulx9U7GBNDtdhZCTAj6ryD/BLLkhb1B4ke9GsG2hipGIvPwvyYczv73gS
+ ldvOLxMOKYPQzwJxgt2ZLRPi7uaPY1e4ci4i2gJ/d5VePqR5q6cAIeU6qyTOd8xyrpN6x/D6dMF
+ ifp4ye/MqxMWawDmpkA7Ac5f6mfMbAxohIHhkhtg+ut9lhy3tK3BhUeU/YLdg5oG+FXIFP/Inis
+ hKyqV1niTU1OT64XwcRm1rcDHHXdObbGJVxm3h5kdBOhg3FvWQPBdX9R5p937usCCrpXgSvIQtt
+ ibU82I7bN52J9Npz73w94AQGrmgeKIZqc+DtX6jB9yHvzgBqOJyLfHCj6OAaRAmkLZsI73EqEo7
+ JpcUCw455fK7Iw1RKhsixIy9RJ1Pxy+2OJXpBMJBM/ulHo4rxj69zznEjKbv3xK02ZzOkb8rMqA
+ 1r72ehE5aB2IYT94uAQ==
+X-Proofpoint-ORIG-GUID: SAmdIxzceeLNuBvbBfLcobUJw-PdDxxP
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0
+ priorityscore=1501 spamscore=0 bulkscore=0 lowpriorityscore=0 adultscore=0
+ phishscore=0 suspectscore=0 malwarescore=0 impostorscore=0 clxscore=1015
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150208
 
-The ad-hoc check hid the mount output and treated any mount failure as
-'overlayfs does not support uuid'.  Route the requirement through the
-generalized helper instead: the probe mount still rejects on a pre-6.6
-kernel with EINVAL, and the options check remains via mount options.
+Fully consolidated resend of all remaining _require_scratch fixes, as
+requested by Zorro on the v2 cover.
 
-Signed-off-by: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
----
- tests/overlay/081 | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+All of these patches add a single missing _require_scratch check; with
+the exception of btrfs/333 (which places it at the top of
+_require_btrfs_iouring_encoded_read(), per Qu Wenruo's earlier review)
+they are plain one-line adds directly after the resource checks.  No
+other changes.
 
-diff --git a/tests/overlay/081 b/tests/overlay/081
-index 2270a047..bef54470 100755
---- a/tests/overlay/081
-+++ b/tests/overlay/081
-@@ -14,6 +14,11 @@ _begin_fstest auto quick
- . ./common/filter
- . ./common/attr
- 
-+# Unique fsid mount options (uuid=null/auto/on) were added in kernel
-+# v6.6 and have no module parameter; the probe mount in this helper
-+# _notrun's when the kernel is too old.
-+_require_scratch_overlay_features uuid
-+
- 
- _scratch_mkfs >>$seqres.full 2>&1
- 
-@@ -36,8 +41,7 @@ lower_fsid=$(stat -f -c '%i' $lowerdir)
- 	echo "lower fs and upper fs fsid differ"
- 
- # Test legacy behavior - ovl fsid inherited from upper fs
--_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o uuid=null 2>/dev/null || \
--	_notrun "Overlayfs does not support unique fsid feature"
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o uuid=null
- 
- # Lookup of test_dir marks upper root as "impure", so following (uuid=auto) mounts
- # will NOT behave as first time mount of a new overlayfs
+v3:
+- Merge ALL six single-line fixes into one series, per Zorro's request
+  of 2026-09-03 on the v2 cover letter.
+- Add Johannes Thumshirn's R-b for btrfs/273 and Chao Yu's R-b for
+  f2fs/015,016 (both since v2).
+- No code changes; patch contents are identical to the v2/v3 versions
+  previously posted individually.
+
+v2 pieces (this and the three it pulls forward) for reference:
+- [PATCH v2 0/3] https://lore.kernel.org/fstests/20260903035344.752-1-prabhakar.pujeri@dell.com/
+- btrfs/333 v3 https://lore.kernel.org/fstests/20260831104200.2269-1-prabhakar.pujeri@dell.com/ (v1; v3 was posted but is not archived)
+- btrfs/273 v2 https://lore.kernel.org/fstests/20260902050145.2439-1-prabhakar.pujeri@dell.com/ (v1; v2 was posted but is not archived)
+- overlay/081 v2 https://lore.kernel.org/fstests/20260901132438.759-1-prabhakar.pujeri@dell.com/
+
+Reviewed-bys carried (per the individual threads):
+- Darrick J. Wong: generic/590,735 and generic/795
+- Zorro Lang + Chao Yu: f2fs/015,016
+- Qu Wenruo: btrfs/333 (v3) and btrfs/273 (v2)
+- Johannes Thumshirn: btrfs/273 (v2, second R-b)
+- Amir Goldstein: overlay/081 (as Acked/Reviewed on v1; kept)
+
+Prabhakar Pujeri (6):
+  generic/590,735: add missing _require_scratch check
+  generic/795: add missing _require_scratch check
+  f2fs/015,016: add missing _require_scratch checks
+  btrfs/333: require scratch before checking encoded reads
+  btrfs/273: add missing _require_scratch check
+  overlay/081: add missing _require_scratch check
+
+ common/btrfs      | 1 +
+ tests/btrfs/273   | 1 +
+ tests/f2fs/015    | 1 +
+ tests/f2fs/016    | 1 +
+ tests/generic/590 | 1 +
+ tests/generic/735 | 1 +
+ tests/generic/795 | 2 ++
+ tests/overlay/081 | 1 +
+ 8 files changed, 9 insertions(+)
+
+Base: upstream master a370dcbed43563f0462801e889e0eceb93c7cfad
 -- 
 2.55.0
 
