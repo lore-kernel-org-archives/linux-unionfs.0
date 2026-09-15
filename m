@@ -1,316 +1,153 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-00154904.pphosted.com (mx0a-00154904.pphosted.com [148.163.133.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7168E3AFCF4
-	for <linux-unionfs@vger.kernel.org>; Tue, 15 Sep 2026 14:20:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.140
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789482042; cv=pass; b=Rbd3nM4jgDHBvTLgm1RKRSsDeP1FXRbWNvSxMF1jrURf1VdwOvKvag5P56BTVaTjWzv53fmLwWBL7UpnaaCj3K7auRUt4nDio9hB9OvTG2l2ZYLw0nkVHZ4tCOyiN2fJuE4RfWujQmrhKse8eYUqxjpzpOA8ngyB4TrP1rx34fc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789482042; c=relaxed/simple;
-	bh=32lpFruyhNUsWyexYikX8vyF9ON0Ldgf3SSLR0FL4Q8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rKa0sNXyRygLANRiFvn2n3tndDMZB8UTyv0u6TWHrSy9p05nhhUzJMUOc4cy55UHt3RKNAjeN0J+il9DOIY1jtm1AcDNrvJx4EAbn//IMaYq8V0zF2hrB4kCCSRu17ypfGIvdUbCy83H2lawGgyJq2w2cZm++iW1qo7W4af+ZmM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jBAYAcNP; arc=pass smtp.client-ip=74.125.228.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AD584AD4C9;
+	Tue, 15 Sep 2026 15:36:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.133.20
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789486577; cv=none; b=sfLFd8jzlqcZ9jJinE6ZUFa0SI38HrNVwmMw8X4AqI3pkHWKntrCUq462idyQnCtV05swsQILTp8uVtBH1EVHpmPmy6y+YGFa5E6OlUOuK6dzzYZCuKayObAef3uJzz4LO8f2jP4nXSv+ktYbQ7Rje6I2q/GFO3sihGgE0ZBROg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789486577; c=relaxed/simple;
+	bh=rkuJlhsObiXf004MibF6zw2S2An48d9wAl7zoqFG5zE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aKqDMf6wxl2yVAEJ7RHWhF5DcS703vagMEL1a9bcLM4cVYosDMgoKbD0adIB0rEBXYPvuLqqxqhJhFWdjc/Tm5vc49RZfYpAQ9/9HQ4S7x0yNnAmI+ueYJb8f4NUXF3pDH5DsLTP2JlrewvHyXY7WKEswzUwl0F4CbZtdH2g3A0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com; spf=pass smtp.mailfrom=dell.com; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=eWNTUR3X; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=LYY/Puni; arc=none smtp.client-ip=148.163.133.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dell.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jBAYAcNP"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c2953a01240so550775566b.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Sep 2026 07:20:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789482037; cv=none;
-        d=google.com; s=arc-20260327;
-        b=E4n5lmlD9MTaosjb/grMgLDXNXQxnHkRLDzJmZKQhD8xaPhYM3pl3e343JjS4evxJ5
-         tUGYCr0FH5MbWd7GO/dffJJPU0Lt+o9pVTt/k2PJ7Jept8LoH+fn4coZzNY7wpyQLfbw
-         3/NC7HFCDgZ0Is/Qy15EGMrdeXXOikzI9+aXqISHBKrtEYZvmkRQebhIWGaZY/EL1pNr
-         6ngVsOewHZjAwW2oYqYkqvwMPMtOeuSUni1R7SdvnM1zU2DLvX+F/FjIzmJQgShYLMYn
-         7Wjknj3xFlzFLBFzy3H3bwMHfuKNqH5VbBW7vIwUkFV+RK/RkPuGjW4ZPucPxMMbofH8
-         QMbw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=rZ7LhLBdmBE5VBD6WpRRLsL3OA8Ij36kcHE37wE5ptE=;
-        fh=ZfcFC9+kVgWpwSXr40Y9uFYp7q8ys/3i+H9rdXNftW4=;
-        b=GoYdf3ElzndN0o9zt+KcfhpWHdpluja7JOXSbJqISpf8tfsI76x5sYE9XPL8wCGcNw
-         DhtXcCGgqW/DUFrq4gey+LX9G3X58jrOFEtHkU17qyGefnWms19fveEa3m6FG+pz+cwT
-         PMGLpQIE5rYrHhdoesXvwVfucCwUaAL7Ym50VwgNYS6lTnq9SV8NmodhbxYJu8xYB2WJ
-         NVwBv0Cs+KNpWi2a9uI6IpoZxRY/mEqfNo5pcB+HL+CwrpH3pSGPgtz2HkD5KYIMONbA
-         9aOF0bRXSXSIVKWgdL7063FHjb3vjwHD90JLD3GXpRKjGCcRWyvLjJYYFBpr8a8c5KLr
-         knWg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="eWNTUR3X";
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="LYY/Puni"
+Received: from pps.filterd (m0170393.ppops.net [127.0.0.1])
+	by mx0a-00154904.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FF75Sv624878;
+	Tue, 15 Sep 2026 11:36:14 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=smtpout1; bh=i1WXBfN/jq5GJ1UmvQT2YV2zBQ6yQNw0Bnqd
+	j2YALGI=; b=eWNTUR3XUaEYpFeWmw228LGuZTmlIbkcl6yo7oymu1BtZ1rq89cx
+	VZqJmst1p4FFtXc5TPXP0jfvgqzc/Rxnp2DkuE/KndrrGB3qJA8H96ksd0w375u7
+	J0RNqQBsaGHLpHli67xHRAhafk5UEJaxS36waDFBugVO0GGG0VSStWTtnYux5IST
+	+rxcfog5qUWcofxXGPKKWYsiU7p03prLj+QD4Zzs2AZm9eCDp9ZOZH4kTIi4eYph
+	X//8uXwcbxZax45d4mCCn1qOqLFE8eQqeEuOhyvId9f9qujaHwi+aWCHZAnc5JSv
+	P5uWsz2f9CrUADCcEoQy+KKKweKzJd+/FA==
+Received: from mx0b-00154901.pphosted.com (mx0b-00154901.pphosted.com [67.231.157.37])
+	by mx0a-00154904.pphosted.com (PPS) with ESMTPS id 4gn22gc5xx-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Tue, 15 Sep 2026 11:36:14 -0400 (EDT)
+Received: from pps.filterd (m0144103.ppops.net [127.0.0.1])
+	by mx0b-00154901.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FFX5E02279432;
+	Tue, 15 Sep 2026 11:36:13 -0400
+Received: from esapsmtpat04.us.dell.com (esapsmtpat04.us.dell.com [143.166.211.147])
+	by mx0b-00154901.pphosted.com (PPS) with ESMTPS id 4gq6ksjp7y-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=FAIL);
+	Tue, 15 Sep 2026 11:36:12 -0400 (EDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789482037; x=1790086837; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=rZ7LhLBdmBE5VBD6WpRRLsL3OA8Ij36kcHE37wE5ptE=;
-        b=jBAYAcNPjoC3vLk4wWGqT/oDCt/C+LRrGQ8l9kdLLJje9QAN1l5lDyAWAaeKHHDjk/
-         Mpwc8v241PWDMKlOFg2ut+pFI68M0+bq4FGj3PdW5b1lNqP46NvAD5SfRm1amEdE3r+c
-         3cfWKvOyxFmXyFQBigUjmhdEfrRDgEUqROccGr1zFbcc7INh5ni6nuHX75Qf8KGCfEJW
-         6+benLjh5WRFrLDYUHzV40ME1QbdOEY4EGZuCX41PX/wZqwdOFDdEQUWQQaLUc7+HR1R
-         wZwZMUnO6BuEN17YhCGpKkHFDSDuEkIOT5w/313ij8cl/TeYCKW5HfqPFXes+YY72eOb
-         YKUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789482037; x=1790086837;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=rZ7LhLBdmBE5VBD6WpRRLsL3OA8Ij36kcHE37wE5ptE=;
-        b=rHZyBwk0rsNTmwRTFpTMjvI7KvPDC6TJnJBZncwtXDOH96CkI2SXG5ZY6hWdUk/WWQ
-         NKUgYW0gwp6iDVrSIU3n4bLGGJrHzv9b7tDNQIhzDJq7SGE2CnQ2Re9zt6HSetPHJzYj
-         cbeDm5HHsBrY4iMXMjRCZGeJU+fXUNDD9SwdSm2JWt5y9qBADKzNdYe0bkxfbFBbfTAF
-         w2k1h65Kok2iSf/BD3kXNO1ICSs4HBkca7h40pQluVHBMFwE0u7aqpDHFgN9EeUK7/0E
-         A031N98DiUVj1ADWTxaoY4rFsrjYzLS/miM/DgzvITYHvf7PT7kzDo3ZYn98P9KCF+tW
-         RMBw==
-X-Forwarded-Encrypted: i=1; AKwUvBxFvLIxjerz6JFfiqEsSP0YM8j47Eecaq5Gy4nSy7tu//L15PN2S3Nn1NIT9Kf+SCwacTOpYmnzBgstnOTZ@vger.kernel.org
-X-Gm-Message-State: AFuF++kQQpHu3SMv4mEFxhLG6pUT8BUNCpOjj2dk6UXukl9RdTe1+K5z
-	fcUIc0jzGbbl0BxPsDPJCIH2iQJK7PdZfx++HPTz0jOrLNxzHDkqHt1towjmBRmQ9ECXGcm3hgz
-	3Sof7m2wvXU0Dbu3lGCi1RT75KQIX5ho=
-X-Gm-Gg: AYBFou2OeGJPNz/1Fb9Df9THnNyf/9vJtLlw8Vjt8hhWa5aGFXLiLneYkk9w3EjDGVe
-	gql/3gBe2hykjG19jUmQODFwCWPHBFbIwXmvILSIOeHM7908qRFoU2807lMdNkH3rdxLOs4Gs1U
-	LHsOfxDqqkpOezcudApq0LUagGkVIi0h7macMEgY9D9pfMSj5K9Et0aGeCewpfw1XadZ9JDzUuN
-	d+AtpShBGV5HoPgWiJALwKQTorrYRNvAW2cgIi0k/sq++IOoIEAvS6/UfrCMPrey+c7VRvbtU7l
-	zF8ceW3HfJa9USyl40Hv+YKW2mVb8nFS8Wrb48RmVOWmCf6qs6rx8mPOoXe+mapguqA=
-X-Received: by 2002:a17:906:7951:b0:c26:19de:9ac8 with SMTP id
- a640c23a62f3a-c29b86f9999mr543733066b.32.1789482036526; Tue, 15 Sep 2026
- 07:20:36 -0700 (PDT)
+  d=dell.com; i=@dell.com; q=dns/txt; s=smtpdev1;
+  t=1789486573; x=1821022573;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=i1WXBfN/jq5GJ1UmvQT2YV2zBQ6yQNw0Bnqdj2YALGI=;
+  b=LYY/PunihHrFVyMgq73VztiOVUV5fmBxAXN7RhoZ3VEGRv53hy3zAcUX
+   2VgMxHHHzxAxxgMElrbM9rbvPdnEfg3qJor/4MuNIg06QjmHZDei3GcFo
+   FAnE/OEiH8iDuzDrrnwwlU5Gact8++rfoHwndvB6JAHzzDBOD8/p4tJ3j
+   l/Qwh5dfJwEM/xLTufhkk1ahSX6OoiAQRR1OtkNST4TsgyH8Zs/gTc4Z0
+   o98LhOAtFcKTZXFxwFACs3kvMNvIsPyfaf8qf5QGZeUd2ErStz24J/h3B
+   sFYlcrLZReRZfCdO/b1Wtd8vRZeNq5sCAfg7TAl0dhu9qM/SM8rhW7BMF
+   g==;
+X-CSE-ConnectionGUID: 0UGjMVorQLWGO/Oc4YPQGg==
+X-CSE-MsgGUID: fnDT13vfRomBHolKYBmcdg==
+X-LoopCount0: from 10.94.9.174
+X-MS-Exchange-CrossPremises-AuthAs: Internal
+Received: from w-96j1th4.apac.dell.com (HELO W-96J1TH4.blr.amer.dell.com) ([10.94.9.174])
+  by esapsmtpat04.us.dell.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 15 Sep 2026 15:36:11 +0000
+From: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+To: fstests@vger.kernel.org
+Cc: Prabhakar Pujeri <prabhakar.pujeri@dell.com>,
+        Zorro Lang <zlang@kernel.org>, Amir Goldstein <amir73il@gmail.com>,
+        linux-unionfs@vger.kernel.org
+Subject: [PATCH 0/3] overlay tests: generalize _check_overlay_feature for param-less mount options
+Date: Tue, 15 Sep 2026 15:36:04 +0000
+Message-ID: <20260915153608.5197-1-prabhakar.pujeri@dell.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260516004004.1455526-1-joannelkoong@gmail.com>
- <CAOQ4uxhbbfn7pnq3YNMKpYDAjyZXdZcJoBpnkzjJwOdeDw9jow@mail.gmail.com>
- <CAJnrk1aBBVOY_bi0s8-FZm9EST2NNePW7jkX3J7ygQ3vaer7Tw@mail.gmail.com>
- <CAOQ4uxi_bdgJV4P0sgWbvhoTEHjSOhSHS=NcSymHp5-bdC_tzQ@mail.gmail.com> <CAJnrk1apXOpHuB3GrUy7BPn+Z-d0UoB2wrpDjHJZzM-v+Amy1Q@mail.gmail.com>
-In-Reply-To: <CAJnrk1apXOpHuB3GrUy7BPn+Z-d0UoB2wrpDjHJZzM-v+Amy1Q@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 15 Sep 2026 16:20:24 +0200
-X-Gm-Features: AcwNN1X-g6XyngnrNkv9YJgS61RqMjw37eKfZbKJTokQYitLU-pQcK4gcsK3CYo
-Message-ID: <CAOQ4uxhqs-w-V8Uy8RU5vd6cYwVF9SRpMNY4zEP2W7_BJ7g_hA@mail.gmail.com>
-Subject: Re: [PATCH v2 00/21] fuse: extend passthrough to inode operations
-To: Joanne Koong <joannelkoong@gmail.com>
-Cc: miklos@szeredi.hu, fuse-devel@lists.linux.dev, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-15_04,2026-09-15_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ bulkscore=0 spamscore=0 clxscore=1015 suspectscore=0 adultscore=0
+ malwarescore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
+ phishscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
+ definitions=main-2609150227
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDIyNyBTYWx0ZWRfX/Dr37M/CFGrq
+ XOyN2fYt49tQWwJ/i9h/WvTTMwx4yfbDCeFo/07rsRoYgVRS7p0Qi4uF0Cv6oatI/npte4cx/Ak
+ aIlTsn/xWk4Nzgwdk2vhTtSmBAAYHyBpPZbjt3Pj7xBYYZnOe8bcpYirGEJIIY6dOQ5uwjjiF9z
+ nFiqcDda2d5ldo3o8gbF20NOecgdmkG5zZ6FI/1qdmm7k439zdCU7KrX5u9A8FguGCrh2X5soJ+
+ xCX9wmCcXtpFwqaUz8pRBsoW1FMliBquk6cdg6pb7ioxDDdecI5ww005DJWnS3SvO+2S/YzE3fV
+ xFHqgWrqpiF/LKXEWJtwciTrEdYpMJAgea4l8Ogc9DujuMPcxfoyff9tL7B9aDBTEjTYyHVmCaU
+ eTvFLm9P3lQvWOVr/sNT+5KZYEKYyZDHsAlNnFFvIE72F24TZOzmbyheS1IsP/s0mvA4QmYn2ii
+ Qh0CM854Y0wIp5gMgaw==
+X-Proofpoint-GUID: UNrmjHPEl5T87tYfATAUCJqfRFVLPykY
+X-Proofpoint-ORIG-GUID: UNrmjHPEl5T87tYfATAUCJqfRFVLPykY
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDIyNyBTYWx0ZWRfXzrttAON5nRun
+ MehLpmbXgJtwMAFm0Lu4bvLJ10XKheMyCP2kTSWpf2fzRrfN73hYU8nHHd0BVrvNzw2ZKRxNZQY
+ k0bYHCXtN+bj7xSDQtGseboW2gRceaY=
+X-Authority-Analysis: v=2.4 cv=T+UZ3PKQ c=1 sm=1 tr=0 ts=6aa965ee cx=c_pps
+ a=Z2e5DKjA+8LiMDv5v6mwwA==:117 a=xQoiRHjKKYbJmV+sD1MyuQ==:17
+ a=VdqzKS8jKosA:10 a=ke5jqHz-1hQA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=6gNNCFAoQcIphELLPWWu:22 a=2Lpba0WeoN7BYVdwMO11:22 a=VwQbUJbxAAAA:8
+ a=iLNU1ar6AAAA:8 a=zJpZ7D4x8l0pMBFkNQ8A:9 a=hlJyneSgMmFPbskH-t2w:22
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0
+ phishscore=0 priorityscore=1501 adultscore=0 clxscore=1015 bulkscore=0
+ lowpriorityscore=0 spamscore=0 suspectscore=0 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150227
 
-On Mon, Sep 14, 2026 at 9:20=E2=80=AFPM Joanne Koong <joannelkoong@gmail.co=
-m> wrote:
->
-> On Sat, Sep 12, 2026 at 10:14=E2=80=AFAM Amir Goldstein <amir73il@gmail.c=
-om> wrote:
-> >
-> > On Sat, Sep 12, 2026 at 12:37=E2=80=AFAM Joanne Koong <joannelkoong@gma=
-il.com> wrote:
-> > >
-> > > On Fri, Sep 11, 2026 at 5:56=E2=80=AFAM Amir Goldstein <amir73il@gmai=
-l.com> wrote:
-> > > >
-> > > > On Sat, May 16, 2026 at 2:51=E2=80=AFAM Joanne Koong <joannelkoong@=
-gmail.com> wrote:
-> > > > >
-> > > > > This series extends fuse passthrough to support inode operations =
-(getattr +
-> > > > > setattr) and directory readdir.
-> > > > >
-> > > > > The existing FUSE_PASSTHROUGH mode attaches a backing file to a f=
-use inode
-> > > > > only when a passthrough file is open. This series introduces
-> > > > > FUSE_PASSTHROUGH_INO, a stricter mode requiring one-to-one inode =
-number
-> > > > > mapping, which allows attaching a backing file for the lifetime o=
-f the fuse
-> > > > > inode.
-> > > > >
-> > > >
-> > > > Hi Joanne!
-> > > >
-> > > > I wanted to see how we can unblock this patch set
-> > > > (did someone say conference driver development?)
-> > > >
-> > > > The main contention point for me on v2 was the fuse_entry2_out API.
-> > > > And the suggestion to do a composite LOOKUP+STATX defers this patch
-> > > > set to the unknown future of fusex.
-> > > >
-> > > > My favorite solution to a problem is to avert it.
-> > > >
-> > > > The question is how to include the backing_id with lookup/readdirpl=
-us
-> > > > reply. The answer is that there is no need to include it.
-> > > >
-> > > > I have already discussed with Miklos changing the UAPI to
-> > > > widen the backing_id to 64bit and to let the server choose the id [=
-1].
-> > > >
-> > > > Considering the fact that FUSE_PASSTHROUGH_INO literally means
-> > > > one-to-one inode number mapping, it seems a bit idiotic that the ba=
-cking
-> > > > id (should it be widened to 64bit) be anything other than nodeid.
-> > > >
-> > > > The new 64bit UAPI is something like:
-> > > >
-> > > >  struct fuse_backing_map_v1 {
-> > > >         int32_t         fd;
-> > > >         uint32_t        flags;
-> > > >         uint64_t        padding;
-> > > >  };
-> > > >
-> > > >  #define FUSE_BACKING_FLAG_INO_ATTACH
-> > > >
-> > > >  struct fuse_backing_map {
-> > > >         int32_t         fd;
-> > > >         uint32_t        flags;
-> > > >         uint64_t        nodeid;
-> > > >         uint64_t        ops_mask;
-> > > >  };
-> > > >
-> > > >  #define FUSE_DEV_IOC_BACKING_OPEN      _IOW(FUSE_DEV_IOC_MAGIC, 1,=
- \
-> > > >                                              struct fuse_backing_ma=
-p_v1)
-> > > >  #define FUSE_DEV_IOC_BACKING_CLOSE     _IOW(FUSE_DEV_IOC_MAGIC, 2,=
- uint32_t)
-> > > >  #define FUSE_DEV_IOC_BACKING_ADD         _IOW(FUSE_DEV_IOC_MAGIC, =
-3, \
-> > > >                                              struct fuse_backing_ma=
-p)
-> > > >  #define FUSE_DEV_IOC_BACKING_DEL         _IOW(FUSE_DEV_IOC_MAGIC, =
-4, uint64_t)
-> > > >
-> > > > ---
-> > > >
-> > > > - Server calls BACKING_ADD before open or before lookup
-> > > > - fuse_backing is stored in backing_map hash table instead of idr
-> > > > - With flag FUSE_BACKING_FLAG_INO_ATTACH:
-> > > > -- If fuse_inode of same the nodeid exists, fuse_inode_backing is a=
-ttached
-> > > > -- On instantiate of new fure inode, if fuse_backing exists with th=
-is nodeid,
-> > > >    it is auto attached the the fuse inode
-> > > > -- This attachment lives until inode is evicted (same as in this pa=
-tch set)
-> > > > -- requires FUSE_PASSTHROUGH_INO
-> > > > - Without flag FUSE_BACKING_FLAG_INO_ATTACH, backing is attached
-> > > >   to inode on open as today and detached on last close
-> > > > - The server attached backing survives inode evict and it is up to =
-the server
-> > > >   to do BACKING_DEL on forget if it wants to
-> > > > - BACKING_DEL only removed from the backing_file hash table -
-> > > >   it does not detach fuse_backing from the inode (as today)
-> > > > - BACKING_ADD to already mapped backing or already attached inode f=
-ails
-> > > >
-> > > > FUSE_OPEN reply does not need to include an explicit backing_id.
-> > > > It's enough to set FOPEN_PASSTHROUGH because the backing file
-> > > > is already attached to the inode.
-> > > >
-> > > > Similarly FUSE_LOOKUP and readdirplus do not need to change at all =
--
-> > > > server just does ioctl BACKING_ADD before the reply.
-> > > >
-> > > > For backward compat, FUSE_PASSTHROUGH can use the old
-> > > > BACKING_OPEN/CLOSE with a naive 32bit id allocator.
-> > > >
-> > > > [1] https://lore.kernel.org/fuse-devel/CAJfpegve9GMTRwvoA5y7AzUSD4e=
-_EDJFzsqhCVN8xQ+RjQ=3D+Sw@mail.gmail.com/
-> > > >
-> > > > What do you think of this plan?
-> > >
-> > > Hi Amir!
-> > >
-> > > Thanks for your detailed email.
-> > >
-> > > I think this plan/idea is smart and it makes sense to me, but I'm
-> > > confused what the plan is for fusex.
-> > >
-> > > If fusex is going to materialize, then in my opinion it would be
-> > > cleanest for passthrough in fusex to work via either:
-> > >
-> > > a) fusex is fuse-over-io-uring first. All or almost all (excluding
-> > > interrupts, notifications, etc) requests go through the io-uring
-> > > protocol. For passthrough, since the reply is going through io-uring
-> > > (which bypasses the setuid security problems Jann identified in [1]),
-> > > the backing fd and ops mask can be passed directly as a reply to
-> > > lookup (eg as a reply compounded to ENTRY + STATX replies), which
-> > > allows dropping the idr/hashtable, a bunch of kernel-side logic(eg
-> > > fuse_backing_id_{alloc(), free(), lookup()}, fuse_backing_{open(),
-> > > close()}), and a bunch of uapi stuff (eg struct fuse_backign_map,
-> > > FUSE_DEV_IOC_BACKING_{OPEN,CLOSE}). I think this also would nicely
-> > > simplify things server-side (eg server doesn't have to maintain its
-> > > own map to kernel backing ids and release them on FORGETs).
-> > >
-> >
-> > That sounds good for FUSEX, but we still need to support
-> > FUSE_DEV_IOC_BACKING_{OPEN,CLOSE} in FUSE so...
->
-> I was hoping after a certain deprecation time period, all of that
-> could be dropped entirely. But maybe this is unrealistic of a plan
-> given how widely used fuse is... I guess the deprecation time period
-> would be like 10+ years.
->
-> >
-> > > or
-> > >
-> > > b) if fusex is not fuse-over-io-uring first, then imo passthrough
-> > > passing back the backing id in the lookup reply (in the new + expande=
-d
-> > > reply struct) seems cleanest to me. Then there wouldn't need to be tw=
-o
-> > > separate registration mechanisms and the extra kernel-side logic for
-> > > supporting auto-attach, or solve weird edge cases that might arise (e=
-g
-> > > races between concurrent opens in iocache mode and
-> > > FUSE_DEV_IOC_BACKING_ADDs).
-> >
+Followup on the RFC from 2026-09-02:
+https://lore.kernel.org/fstests/20260902113536.6573-1-prabhakar.pujeri@dell.com/
+Amir answered the same day: "The patch would be welcome".
 
-Actually, I started to consider a different solution altogether.
+This series exchanges six open-coded xino capability probes plus 081's
+ad-hoc uuid probe for _require_scratch_overlay_features, made possible
+by a small generalization of _check_overlay_feature for mount options
+that have no on/off module parameter of the same name (uuid, xino,
+verity, fsync, ...).
 
-Following the same line of thinking
-"Do not need to include the backing_id with lookup/readdirplus reply"
-but instead of pre-registring the backing fd to a nodeid, I started thinkin=
-g -
-Why pass a backing fd at all?
+01 teaches the helper: for such options, a missing parameter means
+   "defaults off" rather than "unsupported" (per Amir's sketch);
+   support is then validated by the probe mount itself, which a kernel
+   without the option rejects with EINVAL.
+02 folds the six xino tests (overlay/041, 043, 044, 067, 070, 071) onto
+   the generalized helper, deleting the open-coded mount+grep probes.
+03 switches overlay/081's ad-hoc uuid=null probe to
+   _require_scratch_overlay_features uuid; the remaining mounts in the
+   test keep their current options and legacy uuid behavior is
+   unchanged.
 
-Both BACKING_OPEN and BACKING_ADD do not pass an fd for IO
-they pass an O_PATH fd which is a proof that the server had access
-to lookup the inode.
+Behavior note: on kernels with overlayfs support for these options,
+_require_scratch_overlay_features previously notran'd for xino/uuid
+(because /sys/module/overlay/parameters/{uuid,xino} does not exist);
+after this change the probe mount carries the check, and such kernels
+pass as long as the mount options are accepted.
 
-BACKING_OPEN requires system wide CAP_SYS_ADMIN and I don't see
-us relaxing this considerably for passthrough of inode ops.
-We could actually relax to ns_cacpable(CAP_SYS_ADMIN) if we create
-a mode where inode passthrough is restricted to a specific backing filesyst=
-em.
-The premise that inode passthrough is one-to-one nodeid/backing ino mapping
-kind of suggests that we would need to do this anyway.
+Prabhakar Pujeri (3):
+  common/overlay: let _check_overlay_feature handle param-less options
+  tests/overlay: use _require_scratch_overlay_features for xino
+  overlay/081: require uuid via _require_scratch_overlay_features
 
-What this means is that passing a backing file handle in the lookup
-reply is actually a safer and more efficient way of passing a backing
-inode descriptor to the kernel.
+ common/overlay    | 19 +++++++++++++------
+ tests/overlay/041 |  6 ++----
+ tests/overlay/043 |  6 ++----
+ tests/overlay/044 |  6 ++----
+ tests/overlay/067 |  4 ++--
+ tests/overlay/070 |  7 ++-----
+ tests/overlay/071 | 12 +++---------
+ tests/overlay/081 |  8 ++++++--
+ 8 files changed, 32 insertions(+), 36 deletions(-)
 
-LOOKUP_FUSEX or LOOKUP_HANDLE will include the stable fuse handle
-of the fuse inode.
-For FUSE_PASSTHROUGH_INO it makes sense that the fuse stable
-file handle is actually the backing file file handle, same as the one-to-on=
-e
-inode number mapping, so the lookup reply only really need one flag to say
-we want passthrough (akin to FOPEN_PASSTHROUGH) and possibly the
-passthrough ops mask.
-
-There would need to be at least one main BACKING_FSOPEN ioctl
-to define the sb/mnt/creds and those same details could be reused
-for all the lookup/readdirplus replies.
-
-ops_mask could either per lookup reply or common to all passthrough
-inodes.
-
-Food for thought.
-
-I'll see if this materializes to a POC or  FUSE_DEV_IOC_BACKING_ADD
-or both.
-
-Thanks,
-Amir.
+-- 
+2.55.0
