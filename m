@@ -1,95 +1,95 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
+Received: from mail-ed2-f35.google.com (mail-ed2-f35.google.com [74.125.228.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50EFD43E071
-	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 07:30:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA3E453A2F
+	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 07:36:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.99
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789543823; cv=pass; b=AUWLI8T8oO9Bli/61mhvfu0mCjsJ/sF60BOW4wLebiK4CszfJYG5OPJTRNbrX0ti4yKNCenarLWkdtSXNCtMqlRPEM+G13SenFN1JIMt0dIJfhIyaQRb+slW62qJWq7EMMnDm+dF1j/yJivQmTzUU1/yakOOjOVCznYOfi+6t1E=
+	t=1789544229; cv=pass; b=Z+c92Te+sJw4aoZEYXPmQFEBl1EXVE+dvE4sdSh+3qf5o2Uq94I0OIxA7xdT5AOTGT2hQ7lBYU8VlpO47AZmhuqxfo/zd6DoSXhgnZJ5dp27MzT41Di27HVQ4Fo4PeIiFqmnpJ7+/O7p/avKhKePujh7Z8o/wFOjqioyM9wAr3E=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789543823; c=relaxed/simple;
-	bh=9JdG5qSC0tk0ZBwuTZWIN9q74g97zJlNODpRuXQIuvo=;
+	s=arc-20240116; t=1789544229; c=relaxed/simple;
+	bh=XDvwmq2vS+N8cMi9XBqt4ebBuqRz92ju3VeHuXNf3Hc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WCdG5v4qPnUdoZgYeIEKQ+gkSKdjrVHAgy31nXfiIIAuSeh21XGNfOT1t/NdU7PRjuStHAxZ2xOIB3HwpjaltUq+cefLuISRFg1u2C5fOa2VNgK3UqMsuKLiE1+uXSYlbZjN9uoNiXhEiqeJr0CX8N5puahu0dkqSje1hH9Zzw4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=slyysVUc; arc=pass smtp.client-ip=74.125.228.140
+	 To:Cc:Content-Type; b=mXv/FV420dXtrmQKE6JSUdiDFeCDuavMxI98UTMzAcAYoGscZAYZNIkG5NMmtI2BDInGQ9NRhKs8/VDvA9V9aN2OdJ9Ndc6YkFSJ4MD6pUXnKPTU7CO9I0LVEmxZEQv3Wp6FDAH1eYPqOLxk60ae3IvG4qUOH0iMB8y3dkS+RE8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=m0HVwO42; arc=pass smtp.client-ip=74.125.228.99
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="slyysVUc"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f6c7a4aso86914166b.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 00:30:05 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789543796; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m0HVwO42"
+Received: by mail-ed2-f35.google.com with SMTP id 4fb4d7f45d1cf-6aa1d00daaaso1133997a12.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 00:36:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789544213; cv=none;
         d=google.com; s=arc-20260327;
-        b=P+BxazNnBo1bXGakJw8004HQe9Vbz1JpLNkU7YVKLB7gHOPy2ZnKl1hrIG8c6TYV6p
-         7KU9dc/WhcIkuW+gU/zAAoQjTu5M6ruKZFG2UNxMaop2suVmfKtrtq3+HUhb2lY7mgHT
-         /p7CHTYriNMYzNY+g/LjgL8Auixq42IvOLeB1i0AY0E5CaZUq7gsXzwNLwdR2g8Aunvf
-         4CQocSTT0mTDEPd5/Deghx1ePGf66tQQRUlZExhZRxOrOPyfz0bCPfQRv5ImwcewF16L
-         5xYel1O/1d2dBBqiCRPzPdi5X+nJosaXfUhNxkoDGGZj8/P4ge30qAWsCm3waHfTz8iY
-         kz4g==
+        b=mWbvyXnXvEenux6oBKLA40jPJaZAqyge03M43ftYLUj/Fhhg4xyKnE0l3+x7b6ah+z
+         w2dsvq27fpdLjQ/40yC7CYW8NPDMmE1od/vUCvhqGioByViDY2JkDx1ksmohDjkzyyI+
+         8YrYhC3DFCxjwMkSg+UlAzgU02jsyBmlpXiQ8+zgCPYFwGWQeOZ6PIDCRQ+RsIvxwaPF
+         5UHRcCxSp59pRMhnpg7SBJ+xngBBXBWH78fZ7cUqnHOvBZVGOrC7W18jP3A2LIG/bcW0
+         YW85IqJaucsSfNKaDSC2f6hW3DN9btsAJ1DTPHyM19P6f01BbXW2ka22cJxZSiwK+Lgi
+         dggg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=g71NvPi7wydwxFtIeU+AubwwN2N/zTYMrRDoUqH+bKs=;
-        fh=7Vd0DcAQX/VLPanI4XfzutWtsn/COx4xyRa5UaKyziE=;
-        b=U6nWeThPHfOzbu9nTcjdu//Qgss3nLZ1LoxutzQCG3nxrLxo+FqDHlXfvQBdt9LrbY
-         M640P8ipbNPjYld08B5+8P2Uw9plG+pCe2EcQkW6js/Tl6cneZVosNRoVtLzNRZcgfI1
-         2+5Q669EiHqU/JYwU2jRZJYxAwE2tBb+IpkkjwklU6+GOfEeQmxGJKe3QzaMLmghsQES
-         0TPbH/L7381CDX0ZzB90IVpaCl/DY6y4AAuwXMGJq/v8TuIZk3bYBdh9dSYmdNtP4CCE
-         zfjNmXb76VjVU0TkFfddYX0wNnxYMnx/XNC6hCQTnBp6sYfYaHduntmrY/n5UMwUrEwv
-         PQeg==;
+        bh=hbOtejfCRE1ecl2pzaBt9XM5QkQmHMG/TxSZvn7HqSg=;
+        fh=CvRXZs8SjzmGD6Y22+uycKDmcSfrJR45A3rTVjC9+nw=;
+        b=VfuUa+HnzRsnZuvLWeiZmK14F49xyoANvXB6U8WJ4jtxybnDsl/GJKmEbym4HBCImP
+         x032DQ5PXExwV6lyOSuQ+sLnLHc5yITEoM8F3h4aji4qqgORfMmD947uV3WBX2B5lRy0
+         k5pYjWTIvirIhu6q5GSDbA6d8JKLQoMl3rkiGYaAULUkYl5hYsefjZPXMf4JJFf4e/jw
+         NUe5+dtPQfl2ijMhksWdgIirFAInnLuiJy3b4qIq0CPHLep7xRwHA62xo2aUAOLgQPUT
+         5NAEvNat9Uco17xN0rkYQ65qJ22UbHn6Dr6TIGA7G4Fk4IO2PvUxvHpqxJmL/OJwmdbC
+         /taQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789543796; x=1790148596; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1789544213; x=1790149013; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=g71NvPi7wydwxFtIeU+AubwwN2N/zTYMrRDoUqH+bKs=;
-        b=slyysVUcaut4zHyAgLBDk9vWOFpaqVvGpwwhTbbimyUhghlWyLAurG7X0RMTnLAOfo
-         KgjsWhWVPaT1EtPnEx9Nm4+bUQ8FKN1JsU4HYrx8RDYn9C4Rp/pqsj6bn+0Su0Vwsi1d
-         PtJDGiBpaUFX3nLJ+hFydEXZCDHzPZjPaEcQazBjvK5esqfA3a0LkMoi3NoIaGBqVBkD
-         165bSNlneZ3hgUu5VUK2K7sr7PKQw5c+ilSvgjXRfIDcnLrkZKF5azpcgmKPDWyEj4xk
-         EqT2lEeR0fIBoj38YiFaobyogDxWRQDytK+5ain1waGZl9TAePgK+jIYtnA5ZDlKEiFT
-         bm3Q==
+        bh=hbOtejfCRE1ecl2pzaBt9XM5QkQmHMG/TxSZvn7HqSg=;
+        b=m0HVwO42CAreuoieFL+lsY+AWYzgi5rOcXTSNW7EXkaJN9EjFDMfzOwzN9MIRj7CJH
+         glvmqrEoqln5qP342FISRP80/K7pGCTnCcHm/fad7FlLoN0YGavuW2EclHt26PMsuwlZ
+         r88azQkz+PGdRZLKr0NHiPC8nRchCPC3vx+EVTXL2AzW3F3DyTeTIls2OWcdkkyhQqw8
+         X9OPKl+nBdFV1iyORI2BcnTD9TFnNcHbXZY29M64ns4pb3ciPKkEyXCLvECPoelDZ90x
+         8ApS+TcZYPf92CESJLkeJCfQ9ON0C66XnmIX6n9agT3KoryMYJ9f6a7gu8F548na9gMf
+         FpLQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789543796; x=1790148596;
+        d=1e100.net; s=20260707; t=1789544213; x=1790149013;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=g71NvPi7wydwxFtIeU+AubwwN2N/zTYMrRDoUqH+bKs=;
-        b=n/ca+OU49bRKFg8ev5oZLN11kFp8GNm3N/+g/gJWBxPU4uvKi+lS2b28vXhtCNPfYE
-         nm3OaaBNbCxkvxXOocYWjgi03IeNV0d6eJ/pNpzjzq5ars5FkpF1t5qjjQ1tjGqYQqYp
-         URJ0pD5tZ9c++XdZAmq9Pe1Tfev4PbQVl8+/9ENpAe3oLbBV/rv+i8w/PiVCphsx+EYZ
-         6yqMFD0ZWEOXJURsucou7taG6rqbIpzeWpcckaHgUqtdkVhcxOKdLxzqpspSCHiSLILs
-         4KrpzV15hdZXihbr50/IkTx6GejfaWncOl9Ull4OGTINPw67aRq8+ROGiwLKhEL7BiUN
-         Qt0w==
-X-Forwarded-Encrypted: i=1; AKwUvBzYi7yXTw57TDfJaoNVy5qsbZHgvtFIKgGqlfSdgmt6rq8oSy0Q/KD7ncBYppw6Ood0z79ab8o/XjPHX6ng@vger.kernel.org
-X-Gm-Message-State: AFuF++kxIzoVV+lJK6sQeJEOrSSurclvRRvoWZQLRV6Qq5Dk9AMhu+/p
-	9Sms6A7vDQv1XUWc5pGXYm6KPORpAy88cxCzr6sWt4HCCFCqfuf/M1ju8PLPfTQ4FCeV0uwkKR5
-	ldmyZOGpPCwVApnAmw9TKGoHUnX/upjhatZhDkvs=
-X-Gm-Gg: AYBFou0seFdynEBBNup61dpyOxaSthg6m00REbRPJzf2TxtHZxOfgN8QFaFw1uhmPBv
-	Dnh0qE0xmeKarMIOA+UvLQeleCcXotc87MQrD4KmoCh346PdG35wCH3+Umsn5BYnNdP4Y9z+1sR
-	kx9VrCR1XSYCzzyHoLPuMjnqCSUBD1AWWqbgHV/gRpveTNLrmMDmUDQrh0UMO+1O7h0W2Y/9MSV
-	3ijCdMwkC8gc4xppFFZyeeQHZ2l9GKWsH06gT8q++DalUy6ZVmJLFqZ4nZrPuWyVHcgRui2FxUG
-	WYw3N2KtS6R+M0IUqymrZN4MNFipDz4xEv/R+thirLMc2RLRy1ORwQ4m
-X-Received: by 2002:a17:907:9621:b0:c29:4415:2ec6 with SMTP id
- a640c23a62f3a-c29e520778fmr98720666b.12.1789543795984; Wed, 16 Sep 2026
- 00:29:55 -0700 (PDT)
+        bh=hbOtejfCRE1ecl2pzaBt9XM5QkQmHMG/TxSZvn7HqSg=;
+        b=MJyufCQQEv/KPntPe6WTZ2cRrITMr+uQKTH9YXNDd0KEFiewLEjqPbYEAVQZMwNnhQ
+         Z2mKPpt52MtWLjVmLYg4B4pR7914WGROD6h9HdVKN9U3a0sUN4njh1n+dtGnaPF3h5OX
+         1hKgqlT6K2nKL2PwxbfDcJ7EThKaCj5HLXWpfet25LtoNyU5hm8P2QsuFaCnpN46WYFy
+         PZT8NBckH8+qTrPi+D9crHQE6vrUxtnex4aMs3O+8l7VjK5ynV4AiYRwVoCcxItmYfno
+         9dHpqYW69VHnEXSYAy9oKuN00CIHWiGL+Zk/o7XUHOSFHQ9GDcPAgphKK0m3bPV8Rkcn
+         bahg==
+X-Forwarded-Encrypted: i=1; AKwUvBxgycM4lP8t6j9Nip1qLTAVq+SukX/9XZOXeZDgRnaHTGVyUcYvXveHdW4A/uZsChiVXJSRuA67l7Sb9sy0@vger.kernel.org
+X-Gm-Message-State: AFuF++m/jaitoN3I3foT0AXbtj6dPoytA4LEhQkMYzdvVmdH5RBKrX+z
+	GtQvG38t3+9s5be+1MdD1VGhr+IT0gFRQT+KPKc31J8DEHbLtzRZTeCy6FQnqHMGIQIlW61yazq
+	y+9GumTaK5T5I3PbdpDUzrBfHsqZqHec=
+X-Gm-Gg: AYBFou1yxIRj1Ctky/IzpyHlRF9YdmCNu0LdTF2wdqgW8o3r0Muu9A4zGQ35ndDj+oC
+	KrQWnTJvj4c8khag+sGE3UqnRG/uAJv/fEgYdpRq3pbrAVVFxu5MDvOBiK8BrK+SQULeNKmrxdE
+	XiR4GO2Gvgclo4gdTsegKfBShte0glUiRuzRoaG3TpnQBzJICK0F5vswZmhZ+rTM5jENEYhAk3D
+	jd/GX3U9peq+b5/UzbD7mPS0AUKvxkEQmZkDgAXIGSws8irK4hZ5iNCfYq1/kgqbooBZ5pGqedp
+	HiapKvM78mwaMdZUrbATAd5kdfCdIDJSMlx0aixWNwZa/fzdmgMGAFZm
+X-Received: by 2002:a17:906:6296:b0:c26:1dc7:bc42 with SMTP id
+ a640c23a62f3a-c29e521bf1amr80479966b.22.1789544213421; Wed, 16 Sep 2026
+ 00:36:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260915153608.5197-1-prabhakar.pujeri@dell.com> <20260915153608.5197-2-prabhakar.pujeri@dell.com>
-In-Reply-To: <20260915153608.5197-2-prabhakar.pujeri@dell.com>
+References: <20260915153608.5197-1-prabhakar.pujeri@dell.com> <20260915153608.5197-3-prabhakar.pujeri@dell.com>
+In-Reply-To: <20260915153608.5197-3-prabhakar.pujeri@dell.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 16 Sep 2026 09:29:44 +0200
-X-Gm-Features: AcwNN1UTUoHAQpOF4OttlFsJqQJKPO8Hys6tqOdmdDnflGDEHZzWukJCOGRyPYQ
-Message-ID: <CAOQ4uxgCgHhLsxonj4vjcJombbOjEmxZqS4adx-+VVn+BB6b2Q@mail.gmail.com>
-Subject: Re: [PATCH 1/3] common/overlay: let _check_overlay_feature handle
- param-less options
+Date: Wed, 16 Sep 2026 09:36:42 +0200
+X-Gm-Features: AcwNN1XyeI4orwrrUgmVdtkbbvJkoTyz0K63H6EYVi6Gs4ySVjZVql9yrfkrt9A
+Message-ID: <CAOQ4uxg=BeVMNOWzZW0SN8ScbsYYCH9v01Qu9uBQViwh_qzwoA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] tests/overlay: use _require_scratch_overlay_features
+ for xino
 To: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
 Cc: fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>, 
 	linux-unionfs@vger.kernel.org
@@ -99,88 +99,211 @@ Content-Transfer-Encoding: quoted-printable
 On Tue, Sep 15, 2026 at 5:36=E2=80=AFPM Prabhakar Pujeri
 <prabhakar.pujeri@dell.com> wrote:
 >
-> overlayfs mount options like uuid, xino, verity and fsync have no
-> on/off module parameter of the same name, so _get_fs_module_param
-> returns nothing for them and _require_scratch_overlay_features notruns
-> before the probe mount is even tried.
+> overlay/041, 043, 044, 067, 070 and 071 open-code their xino probes:
+> a mount with -o xino=3Don|off followed by a selective grep of the mount
+> options.  Now that _check_overlay_feature handles param-less options,
+> fold all six onto _require_scratch_overlay_features xino and delete
+> the open-coded variants.  The behavior is unchanged - a kernel that
+> does not support xino rejects the probe mount and the test notruns.
 >
-> Per Amir's suggestion on the overlay/081 review thread, a missing
-> parameter for such options means 'defaults off' rather than
-> 'unsupported': generalize _check_overlay_feature to treat a missing or
-> non-boolean parameter as default N, and drop the parameter existence
-> pre-check from _require_scratch_overlay_features.  Support is then
-> validated by the probe mount itself - a too-old kernel that does not
-> know the option rejects it with EINVAL and the require notruns as
-> before.
->
-> This lets tests require param-less options uniformly, e.g.
-> _require_scratch_overlay_features xino / uuid.
->
-> Suggested-by: Amir Goldstein <amir73il@gmail.com>
 > Signed-off-by: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+> ---
+>  tests/overlay/041 |  6 ++----
+>  tests/overlay/043 |  6 ++----
+>  tests/overlay/044 |  6 ++----
+>  tests/overlay/067 |  4 ++--
+>  tests/overlay/070 |  7 ++-----
+>  tests/overlay/071 | 12 +++---------
+>  6 files changed, 13 insertions(+), 28 deletions(-)
+>
 
-Hi Prabhakar,
 
-Thanks for following up.
-Feel free to add
+Nice cleanup!
+Thanks for following up on this
+
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-After fixing one small nits below...
+(see one note below)
 
-> ---
->  common/overlay | 19 +++++++++++++------
->  1 file changed, 13 insertions(+), 6 deletions(-)
+> diff --git a/tests/overlay/041 b/tests/overlay/041
+> index 36491b8f..4d2c830d 100755
+> --- a/tests/overlay/041
+> +++ b/tests/overlay/041
+> @@ -23,6 +23,7 @@ _require_scratch_nocheck
+>  _require_test
+>  _require_attrs trusted
+>  _require_test_program "t_dir_type"
+> +_require_scratch_overlay_features xino
 >
-> diff --git a/common/overlay b/common/overlay
-> index d32f3219..89413933 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -172,8 +172,15 @@ _check_overlay_feature()
->         # parameter (the system default) and per mount by mount
->         # option ${feature}=3D[on|off].
->         local default=3D`_get_fs_module_param ${feature}`
-> -       [ "$default" =3D Y ] || [ "$default" =3D N ] || \
-> -               _notrun "feature '${feature}' not supported by ${FSTYP}"
-> +       if [ "$default" !=3D Y ] && [ "$default" !=3D N ]; then
-> +               # Some mount options (e.g. uuid, xino, verity, fsync)
-
-fsync does not have on/off so better take it off this list to avoid confusi=
-on
-
-
-> +               # have no on/off module parameter of the same name.
-> +               # For those, a missing (or non-boolean) parameter means
-> +               # that the feature defaults to off rather than that it
-> +               # is unsupported.  Unsupported options are rejected by
-> +               # the probe mount in _require_scratch_overlay_features.
-> +               default=3DN
-> +       fi
+>  lowerdir=3D$OVL_BASE_TEST_DIR/$seq-ovl-lower
+>  rm -rf $lowerdir
+> @@ -41,10 +42,7 @@ workdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>  # not use bit 63 in inode number of the test files, because bit 63 is us=
+ed by
+>  # overlayfs to indicate the layer. Let's just assume that this is true f=
+or all
+>  # tested filesystems and if we are wrong, the test may fail.
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o xino=3Don ||=
+ \
+> -       _notrun "cannot mount overlay with xino=3Don option"
+> -_fs_options $SCRATCH_DEV | grep -q "xino=3Don" || \
+> -       _notrun "cannot enable xino feature"
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o xino=3Don
 >
->         # Check options to be sure. For example, Overlayfs will fallback =
-to
->         # index=3Doff if underlying fs does not support file handles.
-> @@ -192,10 +199,10 @@ _require_scratch_overlay_features()
->         local opts=3D"rw"
+>  test_dir=3D$SCRATCH_MNT/test_dir/
 >
->         for feature in ${features[*]}; do
-> -               # If the module parameter does not exist then there is no
-> -               # point in checking the mount option.
-> -               _get_fs_module_param ${feature} > /dev/null 2>&1 || \
-> -                       _notrun "feature '${feature}' not supported by ov=
-erlay"
-> +               # Some mount options (e.g. uuid, xino, verity, fsync)
-> +               # have no on/off module parameter of the same name.
-> +               # For those the probe mount below is what validates
-> +               # support, so a missing parameter is fine.
->                 opts+=3D",${feature}=3Don"
->         done
+> diff --git a/tests/overlay/043 b/tests/overlay/043
+> index 7325c653..efb99cd5 100755
+> --- a/tests/overlay/043
+> +++ b/tests/overlay/043
+> @@ -33,6 +33,7 @@ _require_test_program "af_unix"
+>  _require_test_program "t_dir_type"
+>  # Require redirect_dir for renaming a merge directory
+>  _require_scratch_feature redirect_dir
+> +_require_scratch_overlay_features xino
+>
+>  lowerdir=3D$OVL_BASE_TEST_DIR/$seq-ovl-lower
+>  rm -rf $lowerdir
+> @@ -57,10 +58,7 @@ workdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>  # not use bit 63 in inode number of the test files, because bit 63 is us=
+ed by
+>  # overlayfs to indicate the layer. Let's just assume that this is true f=
+or all
+>  # tested filesystems and if we are wrong, the test may fail.
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=
+=3Don,xino=3Don || \
+> -       _notrun "cannot mount overlay with xino=3Don option"
+> -_fs_options $SCRATCH_DEV | grep -q "xino=3Don" || \
+> -       _notrun "cannot enable xino feature"
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=
+=3Don,xino=3Don
+>
+>  FILES=3D"dir file symlink chrdev blkdev fifo socket"
+>
+> diff --git a/tests/overlay/044 b/tests/overlay/044
+> index 4d04d883..08e38dfd 100755
+> --- a/tests/overlay/044
+> +++ b/tests/overlay/044
+> @@ -26,6 +26,7 @@ _require_scratch_nocheck
+>  _require_test
+>  _require_scratch_feature index
+>  _require_test_program "t_dir_type"
+> +_require_scratch_overlay_features xino
+>
+>  # Record inode numbers in format <ino> <nlink>
+>  function record_ino_nlink()
+> @@ -73,10 +74,7 @@ workdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>  # not use bit 63 in inode number of the test files, because bit 63 is us=
+ed by
+>  # overlayfs to indicate the layer. Let's just assume that this is true f=
+or all
+>  # tested filesystems and if we are wrong, the test may fail.
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=3Don,x=
+ino=3Don || \
+> -       _notrun "cannot mount overlay with xino=3Don option"
+> -_fs_options $SCRATCH_DEV | grep -q "xino=3Don" || \
+> -       _notrun "cannot enable xino feature"
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=3Don,x=
+ino=3Don
+>
+>  rm -f $tmp.*
+>
+> diff --git a/tests/overlay/067 b/tests/overlay/067
+> index bb09a604..d3f98f17 100755
+> --- a/tests/overlay/067
+> +++ b/tests/overlay/067
+> @@ -25,6 +25,7 @@ _fixed_by_kernel_commit 9c6d8f13e9da \
+>  # them explicity after test.
+>  _require_scratch_nocheck
+>  _require_test
+> +_require_scratch_overlay_features xino
+>
+>  # Lower is on test partition
+>  lower=3D$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
+> @@ -47,8 +48,7 @@ echo wrong > $realfile
+>  # Mount an overlay on $SCRATCH_MNT with lower layer on test partition
+>  # and middle and upper layer on scratch partition.
+>  # Disable xino, so not all overlay inodes are on the same st_dev.
+> -_overlay_scratch_mount_dirs $middle:$lower $upper $work -o xino=3Doff ||=
+ \
+> -       _notrun "cannot mount overlay with xino=3Doff option"
+> +_overlay_scratch_mount_dirs $middle:$lower $upper $work -o xino=3Doff
+>
+>  stat $realfile >>$seqres.full
+>  stat $testfile >>$seqres.full
+> diff --git a/tests/overlay/070 b/tests/overlay/070
+> index 36991229..c64e7907 100755
+> --- a/tests/overlay/070
+> +++ b/tests/overlay/070
+> @@ -41,7 +41,7 @@ _require_test_program "t_dir_type"
+>  _require_command "$FLOCK_PROG" "flock"
+>  # We need to require all features together, because nfs_export cannot
+>  # be enabled when index is disabled
+> -_require_scratch_overlay_features index nfs_export redirect_dir
+> +_require_scratch_overlay_features index nfs_export redirect_dir xino
+>  _require_loop
+>
+>  lower=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> @@ -83,10 +83,7 @@ mount_dirs()
+>         # overlayfs to indicate the layer. Let's just assume that this is=
+ true for all
+>         # tested filesystems and if we are wrong, the test may fail.
+>         _overlay_mount_dirs $SCRATCH_MNT $upper2 $work2 overlay2 $mnt2 \
+> -               -o "redirect_dir=3Don,index=3Don,xino=3Don" || \
+> -               _notrun "cannot mount nested overlay with xino=3Don optio=
+n"
+> -       _fs_options overlay2 | grep -q "xino=3Don" || \
+> -               _notrun "cannot enable xino feature on nested overlay"
+> +               -o "redirect_dir=3Don,index=3Don,xino=3Don"
+>  }
+>
+>  # Unmount the nested overlay mount and check underlying overlay layers
+> diff --git a/tests/overlay/071 b/tests/overlay/071
+> index 2a631314..ef429d41 100755
+> --- a/tests/overlay/071
+> +++ b/tests/overlay/071
+> @@ -45,7 +45,7 @@ _require_test_program "t_dir_type"
+>  _require_command "$FLOCK_PROG" "flock"
+>  # We need to require all features together, because nfs_export cannot
+>  # be enabled when index is disabled
+> -_require_scratch_overlay_features index nfs_export redirect_dir
+> +_require_scratch_overlay_features index nfs_export redirect_dir xino
+>  _require_loop
+>
+>  # Lower overlay lower layer is on test fs, upper is on scratch fs
+> @@ -81,10 +81,7 @@ mount_dirs()
+>  {
+>         # Mount the underlying overlay with file handle support
+>         _overlay_mount_dirs $lower $upper $work overlay1 $SCRATCH_MNT \
+> -               -o "index=3Don,nfs_export=3Don,xino=3Don" || \
+> -                _notrun "cannot mount overlay with xino=3Don option"
+> -       _fs_options overlay1 | grep -q "xino=3Don" || \
+> -               _notrun "cannot enable xino feature on overlay"
+> +               -o "index=3Don,nfs_export=3Don,xino=3Don"
+>
+>         # Mount the nested overlay
+>         # Enable redirect_dir for renaming a merge directory.
+> @@ -93,10 +90,7 @@ mount_dirs()
+>         # overlayfs to indicate the layer. Let's just assume that this is=
+ true for all
+>         # tested filesystems and if we are wrong, the test may fail.
+>         _overlay_mount_dirs $SCRATCH_MNT $upper2 $work2 overlay2 $mnt2 \
+> -               -o "redirect_dir=3Don,index=3Don,xino=3Don" || \
+> -               _notrun "cannot mount nested overlay with xino=3Don optio=
+n"
+> -       _fs_options overlay2 | grep -q "xino=3Don" || \
+> -               _notrun "cannot enable xino feature on nested overlay"
+> +               -o "redirect_dir=3Don,index=3Don,xino=3Don"
+>  }
+>
 
-
-Apart from repeating the fsync option mistake, this comment
-feels out of context after removing the _get_fs_module_param
-line. Does it document the past code?
-I think that a simple "Validate that mount option can be enabled"
-comment will be enough here.
+Technically this used to test "enable xino feature on nested overlay"
+I think there might have been a very old kernel version where this was
+not supported, but I don't remember and it might be old enough that
+we do not care in the context of fstests because there is no longer
+an LTS kernel where this would matter.
+If there is, then the test would fail and someone will complain, so I
+am not concerned.
 
 Thanks,
 Amir.
