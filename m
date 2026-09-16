@@ -1,68 +1,67 @@
-Received: from mail-qk2-f12.google.com (mail-qk2-f12.google.com [74.125.230.204])
+Received: from mail-qk2-f13.google.com (mail-qk2-f13.google.com [74.125.230.205])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5727B389E1A
-	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 03:30:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.204
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB0EB379ED6
+	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 03:30:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.205
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789529407; cv=none; b=q0VTrLEQJUes2v65qKHJhlKC8bv5anTbvTAIuWHAt2zTW1N4g5BU9VR2NuwpLNxSmOKC1Hhb1rJ2DzoHsR+wWuW671QsT+nLdCwfY9EzhMTIKGa1bcmZmuK6qGqNER04lT06YpcK9k5vyqade783hOaekPT96Ep1z3+t5WCtYdU=
+	t=1789529411; cv=none; b=bkIw6euEs83cHau0KFc8OxAghd1vGzQL7vW2lS0Kd5Gewk/RVTEJ+tWddAH13JeDrWGod21NZW+/8vBdq2/79bnZREDqqvQNMpTCGWNd5d6vZG7DsYsEXZ7wG5JVhNiHBQRQB13YPNuOyGT9NGoLDoHALZ0IOEUtdtLyjtIYctw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789529407; c=relaxed/simple;
-	bh=hUkGjqs6qcYuVfKb4FdP0YcKEPyEotgH3ArbHxEaHSc=;
+	s=arc-20240116; t=1789529411; c=relaxed/simple;
+	bh=lADoJEvJwLqad1Os9IZPoKdohrwVmSPNwKLow4aYg5Q=;
 	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
-	 References:In-Reply-To; b=RFctILZfR87PWCZBTbf4LCIyaKHEhZ2DAam06VN939RTSmkmBUdWHoy1qzdCMORcCa7gEuwMIkP22c5EaZW4NaTzT6ciiBQha/vo0JgDcUEWyz9r0oX8P63e4mAQTJeqD8kf7jd3LvfHIx+iP7bXIIKObYJE3Pj0R1xfCJ4iwOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Hlpw/N0H; arc=none smtp.client-ip=74.125.230.204
+	 References:In-Reply-To; b=VpNDyL94+PM8yRoXc2Twt0upn2kSHpxGCgSyXX48yiLEpkYaQ2H66CpDpqXJjjziPRpwG161BTl9gDVvPTc/44AUwOCv4gOw5zADcgzrZfDUlKQTejNotWWWpPz9JTlbvbVWMlyasmTp9sVUvzJSfWVNbOrzio4VSAq2JqEpWSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=OH7+hthr; arc=none smtp.client-ip=74.125.230.205
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Hlpw/N0H"
-Received: by mail-qk2-f12.google.com with SMTP id af79cd13be357-93910c9ff1fso54737385a.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Sep 2026 20:30:05 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="OH7+hthr"
+Received: by mail-qk2-f13.google.com with SMTP id d75a77b69052e-52fb76c9deeso5931531cf.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 15 Sep 2026 20:30:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1789529404; x=1790134204; darn=vger.kernel.org;
+        d=paul-moore.com; s=google; t=1789529407; x=1790134207; darn=vger.kernel.org;
         h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
          :content-type:mime-version:message-id:date:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Til9bgq45pMcrN/mAeyzZMNqicB3+Nb642mFgaUojyw=;
-        b=Hlpw/N0HkHsQTYtj7U049Cw8JPDLlHumzPZoCMRvVh47ABqMOdKmPjM/3x/3R3bKBO
-         HPYs157NAxLqMOkhAMr2Ta2nSZLPD7YObYHyJqdDqTOTlPlmTwxtC2b2g9pYqaGuhEtK
-         6ikSZnxGyzN9HhUvPjqqjnENe2HJe57yFSgPmRRS8TOc0dkvWxRW142W/TKz4GTu4ydT
-         R/DgB+IeB/0q4CS9LvEEPQsduNBFZ7aMdxBiesFkoWEZOIAjEhwyqbWzvASoni4zjgOK
-         kLJ9oQXTHDilMuHbvuc85vKEhw3XW9rpt8vfVEbxcZOyryESZG2ogmm2hj++uWprY7QO
-         Yl4w==
+        bh=2bm31ePa7WsV8qeFRceTtEGTceD7Q/MB+XojEjfCZKc=;
+        b=OH7+hthrzUpNeHKYeYOdtaWhni6Isql8vs2c0NKuX2NCWCbAI5wCrK2wt8OT8DqDHh
+         8Gi53QBJ/6Zo9Tw8M4+KwkjWgeNIQpLoTKmQuom/wd0+/NLAG8ltlBrwcwddIlmxTg6Z
+         8RtoohipTkW00LsL/fcLpylbxVHXJxkcSn4gOsfE2p4633GUSiJJ5+f+aGqLU0Y85tYR
+         c6/TAle8X2TbiqyNNhhKIfFjq0Yh5Nu8DxIjXwLWWwP/us9kBevxJ1n0hwG1x/igfytA
+         35UzFKqsCGhJiGCgOYjunMhQOpgSgeiMpFkGSJKeyFmeC0N9A2P/Sacij/ZqWZO9xLX+
+         u9dw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789529404; x=1790134204;
+        d=1e100.net; s=20260707; t=1789529407; x=1790134207;
         h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
          :content-type:mime-version:message-id:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Til9bgq45pMcrN/mAeyzZMNqicB3+Nb642mFgaUojyw=;
-        b=vnhJtGaWu5UBUgXm+3pH0F+Mwucf9ChWzclEJ3GGKFWCQSaj76s/lGNe0Cr0z1Yxdn
-         +x0f9wpyG9n4TXUXNOZajfuHhl8077qD5KbAOpkll/E7vWVd+SOLJJaJSq2GTuEVIMG5
-         m/a6TXUNI/3aRS+NXKwf44mTNpvsD+R4iiomhXBzQqI9Y5XR9qzoyM3Wy/UT0SziPJ6V
-         wf7XwTExR/kpWLmYvu+o77sNj0raJjcqE3wwAkF+Fx2SZK1RQjF8EjaYVKsXbwK2rqq9
-         Ln+ydnhkhppSq5g8BM0BQMIH+l43veS1BJTiruejyX396gU+p0LP1aFtwFLuFwNYCF3K
-         55sg==
-X-Forwarded-Encrypted: i=1; AKwUvBwdCCFl5mV50ix7esAZoW3DLU5L4CCo1AGQWxDMH7q1OsgN13nK9cXJ769vc8B2WHQRMXoz/HhW2PxGDIi6@vger.kernel.org
-X-Gm-Message-State: AFuF++lINbHfFCM0Jmg1LP+u8sFTsA/8repycYvbB0ZLPRuVTEjRYcg4
-	QUTXtSTfAdWLIM7i8ROAJMGSSHOX1PuafbR7eN2SJcx5a5pHrcZjTnKMEx+R/iv7b8QvfX42jWy
-	jkWLkuQ==
-X-Gm-Gg: AYBFou1S8IOWcqc9xTeHG9sdGeM4Kt6PUqf7jiv9mE2561MJx5wMZTJzy+lKrTQfrjn
-	KzrJ0iEetXLXGiqLr3sIR9Xl57geyuPiQNMT2YDiqkWG+VSCbXog5zyOGgBQE0gFtUrixfWrR4n
-	6vpugwQDA5OqCkNd5ZZnDBCyYwmCYrV4pZ70JhgXsW+pz34tmiZ8CxukEMxYlunshAZeVbBpZYL
-	cxOuyRL4kZI436QtF2WgCJJfBoYkdjEXTB5ntvcLAmECvzyfUpMLQ4bXfWfNkQTVmDhOHGZLLv2
-	FL8gAPMpUmVRMhCMxF2AOPwjBuaySFypvg19obLQxpIrWx1Xd+4ZxHyl2oRbuuIeZndwI5mvuFD
-	JAqs/SVluT+ht+dD+8fNzdpcQyqci/MCiEBtXTeG9RKatzf++zDht82c3tpEH1O56RW7hZceKrj
-	M2AHKBBp9+9ryGHGMe1IzDtfpskrZpWx7sRG+TAYaC1lG6XqaNT3egqAOFL1wdb6owHlnA1OrOp
-	m+n7cMUtrN8O2sDt/Fn2fthEEGlfa5AS3JvOwaVrncvo4TswcN5iIEvvC56iXZVXShFl4oIxWaO
-X-Received: by 2002:a05:620a:4709:b0:939:35e5:94ba with SMTP id af79cd13be357-93bb766747bmr170559485a.6.1789529404169;
-        Tue, 15 Sep 2026 20:30:04 -0700 (PDT)
+        bh=2bm31ePa7WsV8qeFRceTtEGTceD7Q/MB+XojEjfCZKc=;
+        b=F02n1y2byfIVNV1YatvbMpOyqYbJi6hhdAEsyuOhNyE4pSKyc0umgIFp5yauoFklOi
+         eXM5qOj7qvhRyzAC0gdmmPEQmP9GGv1ZhxIDFALKx34+uT7rntmbyoLlyWR+SzPWV1xL
+         lbd1JajMXBUqsDPvsQI9r4AcnSk1FjmvJsiNqkjp3lDMJPaiCA4HqpUHk0uYSVkE514Q
+         nQom50iirhXJJDcFyLli0E9kKxyW0WYVXKmY1Kf5c+3w/Wf430qKSUheCRM6XIKu91bt
+         xO/XCLNG8XVzmYhY4CNFWhERo0WUFvWg2B2tkybjvk06VLbuyGd2VvQfGNpiMKrpHoRc
+         itDQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxgjSRUyoBKcgzuyQaVho2cc7bjtlxL5U0jg96c0Us1NJlmkiASm3BnfnCljaViciKlWytbSigzgarLH6DQ@vger.kernel.org
+X-Gm-Message-State: AFuF++lgZwpkay83fcU3cNln1kIbqgcxgkPS+rg7tlWRZW8ucFOSSK/w
+	q29+f6FLtRrI4qBF7TRhGXOgA/Y0t0H068nQX1uvVT2ZKOyqu5P6kl6YMoZPLr1UJw==
+X-Gm-Gg: AYBFou11FfkatzS9JffjGPqoTxOElzI/nSDUoAecdiGLem7C3/hcUgHb98tn+ho/nPu
+	yPUpiMuDhWdy2mLKAz7LcJks0m2n0jizlN5KMKq22rGKgoo0u4F9qRDkzHsHmcL407lH9uvn1ha
+	ov5ULfYWEX01Nf7LIqc3qPUDhD5dSZqBsDwxj7V6sDwX1AkF5foDqhLJGVZ7l3EnB21QthDqJ4F
+	yL8HJtUQsQWnL/sUgdwEA3o1HV791oXVSWj+z0qAqRaOiDeXSv05siDEvNl7Ygol+4lDOSox1pv
+	yjoy53kFEQQLonK1xa6qHowTePrMHkKSs6J/uZYXBDP3ImNC8Os2eJo3WzlM5hGBPERY9YBQkI9
+	V7SnHWmcoBk1g93lxBtZFbk2HEhZ4N5L5fIR2lrbn57IiI+rAdDYnEl2J6kxZfeWyte/Vx3RvBo
+	LDb7KMGKOJoJVjgpP+3GLtY2YnvzFQAp5lyYL0b1eXsS1Y3mEYfi6+PJCxUrD3BvpqH12hZ7Hf+
+	4bDfpS7BYb2EVQ+W65pIf9+MKz0cSuyym+9ueEmnKSHOvFtD+M8s2K8RQWX1B9eUzwOzZQK22/R
+X-Received: by 2002:ac8:6543:0:b0:530:b2e1:2f3d with SMTP id d75a77b69052e-5327f5a6abfmr16520821cf.52.1789529406632;
+        Tue, 15 Sep 2026 20:30:06 -0700 (PDT)
 Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9123be648e5sm15710696d6.8.2026.09.15.20.30.03
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5326201c60bsm11362971cf.13.2026.09.15.20.30.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Sep 2026 20:30:03 -0700 (PDT)
-Date: Tue, 15 Sep 2026 23:30:02 -0400
-Message-ID: <d852b4ae61860446e038f69541f36f9c@paul-moore.com>
+        Tue, 15 Sep 2026 20:30:05 -0700 (PDT)
+Date: Tue, 15 Sep 2026 23:30:04 -0400
+Message-ID: <44bb4aac4a7957bc4c2418967eaae790@paul-moore.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -75,43 +74,53 @@ X-Mailer: pstg-pwork:20260915_1728/pstg-lib:20260915_1318/pstg-pwork:20260915_17
 From: Paul Moore <paul@paul-moore.com>
 To: Karl Mehltretter <kmehltretter@gmail.com>, selinux@vger.kernel.org
 Cc: Karl Mehltretter <kmehltretter@gmail.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <brauner@kernel.org>, Baokun Li <libaokun@linux.alibaba.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] selinux: preserve user SID across nested backing  files
-References: <20260829213256.51527-2-kmehltretter@gmail.com>
-In-Reply-To: <20260829213256.51527-2-kmehltretter@gmail.com>
+Subject: Re: [PATCH v3 2/2] selinux: recheck intermediate backing files on  mprotect
+References: <20260829213256.51527-3-kmehltretter@gmail.com>
+In-Reply-To: <20260829213256.51527-3-kmehltretter@gmail.com>
 
 On Aug 29, 2026 Karl Mehltretter <kmehltretter@gmail.com> wrote:
 > 
-> SELinux saves the user file SID in a backing-file security blob so it
-> remains available after mmap() replaces vma->vm_file with a backing file.
+> mprotect() can be used to bypass the SELinux checks that mmap() performs
+> against the intermediate layers of a stacked filesystem.
 > 
-> For nested backing files (overlayfs over overlayfs, or FUSE passthrough
-> backed by overlayfs), user_file may itself be a backing file.  Its
-> fsec->sid is the SID of the mounter that opened it, rather than the user
-> that opened the top-level file.  mprotect() then checks fd { use } against
-> the mounter SID.  This can incorrectly deny access without a domain
-> transition, or check the wrong target SID after one.
+> mmap() checks every backing layer as the request descends through the
+> stack.  mprotect() only has the lowest backing file in vma->vm_file, so it
+> rechecks the top-level user and the lowest mounter, but skips the mounters
+> of every layer in between.  With two nested overlayfs mounts and a policy
+> denying mounter_t -> middle_file_t:file { execute }, a direct
+> mmap(PROT_EXEC) is denied:
 > 
-> Copy the saved user SID when user_file is a backing file.  Keep using the
-> regular file SID for the first backing layer.
+>   avc:  denied  { execute } for  pid=71 comm="nested_exec"
+>     path="/payload" dev="overlay" ino=9
+>     scontext=user_u:base_r:mounter_t
+>     tcontext=user_u:object_r:middle_file_t tclass=file permissive=0
 > 
-> With two nested overlayfs mounts and SELinux enforcing,
-> mprotect(PROT_READ) returns EACCES with an fd { use } denial against the
-> mounter SID.  With this change, mprotect() succeeds.
+> while mmap(PROT_NONE) followed by mprotect(PROT_EXEC) succeeds.
+> 
+> Preserve each intermediate path, mounter SID and file-description SID in
+> the backing-file security blob, copying the saved entries when another
+> backing layer is opened.  Allocate the array only for nested backing files,
+> and release it and the path references in the backing_file_free hook.
+> 
+> During mprotect(), recheck fd { use } and the requested inode permissions
+> for every saved mounter, and include the intermediate layers in the execmod
+> checks.  Policy for nested stacking may then need to grant intermediate
+> mounters what a direct mmap() already requires, and execmod on intermediate
+> labels for binaries using text relocations.
 > 
 > Tested on arm64 QEMU with a small BusyBox initramfs and a purpose-built
-> SELinux policy.  The original test was also repeated with Fedora Cloud
-> Base 44 userspace and gave the same result.
+> SELinux policy, on a mainline tree containing
+> commit f2381b546e7e ("fs: fix user path of nested backing files").
 > 
 > Fixes: 82544d36b172 ("selinux: fix overlayfs mmap() and mprotect() access checks")
 > Cc: stable@vger.kernel.org
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > Assisted-by: LLM
 > Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 > Reviewed-by: Stephen Smalley <stephen.smalley.work@gmail.com>
 > ---
->  security/selinux/hooks.c          | 9 ++++++++-
->  security/selinux/include/objsec.h | 2 +-
->  2 files changed, 9 insertions(+), 2 deletions(-)
+>  security/selinux/hooks.c          | 141 ++++++++++++++++++++++++++----
+>  security/selinux/include/objsec.h |   8 ++
+>  2 files changed, 133 insertions(+), 16 deletions(-)
 
 Merged into selinux/stable-7.3, thanks!
 
