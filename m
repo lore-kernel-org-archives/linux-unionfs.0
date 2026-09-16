@@ -1,128 +1,186 @@
-Received: from mail-qk2-f13.google.com (mail-qk2-f13.google.com [74.125.230.205])
+Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB0EB379ED6
-	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 03:30:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.205
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789529411; cv=none; b=bkIw6euEs83cHau0KFc8OxAghd1vGzQL7vW2lS0Kd5Gewk/RVTEJ+tWddAH13JeDrWGod21NZW+/8vBdq2/79bnZREDqqvQNMpTCGWNd5d6vZG7DsYsEXZ7wG5JVhNiHBQRQB13YPNuOyGT9NGoLDoHALZ0IOEUtdtLyjtIYctw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789529411; c=relaxed/simple;
-	bh=lADoJEvJwLqad1Os9IZPoKdohrwVmSPNwKLow4aYg5Q=;
-	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
-	 References:In-Reply-To; b=VpNDyL94+PM8yRoXc2Twt0upn2kSHpxGCgSyXX48yiLEpkYaQ2H66CpDpqXJjjziPRpwG161BTl9gDVvPTc/44AUwOCv4gOw5zADcgzrZfDUlKQTejNotWWWpPz9JTlbvbVWMlyasmTp9sVUvzJSfWVNbOrzio4VSAq2JqEpWSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=OH7+hthr; arc=none smtp.client-ip=74.125.230.205
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50EFD43E071
+	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 07:30:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.140
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789543823; cv=pass; b=AUWLI8T8oO9Bli/61mhvfu0mCjsJ/sF60BOW4wLebiK4CszfJYG5OPJTRNbrX0ti4yKNCenarLWkdtSXNCtMqlRPEM+G13SenFN1JIMt0dIJfhIyaQRb+slW62qJWq7EMMnDm+dF1j/yJivQmTzUU1/yakOOjOVCznYOfi+6t1E=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789543823; c=relaxed/simple;
+	bh=9JdG5qSC0tk0ZBwuTZWIN9q74g97zJlNODpRuXQIuvo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WCdG5v4qPnUdoZgYeIEKQ+gkSKdjrVHAgy31nXfiIIAuSeh21XGNfOT1t/NdU7PRjuStHAxZ2xOIB3HwpjaltUq+cefLuISRFg1u2C5fOa2VNgK3UqMsuKLiE1+uXSYlbZjN9uoNiXhEiqeJr0CX8N5puahu0dkqSje1hH9Zzw4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=slyysVUc; arc=pass smtp.client-ip=74.125.228.140
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="OH7+hthr"
-Received: by mail-qk2-f13.google.com with SMTP id d75a77b69052e-52fb76c9deeso5931531cf.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Sep 2026 20:30:07 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="slyysVUc"
+Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f6c7a4aso86914166b.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 00:30:05 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789543796; cv=none;
+        d=google.com; s=arc-20260327;
+        b=P+BxazNnBo1bXGakJw8004HQe9Vbz1JpLNkU7YVKLB7gHOPy2ZnKl1hrIG8c6TYV6p
+         7KU9dc/WhcIkuW+gU/zAAoQjTu5M6ruKZFG2UNxMaop2suVmfKtrtq3+HUhb2lY7mgHT
+         /p7CHTYriNMYzNY+g/LjgL8Auixq42IvOLeB1i0AY0E5CaZUq7gsXzwNLwdR2g8Aunvf
+         4CQocSTT0mTDEPd5/Deghx1ePGf66tQQRUlZExhZRxOrOPyfz0bCPfQRv5ImwcewF16L
+         5xYel1O/1d2dBBqiCRPzPdi5X+nJosaXfUhNxkoDGGZj8/P4ge30qAWsCm3waHfTz8iY
+         kz4g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=g71NvPi7wydwxFtIeU+AubwwN2N/zTYMrRDoUqH+bKs=;
+        fh=7Vd0DcAQX/VLPanI4XfzutWtsn/COx4xyRa5UaKyziE=;
+        b=U6nWeThPHfOzbu9nTcjdu//Qgss3nLZ1LoxutzQCG3nxrLxo+FqDHlXfvQBdt9LrbY
+         M640P8ipbNPjYld08B5+8P2Uw9plG+pCe2EcQkW6js/Tl6cneZVosNRoVtLzNRZcgfI1
+         2+5Q669EiHqU/JYwU2jRZJYxAwE2tBb+IpkkjwklU6+GOfEeQmxGJKe3QzaMLmghsQES
+         0TPbH/L7381CDX0ZzB90IVpaCl/DY6y4AAuwXMGJq/v8TuIZk3bYBdh9dSYmdNtP4CCE
+         zfjNmXb76VjVU0TkFfddYX0wNnxYMnx/XNC6hCQTnBp6sYfYaHduntmrY/n5UMwUrEwv
+         PQeg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1789529407; x=1790134207; darn=vger.kernel.org;
-        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
-         :content-type:mime-version:message-id:date:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=2bm31ePa7WsV8qeFRceTtEGTceD7Q/MB+XojEjfCZKc=;
-        b=OH7+hthrzUpNeHKYeYOdtaWhni6Isql8vs2c0NKuX2NCWCbAI5wCrK2wt8OT8DqDHh
-         8Gi53QBJ/6Zo9Tw8M4+KwkjWgeNIQpLoTKmQuom/wd0+/NLAG8ltlBrwcwddIlmxTg6Z
-         8RtoohipTkW00LsL/fcLpylbxVHXJxkcSn4gOsfE2p4633GUSiJJ5+f+aGqLU0Y85tYR
-         c6/TAle8X2TbiqyNNhhKIfFjq0Yh5Nu8DxIjXwLWWwP/us9kBevxJ1n0hwG1x/igfytA
-         35UzFKqsCGhJiGCgOYjunMhQOpgSgeiMpFkGSJKeyFmeC0N9A2P/Sacij/ZqWZO9xLX+
-         u9dw==
+        d=gmail.com; s=20251104; t=1789543796; x=1790148596; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=g71NvPi7wydwxFtIeU+AubwwN2N/zTYMrRDoUqH+bKs=;
+        b=slyysVUcaut4zHyAgLBDk9vWOFpaqVvGpwwhTbbimyUhghlWyLAurG7X0RMTnLAOfo
+         KgjsWhWVPaT1EtPnEx9Nm4+bUQ8FKN1JsU4HYrx8RDYn9C4Rp/pqsj6bn+0Su0Vwsi1d
+         PtJDGiBpaUFX3nLJ+hFydEXZCDHzPZjPaEcQazBjvK5esqfA3a0LkMoi3NoIaGBqVBkD
+         165bSNlneZ3hgUu5VUK2K7sr7PKQw5c+ilSvgjXRfIDcnLrkZKF5azpcgmKPDWyEj4xk
+         EqT2lEeR0fIBoj38YiFaobyogDxWRQDytK+5ain1waGZl9TAePgK+jIYtnA5ZDlKEiFT
+         bm3Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789529407; x=1790134207;
-        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
-         :content-type:mime-version:message-id:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1789543796; x=1790148596;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=2bm31ePa7WsV8qeFRceTtEGTceD7Q/MB+XojEjfCZKc=;
-        b=F02n1y2byfIVNV1YatvbMpOyqYbJi6hhdAEsyuOhNyE4pSKyc0umgIFp5yauoFklOi
-         eXM5qOj7qvhRyzAC0gdmmPEQmP9GGv1ZhxIDFALKx34+uT7rntmbyoLlyWR+SzPWV1xL
-         lbd1JajMXBUqsDPvsQI9r4AcnSk1FjmvJsiNqkjp3lDMJPaiCA4HqpUHk0uYSVkE514Q
-         nQom50iirhXJJDcFyLli0E9kKxyW0WYVXKmY1Kf5c+3w/Wf430qKSUheCRM6XIKu91bt
-         xO/XCLNG8XVzmYhY4CNFWhERo0WUFvWg2B2tkybjvk06VLbuyGd2VvQfGNpiMKrpHoRc
-         itDQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxgjSRUyoBKcgzuyQaVho2cc7bjtlxL5U0jg96c0Us1NJlmkiASm3BnfnCljaViciKlWytbSigzgarLH6DQ@vger.kernel.org
-X-Gm-Message-State: AFuF++lgZwpkay83fcU3cNln1kIbqgcxgkPS+rg7tlWRZW8ucFOSSK/w
-	q29+f6FLtRrI4qBF7TRhGXOgA/Y0t0H068nQX1uvVT2ZKOyqu5P6kl6YMoZPLr1UJw==
-X-Gm-Gg: AYBFou11FfkatzS9JffjGPqoTxOElzI/nSDUoAecdiGLem7C3/hcUgHb98tn+ho/nPu
-	yPUpiMuDhWdy2mLKAz7LcJks0m2n0jizlN5KMKq22rGKgoo0u4F9qRDkzHsHmcL407lH9uvn1ha
-	ov5ULfYWEX01Nf7LIqc3qPUDhD5dSZqBsDwxj7V6sDwX1AkF5foDqhLJGVZ7l3EnB21QthDqJ4F
-	yL8HJtUQsQWnL/sUgdwEA3o1HV791oXVSWj+z0qAqRaOiDeXSv05siDEvNl7Ygol+4lDOSox1pv
-	yjoy53kFEQQLonK1xa6qHowTePrMHkKSs6J/uZYXBDP3ImNC8Os2eJo3WzlM5hGBPERY9YBQkI9
-	V7SnHWmcoBk1g93lxBtZFbk2HEhZ4N5L5fIR2lrbn57IiI+rAdDYnEl2J6kxZfeWyte/Vx3RvBo
-	LDb7KMGKOJoJVjgpP+3GLtY2YnvzFQAp5lyYL0b1eXsS1Y3mEYfi6+PJCxUrD3BvpqH12hZ7Hf+
-	4bDfpS7BYb2EVQ+W65pIf9+MKz0cSuyym+9ueEmnKSHOvFtD+M8s2K8RQWX1B9eUzwOzZQK22/R
-X-Received: by 2002:ac8:6543:0:b0:530:b2e1:2f3d with SMTP id d75a77b69052e-5327f5a6abfmr16520821cf.52.1789529406632;
-        Tue, 15 Sep 2026 20:30:06 -0700 (PDT)
-Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5326201c60bsm11362971cf.13.2026.09.15.20.30.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Sep 2026 20:30:05 -0700 (PDT)
-Date: Tue, 15 Sep 2026 23:30:04 -0400
-Message-ID: <44bb4aac4a7957bc4c2418967eaae790@paul-moore.com>
+        bh=g71NvPi7wydwxFtIeU+AubwwN2N/zTYMrRDoUqH+bKs=;
+        b=n/ca+OU49bRKFg8ev5oZLN11kFp8GNm3N/+g/gJWBxPU4uvKi+lS2b28vXhtCNPfYE
+         nm3OaaBNbCxkvxXOocYWjgi03IeNV0d6eJ/pNpzjzq5ars5FkpF1t5qjjQ1tjGqYQqYp
+         URJ0pD5tZ9c++XdZAmq9Pe1Tfev4PbQVl8+/9ENpAe3oLbBV/rv+i8w/PiVCphsx+EYZ
+         6yqMFD0ZWEOXJURsucou7taG6rqbIpzeWpcckaHgUqtdkVhcxOKdLxzqpspSCHiSLILs
+         4KrpzV15hdZXihbr50/IkTx6GejfaWncOl9Ull4OGTINPw67aRq8+ROGiwLKhEL7BiUN
+         Qt0w==
+X-Forwarded-Encrypted: i=1; AKwUvBzYi7yXTw57TDfJaoNVy5qsbZHgvtFIKgGqlfSdgmt6rq8oSy0Q/KD7ncBYppw6Ood0z79ab8o/XjPHX6ng@vger.kernel.org
+X-Gm-Message-State: AFuF++kxIzoVV+lJK6sQeJEOrSSurclvRRvoWZQLRV6Qq5Dk9AMhu+/p
+	9Sms6A7vDQv1XUWc5pGXYm6KPORpAy88cxCzr6sWt4HCCFCqfuf/M1ju8PLPfTQ4FCeV0uwkKR5
+	ldmyZOGpPCwVApnAmw9TKGoHUnX/upjhatZhDkvs=
+X-Gm-Gg: AYBFou0seFdynEBBNup61dpyOxaSthg6m00REbRPJzf2TxtHZxOfgN8QFaFw1uhmPBv
+	Dnh0qE0xmeKarMIOA+UvLQeleCcXotc87MQrD4KmoCh346PdG35wCH3+Umsn5BYnNdP4Y9z+1sR
+	kx9VrCR1XSYCzzyHoLPuMjnqCSUBD1AWWqbgHV/gRpveTNLrmMDmUDQrh0UMO+1O7h0W2Y/9MSV
+	3ijCdMwkC8gc4xppFFZyeeQHZ2l9GKWsH06gT8q++DalUy6ZVmJLFqZ4nZrPuWyVHcgRui2FxUG
+	WYw3N2KtS6R+M0IUqymrZN4MNFipDz4xEv/R+thirLMc2RLRy1ORwQ4m
+X-Received: by 2002:a17:907:9621:b0:c29:4415:2ec6 with SMTP id
+ a640c23a62f3a-c29e520778fmr98720666b.12.1789543795984; Wed, 16 Sep 2026
+ 00:29:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 
-Content-Type: text/plain; charset=UTF-8 
-Content-Transfer-Encoding: 8bit 
-X-Mailer: pstg-pwork:20260915_1728/pstg-lib:20260915_1318/pstg-pwork:20260915_1728
-From: Paul Moore <paul@paul-moore.com>
-To: Karl Mehltretter <kmehltretter@gmail.com>, selinux@vger.kernel.org
-Cc: Karl Mehltretter <kmehltretter@gmail.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <brauner@kernel.org>, Baokun Li <libaokun@linux.alibaba.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] selinux: recheck intermediate backing files on  mprotect
-References: <20260829213256.51527-3-kmehltretter@gmail.com>
-In-Reply-To: <20260829213256.51527-3-kmehltretter@gmail.com>
+MIME-Version: 1.0
+References: <20260915153608.5197-1-prabhakar.pujeri@dell.com> <20260915153608.5197-2-prabhakar.pujeri@dell.com>
+In-Reply-To: <20260915153608.5197-2-prabhakar.pujeri@dell.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 16 Sep 2026 09:29:44 +0200
+X-Gm-Features: AcwNN1UTUoHAQpOF4OttlFsJqQJKPO8Hys6tqOdmdDnflGDEHZzWukJCOGRyPYQ
+Message-ID: <CAOQ4uxgCgHhLsxonj4vjcJombbOjEmxZqS4adx-+VVn+BB6b2Q@mail.gmail.com>
+Subject: Re: [PATCH 1/3] common/overlay: let _check_overlay_feature handle
+ param-less options
+To: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+Cc: fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Aug 29, 2026 Karl Mehltretter <kmehltretter@gmail.com> wrote:
-> 
-> mprotect() can be used to bypass the SELinux checks that mmap() performs
-> against the intermediate layers of a stacked filesystem.
-> 
-> mmap() checks every backing layer as the request descends through the
-> stack.  mprotect() only has the lowest backing file in vma->vm_file, so it
-> rechecks the top-level user and the lowest mounter, but skips the mounters
-> of every layer in between.  With two nested overlayfs mounts and a policy
-> denying mounter_t -> middle_file_t:file { execute }, a direct
-> mmap(PROT_EXEC) is denied:
-> 
->   avc:  denied  { execute } for  pid=71 comm="nested_exec"
->     path="/payload" dev="overlay" ino=9
->     scontext=user_u:base_r:mounter_t
->     tcontext=user_u:object_r:middle_file_t tclass=file permissive=0
-> 
-> while mmap(PROT_NONE) followed by mprotect(PROT_EXEC) succeeds.
-> 
-> Preserve each intermediate path, mounter SID and file-description SID in
-> the backing-file security blob, copying the saved entries when another
-> backing layer is opened.  Allocate the array only for nested backing files,
-> and release it and the path references in the backing_file_free hook.
-> 
-> During mprotect(), recheck fd { use } and the requested inode permissions
-> for every saved mounter, and include the intermediate layers in the execmod
-> checks.  Policy for nested stacking may then need to grant intermediate
-> mounters what a direct mmap() already requires, and execmod on intermediate
-> labels for binaries using text relocations.
-> 
-> Tested on arm64 QEMU with a small BusyBox initramfs and a purpose-built
-> SELinux policy, on a mainline tree containing
-> commit f2381b546e7e ("fs: fix user path of nested backing files").
-> 
-> Fixes: 82544d36b172 ("selinux: fix overlayfs mmap() and mprotect() access checks")
-> Cc: stable@vger.kernel.org
-> Assisted-by: LLM
-> Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-> Reviewed-by: Stephen Smalley <stephen.smalley.work@gmail.com>
+On Tue, Sep 15, 2026 at 5:36=E2=80=AFPM Prabhakar Pujeri
+<prabhakar.pujeri@dell.com> wrote:
+>
+> overlayfs mount options like uuid, xino, verity and fsync have no
+> on/off module parameter of the same name, so _get_fs_module_param
+> returns nothing for them and _require_scratch_overlay_features notruns
+> before the probe mount is even tried.
+>
+> Per Amir's suggestion on the overlay/081 review thread, a missing
+> parameter for such options means 'defaults off' rather than
+> 'unsupported': generalize _check_overlay_feature to treat a missing or
+> non-boolean parameter as default N, and drop the parameter existence
+> pre-check from _require_scratch_overlay_features.  Support is then
+> validated by the probe mount itself - a too-old kernel that does not
+> know the option rejects it with EINVAL and the require notruns as
+> before.
+>
+> This lets tests require param-less options uniformly, e.g.
+> _require_scratch_overlay_features xino / uuid.
+>
+> Suggested-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+
+Hi Prabhakar,
+
+Thanks for following up.
+Feel free to add
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+After fixing one small nits below...
+
 > ---
->  security/selinux/hooks.c          | 141 ++++++++++++++++++++++++++----
->  security/selinux/include/objsec.h |   8 ++
->  2 files changed, 133 insertions(+), 16 deletions(-)
+>  common/overlay | 19 +++++++++++++------
+>  1 file changed, 13 insertions(+), 6 deletions(-)
+>
+> diff --git a/common/overlay b/common/overlay
+> index d32f3219..89413933 100644
+> --- a/common/overlay
+> +++ b/common/overlay
+> @@ -172,8 +172,15 @@ _check_overlay_feature()
+>         # parameter (the system default) and per mount by mount
+>         # option ${feature}=3D[on|off].
+>         local default=3D`_get_fs_module_param ${feature}`
+> -       [ "$default" =3D Y ] || [ "$default" =3D N ] || \
+> -               _notrun "feature '${feature}' not supported by ${FSTYP}"
+> +       if [ "$default" !=3D Y ] && [ "$default" !=3D N ]; then
+> +               # Some mount options (e.g. uuid, xino, verity, fsync)
 
-Merged into selinux/stable-7.3, thanks!
+fsync does not have on/off so better take it off this list to avoid confusi=
+on
 
---
-paul-moore.com
+
+> +               # have no on/off module parameter of the same name.
+> +               # For those, a missing (or non-boolean) parameter means
+> +               # that the feature defaults to off rather than that it
+> +               # is unsupported.  Unsupported options are rejected by
+> +               # the probe mount in _require_scratch_overlay_features.
+> +               default=3DN
+> +       fi
+>
+>         # Check options to be sure. For example, Overlayfs will fallback =
+to
+>         # index=3Doff if underlying fs does not support file handles.
+> @@ -192,10 +199,10 @@ _require_scratch_overlay_features()
+>         local opts=3D"rw"
+>
+>         for feature in ${features[*]}; do
+> -               # If the module parameter does not exist then there is no
+> -               # point in checking the mount option.
+> -               _get_fs_module_param ${feature} > /dev/null 2>&1 || \
+> -                       _notrun "feature '${feature}' not supported by ov=
+erlay"
+> +               # Some mount options (e.g. uuid, xino, verity, fsync)
+> +               # have no on/off module parameter of the same name.
+> +               # For those the probe mount below is what validates
+> +               # support, so a missing parameter is fine.
+>                 opts+=3D",${feature}=3Don"
+>         done
+
+
+Apart from repeating the fsync option mistake, this comment
+feels out of context after removing the _get_fs_module_param
+line. Does it document the past code?
+I think that a simple "Validate that mount option can be enabled"
+comment will be enough here.
+
+Thanks,
+Amir.
