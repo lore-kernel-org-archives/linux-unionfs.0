@@ -1,166 +1,119 @@
-Received: from mx0a-00154904.pphosted.com (mx0a-00154904.pphosted.com [148.163.133.20])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk2-f12.google.com (mail-qk2-f12.google.com [74.125.230.204])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27C60415B60;
-	Tue, 15 Sep 2026 16:44:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.133.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5727B389E1A
+	for <linux-unionfs@vger.kernel.org>; Wed, 16 Sep 2026 03:30:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.204
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789490674; cv=none; b=N79JSLrn9YTiIkDXFGfLpZnQLwSJk1KhkK9lzYBTXH5zA6lQP9O/Z9zggImxPDBH8Tqi6Yjr6t5O8VRoKNx+u7+/ca/SbD++dbPoTwPhQIr/Xs+fkyAydM0O8KmBi+xBedo1Q8Kqqv2njD1F58Mmw9ilnyyY/x4r7aCFVaZN97E=
+	t=1789529407; cv=none; b=q0VTrLEQJUes2v65qKHJhlKC8bv5anTbvTAIuWHAt2zTW1N4g5BU9VR2NuwpLNxSmOKC1Hhb1rJ2DzoHsR+wWuW671QsT+nLdCwfY9EzhMTIKGa1bcmZmuK6qGqNER04lT06YpcK9k5vyqade783hOaekPT96Ep1z3+t5WCtYdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789490674; c=relaxed/simple;
-	bh=cyZbHAUWM7KDcyZfNdNEZ5jRfh1aR2gD/Lg3eL1i7BM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LLiAc1ZgcMyHMAEID4i10vdoqvWbouEBRdsZZIteZWfbaXsibgrVSIyOSESThLe7KEHPW3WX8BjKZ8I0x0RVgdrCDAI2EmMGjOZYbdznSkqkucarpvCQiB8YlFWUa5t0cRG61xy5sJD3ZnYQ1kOX7Mpj50Yv/Wukqb5C8RYXXCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com; spf=pass smtp.mailfrom=dell.com; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=HW66NxeM; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=FJ1Kp9P1; arc=none smtp.client-ip=148.163.133.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dell.com
+	s=arc-20240116; t=1789529407; c=relaxed/simple;
+	bh=hUkGjqs6qcYuVfKb4FdP0YcKEPyEotgH3ArbHxEaHSc=;
+	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
+	 References:In-Reply-To; b=RFctILZfR87PWCZBTbf4LCIyaKHEhZ2DAam06VN939RTSmkmBUdWHoy1qzdCMORcCa7gEuwMIkP22c5EaZW4NaTzT6ciiBQha/vo0JgDcUEWyz9r0oX8P63e4mAQTJeqD8kf7jd3LvfHIx+iP7bXIIKObYJE3Pj0R1xfCJ4iwOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Hlpw/N0H; arc=none smtp.client-ip=74.125.230.204
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="HW66NxeM";
-	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="FJ1Kp9P1"
-Received: from pps.filterd (m0170390.ppops.net [127.0.0.1])
-	by mx0a-00154904.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FD1ePI2980031;
-	Tue, 15 Sep 2026 10:17:55 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=smtpout1; bh=988TgQoS7paHUwcJekFHCNErcojXHWon2mhW
-	c/T1nOs=; b=HW66NxeMMOKLPd5KSj41xxqzT5JRlY/l3kvALTtJjZ1HciDCoJsO
-	Nzx3dAuyeasH9HJMRVT3pd6OenIRfsOexZ9XdYUg/TyMjDjm7PVlEaClpBBlQJ8w
-	nLOAEaya6QaiZwNDP98QNfRtjfo5QmwavGwQgU/JJ52Zu6+uzctRgAq7lQn0OTf1
-	jHG0v4cQ0W3GvBtDjGPLL38QwP+Xz8pXgUZPM/mwK9h5/7jyszjECGQ6NsrVZn2h
-	l8fP0z2JLJVoPFmTGmUnr+8mLhCiTD2162XGXSTietWhHop42Zg15+nDPkuWqlSq
-	PgATC064aV1Cz0DZCmmmcqun2yxoaaAaqQ==
-Received: from mx0a-00154901.pphosted.com (mx0b-00154901.pphosted.com [67.231.157.37])
-	by mx0a-00154904.pphosted.com (PPS) with ESMTPS id 4gn1sy3rkn-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Tue, 15 Sep 2026 10:17:54 -0400 (EDT)
-Received: from pps.filterd (m0089484.ppops.net [127.0.0.1])
-	by mx0b-00154901.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FDxS9C3661268;
-	Tue, 15 Sep 2026 10:17:54 -0400
-Received: from esapsmtpat02.us.dell.com (esapsmtpat02.us.dell.com [143.166.211.150])
-	by mx0b-00154901.pphosted.com (PPS) with ESMTPS id 4gq4m0k5v9-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=FAIL);
-	Tue, 15 Sep 2026 10:17:53 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Hlpw/N0H"
+Received: by mail-qk2-f12.google.com with SMTP id af79cd13be357-93910c9ff1fso54737385a.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 15 Sep 2026 20:30:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=dell.com; i=@dell.com; q=dns/txt; s=smtpdev1;
-  t=1789481874; x=1821017874;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=988TgQoS7paHUwcJekFHCNErcojXHWon2mhWc/T1nOs=;
-  b=FJ1Kp9P1yR2NPgq8xCh0ssGvjYNSvYMBUA+lk3TU6Gjf5M7FwC2TP2Gy
-   QotfsPU4s/CZ9NBQ/GlkKkuX31mbcXIlg6j9VtmdAuzSMcRtlhOhe7jqX
-   w63lDMcm15pRBZOH2+hap0/LKgJCbpV1ATNKflTKLKG8kxCJbAeMHii6d
-   lZunEEGAnqBALEbFYznzZCftY5e6tZr1lvM/fjo6ooLIXkMrbb6zIAUHS
-   DDpEIOVQNINTNJxuDQ5N9Xev2nRZdKUmbEOIPCkeF/zArUIGzDE/i2hqN
-   1BMOrembSZrkzpk/z7/I0qvhfpeAidIqr3eURDGwMlYYrhDZR4+T1iW/q
-   w==;
-X-CSE-ConnectionGUID: 7YLh5tLUSvWO+o0wcNw0JQ==
-X-CSE-MsgGUID: xdf7yzi3SBi1NpfElWHKPQ==
-X-LoopCount0: from 10.94.9.174
-X-MS-Exchange-CrossPremises-AuthAs: Internal
-Received: from w-96j1th4.apac.dell.com (HELO W-96J1TH4.blr.amer.dell.com) ([10.94.9.174])
-  by esapsmtpat02.us.dell.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 15 Sep 2026 14:17:49 +0000
-From: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
-To: fstests@vger.kernel.org
-Cc: Prabhakar Pujeri <prabhakar.pujeri@dell.com>,
-        Zorro Lang <zlang@kernel.org>, "Darrick J. Wong" <djwong@kernel.org>,
-        Qu Wenruo <wqu@suse.com>,
-        Johannes Thumshirn <Johannes.Thumshirn@wdc.com>,
-        Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <chao@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>, Anand Jain <asj@kernel.org>,
-        Filipe Manana <fdmanana@suse.com>, quwenruo.btrfs@gmx.com,
-        linux-f2fs-devel@lists.sourceforge.net, linux-btrfs@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH v3 0/6] xfstests: add missing _require_scratch checks
-Date: Tue, 15 Sep 2026 14:17:39 +0000
-Message-ID: <20260915141745.4299-1-prabhakar.pujeri@dell.com>
-X-Mailer: git-send-email 2.53.0
+        d=paul-moore.com; s=google; t=1789529404; x=1790134204; darn=vger.kernel.org;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Til9bgq45pMcrN/mAeyzZMNqicB3+Nb642mFgaUojyw=;
+        b=Hlpw/N0HkHsQTYtj7U049Cw8JPDLlHumzPZoCMRvVh47ABqMOdKmPjM/3x/3R3bKBO
+         HPYs157NAxLqMOkhAMr2Ta2nSZLPD7YObYHyJqdDqTOTlPlmTwxtC2b2g9pYqaGuhEtK
+         6ikSZnxGyzN9HhUvPjqqjnENe2HJe57yFSgPmRRS8TOc0dkvWxRW142W/TKz4GTu4ydT
+         R/DgB+IeB/0q4CS9LvEEPQsduNBFZ7aMdxBiesFkoWEZOIAjEhwyqbWzvASoni4zjgOK
+         kLJ9oQXTHDilMuHbvuc85vKEhw3XW9rpt8vfVEbxcZOyryESZG2ogmm2hj++uWprY7QO
+         Yl4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789529404; x=1790134204;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Til9bgq45pMcrN/mAeyzZMNqicB3+Nb642mFgaUojyw=;
+        b=vnhJtGaWu5UBUgXm+3pH0F+Mwucf9ChWzclEJ3GGKFWCQSaj76s/lGNe0Cr0z1Yxdn
+         +x0f9wpyG9n4TXUXNOZajfuHhl8077qD5KbAOpkll/E7vWVd+SOLJJaJSq2GTuEVIMG5
+         m/a6TXUNI/3aRS+NXKwf44mTNpvsD+R4iiomhXBzQqI9Y5XR9qzoyM3Wy/UT0SziPJ6V
+         wf7XwTExR/kpWLmYvu+o77sNj0raJjcqE3wwAkF+Fx2SZK1RQjF8EjaYVKsXbwK2rqq9
+         Ln+ydnhkhppSq5g8BM0BQMIH+l43veS1BJTiruejyX396gU+p0LP1aFtwFLuFwNYCF3K
+         55sg==
+X-Forwarded-Encrypted: i=1; AKwUvBwdCCFl5mV50ix7esAZoW3DLU5L4CCo1AGQWxDMH7q1OsgN13nK9cXJ769vc8B2WHQRMXoz/HhW2PxGDIi6@vger.kernel.org
+X-Gm-Message-State: AFuF++lINbHfFCM0Jmg1LP+u8sFTsA/8repycYvbB0ZLPRuVTEjRYcg4
+	QUTXtSTfAdWLIM7i8ROAJMGSSHOX1PuafbR7eN2SJcx5a5pHrcZjTnKMEx+R/iv7b8QvfX42jWy
+	jkWLkuQ==
+X-Gm-Gg: AYBFou1S8IOWcqc9xTeHG9sdGeM4Kt6PUqf7jiv9mE2561MJx5wMZTJzy+lKrTQfrjn
+	KzrJ0iEetXLXGiqLr3sIR9Xl57geyuPiQNMT2YDiqkWG+VSCbXog5zyOGgBQE0gFtUrixfWrR4n
+	6vpugwQDA5OqCkNd5ZZnDBCyYwmCYrV4pZ70JhgXsW+pz34tmiZ8CxukEMxYlunshAZeVbBpZYL
+	cxOuyRL4kZI436QtF2WgCJJfBoYkdjEXTB5ntvcLAmECvzyfUpMLQ4bXfWfNkQTVmDhOHGZLLv2
+	FL8gAPMpUmVRMhCMxF2AOPwjBuaySFypvg19obLQxpIrWx1Xd+4ZxHyl2oRbuuIeZndwI5mvuFD
+	JAqs/SVluT+ht+dD+8fNzdpcQyqci/MCiEBtXTeG9RKatzf++zDht82c3tpEH1O56RW7hZceKrj
+	M2AHKBBp9+9ryGHGMe1IzDtfpskrZpWx7sRG+TAYaC1lG6XqaNT3egqAOFL1wdb6owHlnA1OrOp
+	m+n7cMUtrN8O2sDt/Fn2fthEEGlfa5AS3JvOwaVrncvo4TswcN5iIEvvC56iXZVXShFl4oIxWaO
+X-Received: by 2002:a05:620a:4709:b0:939:35e5:94ba with SMTP id af79cd13be357-93bb766747bmr170559485a.6.1789529404169;
+        Tue, 15 Sep 2026 20:30:04 -0700 (PDT)
+Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9123be648e5sm15710696d6.8.2026.09.15.20.30.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 15 Sep 2026 20:30:03 -0700 (PDT)
+Date: Tue, 15 Sep 2026 23:30:02 -0400
+Message-ID: <d852b4ae61860446e038f69541f36f9c@paul-moore.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-15_04,2026-09-14_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 clxscore=1015 malwarescore=0 impostorscore=0 phishscore=0
- spamscore=0 bulkscore=0 suspectscore=0 lowpriorityscore=0 adultscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150207
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDIwOCBTYWx0ZWRfXy2izKdu5663A
- PaJ9TiQUkj+z2GnspR2/rL10538Ru59IM0hEzOUZ6NdosseGUx4VTSy/WfSvieOoeZP4Ds1H9SL
- XQnF/LrPxCJ+N1oQ3K6Px+AT3+Ujxug=
-X-Authority-Analysis: v=2.4 cv=FtyQbGrq c=1 sm=1 tr=0 ts=6aa95392 cx=c_pps
- a=Z2e5DKjA+8LiMDv5v6mwwA==:117 a=i8a7nF7jFa3EbZrjgrQYpA==:17
- a=VdqzKS8jKosA:10 a=ke5jqHz-1hQA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=6gNNCFAoQcIphELLPWWu:22 a=sEWawkeXllE7TocFc0N_:22 a=VwQbUJbxAAAA:8
- a=iLNU1ar6AAAA:8 a=EjSTBG_SgHjXaJ5rYncA:9 a=hlJyneSgMmFPbskH-t2w:22
-X-Proofpoint-GUID: SAmdIxzceeLNuBvbBfLcobUJw-PdDxxP
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDIwOCBTYWx0ZWRfXxSwF33Gsva9k
- RadiwCJX5KOOjvFr+Fulx9U7GBNDtdhZCTAj6ryD/BLLkhb1B4ke9GsG2hipGIvPwvyYczv73gS
- ldvOLxMOKYPQzwJxgt2ZLRPi7uaPY1e4ci4i2gJ/d5VePqR5q6cAIeU6qyTOd8xyrpN6x/D6dMF
- ifp4ye/MqxMWawDmpkA7Ac5f6mfMbAxohIHhkhtg+ut9lhy3tK3BhUeU/YLdg5oG+FXIFP/Inis
- hKyqV1niTU1OT64XwcRm1rcDHHXdObbGJVxm3h5kdBOhg3FvWQPBdX9R5p937usCCrpXgSvIQtt
- ibU82I7bN52J9Npz73w94AQGrmgeKIZqc+DtX6jB9yHvzgBqOJyLfHCj6OAaRAmkLZsI73EqEo7
- JpcUCw455fK7Iw1RKhsixIy9RJ1Pxy+2OJXpBMJBM/ulHo4rxj69zznEjKbv3xK02ZzOkb8rMqA
- 1r72ehE5aB2IYT94uAQ==
-X-Proofpoint-ORIG-GUID: SAmdIxzceeLNuBvbBfLcobUJw-PdDxxP
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0
- priorityscore=1501 spamscore=0 bulkscore=0 lowpriorityscore=0 adultscore=0
- phishscore=0 suspectscore=0 malwarescore=0 impostorscore=0 clxscore=1015
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150208
+MIME-Version: 1.0 
+Content-Type: text/plain; charset=UTF-8 
+Content-Transfer-Encoding: 8bit 
+X-Mailer: pstg-pwork:20260915_1728/pstg-lib:20260915_1318/pstg-pwork:20260915_1728
+From: Paul Moore <paul@paul-moore.com>
+To: Karl Mehltretter <kmehltretter@gmail.com>, selinux@vger.kernel.org
+Cc: Karl Mehltretter <kmehltretter@gmail.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <brauner@kernel.org>, Baokun Li <libaokun@linux.alibaba.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] selinux: preserve user SID across nested backing  files
+References: <20260829213256.51527-2-kmehltretter@gmail.com>
+In-Reply-To: <20260829213256.51527-2-kmehltretter@gmail.com>
 
-Fully consolidated resend of all remaining _require_scratch fixes, as
-requested by Zorro on the v2 cover.
+On Aug 29, 2026 Karl Mehltretter <kmehltretter@gmail.com> wrote:
+> 
+> SELinux saves the user file SID in a backing-file security blob so it
+> remains available after mmap() replaces vma->vm_file with a backing file.
+> 
+> For nested backing files (overlayfs over overlayfs, or FUSE passthrough
+> backed by overlayfs), user_file may itself be a backing file.  Its
+> fsec->sid is the SID of the mounter that opened it, rather than the user
+> that opened the top-level file.  mprotect() then checks fd { use } against
+> the mounter SID.  This can incorrectly deny access without a domain
+> transition, or check the wrong target SID after one.
+> 
+> Copy the saved user SID when user_file is a backing file.  Keep using the
+> regular file SID for the first backing layer.
+> 
+> With two nested overlayfs mounts and SELinux enforcing,
+> mprotect(PROT_READ) returns EACCES with an fd { use } denial against the
+> mounter SID.  With this change, mprotect() succeeds.
+> 
+> Tested on arm64 QEMU with a small BusyBox initramfs and a purpose-built
+> SELinux policy.  The original test was also repeated with Fedora Cloud
+> Base 44 userspace and gave the same result.
+> 
+> Fixes: 82544d36b172 ("selinux: fix overlayfs mmap() and mprotect() access checks")
+> Cc: stable@vger.kernel.org
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Assisted-by: LLM
+> Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+> Reviewed-by: Stephen Smalley <stephen.smalley.work@gmail.com>
+> ---
+>  security/selinux/hooks.c          | 9 ++++++++-
+>  security/selinux/include/objsec.h | 2 +-
+>  2 files changed, 9 insertions(+), 2 deletions(-)
 
-All of these patches add a single missing _require_scratch check; with
-the exception of btrfs/333 (which places it at the top of
-_require_btrfs_iouring_encoded_read(), per Qu Wenruo's earlier review)
-they are plain one-line adds directly after the resource checks.  No
-other changes.
+Merged into selinux/stable-7.3, thanks!
 
-v3:
-- Merge ALL six single-line fixes into one series, per Zorro's request
-  of 2026-09-03 on the v2 cover letter.
-- Add Johannes Thumshirn's R-b for btrfs/273 and Chao Yu's R-b for
-  f2fs/015,016 (both since v2).
-- No code changes; patch contents are identical to the v2/v3 versions
-  previously posted individually.
-
-v2 pieces (this and the three it pulls forward) for reference:
-- [PATCH v2 0/3] https://lore.kernel.org/fstests/20260903035344.752-1-prabhakar.pujeri@dell.com/
-- btrfs/333 v3 https://lore.kernel.org/fstests/20260831104200.2269-1-prabhakar.pujeri@dell.com/ (v1; v3 was posted but is not archived)
-- btrfs/273 v2 https://lore.kernel.org/fstests/20260902050145.2439-1-prabhakar.pujeri@dell.com/ (v1; v2 was posted but is not archived)
-- overlay/081 v2 https://lore.kernel.org/fstests/20260901132438.759-1-prabhakar.pujeri@dell.com/
-
-Reviewed-bys carried (per the individual threads):
-- Darrick J. Wong: generic/590,735 and generic/795
-- Zorro Lang + Chao Yu: f2fs/015,016
-- Qu Wenruo: btrfs/333 (v3) and btrfs/273 (v2)
-- Johannes Thumshirn: btrfs/273 (v2, second R-b)
-- Amir Goldstein: overlay/081 (as Acked/Reviewed on v1; kept)
-
-Prabhakar Pujeri (6):
-  generic/590,735: add missing _require_scratch check
-  generic/795: add missing _require_scratch check
-  f2fs/015,016: add missing _require_scratch checks
-  btrfs/333: require scratch before checking encoded reads
-  btrfs/273: add missing _require_scratch check
-  overlay/081: add missing _require_scratch check
-
- common/btrfs      | 1 +
- tests/btrfs/273   | 1 +
- tests/f2fs/015    | 1 +
- tests/f2fs/016    | 1 +
- tests/generic/590 | 1 +
- tests/generic/735 | 1 +
- tests/generic/795 | 2 ++
- tests/overlay/081 | 1 +
- 8 files changed, 9 insertions(+)
-
-Base: upstream master a370dcbed43563f0462801e889e0eceb93c7cfad
--- 
-2.55.0
-
+--
+paul-moore.com
