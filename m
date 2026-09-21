@@ -1,157 +1,151 @@
-Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
+Received: from mx0b-00154904.pphosted.com (mx0b-00154904.pphosted.com [148.163.137.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A8C4371899;
-	Sun, 20 Sep 2026 20:33:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 589FE3B42EC;
+	Mon, 21 Sep 2026 07:16:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.137.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789936394; cv=none; b=LFr/AH/hInymGX7fAbCPTr0d330S2i0rrT7XKfqn8JjI1zUv6hVtJdtBNAIrRSWmJ6I0dJjgRNgf+XbalEGpl3aOGV3Xfr3imzwbAykqE0xxnAB8o4MvHrezRxvOBhUkxGDajbuZTYZKasQdnNcZqD2NoZHjmV+1l6BIxtu6R5Q=
+	t=1789975021; cv=none; b=hmV6xaor+e+ghsK+/vOd5/JK0ELNcfH5ZQK5Nnp1ZQH/9SidNxEAx96slp9VjYttW2D252L/UpJLV3jipGRvaUMDpDkF9zGLb3KHBy3fqE7OCd+F/4GpudReYzUl37P6h7ecXrhntnwAmhoqogHrBPPbPS+GEG94ElQZh+eZluo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789936394; c=relaxed/simple;
-	bh=2HcUXrPWcY2MRUwFNoiyScoj6Z70eSofDPKZKwh5VAE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=baNhn23uDjESc7lXh1Io8A/D0HVUqkDP+LnW/ONw9QlCQd4bszZpma7Qj8oKeHzZ2tGzM5VJS6qZM6TbqWr+KQRif/5/G6Ip/KWGvhnzIZO7mkGzCU0OSuAr+Zq218mG5JLBbXzXMNPSdF60z3AZdy9pqtOzi0PW6d1Vp7DuSMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr; spf=pass smtp.mailfrom=oss.cyber.gouv.fr; dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b=K7HGFt82; arc=none smtp.client-ip=51.159.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
+	s=arc-20240116; t=1789975021; c=relaxed/simple;
+	bh=Y5+egbtyVos1ApfOIeG4h2RnvLnV87NCUdwAIuPwEpc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ac3nJ19rJY3CZ2rojSkqqmexLf1MJiIvPajcqWzZgm2BC2RxlpDmOVw3XfXzmXdZ7m08PTzF2NRDIBUPZrD1BfNx6vZG5peGdy0Dx3IdP3JGGKuKJV16jGchqk90qGcoEYBRXzW81J9DDlKHLCj+mD9rLLIRi/citwUje55aLAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com; spf=pass smtp.mailfrom=dell.com; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=vky9nmNe; dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b=K8HW7naZ; arc=none smtp.client-ip=148.163.137.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=dell.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dell.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b="K7HGFt82"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Unsubscribe-Post:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=9nvjs5kid5o66sq+VhpnI+9MVB4yoXW2FEr6PNvo6lg=; b=K7HGFt82e38J
-	SpjuqMkQJnAbAhCHIfbHmrcPorSOgM8fV61RHffBM8v/jTMYkCo85B0Xvf8ONqzXGYigNcid/+BwQ
-	YFayXbjJB3jzF6FuRjpqA+Gu90MJ0ZGSvcl+ZGCMDukHXx4o9PK/bFu/mRg1WFwl4c8XL1NFQ3RDg
-	JODEunchaGMCNeTJ1mUJnln8OypHr35EybAIT9x+1OaPKnAL07u7ltFk6HBijp7PCJ+5ZG95xnEYJ
-	I+PL6QHUjS2bbo6EG3375ZmDmt959Kfza8Yolpoa2M7B2eNBgPOLN8Z7GuW+OvO8Sx6u1lz7RHBHX
-	FEisu/dcA+PJr//h5OZawA==;
-Received: from [151.115.150.205] (port=50122 helo=gepetto..)
-	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.100)
-	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
-	id 1x8ODm-0000000BX7T-29hV;
-	Sun, 20 Sep 2026 22:33:10 +0200
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-To: miklos@szeredi.hu,
-	amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	brauner@kernel.org,
-	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-Subject: [PATCH v2 1/3] ovl: disable nfs_export for same-sb lower layers with different idmaps
-Date: Sun, 20 Sep 2026 20:32:38 +0000
-Message-ID: <20260920203239.2876221-3-Jeremy.Jean@oss.cyber.gouv.fr>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260920203239.2876221-2-Jeremy.Jean@oss.cyber.gouv.fr>
-References: <20260920203239.2876221-2-Jeremy.Jean@oss.cyber.gouv.fr>
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="vky9nmNe";
+	dkim=pass (2048-bit key) header.d=dell.com header.i=@dell.com header.b="K8HW7naZ"
+Received: from pps.filterd (m0170394.ppops.net [127.0.0.1])
+	by mx0b-00154904.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68L79Hvo239330;
+	Mon, 21 Sep 2026 03:16:58 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dell.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=smtpout1; bh=U8vY59JA/YYtEJKsExbkIFXq5nnt9KqDX7+/
+	JwlYE4E=; b=vky9nmNeNpzdsGJRPwhDrA71C5drFEki7shFFLHQx/nxIIUSuwnK
+	DAFa82O4QETOppuEHRDMgky3F4EaIPiCJW+rm2HM35D9SsyaSuFksIzbJvv48OKp
+	tato57EGy5d2vXPeosxvQ/KTsR2LcClt3fuYolZriY2zIIOnLR9xZHcEffpseKR3
+	veo9Zi2ANFtTg4I4zwbYOXhLq0N6RRUd3gAZwA0qhEipK38o4xBCkGr8TshPsC8/
+	D2wM3ra6eB4DPjMWV7l3cJXt3tLLyIW4xIVy8yYvryutwmfzCNR9fT7w5z/YA8MG
+	PvWKEdrOOprb7vxF1URkUdFyuj0JQZnxZA==
+Received: from mx0a-00154901.pphosted.com (mx0a-00154901.pphosted.com [67.231.149.39])
+	by mx0b-00154904.pphosted.com (PPS) with ESMTPS id 4gsmxyd1q9-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 21 Sep 2026 03:16:58 -0400 (EDT)
+Received: from pps.filterd (m0134746.ppops.net [127.0.0.1])
+	by mx0a-00154901.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68L78iaD2613475;
+	Mon, 21 Sep 2026 03:16:57 -0400
+Received: from esapsmtplv03.us.dell.com (esapsmtplv03.us.dell.com [143.166.203.148])
+	by mx0a-00154901.pphosted.com (PPS) with ESMTPS id 4gty35rrf8-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=FAIL);
+	Mon, 21 Sep 2026 03:16:56 -0400 (EDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=dell.com; i=@dell.com; q=dns/txt; s=smtpdev1;
+  t=1789975017; x=1821511017;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=U8vY59JA/YYtEJKsExbkIFXq5nnt9KqDX7+/JwlYE4E=;
+  b=K8HW7naZ0W0Tg8As2L3uULnErBhjUnSClbXMfhqVWajtHFCYZ3kqrD4p
+   /oWCPP3hb9O5+XbiHd67npek4j6zhQzMo4VEtKBbmjcKQQPQC58hk4CbE
+   4ifdWcMXopPcUUUn7TgdDS2pz1jib/Kax3uivw5oJHADsK/WyV2hBPxnl
+   aB6+EWW4fkFJwhlivksd7QxLJ6rWo6E7i/89xAEnTM3iNd/8aLAVlodDa
+   GXJR9pah3K+0ytda8iNT93LdzEFTeV/hD0fJNmBHs+fAEaGFiaL1hwqro
+   csrRtIhGNtf/9mV+j/X9mseZNitPa7SIobRwySeIfQAk1V7FDjqZSR6Dz
+   Q==;
+X-CSE-ConnectionGUID: Am8HFbG8SwaXyptIO2ExMw==
+X-CSE-MsgGUID: h5L+dz8/Rc2sBLMcqKbzhw==
+X-LoopCount0: from 10.94.9.174
+X-MS-Exchange-CrossPremises-AuthAs: Internal
+Received: from w-96j1th4.apac.dell.com (HELO W-96J1TH4.blr.amer.dell.com) ([10.94.9.174])
+  by esapsmtplv03.us.dell.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 21 Sep 2026 07:16:55 +0000
+From: Prabhakar Pujeri <prabhakar.pujeri@dell.com>
+To: fstests@vger.kernel.org
+Cc: Prabhakar Pujeri <prabhakar.pujeri@dell.com>,
+        Zorro Lang <zlang@kernel.org>, Amir Goldstein <amir73il@gmail.com>,
+        linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 0/3] overlay tests: generalize _check_overlay_feature for param-less mount options
+Date: Mon, 21 Sep 2026 07:16:48 +0000
+Message-ID: <20260921071651.25862-1-prabhakar.pujeri@dell.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - pf-012.whm.fr-par.scw.cloud
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - oss.cyber.gouv.fr
-X-Get-Message-Sender-Via: pf-012.whm.fr-par.scw.cloud: authenticated_id: jeremy.jean@oss.cyber.gouv.fr
-X-Authenticated-Sender: pf-012.whm.fr-par.scw.cloud: jeremy.jean@oss.cyber.gouv.fr
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-21_03,2026-09-16_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 malwarescore=0 lowpriorityscore=0 priorityscore=1501
+ suspectscore=0 impostorscore=0 adultscore=0 spamscore=0 bulkscore=0
+ clxscore=1015 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
+ definitions=main-2609210102
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTIxMDEwMSBTYWx0ZWRfXzQ4FLdvP8a37
+ IyhSERejApGKNmQbrTIOLeRwzYPFN4uz0n5KC06PPTXA8HHI7V4hEx+y4I6dkZ7bF5olvMJNEpG
+ 3e529dytc28e4/PQw68j1nYce7+Ff6E/OpOYQA4H+hdkivl8XZpVoAtNxQXaQd6zEcDcHPdivgH
+ 3ZemY30uXrbYcK0K+BQrVaw+6VGWnG3AUqCJ2DWkGQQswyNEfSCNvfh79lHI8kICiseAX7P38De
+ XiPW/B2iXRZGazTO6fQdBufyDoSduwNgYvvExWBouEMjmbnyUOTKNL28Q2uVrqSEymgC5EEaCi4
+ zIj1t+JbKWwkopd7gUQrCQFXSg/yzLnbB7Uq1mJpxDnE+2Pvi+6Fi4J6tNGYpgpo3z3alfrqVcL
+ x0Vf5R8WxFacM90SDecHKVjKFt86mRJRo4CemmbUEeBE++FVplfEM3/0IdjdtKKhNc4kR4T21gd
+ ID6O5U1kuk3iyleFlLA==
+X-Authority-Analysis: v=2.4 cv=M9jYuCws c=1 sm=1 tr=0 ts=6ab0d9ea cx=c_pps
+ a=j0++y401J6f/BxNAf5EDow==:117 a=iGMIhCliR854E25UHWhNxg==:17
+ a=VdqzKS8jKosA:10 a=ke5jqHz-1hQA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=6gNNCFAoQcIphELLPWWu:22 a=gLxAKuEMs0EQMVFiDJnH:22 a=VwQbUJbxAAAA:8
+ a=iLNU1ar6AAAA:8 a=9Ar1pYLYXZfDu7jisZkA:9 a=gbU3OgOOxF9bX48Letew:22
+X-Proofpoint-GUID: __DGgAXGVvf4FP2Ye-ihLhlbtaZmE3gf
+X-Proofpoint-ORIG-GUID: __DGgAXGVvf4FP2Ye-ihLhlbtaZmE3gf
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTIxMDEwMSBTYWx0ZWRfX06XbXKOLQ27q
+ x+VTHXyjIvVgVK0HZwyjfNNE5Kot5k54qsZu2sXlAs13XqrlNUYlrMjoLzAT7+sd8CfbE/S3ZpW
+ 4ir/S7WMvJOEQmoiXOhlrRSjhvFPPT0=
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0
+ adultscore=0 malwarescore=0 suspectscore=0 impostorscore=0 priorityscore=1501
+ lowpriorityscore=0 phishscore=0 clxscore=1015 spamscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609210101
 
-Overlay file handles identify a backing filesystem, but not the lower
-mount used to decode it. If lower layers share a superblock and use
-different idmaps, a file handle can decode through the wrong layer and
-initialize the overlay inode with the wrong owner.
+The overlay tests that need param-less overlayfs mount options (uuid,
+xino, verity) currently open-code their probes.  Generalize
+_check_overlay_feature/_require_scratch_overlay_features once in
+common/overlay (1/3), fold the six open-coded xino probes onto the
+helper (2/3), and switch overlay/081's ad-hoc uuid=null probe to it
+(3/3).
 
-Track the first lower idmap seen for each ovl_sb and disable nfs_export
-when another lower layer on the same backing superblock uses a different
-idmap. Keep index enabled: copy up starts from the overlay dentry selected
-by lookup and does not need to decode a lower file handle through another
-layer.
+Changes in v2 (per Amir Goldstein's review of v1, all three patches
+now carry his Reviewed-by):
+- 1/3: drop fsync from the list of param-less mount options - it has
+  no on/off values and cannot be validated with this helper; and
+  replace the out-of-context comment in _require_scratch_overlay_
+  features with a simple 'Validate that mount option can be enabled.'
+- 3/3: trim the verbose comment - the v6.6 requirement is already
+  documented in the test description.
+- 2/3: no code change.
 
-Fixes: bc70682a497c ("ovl: support idmapped layers")
-Assisted-by: Codex:gpt-5
-Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
----
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     | 28 +++++++++++++++++++++++++++-
- 2 files changed, 29 insertions(+), 1 deletion(-)
+v1: https://lore.kernel.org/fstests/20260915153608.5197-1-prabhakar.pujeri@dell.com/
+Suggested-by: Amir Goldstein (from the overlay/081 review thread)
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 80cad4ea96a3..2a6e12a0d4dd 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -24,6 +24,8 @@ struct ovl_config {
- struct ovl_sb {
- 	struct super_block *sb;
- 	dev_t pseudo_dev;
-+	/* Idmap of the first lower layer on this fs */
-+	struct mnt_idmap *lower_idmap;
- 	/* Unusable (conflicting) uuid */
- 	bool bad_uuid;
- 	/* Used as a lower layer (but maybe also as upper) */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index bd0a3f9039d2..8e78da420b75 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -944,6 +944,24 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
- 	return true;
- }
- 
-+/*
-+ * Lower file handles identify a lower fs, but not the mount whose idmap was
-+ * used to decode them.  Remember the first lower idmap seen for each fs so
-+ * decodable export handles can be disabled if another one appears.
-+ */
-+static bool ovl_lower_mnt_idmap_mismatch(struct ovl_sb *fs,
-+					 const struct path *path)
-+{
-+	struct mnt_idmap *idmap = mnt_idmap(path->mnt);
-+
-+	if (!fs->lower_idmap) {
-+		fs->lower_idmap = idmap;
-+		return false;
-+	}
-+
-+	return fs->lower_idmap != idmap;
-+}
-+
- /* Get a unique fsid for the layer */
- static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
- {
-@@ -956,8 +974,15 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
- 	bool warn = false;
- 
- 	for (i = 0; i < ofs->numfs; i++) {
--		if (ofs->fs[i].sb == sb)
-+		if (ofs->fs[i].sb == sb) {
-+			if (ofs->config.nfs_export &&
-+			    ovl_lower_mnt_idmap_mismatch(&ofs->fs[i], path)) {
-+				ofs->config.nfs_export = false;
-+				pr_warn("different idmaps in same lower fs '%pd2', falling back to nfs_export=off.\n",
-+					path->dentry);
-+			}
- 			return i;
-+		}
- 	}
- 
- 	if (!ovl_lower_uuid_ok(ofs, uuid)) {
-@@ -987,6 +1012,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
- 	ofs->fs[ofs->numfs].sb = sb;
- 	ofs->fs[ofs->numfs].pseudo_dev = dev;
- 	ofs->fs[ofs->numfs].bad_uuid = bad_uuid;
-+	ovl_lower_mnt_idmap_mismatch(&ofs->fs[ofs->numfs], path);
- 
- 	return ofs->numfs++;
- }
+Prabhakar Pujeri (3):
+  common/overlay: let _check_overlay_feature handle param-less options
+  tests/overlay: use _require_scratch_overlay_features for xino
+  overlay/081: require uuid via _require_scratch_overlay_features
+
+  common/overlay: let _check_overlay_feature handle param-less options
+  tests/overlay: use _require_scratch_overlay_features for xino
+  overlay/081: require uuid via _require_scratch_overlay_features
+
+ common/overlay    | 16 ++++++++++------
+ tests/overlay/041 |  6 ++----
+ tests/overlay/043 |  6 ++----
+ tests/overlay/044 |  6 ++----
+ tests/overlay/067 |  4 ++--
+ tests/overlay/070 |  7 ++-----
+ tests/overlay/071 | 12 +++---------
+ tests/overlay/081 |  5 +++--
+ 8 files changed, 26 insertions(+), 36 deletions(-)
+
 -- 
-2.47.3
+2.55.0
 
