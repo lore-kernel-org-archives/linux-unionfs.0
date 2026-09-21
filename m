@@ -1,95 +1,95 @@
 Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 879183DD84F
-	for <linux-unionfs@vger.kernel.org>; Mon, 21 Sep 2026 08:15:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7880B44F56E
+	for <linux-unionfs@vger.kernel.org>; Mon, 21 Sep 2026 08:18:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.140
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789978510; cv=pass; b=JOiS/WjFcYiMJlcslU809Pd+YMuhhvixjP7FzWQ0tygjr5Gq+uvTgKX7Z787Ft9yVGD6k8tqUX4tROSrwpfbVrbuO006FPBrvhuVYl/JyYbFOcOAU1fSkC/1Woi2OBwZMAiBdNstYhyAfZ0bD3nev3ZNePrGkQgJBUFODCOEbvg=
+	t=1789978738; cv=pass; b=hhRZ+GR95YnD9p8Or5/6YwcAiX/KZuLVqTU6LvzLvP0ebqwsVow3i/zyjAMxc9wPioegAYi51FZnh2bKu5lt6W9Yl9Jp2g8THFIbBO0VDspsoyNKjqJA9PUZMAFVPRmeICbgrCivyb7A5NFkEfZTawL3OpERqH8KZafMQpBVJlY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789978510; c=relaxed/simple;
-	bh=ZuB6ygpndjsOpo+e/6By11Si9o/wgm2eyRuJxVmjzBc=;
+	s=arc-20240116; t=1789978738; c=relaxed/simple;
+	bh=GvYhP394c77Ut6MdVvePKLF4OaMpg1dVWEEgs3+1G5M=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=crH9yXPIEboRDZqYI8YdK7s7aNn18QKXWBTIo7iLuIfP7BgpBnCOWeU1PaIZczTVk27ZcQ1UhAbQSjRg38CiJc9qjI/0mDAcWelZ+9ZwHC5sDhSk6vUtj51raX6Jod4nwLSxg5yYMCNGgEyNOY/fB4rHt3a1FBjk1N5iWgb04Gk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M/SV0WPa; arc=pass smtp.client-ip=74.125.228.140
+	 To:Cc:Content-Type; b=HDhYcz1sZEWnEk9iO3A3SW5XIaYTjqOioR//p2bOAHxwVnFM/nBoVNNeoxXTT2YmeXY+FpMDtDsN9lcrQ96N35FuxP1sSQ6UvptXkBzdHdMUSfMWe/JFk8/mnk6uo9IpgJVPHOgS46ZxhACT9LTRX5CEzrfAfnt2tvlPrezELBg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pP/6Zwsg; arc=pass smtp.client-ip=74.125.228.140
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M/SV0WPa"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c25ef7a3ce9so312467766b.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Sep 2026 01:15:08 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789978507; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pP/6Zwsg"
+Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f6c7a58so391461066b.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Sep 2026 01:18:53 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789978732; cv=none;
         d=google.com; s=arc-20260327;
-        b=A8VzjrpxC9aoNIP5UTF5Y2milONm6wke4MyhvBNUl9OnyxniHm5e9zxoEdbHmHlEI/
-         FEA91x9KyADnokliD/lZrrLS0mZicRgCJYpGl1rhYXk2Hj5SEWDPNilElCSk86HEsHUd
-         Jkl7ICNPkiIo4pVR+JExxMjgfaQH8HMyT/eAUFR5pstuKZozzXVx95O+E6AFQ6d6J0dz
-         wlx3iQqZNp1hP7jxzzRtXeCGE1AMlpduA+yLTlClQWRZSEZ5HZB8TnU5/cPeOFf8CYTg
-         EkAAn4ljFH7+mWIjtZmQKaGelmh8E0psNeruySgxVGnY1Wl/mK06RfKAKb5AdaqoAvHH
-         Kgog==
+        b=dl3FpQmAqc7RYgEp5eUG3P1+SzYQToOVUrNlsxPo475P3HG1q+RY1DpF84aeu94ALA
+         gKHi0uG008pYMIydNoiskiklc2Ft/By2LpcRbeTQMMiIUDhlLvW/Nx7MCMXV2DBW/pdS
+         wbagJE0mnKX2RfEINBqvuw/Fod3eo6nZoArLNPJQyHQr5CCQbY5ZV07byn9u+R3jQrTL
+         Xj4HjiYbqr9f3mCrhHux4WphBhFhNhX0BYKArl6wrQ7+OA0Z8mN7nDlLk9CsNHhRgG/I
+         jBqTJRkdd4RbccqrYaKF+2li7nprUxAGNcKQuY1NWIcTiOoqtwiUhwSNoBmnGyfmJCiV
+         S03w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=UhW2cidclEmuAluUEKhOZS7Y3pI88Y4LmjXMPyC5ARY=;
-        fh=XLVC1WWIYe22BacrWvCYMizoJzRJB4qgiJebFddbfMo=;
-        b=U/KtSApJjGUYT1tA4OS6bm3NLIldug7dvwu3RfSzxL1TtYewIeV6XDsaXB11gUOAhL
-         bU2PjLc/FFjOOJ7EUsqevKjswi/vsoGoda3h5O1U1Abayt7hFDFqdbBPAsDNxn9N0Ez4
-         jV+UxJWO80mI1MOuNCLFOAlZ4/oaYb3M/y+Q9r7tWrkj3Cf2d5OKAigLy8lvnPce/q+J
-         y/vhUzrH8iiHar1ESFgz6rplfbcBpuTs/Fti5tfU0Gyk5iTseYWU+iLkwGmIYc0gV+20
-         oETgk0S3CfgbxZ3hekbcoAXE/bpc6ksxcR/lIYFi+XLWtLMj8Nv9sU4+LyBxGfexn3ds
-         Tu1Q==;
+        bh=19st/Yec1gLE3J88KstsEKV+9NC3IJ8lZ4oG8CuGVVg=;
+        fh=q7su/DtQ5aqxKQRQ+dqt34o+GGe+C45lUjE16mAsngk=;
+        b=UEHq0a5OE+QIlUvrAvbWjpAeM93BNMcnpvmiFJ6fJuYKiyL1OA0Q2bf73Py1yZHLIm
+         sSGNfdj90ZAhbqESVpmuIlf8ldRkvpFtTJsGFz6wL33pb6zw4gpLgmt95Q++MIq2sG7m
+         v6LrbMPLLiUqUv87KVqkApB6Lj2NPgc97y8hXrx9qbYSs9J/sIfA4wPYZzhQQLQmt/jC
+         QJSNhhP7AGJFI5JBZtZBQBpNQYnsjvDAgIaRQl8J/6LBVXhLEhBHFLIdXG6ffPfST2qy
+         SPhQeq3m/mErv0JlVgO7qiy3yRad3msfQq/PMVfDMVUx69iAhbBT0FRZmYH1GBD8i5rT
+         m/pQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789978507; x=1790583307; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1789978732; x=1790583532; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=UhW2cidclEmuAluUEKhOZS7Y3pI88Y4LmjXMPyC5ARY=;
-        b=M/SV0WPaNud9GUwWvtJszxd+826jNK8DJrcwKkNIwpha1l5QGYWop63zT8V/O12Y9z
-         MJzs5xdxa/uHHicoiKm5pBqaQxTldsjYfs1BdPUwxYOiq4jEWwU/pqthqRLLliI/zCmk
-         CDr/QpFcFgUeRJTAskxYaVV52FZUAuVfcOtIn6gpzGSlWNwSlrE9dPhxM8YALIsmoSH9
-         e/BMVySnHP6gfMG81SAKDwNxICMdUkmbZSE1O+GZdhKuBpjXRP/ojyw1TFhfgVMk6Oqu
-         +E+/0LsSEpP7xh6lAP6c3TzMCnhiMV0HIdGIGQDNhsaZvrycySlBDRSEpNjQGss1Qmqa
-         zAeQ==
+        bh=19st/Yec1gLE3J88KstsEKV+9NC3IJ8lZ4oG8CuGVVg=;
+        b=pP/6ZwsgnwEtKQHxXzWAeVQ6hYuvL/3ZSpOJ4U8Jc7h2htlnatWCimWwOdl6ZMGChZ
+         MYR3LNwRD6m5aVmK5ceJTPTsC2XUnjpOGLy1KJIc4TZdGWoSXfg4oKLtJELNJfFoSxty
+         w4D0zCkmdw5HJpXuhpUXvHMGL7TLV5ewGGrAQOPDoAylvNVkTVzX1nl679gEYOdeCdua
+         9dJq0Ba1n4UEQadRzsNIhX4hs5AGfVDcGbd1OZYsJceJuS84jPEhkY6jXczwAXCbqwlW
+         NQZyQmdAPBN1gVtXVAZd0jLBLneOHG2bWY9GsHUq6P/9uhUJMvd3dAs8B7XZf/BiERvo
+         PSeA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789978507; x=1790583307;
+        d=1e100.net; s=20260707; t=1789978732; x=1790583532;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=UhW2cidclEmuAluUEKhOZS7Y3pI88Y4LmjXMPyC5ARY=;
-        b=2MRb1A3Ko7GKulQWPK2XP8ZkMOv08upOCZ5pNeNa9jah8DS9uHLWVrSskQ4FkF7fax
-         zQbKcl4GA0moaAyK/45LJSp9tkE/We92xx9RxDj2PWisfdbg5uS72t+kcvRIHHh7ODZz
-         ZBndTN84zb5v0UNRzJsB4CLgY8us+t2SO9b6BxsaIIoWIOPhB7XC3ncgVtqjqIxFNHZm
-         2lasz0Vlui3+GTneWZzrCJ7Witlu+Xp2DkF3B9eW7WnG2uKaIa0+mwp+vijMXNONKkGh
-         Y5ru77s882IwXp1LzLwO9EaRUVsX54TszkEGf8k/GdrTOF8niNl9lN+9N94UUlu+O/ZH
-         bE7A==
-X-Forwarded-Encrypted: i=1; AKwUvBxfkgkPmwNtI2IQ63Co5sBr3VKVdvJa3GkdKHAogmDVhRPyhavXpsyT817KxwPrnqS4FBmfq4hR7tHKswWo@vger.kernel.org
-X-Gm-Message-State: AFuF++lPqoADWOHgfhc688/tFEL8B4bVShw7l7xw/71cHeJhbeRfvlMl
-	WxY/rI20S5iy/uxyPF0FfxGdRWtPxKhrv2DCu54C8ji32HrR6E/rhmQZPdN6JiZ84Ov/e+xteYF
-	DpAscYqGjMPkwWFaTyJoZO8u9vJFUD3c=
-X-Gm-Gg: AYBFou3I/Ip9TqwlKn7Jf//rM306Mjr/a3ezXuBHoYDKsPmsYYz2uc3xD9+5pjI5REz
-	JEdpSttWE5EzPwy+KaT6kDSa+B9ipFfpHnEG+QjCgabLHuh1M6UOBH4rAK412VAbVbkroIBg0aq
-	B4SHGIfd+LmcyroLq0ZH0WlTBniYizeKYMHTKkmCqH3wGYe8CwiEVCscKBELxNFvijaiTDWLUsA
-	F5pM3Wh91AoVqrlXAYWOpByBb0KDgXqu7r2Z5QHyh3DRH8qtkC4Hrh+yCWd1X9nVScsuDy9rR2s
-	7DNkUwZfmBAbJTMt3pfSLADobbnvqgIAX81iM1OUGqlNFZLeBZNnd+KJ/g==
-X-Received: by 2002:a17:907:9285:b0:c29:5340:182e with SMTP id
- a640c23a62f3a-c2a15788ecamr847167466b.2.1789978506086; Mon, 21 Sep 2026
- 01:15:06 -0700 (PDT)
+        bh=19st/Yec1gLE3J88KstsEKV+9NC3IJ8lZ4oG8CuGVVg=;
+        b=qRo25vUo5Dht5W3xWSvAfZmB04Y6wvdWDFVDm2M6Owu1NIZOQWk/WZABmozdapS0eq
+         OTNjotco1v34EAR1nT1n4EZybaIOqen/Ebtg1I0x21NFguGGiJzKxgyffshS22BwewRc
+         aPDVjZdOsWswCpWh/kLMTqtZQmSV/CyyRE+SGt6Du5nIiD027lrmSMGbuGrckNDIRTWj
+         dDCaSVJbTq/WKkupZD+qPm8dHiVtxfk7kOTIjNv99ZkIQQCE9QI0+by0B6vTIcD7tE/8
+         o4ICLy0nAD97vO74/HyYOUksbhynejl0oH2r4fULXjWjePZZbTPE4M1VxAVs9hUs2fG7
+         mCOw==
+X-Forwarded-Encrypted: i=1; AKwUvByVFkjo5q0+hOaiyGWsHQUBc/7O64gCmtoacGdqk2SQ03cKAqD/x7WU0XTK1uPl36pN4cO/H7+f9fL5d8Wr@vger.kernel.org
+X-Gm-Message-State: AFuF++mtMGz4MHpXYobmVgmmuutkAXwdqMtNBY5HdLxF1x6TLYe1iNrX
+	TA3Cs5e7Z+JoKw6+a+/mFg4uo5vQIgFEXjVRfr3DN/u3WoutziVxfSlyoxRV0MWmGOQp+EIVOQs
+	kBeMQHz3zWn9fRsebY26/nSlikMd3iXg=
+X-Gm-Gg: AYBFou1DY3V3mVJ0VpcAA3ZWNrB5IdUwcT08MH5lhuBVKarfUK36FfuEprIPhyQDhA7
+	wB9AEzTIJQQm0AjziNpYasXwsIyqGIZPMcwePlb3bawqH/16ucZXYJ6aTRmz2WpqPZLazem7TEB
+	EOSlAv+fUk+wxpHCNIdCyhM4uG0sPDhXkAnRJwt8fu+UYsc4aM1tC/paniG+Z77tN5x52qLl9Q4
+	mcKpWR+RMYgEOZ4gPnpB+VScf0yFOyWMZbcKuJwsRWIlTpU/NzxjN5lLBwLM0Yw17LewjulcLJ6
+	1y/hH1mekZL0QQgoOZaI4E0MU5kctbN1DwYxgqbua4RqAgVs8bt2Sf3p
+X-Received: by 2002:a17:906:c113:b0:c29:4415:2ec6 with SMTP id
+ a640c23a62f3a-c2a157d8b58mr725032966b.12.1789978731612; Mon, 21 Sep 2026
+ 01:18:51 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260920203239.2876221-2-Jeremy.Jean@oss.cyber.gouv.fr> <20260920203239.2876221-4-Jeremy.Jean@oss.cyber.gouv.fr>
-In-Reply-To: <20260920203239.2876221-4-Jeremy.Jean@oss.cyber.gouv.fr>
+References: <20260920203239.2876221-2-Jeremy.Jean@oss.cyber.gouv.fr> <20260920203239.2876221-5-Jeremy.Jean@oss.cyber.gouv.fr>
+In-Reply-To: <20260920203239.2876221-5-Jeremy.Jean@oss.cyber.gouv.fr>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 21 Sep 2026 10:14:55 +0200
-X-Gm-Features: AcwNN1UbcG29pyU5X3cJMyM7lMwffUz3zVeuQCo9MypS9XqzCrCk_TNC4ujot-o
-Message-ID: <CAOQ4uxjdY3ppNiZf7bHxwmpXqSyx0oGrjXxgmmYy2gyK4VzrMg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] selftests: overlayfs: reject handles for mixed
- lower idmaps
+Date: Mon, 21 Sep 2026 10:18:41 +0200
+X-Gm-Features: AcwNN1VwgrBl2ccVf6rNXeXgU9lenbvSiFwbNGMs9vX16ZwVYtqDauUDpgmmuWU
+Message-ID: <CAOQ4uxiLpwc5HgQd0bc5fH2FABMbZPjyMgm+L-ohyFkyy7ENjA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] selftests: overlayfs: keep index copy up with
+ mixed lower idmaps
 To: =?UTF-8?B?SsOpcsOpbXkgSmVhbg==?= <Jeremy.Jean@oss.cyber.gouv.fr>, 
 	brauner@kernel.org
 Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
@@ -100,94 +100,61 @@ Content-Transfer-Encoding: quoted-printable
 On Sun, Sep 20, 2026 at 10:33=E2=80=AFPM J=C3=A9r=C3=A9my Jean
 <Jeremy.Jean@oss.cyber.gouv.fr> wrote:
 >
-> Add an idmapped overlay test for two lower layers that share a backing
-> superblock but use different idmaps. Mount with index=3Don,nfs_export=3Do=
-n and
-> verify decodable handle requests fail with EOPNOTSUPP after overlayfs fal=
-ls
-> back to nfs_export=3Doff.
+> Add a copy-up test for mixed-idmap lower layers with
+> index=3Don,nfs_export=3Doff.
+>
+> Write through one hardlink alias and read through the other.
+> Check that both aliases still point to the same copied-up inode.
+> Check that the copied-up inode keeps the expected mapped owner.
 >
 > Signed-off-by: J=C3=A9r=C3=A9my Jean <Jeremy.Jean@oss.cyber.gouv.fr>
 > ---
->  .../filesystems/overlayfs/idmapped_mounts.c   | 98 ++++++++++++++++++-
->  1 file changed, 94 insertions(+), 4 deletions(-)
+>  .../filesystems/overlayfs/idmapped_mounts.c   | 103 ++++++++++++++++++
+>  1 file changed, 103 insertions(+)
 >
 > diff --git a/tools/testing/selftests/filesystems/overlayfs/idmapped_mount=
 s.c b/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c
-> index 44a75839f4ed..0e94bd464f1c 100644
+> index 0e94bd464f1c..ae99698c280a 100644
 > --- a/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c
 > +++ b/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c
-> @@ -159,8 +159,16 @@ static int idmapped_layer_fd(const char *path, int n=
-sid, int hostid, int range)
->         return fd_tree;
+> @@ -219,6 +219,42 @@ static int setup_extra_layer(const char *base, const=
+ char *name)
+>         return 0;
 >  }
 >
-> -/* Overlay with a layer passed by fd (idmapped) plus a plain upper/work.=
- */
-> -static int ovl_mount_lower_fd(const char *upper, const char *work, int f=
-d_lower)
-> +static int layer_fd(const char *path)
+> +static int write_path(const char *path, const char *buf)
 > +{
-> +       return sys_open_tree(AT_FDCWD, path,
-> +                            OPEN_TREE_CLONE | OPEN_TREE_CLOEXEC);
-> +}
+> +       size_t len =3D strlen(buf);
+> +       int fd;
 > +
-> +/* Overlay with lower layers passed by fd plus a plain upper/work. */
-> +static int ovl_mount_lower_fds(const char *upper, const char *work,
-> +                              int fd_lower1, int fd_lower2,
-> +                              const char *index, const char *nfs_export)
->  {
->         int fsfd, ovl;
->
-> @@ -171,8 +179,19 @@ static int ovl_mount_lower_fd(const char *upper, con=
-st char *work, int fd_lower)
->         if (sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "source", "test", 0) =
-||
->             sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "upperdir", upper, 0)=
- ||
->             sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "workdir", work, 0) |=
-|
-> -           sys_fsconfig(fsfd, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_low=
-er) ||
-> -           sys_fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0))
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_low=
-er1))
-> +               goto err;
-> +       if (fd_lower2 >=3D 0 &&
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_low=
-er2))
-> +               goto err;
-> +       if (index &&
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "index", index, 0))
-> +               goto err;
-> +       if (nfs_export &&
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "nfs_export",
-> +                        nfs_export, 0))
-> +               goto err;
-> +       if (sys_fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0))
->                 goto err;
->
->         ovl =3D sys_fsmount(fsfd, 0, 0);
-> @@ -183,6 +202,23 @@ static int ovl_mount_lower_fd(const char *upper, con=
-st char *work, int fd_lower)
->         return -1;
->  }
->
-> +static int ovl_mount_lower_fd(const char *upper, const char *work, int f=
-d_lower)
-> +{
-> +       return ovl_mount_lower_fds(upper, work, fd_lower, -1, NULL, NULL)=
-;
-> +}
-> +
-> +static int setup_extra_layer(const char *base, const char *name)
-> +{
-> +       char path[PATH_MAX];
-> +
-> +       snprintf(path, sizeof(path), "%s/%s", base, name);
-> +       if (mkdir(path, 0755) && errno !=3D EEXIST)
+> +       fd =3D open(path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+> +       if (fd < 0)
 > +               return -1;
-> +       if (chown(path, ID_HOST, ID_HOST))
+> +       if (write(fd, buf, len) !=3D len) {
+> +               close(fd);
+> +               return -1;
+> +       }
+> +       if (close(fd))
+> +               return -1;
+> +       return 0;
+> +}
+> +
+> +static int read_fd_contents(int dirfd, const char *name, char *buf, size=
+_t len)
+> +{
+> +       ssize_t n;
+> +       int fd;
+> +
+> +       fd =3D openat(dirfd, name, O_RDONLY);
+> +       if (fd < 0)
+> +               return -1;
+> +       n =3D read(fd, buf, len - 1);
+> +       if (n < 0) {
+> +               close(fd);
+> +               return -1;
+> +       }
+> +       buf[n] =3D '\0';
+> +       if (close(fd))
 > +               return -1;
 > +       return 0;
 > +}
@@ -197,29 +164,28 @@ d_lower)
 r_ns is
 >   * not the initial namespace) and idmap that overlay mount with @u2.  Ru=
 ns in a
-> @@ -498,4 +534,58 @@ TEST_F(idmapped_overlay, nfs_export_handles)
+> @@ -588,4 +624,71 @@ TEST_F(idmapped_overlay, nfs_export_same_sb_mixed_id=
+maps)
 >         EXPECT_EQ(close(ovl), 0);
 >  }
 >
 > +/*
-> + * Lower file handles cannot be decoded safely when two lower layers sha=
-re a
-> + * superblock but use different idmaps.  nfs_export should be disabled f=
-or that
-> + * layout, so a normal decodable handle request must fail with EOPNOTSUP=
-P.
+> + * index=3Don without nfs_export still preserves lower hardlinks on copy=
+ up when
+> + * same-superblock lower layers use different idmaps.  The copied-up ali=
+as must
+> + * keep the same contents, inode identity, and owner as the path-selecte=
+d lower.
 > + */
-> +TEST_F(idmapped_overlay, nfs_export_same_sb_mixed_idmaps)
+> +TEST_F(idmapped_overlay, index_copy_up_same_sb_mixed_idmaps)
 > +{
+> +       static const char lower_data[] =3D "lower\n";
+> +       static const char upper_data[] =3D "upper\n";
 > +       char lower1[PATH_MAX], lower2[PATH_MAX], upper[PATH_MAX], work[PA=
 TH_MAX];
-> +       char path[PATH_MAX], mnt[128];
-> +       union {
-> +               struct file_handle fh;
-> +               char buf[sizeof(struct file_handle) + MAX_HANDLE_SZ];
-> +       } fhu;
-> +       struct file_handle *fh =3D &fhu.fh;
-> +       int fd_lower1, fd_lower2, ovl, mount_id;
+> +       char path[PATH_MAX], alias[PATH_MAX], buf[32];
+> +       struct stat st_file, st_alias, st_upper;
+> +       int fd_lower1, fd_lower2, ovl, fd;
 > +
 > +       if (!ovl_supported())
 > +               SKIP(return, "overlayfs not supported");
@@ -231,8 +197,10 @@ TH_MAX];
 > +       ASSERT_EQ(setup_extra_layer(self->base, "l2"), 0);
 > +
 > +       snprintf(path, sizeof(path), "%s/l2/file", self->base);
-> +       ASSERT_EQ(mknod(path, S_IFREG | 0644, 0), 0);
+> +       snprintf(alias, sizeof(alias), "%s/l2/alias", self->base);
+> +       ASSERT_EQ(write_path(path, lower_data), 0);
 > +       ASSERT_EQ(chown(path, ID_HOST + 7, ID_HOST + 7), 0);
+> +       ASSERT_EQ(link(path, alias), 0);
 > +
 > +       fd_lower1 =3D idmapped_layer_fd(lower1, ID_HOST, ID_NS, ID_RANGE)=
 ;
@@ -241,35 +209,50 @@ TH_MAX];
 > +       ASSERT_GE(fd_lower2, 0);
 > +
 > +       ovl =3D ovl_mount_lower_fds(upper, work, fd_lower1, fd_lower2, "o=
-n", "on");
-> +       if (ovl < 0)
-> +               SKIP(return, "overlayfs nfs_export not supported");
+n", "off");
+> +       ASSERT_GE(ovl, 0);
 > +       EXPECT_EQ(close(fd_lower1), 0);
 > +       EXPECT_EQ(close(fd_lower2), 0);
+> +       ASSERT_EQ(ovl_idmap(ovl), 0);
 > +
-> +       snprintf(mnt, sizeof(mnt), "%s/mnt", self->base);
-> +       ASSERT_EQ(mkdir(mnt, 0755), 0);
-> +       ASSERT_EQ(sys_move_mount(ovl, "", AT_FDCWD, mnt,
-> +                                MOVE_MOUNT_F_EMPTY_PATH), 0);
+> +       fd =3D openat(ovl, "file", O_WRONLY | O_TRUNC);
+> +       ASSERT_GE(fd, 0);
+> +       ASSERT_EQ(write(fd, upper_data, sizeof(upper_data) - 1),
+> +                 sizeof(upper_data) - 1);
+> +       EXPECT_EQ(close(fd), 0);
 > +
-> +       snprintf(path, sizeof(path), "%s/file", mnt);
-> +       fh->handle_bytes =3D MAX_HANDLE_SZ;
-> +       errno =3D 0;
-> +       EXPECT_EQ(name_to_handle_at(AT_FDCWD, path, fh, &mount_id, 0), -1=
-);
-> +       EXPECT_EQ(errno, EOPNOTSUPP);
+> +       ASSERT_EQ(read_fd_contents(ovl, "alias", buf, sizeof(buf)), 0);
+> +       EXPECT_STREQ(upper_data, buf);
+> +
+> +       ASSERT_EQ(fstatat(ovl, "file", &st_file, 0), 0);
+> +       ASSERT_EQ(fstatat(ovl, "alias", &st_alias, 0), 0);
+> +       EXPECT_EQ(st_file.st_ino, st_alias.st_ino);
+> +       EXPECT_EQ(st_file.st_nlink, 2);
+> +       EXPECT_EQ(st_alias.st_nlink, 2);
+> +       EXPECT_EQ(st_file.st_uid, ID_NS + 7);
+> +       EXPECT_EQ(st_file.st_gid, ID_NS + 7);
+> +       EXPECT_EQ(st_alias.st_uid, ID_NS + 7);
+> +       EXPECT_EQ(st_alias.st_gid, ID_NS + 7);
+> +
+> +       snprintf(path, sizeof(path), "%s/u/file", self->base);
+> +       ASSERT_EQ(stat(path, &st_upper), 0);
+> +       EXPECT_EQ(st_upper.st_uid, ID_HOST + 7);
+> +       EXPECT_EQ(st_upper.st_gid, ID_HOST + 7);
 > +
 > +       EXPECT_EQ(close(ovl), 0);
 > +}
 > +
 >  TEST_HARNESS_MAIN
+> --
+> 2.47.3
+>
 
-The expected behavior depends on whether Christian says this
-setup is legit in production.
-
-Apart from the that you may add:
+If Christian says this is a legit setup you may add:
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+Otherwise, we do not need two tests and we do not need any opt-in mount
+options, not index and not nfs_export, the mount should just fail.
 
 Thanks,
 Amir.
