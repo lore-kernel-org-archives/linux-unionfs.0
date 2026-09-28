@@ -1,37 +1,69 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49E92397935;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE5004E9C16;
 	Mon, 28 Sep 2026 21:32:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790631140; cv=none; b=UYZxOPowieVYMQVP8yLofU4FD5KBCxT/ygp5bcJT6zG7C1VNDR7WAqBfp7Fwnj9pWOO6B4zxLkIPVjfeaA47QraoSNMnyYmWVIq3n7pmnD0sFUpUNU00GNuGoy6xx5ZTWDv7JiTMjJCsJtPE0WgKXbkV1/Xvmj7wpG2g4TNGXUI=
+	t=1790631140; cv=none; b=X+DEQ9xdBbbuDH3/4g+rDIh38e8yxZIXdJOm35sU5L0yztmAWaz2+kSY5xjqeD6MQFX5e3apJgrJXglNem7QXnedBkVTQgNKFC79fSTznbmrree33HHDFHP9YRwamKLzWu8qINAE2gxIy0xQtutwKlS1wE42/XCHTsDByVgQGS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790631140; c=relaxed/simple;
-	bh=35g6jc7QcEmURrjgGEgNz8E0NT1qpmZVKdM6CdXfV9U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kl6chZXBW2PU5d9WNYQvxpJJcqaXKJ10AaGb6lTeBoLR0fZbZuEFZEzV3gypLN9hqP65fPc0iOJ0gJnTljytgocrxYFEywW96v4HjL8BlU/LuR7QfVcBup0YN0K7wtP8EOFeSVnkWfJBqo1rtFOqzdCsJH5u9LAT6vCfF2twEuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
+	bh=dfQT7WImhTwj84rmJTrlnHI3PS/5LuaMfZj+m9vC+ks=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AX0UgFVPq7r5+1py6P7YXpBJ/VI84qr+00BMBYOamSi9aeOO+5k4k4Mot2qP8bsqJkXFalJKaWRm22dxtUOGhCAh+0qmdwRQN3cSGHlGgEQrT+SoKBbvNXZ7rAq7YWeQCdY5f6FTEjaovbavy/1EcnIjW/jsw7+/R5kbVy9LaOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0w2fQHyA; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=oOmX6cu8; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=s0z9NEtt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=TgOEQmUv; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0w2fQHyA";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="oOmX6cu8";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="s0z9NEtt";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="TgOEQmUv"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 9C60621CA6;
-	Mon, 28 Sep 2026 21:32:13 +0000 (UTC)
-Authentication-Results: smtp-out1.suse.de;
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 1530D1F399;
+	Mon, 28 Sep 2026 21:32:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790631129; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=EBW8VfSpfZ9PWZvy6KmzYcKLrex3/2Okopr+CK0VKew=;
+	b=0w2fQHyAcr8/hNkn1q6kWi4QHof21q5V//SgtFlybSbGAoS88w5Esn95j8d67fiqD/3/WD
+	Dqo9UYVTDjpm0OXkIW7H+VKFvoX9sci6cDFFW2cJaHlI5p6YaqVDPZ52h63tBm+osuvG8I
+	5nD39gaY3J4GN2w3ggFFsKAd9xMmDXs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790631129;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=EBW8VfSpfZ9PWZvy6KmzYcKLrex3/2Okopr+CK0VKew=;
+	b=oOmX6cu8PaeLUh2yFxZ7+uZQZcIHN3tJXZaJtGRFS4EjClr79oIZb35JEpNtb/DdFfpR4R
+	PUCoshraaYNvYUCg==
+Authentication-Results: smtp-out2.suse.de;
 	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790631125; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=EBW8VfSpfZ9PWZvy6KmzYcKLrex3/2Okopr+CK0VKew=;
+	b=s0z9NEttE6n9iAaAuyBRYxWEFNScItaY0Nh+Gsc1J/WdhBkvSTh1OAZEa1F8i88+E2jFya
+	EWteEDJBZQLif+w2jQ5f4aOrLVsDNNTZ1mBo8x/R28BApIrx97Jsnn3sG3Q72KjakWGXGD
+	GASNm9lDhpjpRD1UdR1+W+TAtgspNgs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790631125;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=EBW8VfSpfZ9PWZvy6KmzYcKLrex3/2Okopr+CK0VKew=;
+	b=TgOEQmUvPyvvyilCHFezLEljruw2urh0b9a2Zfv9Vw0N/7ZD4UBi4uhzC6JQlDdp0h4DJ6
+	s2bcXaydg8iz/WBQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 25D1C1340F;
-	Mon, 28 Sep 2026 21:32:13 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 76A89133F1;
+	Mon, 28 Sep 2026 21:32:04 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id tIQMN9zcumqcMwAAD6G6ig
-	(envelope-from <krisman@suse.de>); Mon, 28 Sep 2026 21:32:13 +0000
+	id +DMZDtTcumqMMwAAD6G6ig
+	(envelope-from <krisman@suse.de>); Mon, 28 Sep 2026 21:32:04 +0000
 From: Gabriel Krisman Bertazi <krisman@suse.de>
 To: linux-fsdevel@vger.kernel.org
 Cc: Gabriel Krisman Bertazi <krisman@suse.de>,
@@ -45,12 +77,10 @@ Cc: Gabriel Krisman Bertazi <krisman@suse.de>,
 	Amir Goldstein <amir73il@gmail.com>,
 	linux-unionfs@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [PATCH 2/4] ext4: Expose the filesystem encoding through sysfs
-Date: Mon, 28 Sep 2026 17:31:53 -0400
-Message-ID: <20260928213155.2612039-3-krisman@suse.de>
+Subject: [PATCH 0/4] Expose encoding information of volumes
+Date: Mon, 28 Sep 2026 17:31:51 -0400
+Message-ID: <20260928213155.2612039-1-krisman@suse.de>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260928213155.2612039-1-krisman@suse.de>
-References: <20260928213155.2612039-1-krisman@suse.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -58,133 +88,92 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
+X-Spam-Score: -1.30
 X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 9C60621CA6
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	REPLY(-4.00)[];
-	TAGGED_RCPT(0.00)[]
-X-Rspamd-Action: no action
+X-Spamd-Result: default: False [-1.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
+	MIME_GOOD(-0.10)[text/plain];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[12];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RCVD_TLS_ALL(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[suse.de,kernel.org,suse.cz,mit.edu,google.com,gmail.com,vger.kernel.org,szeredi.hu,kvack.org];
+	RCVD_COUNT_TWO(0.00)[2];
+	TAGGED_RCPT(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com]
 X-Spam-Flag: NO
-X-Spam-Score: -4.00
 
-Daniel Tang pointed out that shmem doesn't list casefold as a mount
-option, even when it is mounted casefolded.  While fixing it, I noticed
-f2fs actually already provides that information via sysfs, but ext4
-doesn't.  This patch reproduces the same interface in ext4 to have
-feature parity, so users don't need to rely on parsing dmesg or trying +F
-on a temporary directory just to check for support.
+Daniel Tang reported [1] some inconsistencies in detecting filesystem
+casefold support on shmem.  The problem is that we don't expose the
+casefold arguments in /proc/mounts for shmem, requiring you to probe the
+the filesystem to discover it.  More interestingly, it can be a problem
+for programs that use /proc/mounts to remount filesystems, making them
+to remount "case-sensitively'.  This apparently is a real use case in
+linux utils, according to my favorite LLM.  shmem is fixed by patch 1.
 
-Assisted-by: LLM
-Signed-off-by: Gabriel Krisman Bertazi <krisman@suse.de>
+This made me go look at how other casefolding filesystems expose this
+information and found it to be very inconsistent.  f2fs is the only one
+doing it properly over /sys/fs/<vol>/encoding.  Ext4 and ovl don't have
+nice ways to expose it, so the remaining patches replicate the f2fs
+interface for them.
+
+I considered a /sys/fs interface for shmem as wel. It makes sense.  But
+since shmem is the only filesystem where casefolding is a mount option,
+it also makes sense for it to appear in /proc/mounts.  Considering it
+doesn't have /sys/fs at the moment, it does fell like overkill to add it
+just for this file.
+
+ovl also doesn't have a /sys/fs/ entry.  But in its case, casefold is
+derived from the lower/upper directories, so it cannot not be set in
+/proc/mounts.  For this reason, I ended up plumbling /sys/fs/overlay and
+wiring the encoding file just like ext4 and f2fs.
+
+[1] https://lore.kernel.org/linux-fsdevel/5193732.31r3eYUQgx@daniel-desktop3/#
+
 ---
- Documentation/ABI/testing/sysfs-fs-ext4 | 21 ++++++++++++++++++
- fs/ext4/sysfs.c                         | 29 +++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Daniel Tang <danielzgtg.opensource@gmail.com>
+Cc: linux-ext4@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>
+CC: linux-unionfs@vger.kernel.org
+CC: linux-mm@kvack.org
 
-diff --git a/Documentation/ABI/testing/sysfs-fs-ext4 b/Documentation/ABI/testing/sysfs-fs-ext4
-index 2edd0a6672d3..8abc5706f459 100644
---- a/Documentation/ABI/testing/sysfs-fs-ext4
-+++ b/Documentation/ABI/testing/sysfs-fs-ext4
-@@ -116,3 +116,24 @@ Contact:	"Theodore Ts'o" <tytso@mit.edu>
- Description:
- 		This file is read-only and shows the pid of journal thread in
- 		current pid-namespace or 0 if task is unreachable.
-+
-+What:		/sys/fs/ext4/<disk>/encoding
-+Date:		September 2026
-+Contact:	"Gabriel Krisman Bertazi" <krisman@suse.de>
-+Description:
-+		Displays name and version of the encoding set for the
-+		filesystem.  If no encoding is set, displays (none)
-+
-+What:		/sys/fs/ext4/<disk>/encoding_flags
-+Date:		September 2026
-+Contact:	"Gabriel Krisman Bertazi" <krisman@suse.de>
-+Description:
-+		This is a read-only entry to show the value of
-+		sb.s_encoding_flags, the value is hexadecimal.
-+
-+		============================     ==========
-+		Flag_Name                        Flag_Value
-+		============================     ==========
-+		SB_ENC_STRICT_MODE_FL            0x00000001
-+		SB_ENC_NO_COMPAT_FALLBACK_FL     0x00000002
-+		============================     ==========
-diff --git a/fs/ext4/sysfs.c b/fs/ext4/sysfs.c
-index 923b375e017f..bc1c59d67eed 100644
---- a/fs/ext4/sysfs.c
-+++ b/fs/ext4/sysfs.c
-@@ -32,6 +32,8 @@ typedef enum {
- 	attr_clusters_in_group,
- 	attr_mb_order,
- 	attr_feature,
-+	attr_encoding,
-+	attr_encoding_flags,
- 	attr_pointer_pi,
- 	attr_pointer_ui,
- 	attr_pointer_ul,
-@@ -161,6 +163,25 @@ static ssize_t err_report_sec_store(struct ext4_sb_info *sbi,
- 	return count;
- }
- 
-+static ssize_t encoding_show(struct ext4_sb_info *sbi, char *buf)
-+{
-+#if IS_ENABLED(CONFIG_UNICODE)
-+	struct super_block *sb = sbi->s_sb;
-+
-+	if (ext4_has_feature_casefold(sb))
-+		return sysfs_emit(buf, "UTF-8 (%d.%d.%d)\n",
-+				  unicode_major(sb->s_encoding->version),
-+				  unicode_minor(sb->s_encoding->version),
-+				  unicode_rev(sb->s_encoding->version));
-+#endif
-+	return sysfs_emit(buf, "(none)\n");
-+}
-+
-+static ssize_t encoding_flags_show(struct ext4_sb_info *sbi, char *buf)
-+{
-+	return sysfs_emit(buf, "%x\n", le16_to_cpu(sbi->s_es->s_encoding_flags));
-+}
-+
- static ssize_t journal_task_show(struct ext4_sb_info *sbi, char *buf)
- {
- 	if (!sbi->s_journal)
-@@ -283,6 +304,8 @@ EXT4_RO_ATTR_ES_STRING(last_error_func, s_last_error_func, 32);
- EXT4_ATTR(first_error_time, 0444, first_error_time);
- EXT4_ATTR(last_error_time, 0444, last_error_time);
- EXT4_ATTR(journal_task, 0444, journal_task);
-+EXT4_ATTR_FUNC(encoding, 0444);
-+EXT4_ATTR_FUNC(encoding_flags, 0444);
- EXT4_RW_ATTR_SBI_UI(mb_prefetch, s_mb_prefetch);
- EXT4_RW_ATTR_SBI_UI(mb_prefetch_limit, s_mb_prefetch_limit);
- EXT4_RW_ATTR_SBI_UL(last_trim_minblks, s_last_trim_minblks);
-@@ -333,6 +356,8 @@ static struct attribute *ext4_attrs[] = {
- 	ATTR_LIST(first_error_time),
- 	ATTR_LIST(last_error_time),
- 	ATTR_LIST(journal_task),
-+	ATTR_LIST(encoding),
-+	ATTR_LIST(encoding_flags),
- #ifdef CONFIG_EXT4_DEBUG
- 	ATTR_LIST(simulate_fail),
- #endif
-@@ -483,6 +508,10 @@ static ssize_t ext4_attr_show(struct kobject *kobj,
- 		return print_tstamp(buf, sbi->s_es, s_last_error_time);
- 	case attr_journal_task:
- 		return journal_task_show(sbi, buf);
-+	case attr_encoding:
-+		return encoding_show(sbi, buf);
-+	case attr_encoding_flags:
-+		return encoding_flags_show(sbi, buf);
- 	default:
- 		return ext4_generic_attr_show(a, sbi, buf);
- 	}
+Gabriel Krisman Bertazi (4):
+  shmem: Report casefold setting in mount options
+  ext4: Expose the filesystem encoding through sysfs
+  ovl: Add /sys/fs/overlay plumbing
+  ovl: Expose the filesystem encoding through sysfs
+
+ Documentation/ABI/testing/sysfs-fs-ext4    |  21 ++++
+ Documentation/ABI/testing/sysfs-fs-overlay |  13 +++
+ MAINTAINERS                                |   1 +
+ fs/ext4/sysfs.c                            |  29 ++++++
+ fs/overlayfs/Makefile                      |   2 +-
+ fs/overlayfs/overlayfs.h                   |   5 +
+ fs/overlayfs/ovl_entry.h                   |   7 ++
+ fs/overlayfs/super.c                       |  26 ++++-
+ fs/overlayfs/sysfs.c                       | 116 +++++++++++++++++++++
+ mm/shmem.c                                 |  11 ++
+ 10 files changed, 227 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-fs-overlay
+ create mode 100644 fs/overlayfs/sysfs.c
+
 -- 
 2.55.0
 
