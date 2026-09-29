@@ -1,97 +1,95 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-yx2-f42.google.com (mail-yx2-f42.google.com [74.125.224.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ED412C237C
-	for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 15:36:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14F05452BA
+	for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 17:28:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790696172; cv=none; b=BlueP3heBWs8DOGrtpAdf8IbeunPP7PWOkV/coIEGPNONmm59qRlPU2zQG2g3yR0QBo9UpVFi3fxueLHMMeC8Il0wFL9NG1ySqFOerDSrCtXiGCstRKaPF7c88ssOO1yJ6RJu0ZLME4uc+eDcTogxBbrrpzvOTG42B95HPaKYd8=
+	t=1790702903; cv=none; b=ku50kysGvDeeoKKxk4oIzZvHrAWZXDmHd8zZYFxK7/b8HipivvXTG+JyZGJ28ShL3kzi6bPq2ozx1rAWHXdcUf6FqHcG/tZarmadnSdibXWnnYICY53ytEhW2fe4/gBp+yeTXstwG3SaEtc4M2OjlhVjBKNaftX39voqxJ2L1CQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790696172; c=relaxed/simple;
-	bh=dJ+teJJ6nyP49pH9Qv+qmG4wRUKs0zIMYBw7U2m7jiw=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=ilc1NlWJFqz3VuubjmwAuFvmDLdpdLJsBfbsmtch/o+A31MyT5T+2AEOXyV7t5NtE7f4eBhBavOVB1rheiLghOTGCcEwDoGAHpT2SSLlu/zHztdXpNwbxa0fn4spJxCPI12fza+jgX/vxvP11qd2Sgoa4ymKubv4jWlowuYKvug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sTGZSRl2; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ie2AEQyS; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=gamWqDUt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=/GQdw1NJ; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790702903; c=relaxed/simple;
+	bh=8j0qcZ7vyE2oW02nLC5r3IqAcVdJURVPkUEwZFw3aeQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZE7bJlxWHPlmBDZ2ThRnuGrarSNO6my546xqSyrSX9yVlyyuIZUV0HLtUMbNsB29jA1779Sdpcg1Iw6JMEw21gBZ7Co38WIbyrQ6quf8Iqw7ffjpsCZER1FHJqw1TE1Ks6fM8Di9PTFk+69t7cjJsW0sQZWURSYp44gitGpCnOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KuWEDymd; arc=none smtp.client-ip=74.125.224.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sTGZSRl2";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ie2AEQyS";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="gamWqDUt";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="/GQdw1NJ"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id D0C771F79C;
-	Tue, 29 Sep 2026 15:35:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790696156; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yMrm96DArMa2on1T2OU8poCiT/Ajlmru9xAu5CV6dbY=;
-	b=sTGZSRl2gb/ZI0qsUPV3bN/ycC4DOfvy0k8jSRYRu3cJDqFnn4MGY45KEk8RogeTeiPdHa
-	vUG0ZFjm2qoCr3arXbNQjJBU5OdETEhnTgwrFFv8W8eImBLyPjUvWmTsj0Snpba2OSetfS
-	DCf6sEK6IK/dVrdrB9H/QNdXJVoOAcM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790696156;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yMrm96DArMa2on1T2OU8poCiT/Ajlmru9xAu5CV6dbY=;
-	b=ie2AEQySndq9FaLcpcsC0PYLPt1l6WpyPcbdBBy6ica2ycsMHWP7daV1brC11IQSohKNlj
-	rpUOyuMe3Gf/ZSCw==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=gamWqDUt;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="/GQdw1NJ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790696151; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yMrm96DArMa2on1T2OU8poCiT/Ajlmru9xAu5CV6dbY=;
-	b=gamWqDUtEANmJfk8jCSlqDWHELAoBaqUUJIOvWZRf9sxyxjNCDZfHorSql8Qs4cn8rB66v
-	O0wOZpdI8SgwF9UUxlIsxTf9iDK8SGWZNBPSN0Bm/u9kPcNbyVPjtXnXlXYUkiJdCn1qFF
-	PEDwWkmRpXJUUALVhl0Ugus0ZHAvrfE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790696151;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yMrm96DArMa2on1T2OU8poCiT/Ajlmru9xAu5CV6dbY=;
-	b=/GQdw1NJ6k1WzzehfohpLY+HtIMSmnqQG0xeAHCPbhqYk1is3nMa5jvQtPH4QQ2G+7HlG5
-	5P9GjvlmBt2ykUAw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 4D37C136E4;
-	Tue, 29 Sep 2026 15:35:51 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id y8YsBdfau2rwKAAAD6G6ig
-	(envelope-from <krisman@suse.de>); Tue, 29 Sep 2026 15:35:51 +0000
-From: Gabriel Krisman Bertazi <krisman@suse.de>
-To: Pali =?utf-8?Q?Roh=C3=A1r?= <pali@kernel.org>, Amir Goldstein
- <amir73il@gmail.com>
-Cc: linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>,
- Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Hugh Dickins
- <hughd@google.com>, Daniel Tang <danielzgtg.opensource@gmail.com>,
- linux-ext4@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
- linux-unionfs@vger.kernel.org, linux-mm@kvack.org, Chuck Lever
- <cel@kernel.org>
-Subject: Re: [PATCH 4/4] ovl: Expose the filesystem encoding through sysfs
-In-Reply-To: <20260929144043.5rg4zf7uth333qke@pali>
-Organization: SUSE
-References: <20260928213155.2612039-1-krisman@suse.de>
- <20260928213155.2612039-5-krisman@suse.de>
- <CAOQ4uxj7Vx-UGvgGGr9hPC0qUgJZ_WRAv1ZLi=gJ6r=ZJW0QAQ@mail.gmail.com>
- <20260929144043.5rg4zf7uth333qke@pali>
-Date: Tue, 29 Sep 2026 11:35:49 -0400
-Message-ID: <87jyo4xe7e.fsf@mailhost.krisman.be>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KuWEDymd"
+Received: by mail-yx2-f42.google.com with SMTP id 00721157ae682-8961cca9193so64547677b3.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 10:28:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790702896; x=1791307696; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=H7AYhx7OwLQEIiRZQ0G71SBDDoW0tSj1yBVOElXugj8=;
+        b=KuWEDymdiwdfVJ+EH2ZF2DY4ncLmtSEi40hLkedWoCLdRBIFtIpQF3GpSRwcBAwON/
+         Po5VFohtZQtw6RPv8jyV9rRURSfsLUxPgoQbi3Q7Y1yPvuRxsoeaVshN+StFlEMygbZ6
+         G5AWu6F8gGCnlnqqj6TYMl6cqr598P4g5szJXWgLHnuL8++1R6WFFUiPX2pXaZ0TWAI3
+         aBKv3slex/fG4nDdfvbnB2rUNIuycMRXhZNiripawtUWKp2KVMgKlSFsjIfY1dmXsVXa
+         uPnhaer3iXqbyvHEwhOkZ+XnXgZ7wf93fB8K3L7S4C6O7GKRZUTobcDNsOq0aNCvVFAH
+         g7jw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790702896; x=1791307696;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=H7AYhx7OwLQEIiRZQ0G71SBDDoW0tSj1yBVOElXugj8=;
+        b=qWi//Ut21HEWfa40+3lgic40S4eFKZ3klUU7ZOr/kmkN4Gy4YAd1bhJ0d9aOrD7NjE
+         1zgMaNvqy/fuAXakkXoTka3sg23LKc5O33eVcmEb+LJGIF7J1Oud4JOk/7CcGsYj200z
+         8MnKz/eT54NtZWr0/6X5m02HA/YrIDkFEL4uy8ta2TOOZjaYBInLXODVKfEnfYaLiCY6
+         VZ5dchpKXcFW+laKQUH2/OgKKBJ4/JSmGp80TEa/+NBAKOyxUCLbcHFg7j24yOFeMo3z
+         +S1ELYxF8J1vJL1QFIzIEhPtXP+Xn0kOoKhcVSJ9NLWKyM0+tzO3dTnqlsoYv30OLcKL
+         Ug5w==
+X-Forwarded-Encrypted: i=1; AKwUvBxNpDRhFHX6FfHWP+PPJAgCDwu2ix+vi5Js5f20PrUBy8mwJW/IPRF7GREk2MPzXPu27tPT9561qrm5wHA+@vger.kernel.org
+X-Gm-Message-State: AFq9FYLKnJ//Pi5AsE4CBt1BLiREEMYRJYUWxDcPD/2gSMhB18exdLQZ
+	54GC5lpSuBX5UWOq74S/KCljruiBqFQiXk9wWKYb7/z8ZLQKBY7EpppI
+X-Gm-Gg: AYBFou38r4s8PGyk+4pRYy/skcXkTy+e44zxGZ1NjRe0hFyrMq3nu07+dYKtoa/Qcjy
+	F4zlbLjBWM1oZ7HHMA9WH0cHmPES/2uY1C8u7uSKUYBAhd5yZhaowDZYxbb5ILAkqc7mZ4mDVjk
+	fViTmoIMG+832e4i3BbSXL2wLppNJLgMBXvF0NxkHMa4I0+vTT7r1IHvplczWxZZQVlFEWR+bTM
+	Cjz9BnBAQKpSvzcuui2SGRx5LCfz0xFNYUQRqP0dlDfQe9IH8NE/9IpqcCbd8ayCbJWKaAfih6/
+	UwMrjplL2si+vfU7XmkS87gDkafXgWD6UCuw/+QdCf0jQs8K+qjA6a+NdNLIZ99qkAFnsJzdsmQ
+	t1SFLJ/fwdy+oMMcDv+RDZyTamQg0s3OI8+uWUhyZYKah2plozUjLmMZE2i7rkq5oZM941COEu5
+	JIuEx8lf0zghKmPMg35lKtULIssIZVZM+X7g3ddQxaocPeYnO/bf9g81C2rMegILuXWKvI6SEH8
+	HlTTvWs8+gJkQ==
+X-Received: by 2002:a05:690c:348a:b0:8a8:889d:2db with SMTP id 00721157ae682-8a8889d085amr56610267b3.34.1790702896362;
+        Tue, 29 Sep 2026 10:28:16 -0700 (PDT)
+Received: from suesslenovo ([71.132.185.69])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-8abce9ead49sm1450107b3.28.2026.09.29.10.28.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Sep 2026 10:28:15 -0700 (PDT)
+Date: Tue, 29 Sep 2026 13:27:44 -0400
+From: Justin Suess <utilityemal77@gmail.com>
+To: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>
+Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack3000@gmail.com>, 
+	Cai Xinchen <caixinchen1@huawei.com>, mic@digikod.net, paul@paul-moore.com, jmorris@namei.org, 
+	serge@hallyn.com, corbet@lwn.net, skhan@linuxfoundation.org, rdunlap@infradead.org, 
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, dlemoal@kernel.org, 
+	hch@lst.de, axboe@kernel.dk, viro@zeniv.linux.org.uk, brauner@kernel.org, 
+	jack@suse.cz, dhowells@redhat.com, code@tyhicks.com, linkinjeon@kernel.org, 
+	sj1557.seo@samsung.com, yuezhang.mo@sony.com, hirofumi@mail.parknet.co.jp, 
+	cel@kernel.org, jlayton@kernel.org, neil@brown.name, okorniev@redhat.com, 
+	Dai.Ngo@oracle.com, tom@talpey.com, miklos@szeredi.hu, amir73il@gmail.com, 
+	senozhatsky@chromium.org, chenxiaosong@chenxiaosong.com, zohar@linux.ibm.com, 
+	roberto.sassu@huawei.com, dmitry.kasatkin@gmail.com, eric.snowberg@oracle.com, 
+	stephen.smalley.work@gmail.com, omosnacek@gmail.com, casey@schaufler-ca.com, nanx95726@gmail.com, 
+	djwong@kernel.org, daniel@iogearbox.net, linux-security-module@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, netfs@lists.linux.dev, 
+	ecryptfs@vger.kernel.org, exfat@lists.linux.dev, linux-nfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-integrity@vger.kernel.org, 
+	selinux@vger.kernel.org, linux-kselftest@vger.kernel.org, xiujianfeng@huawei.com, 
+	lujialin4@huawei.com
+Subject: Re: [PATCH RFC -next 00/12] landlock: Add READ_METADATA and
+ WRITE_METADATA access rights
+Message-ID: <arvjb0HJYh1KyEBB@suesslenovo>
+References: <20260924104831.1081137-1-caixinchen1@huawei.com>
+ <araxO4ze0KZBz756@suesslenovo>
+ <20260926.255b951d3013@gnoack.org>
+ <arqcbjWLN1CLkL_Y@suesslenovo>
+ <arurOphe6QIx2Zr8@google.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -99,69 +97,181 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:email,mailhost.krisman.be:mid];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	ARC_NA(0.00)[];
-	HAS_ORG_HEADER(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[13];
-	FREEMAIL_TO(0.00)[kernel.org,gmail.com];
-	MIME_TRACE(0.00)[0:+];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	FREEMAIL_CC(0.00)[vger.kernel.org,kernel.org,suse.cz,mit.edu,google.com,gmail.com,szeredi.hu,kvack.org];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	TAGGED_RCPT(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:email,mailhost.krisman.be:mid]
-X-Spam-Score: -3.01
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: D0C771F79C
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spam-Flag: NO
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <arurOphe6QIx2Zr8@google.com>
 
-Pali Roh=C3=A1r <pali@kernel.org> writes:
-
-> On Tuesday 29 September 2026 16:15:04 Amir Goldstein wrote:
->> On Mon, Sep 28, 2026 at 11:32=E2=80=AFPM Gabriel Krisman Bertazi
->> <krisman@suse.de> wrote:
->> >
->> > This patch reproduces the same interface from ext4/f2fs to have feature
->> > parity, so users don't need to rely on parsing dmesg or trying +F on a
->> > temporary directory just to check for support.  Note there is no
->> > encoding_flags file, as none are supported by ovl.
->> >
->>=20
->> Gabriel,
->>=20
->> I am not ok with this API.
->> It is wrong in several ways.
->> It is not generic, we have already file_getattr() to get casefold status.
->> There was a suggestion by Pali [1] to get the supported xflags - statx s=
-tyle,
->> which can be a way to say if a fs could return FS_XFLAG_CASEFOLD.
+On Tue, Sep 29, 2026 at 02:12:42PM +0200, Günther Noack wrote:
+> On Mon, Sep 28, 2026 at 01:13:35PM -0400, Justin Suess wrote:
+> > On Sat, Sep 26, 2026 at 09:56:28AM +0200, Günther Noack wrote:
+> > > Hello!
+> > > 
+> > > On Fri, Sep 25, 2026 at 02:03:05PM -0400, Justin Suess wrote:
+> > > > On Thu, Sep 24, 2026 at 06:48:19PM +0800, Cai Xinchen wrote:
+> > > > > This series adds two new Landlock filesystem access rights,
+> > > > > LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
+> > > > > which control access to file and directory metadata such as inode
+> > > > > attributes (mode, ownership, timestamps), extended attributes and POSIX
+> > > > > ACLs.  It picks up the work from the "landlock: add chmod and chown
+> > > > > support" series [1] and follows the coarse-grained grouping discussed in
+> > > > > that thread [2]: instead of separate chmod/chown rights, metadata
+> > > > > operations are grouped into one read and one write right.
+> > > > > 
+> > > > > Landlock evaluates access rights on a per-path basis, but the metadata
+> > > > > related LSM hooks (inode_getattr, inode_setattr, inode_setxattr,
+> > > > > inode_getxattr, inode_listxattr, inode_removexattr, inode_set_acl,
+> > > > > inode_get_acl, inode_remove_acl) only receive the dentry of the accessed
+> > > > > object.  Patches 1-7 therefore first pass struct path instead of dentry
+> > > > > through the metadata-related VFS helpers and LSM hooks.  This is a pure
+> > > > > refactoring with no behavior change, split so that every patch builds
+> > > > > and works on its own:
+> > > > >
+> > > > I like these patches, but is the ability to read metadata already
+> > > > sorta controlled by LANDLOCK_ACCESS_FS_READ_DIR on the parent
+> > > > directory?
+> > > > 
+> > > > The one case I see this being different is:
+> > > > 
+> > > > 1. if you wanted to grant read access to the file, but not metadata
+> > > > read access, but I can't think of any usecase for being able to read
+> > > > the contents of a file, but not the metadata. (see below)
+> > > > 
+> > > > 2. If you had the absolute path already and didn't need READ_DIR.
+> > > > 
+> > > > I see introducing this READ_METADATA as causing potential
+> > > > hard-to-diagnose issues.
+> > > > 
+> > > > Say you handle READ_METADATA and READ_FILE, but only grant READ_FILE.
+> > > > 
+> > > > The program can technically open the file with the READ_FILE permission,
+> > > > but it may error out because the stat() on it beforehand failed.
+> > > > It's pretty common for programs to do that kind of thing (stat before
+> > > > open), like for checking for config files (strace bash and you see it
+> > > > stat .profile, /etc/profile)
+> > > > 
+> > > > There may be other bugs, because being able to set permissions to read
+> > > > a file *but not read it's metadata* isn't possible currently in posix
+> > > > acl and userspace may not work well if that assumption no longer holds.
+> > > >
+> > * posix acl and linux DAC.
+> > 
+> > > > So maybe WRITE_METADATA is good enough?
+> > > 
+> > > The existing use cases are the combinations of (a) READ_DIR
+> > > allowed/denied and (b) READ_METADATA allowed/denied.  Because these
+> > > two access rights overlap slightly, it seems likely that for a given
+> > > directory or file, users will want to either grant both, or deny both.
+> > > 
+> > > At the moment, where the (not yet existing) READ_METADATA is
+> > > implicitly always allowed, the problematic case is the one where the
+> > > Landlock user wants to deny READ_DIR, but where much of the same
+> > > metadata is still available through stat() and the various
+> > > get-attribute syscalls.  (c.f. the warning box in the Landlock docs
+> > > [1])
+> > > 
+> > > In my view the READ_METADATA right closes a gap that READ_DIR left
+> > > open (which is also potentially surprising to callers if they did not
+> > > read the docs closely).  Also, if its implementation is symmetric to
+> > > WRITE_METADATA, I feel that it's worth having it in the same patch
+> > > set.
+> > > 
+> > > –Günther
+> > > 
+> > > P.S.: I know, even after we can control stat(), there are likely ways
+> > > to infer the presence of a file by observing Landlock error codes.
+> > > This would be nice to fix as well, but is harder to do without
+> > > controlling the path walk itself [2].  But also, the fact that this is
+> > > currently not controllable is not an excuse for leaving READ_METADATA
+> > > open IMHO.
+> > >
+> > I'm still sort of concerned about the case where read access is allowed,
+> > but metadata isn't, due to how many applications will not cleanly handle
+> > such an unexpected condition. You can reproduce this with a seccomp
+> > policy forbidding stat().
+> > 
+> > Would it make sense to have the existing READ rights
+> > (READ_DIR/READ_FILE) imply READ_METADATA on the files/directories 
+> > if READ_METADATA is handled? Reading a file's contents should always
+> > imply that you can read the metadata.
+> 
+> I am wary of situations where the handling of access rights implicity
+> implies other access rights.  We have discussed such schemes in the
+> past (e.g. we considered a design for RESOLVE_UNIX where we'd have
+> both a "scoped" and a "access_fs" right that would interact with each
+> other), but in the end we always settled for approaches where such
+> interactions would not be necessary.  One of the concerns was that it
+> would complicate "best effort" fallback logic in all Landlock
+> libraries and in the countless places where people use the syscalls
+> directly.
+> 
+> To throw another option in the mix.  (To be clear, I have only 70%
+> confidence, so feel free to push back, but it feels like it might
+> work?):
+> 
+> Is this similar to the "truncate" right?
+> ----------------------------------------
+> 
+> With "truncate", there was an existing common operation (open(2) with
+> O_TRUNC, a.k.a. creat(2)) which called the truncation hook and checked
+> for the truncation access right.  But that was in fact OK.  The way we
+> resolved it at the time was by documenting very loudly that WRITE_FILE
+> and TRUNCATE access rights should always be requested in lockstep, if
+> TRUNCATE is handled.
+> 
+> If READ_DIR and READ_FILE do in fact read and return metadata to the
+> user, maybe the right thing would be to do it the same way here and
+> *require* that we have READ_METADATA to do these operations?
+> 
+> (READ_METADATA is automatically allowed as long as it's not handled,
+> so that approach does not break existing programs.  Programs who
+> consciously start handling READ_METADATA must simply take into account
+> that reading directories and opening files for reading requires
+> READ_METADATA.)
+> 
+> (BTW, I can see it for reading directories, but I am not sure I fully
+> follow the argument why opening files for reading means that you can
+> read the metadata?  Can't that be guarded on fstat()-like operations?)
 >
-> Yea, sorry for that. I have not finished it, I did not have time. But I
-> would like to address this as this is something was was asked more
-> times...
+Many standard libraries will call stat before / after opening a file to
+allocate a buffer matching the file size. Or to figure out if mmap
+is more efficient than opening it directly.
 
-please cc me when sending it.=20
+So Python's open().read() or Go's os.ReadFile they may throw an error
+when opening the file, making it look as if the file is inaccessible
+when its contents are. They make the assumption that if a file is
+readable, the metadata is too.
 
---=20
-Gabriel Krisman Bertazi
+There's also a lot of metadata that is already leaked by just having
+READ_FILE. FS_IOC_GETFLAGS/FS_IOC_FSGETXATTR ioctl / fileattr_get are
+unrestrictable and allow you to see inode attributes. There's also
+access(2) which isn't restricted here and allows you to see your rights
+on the file. The size can be found by simply seeking to the beginning
+and end. So much of the metadata is obtainable with just READ_DIR/READ_FILE.
+
+...
+
+Another problem I'm just realizing is that this READ_METADATA
+right is inconsistent with open file descriptor behavior. With most
+rights, already open file descriptors are exempted, but here, fstat,
+(and the other stat-family calls which takes a file descriptor) become
+denied even on already open files. It's a catch 22 here, if you change
+the fstat to not apply to opened files, then READ_FILE becomes a bypass
+for READ_METADATA. But if you leave it as is, then it's inconsistent with
+the other Landlock rights wrt already opened files.
+
+Which isn't the end of the world, but just shows that either
+approach is going to have it's quirks. 
+
+I think it would be better to just avoid the cat and mouse game here
+of trying to seperate READ_FILE/READ_METADATA and either require
+READ_METADATA be specified with READ_FILE if READ_METADATA is handled
+like Gunther proposed, or have READ_FILE imply READ_METADATA.
+
+Documenting it strongly is OK too, but really there are really zero
+usecases where you'd want to grant READ_FILE without READ_METADATA
+so it would need to be made extremely clear.
+
+Thanks,
+Justin
+
+> —Günther
