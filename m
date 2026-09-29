@@ -1,121 +1,138 @@
-Received: from mail-wm2-f13.google.com (mail-wm2-f13.google.com [74.125.225.141])
+Received: from mail-ed2-f35.google.com (mail-ed2-f35.google.com [74.125.228.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13183C1D65
-	for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 14:00:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.141
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790690418; cv=none; b=JbmxStAsaan1QefO5y6xkZDV1UpDa2MfFYRGTO6CEObRALKQDyCcopS7tfp17TlaiTmPbBky3IX9BCLkwsSaNu0XCz7IIagAhLl2UdkpvKM//J+c4ggELzUziH9cMz5pbv8C/zukdwWlOaFEgGzwWT0jpuZzl2sAAIwJSTmLvho=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790690418; c=relaxed/simple;
-	bh=MB1KEcVb+uH2ecGVyr4qpLqKb6SbBgJAInb15YOv3bI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jS2Tym0IoIMXqiTOyDpvjJzPRdOYiDCOF32CxrRCAOxZWq4aDipAQHHeHdkO5YK2+yOdUdHadI+OaeWT7DPfgqGqwsqUygOOtx0gr+pIsH/tbHXFrsDJzqSvyNvGLUUJOBquTcfNasLTol8EZjNy03Cjz/N0vyem53trfqCsMLc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FlqnDlBJ; arc=none smtp.client-ip=74.125.225.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA8142D73B6
+	for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 14:15:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.99
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790691319; cv=pass; b=l+SkZjS8HQ/C73hB8LaWREyqBsUPK9q5lw6y4CFvhIPmiDrnUry9amqku7VNO6PLhshYx088KPffoySqHglskk/dlpvPon6dGyyjN/dXKzWVjIHrEFvPYVm4CP8TJVSOkH3fD46VBZl/bhRzlnPA9b4BxAH0q9sPTTBuGeYGM+Y=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790691319; c=relaxed/simple;
+	bh=WNPiWlZ8WpoGHZK99aHcbTTI4gKFUrGP6Bht4p9ETqw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YJ8cCC+07IBK7XEdYUNHNzXDntTxBKnfHtsl5uHcAs35K98J09qe3Ls2+9tKzLOHspRppaK2S8FkQuzremKOp1a2tYLtBcAopsEL7rPJXPD/Z5TAzYbtFanOIBOk0lLS/IuBkYUVKaEX7tSCSes9pxFDxZOb15uSSJ+l5etdW1E=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=m5y2zrvd; arc=pass smtp.client-ip=74.125.228.99
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FlqnDlBJ"
-Received: by mail-wm2-f13.google.com with SMTP id 5b1f17b1804b1-49e8185e037so23863195e9.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 07:00:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m5y2zrvd"
+Received: by mail-ed2-f35.google.com with SMTP id 4fb4d7f45d1cf-6aaeeacce15so6494102a12.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 07:15:17 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790691316; cv=none;
+        d=google.com; s=arc-20260327;
+        b=a+knWq+7jaIt3xysx3m2iYzwmBwy/WOkyW31a780uu2ctJdvuHwHFHF4FGRAR92D4i
+         fqG+nncB3J+XAsrqPh+ViYXYMUzGn33DiiGNA1JKjOMw4xCW6y2Y+LY2PvakjJdadL5U
+         mXpn3j59wLgIIHvfoIgEty8smrKo/RjUb8IOMmvZMVqhuj+k5xahgj9mPX/ScRUgnvEn
+         2pv80m2G5CYgtXbWZwxuzXFwsbL2o8oQK5B+F7Rk1fqMYhiU1H5VPYlaL5smOG/S3is8
+         jH0JlqHOvv8Xw3jj9l1ry1q/ZBph6Pv25GDk98BWAYCRKuQAUic9GNe8Z7DJL+tPmIVB
+         DXOA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=trsZq/IgHnE0dFOaiSMsY9WGT+wIu9sqLXFKuCxoh54=;
+        fh=sOCeV26rP4LCewfvq/ftLqzeH2oBvvBnOCpGmoMH4cQ=;
+        b=IcBuDyxc+kHCaC66DMPKd2R25v49LSnMEGqZXUfvjTeKgvVxrwCl+1MALSVQFZQi4v
+         CXkUSnSib84lOQ5uKZ4pisT+d+y+5td0M+xNklR34xJ/6/aPreZH8+lKgtY00LZqv9N7
+         RI8zkkPMsoWP5AA7JygmaXI9JEKdHk38O5IowTui1667+zIb+V9K006j7dVp9/+Rmz/P
+         PayIHB94O+2+H1LURdUQPKBOWsTZdo5nqE63DPYi9Q8li9n6tNKe3T0nPmajOVA+v1HA
+         etPQvg0x9rCS2u7MirI+b9H0MCdYqANFHS1tOflQwLMZ8HPJvYHqVPHw6Y6jFrqU/cAY
+         QffQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790690413; x=1791295213; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=x/srKavlgqYlrzFVROF7aG+7+UUAJd3JIGxu7I1XKtY=;
-        b=FlqnDlBJ+Yz80ZO1r7yWk6Z3JKIYQl6ehX7Bg3eVFmKOhp8/wH4AnIonKdXycTxKUE
-         Cg+3vX6yUMGlM9Ba7L1AKY8R89rQPhhuOEEWjoOsP20f64ArYuIgNZOWGxwQTEq/o9ap
-         kuRXJtP+kJ89vmGOrdMCkASwKsDOZXlQqsF2D8uPvhc8yTuD9eCFaVUYxuHDY/1KLk6J
-         0A8NmJfEU38xE1O7qtPbzju0qmRKuvq0CcQS0GNJ4hu7tFO5UPfPiuJIkoSX0lfM0cJG
-         EFnrij3Xk7K5i7tI4OrawzUMYr/T3JLwK0/lQ3FQi6mnxLeh/5RZbLXBp5UydF3SFYs2
-         +j+A==
+        d=gmail.com; s=20251104; t=1790691316; x=1791296116; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=trsZq/IgHnE0dFOaiSMsY9WGT+wIu9sqLXFKuCxoh54=;
+        b=m5y2zrvdfKrrDlWmbGVWkbKGlBSJlMpl4+t0+q1faSnSoOJXN6vDuwrx7Q5hAD3Jpa
+         TY1linw7bcIDan8EjtIzhGgc+cyoOOwyRE9RzgVeKFdxqJx0w4V70OU8Hj01JopcA6Hn
+         WUcTqIB2KUfNBRFKNWoiCbphBarMs/ugh+VFmI9cyBvZd/KaML1Tx0RbvsQGKM0Zw7BW
+         7Pw7XjOq/uRJAEVaeBmKNlOq4oCWmiCOwzzEWoGrPOkTbvUPc+hZQDS6ZR8C1hSEvJ9h
+         mJ2XaYaEL0wMf1AGO+tJPkEy03kCRy0RMlpqaxhBeISH8gpSJDejJ/lXf8WFf3CQ9Ewc
+         K6Tw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790690413; x=1791295213;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=x/srKavlgqYlrzFVROF7aG+7+UUAJd3JIGxu7I1XKtY=;
-        b=BpWFCnW7uIhfXj+qPPxn4BpBOseIg+CiOY05cNLZujuTTZ3zn4Yf24v/kQgNsnvhhr
-         AFzmRYoEORS50wIqCROUk3hcwva1WMKYYJHawvfdj5+tAebsNsvGmPOMrmqyDbyd4c+1
-         LTzx4u4QvadezvswxLqpOJVX/HcHuEFK7BkrcCGvzYJKJoRBRCiABoC+GAFiZtxAfymq
-         3HfRWGJ+kAhKpWsc5IKEm6QcWX83+KibH60kjzZtfrCT7vhAwLy8yhpKEiFLdO7onnAK
-         3j64MHWjCwHlCqKy0PsQFggJ9jY8bBl0ibJvKfVrRZa/kb4QJCAWrNwTNvNCe2d6GUwF
-         0RZA==
-X-Forwarded-Encrypted: i=1; AKwUvByM7TCbuNH/iRnUnSOnYIONgXNb+pmmFuvhR/fp07Fh3mSoQ5J+rFvQqz0oBOVMBv0KT2civlKB8RVoQzfs@vger.kernel.org
-X-Gm-Message-State: AFuF++ndjlHKBeIbg+Piz5iLZTnWA4ziFMUAv63hB+jPKZoOKurK1MXa
-	hFUiIU+acNoB3N2hQ6d2VBtRhBm4HxHci5FS9zYtnNBYLF53hMBEElk=
-X-Gm-Gg: AYBFou1X9XxXksRA8/IUZVzFpQgRpLqkBGkY93qstN+4V+f+dGK6838XFmSUTz1htqX
-	jEPU0b/dwqznUOTKDbmEOdJDADVn4js0f/KUXCVJ2sWU8gvi0Urckcj0oFI0824scLLOtRh6WRe
-	jBwnGTBA7H9/eRxRZMGBL2bvC7uQbMXeiDS0ksvp7nB1swfEBbkGxI725sGH4Bf/WBELoIyhXEH
-	AB3OGhWBfLcGVCzwRffOFfDMKw53sjYMMNWPSJhIOxlnGPG5OLwQaKqIKMK4wtLnjMH17w/F2ks
-	0TQTJMkCSpAhtoAYypmaSkCQP0rVIJifkQKaxVVgFyjF/NJRVbuhxO8pcZg152iSrgQnSxDZ+jX
-	BRgi6uV0ziJv0IzoN3G7w8ZILVYdVI8PrQlPSPMiUIqk9xMR5FMFl6WtWnIWRIDwg2Jl/hatS2Q
-	g2yDISHaRKlmGZRTX+KSvBYcVw4rUAHABWd5h/6KCJLrPDGbBPYlVutSFODePOTsrX+hFGJy/MI
-	Z/deqR4dXoIRAQplJEBjPTxyAGC4WqOaNrmN+9Qk+uXxSNrxpMuFrhQHJyyljoctB7Rf6cznZr/
-	uGPW2PU=
-X-Received: by 2002:a05:600c:4695:b0:49e:7d74:7b7a with SMTP id 5b1f17b1804b1-49ff06b2c70mr225355595e9.6.1790690412769;
-        Tue, 29 Sep 2026 07:00:12 -0700 (PDT)
-Received: from Ubuntu-2604-resolute-amd64-base ([2a01:4f8:13b:86d::2])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a013cc0255sm7184465e9.1.2026.09.29.07.00.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Sep 2026 07:00:12 -0700 (PDT)
-From: Mohammed EL Kadiri <med08elkadiri@gmail.com>
-To: krisman@suse.de
-Cc: amir73il@gmail.com,
-	brauner@kernel.org,
-	danielzgtg.opensource@gmail.com,
-	hughd@google.com,
-	jack@suse.cz,
-	linux-ext4@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-unionfs@vger.kernel.org,
-	miklos@szeredi.hu,
-	tytso@mit.edu
-Subject: Re: [PATCH 1/4] shmem: Report casefold setting in mount options
-Date: Tue, 29 Sep 2026 16:00:11 +0200
-Message-ID: <20260929140011.211148-1-med08elkadiri@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260928213155.2612039-2-krisman@suse.de>
-References: <20260928213155.2612039-1-krisman@suse.de> <20260928213155.2612039-2-krisman@suse.de>
+        d=1e100.net; s=20260707; t=1790691316; x=1791296116;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=trsZq/IgHnE0dFOaiSMsY9WGT+wIu9sqLXFKuCxoh54=;
+        b=PD1NW6XViV/oWvJLABhKgWMPJc6W5qX3MR+vMkST9VQzj1D3t5QCmKeT+J9ExuoqIg
+         HOikxIbtxZ6mT6CCx+aWf2cJcrXLBfCFIwWa0dGddrAuFloXP+TkvxF+UIgNB0ITJMg4
+         +vFXBLv+ZF6Zm/FeGRCHnzca273unSbAWIwLz47mWKZ+WKRLT4iS8mWJ+eAokttqoWM9
+         XKlD8VWjDHYVO/SXY7wcYpRv+x4bZdB//ylSy2+CXKwtVED3vOEXyVYijRqnS0UTehmh
+         CDWP1S5MECnKCagxkiWgJfyzlrXgsgcsHlO3tNb6wGKuugdA0K6PCg+3gMyPbAYzHtxE
+         oBEg==
+X-Forwarded-Encrypted: i=1; AKwUvBzxTHezvMoEtzQRBSJJTvUdaY/l5MT5JDwZiwgjO3fNz0YqZpp4CDOKqsAR7ZzeqBGYooW/HMprbNvNj1co@vger.kernel.org
+X-Gm-Message-State: AFq9FYKeOBGz16+J0Krfp+Up/IXOLH5BciIhvRwQDufcGH7yaFpXE4s1
+	F2Qq6dRxKzm0skOC4UJDcC8BZsNmJ97c3h53k3GdRy5cdwDYVYMUat7rBXCCxm4bmeu90RONWaf
+	Qvan2n+fXwpTuipKZneonHomnCaEIdJU=
+X-Gm-Gg: AYBFou1zuSsAMQKjfAs7C4eHj5znyGHjmWhpWXSEUkJRz8/S/j5Qxgcux9SbZPN3AEz
+	cRfViGoplFSWfvjZsdba+3Vz/BQ4ZPvY1xCMTr7LYBm0fOsUKTDx0eyhEzK4cidzuW6DIcGTWpE
+	pfV3n0deXPZbg7ykHwLaqO09EKS3XEPqhq7LXSpTs1mZXE+llfXiJFg2I5jb4gSTxDHupQleOM4
+	3mEdyCrR3YWhFr4zjxn+PpHKG+YDRBNk5kIgN+fOP7hKg1DFqE5wnPMLKH8y7LM1HU5lWbaCfec
+	QAWgw2tEAvHHFierlRxm3sbCRhYVLTdz380xNdYb7m1yPKvfoDCyak3y
+X-Received: by 2002:a05:6402:380a:b0:6ac:bd84:2b84 with SMTP id
+ 4fb4d7f45d1cf-6acbd843b1fmr1090820a12.34.1790691315590; Tue, 29 Sep 2026
+ 07:15:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260928213155.2612039-1-krisman@suse.de> <20260928213155.2612039-5-krisman@suse.de>
+In-Reply-To: <20260928213155.2612039-5-krisman@suse.de>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 29 Sep 2026 16:15:04 +0200
+X-Gm-Features: AclHuK8ytKjl4O38jVPReRqXBMm8kcLwbRELyjNeXdrdxLC7F0LMOcN0dvJ9ryk
+Message-ID: <CAOQ4uxj7Vx-UGvgGGr9hPC0qUgJZ_WRAv1ZLi=gJ6r=ZJW0QAQ@mail.gmail.com>
+Subject: Re: [PATCH 4/4] ovl: Expose the filesystem encoding through sysfs
+To: Gabriel Krisman Bertazi <krisman@suse.de>
+Cc: linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>, 
+	Jan Kara <jack@suse.cz>, "Theodore Ts'o" <tytso@mit.edu>, Hugh Dickins <hughd@google.com>, 
+	Daniel Tang <danielzgtg.opensource@gmail.com>, linux-ext4@vger.kernel.org, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-mm@kvack.org, 
+	Chuck Lever <cel@kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 28, 2026 at 05:31:52PM -0400, Gabriel Krisman Bertazi wrote:
-> For shmem, casefolding is a mount option.  Report the current encoding
-> and casefolding flags in /proc/mounts
+On Mon, Sep 28, 2026 at 11:32=E2=80=AFPM Gabriel Krisman Bertazi
+<krisman@suse.de> wrote:
+>
+> This patch reproduces the same interface from ext4/f2fs to have feature
+> parity, so users don't need to rely on parsing dmesg or trying +F on a
+> temporary directory just to check for support.  Note there is no
+> encoding_flags file, as none are supported by ovl.
+>
 
-This works for me, on 90ddfbd19636 (akpm/mm-unstable), x86_64,
-CONFIG_UNICODE=y:
+Gabriel,
 
-  # mount -t tmpfs -o casefold tmpfs /t
-  # grep /t /proc/mounts
-  tmpfs /t tmpfs rw,relatime,casefold=utf8-12.1.0 0 0
+I am not ok with this API.
+It is wrong in several ways.
+It is not generic, we have already file_getattr() to get casefold status.
+There was a suggestion by Pali [1] to get the supported xflags - statx styl=
+e,
+which can be a way to say if a fs could return FS_XFLAG_CASEFOLD.
+In Chuck's v2 [2] FILEATTR_CASEFOLD_TYPE was already suggested
+as an extension to file_getattr(). I think we can still do that if we inclu=
+de
+proper versioning in the casefold type.
 
-Tested-by: Mohammed EL Kadiri <med08elkadiri@gmail.com>
+TBH, I don't think anyone requested this - you only mentioned
+the need to know if tmpfs was mounted with casefold on and that
+doesn't mean that etx4/ovl patches are justified, but ext4 can decide
+for themselves.
 
-Heads-up on one side effect, since mount(8) builds its remount options
-from /proc/mounts: once casefold= is listed there, it gets passed back on
-every remount.
+The point is that this sysfs is not going to be the standard for all the
+fs that can return the FS_XFLAG_CASEFOLD, so I see no reason
+to add this sysfs interface to ovl.
 
-  # mount -t tmpfs -o casefold tmpfs /t
-  [  527.593309] tmpfs: Using encoding : utf8-12.1.0
-  # mount -o remount,size=64M /t
-  [  527.595716] tmpfs: Using encoding : utf8-12.1.0
+Thanks,
+Amir.
 
-That second line is shmem_parse_opt_casefold() running on a remount that
-only asked to change size.  It calls utf8_load() each time, and nothing
-frees the result - shmem_reconfigure() doesn't look at ctx->encoding and
-shmem_free_fc() doesn't unload it.  50000 such remounts grew kmalloc-32 by
-~50000 objects; a tmpfs without casefold stays flat.
-
-The leak predates this patch - you can trigger it by passing casefold= on
-a remount by hand - so I sent the fix as a separate patch:
-
-https://lore.kernel.org/all/ba38f80f629fd093c77f3a49fdab7b71ee7bbc5f.1790687276.git.med08elkadiri@gmail.com/
+[1] https://lore.kernel.org/linux-fsdevel/20250216164029.20673-4-pali@kerne=
+l.org/
+[2] https://lore.kernel.org/linux-fsdevel/20251211152116.480799-2-cel@kerne=
+l.org/
