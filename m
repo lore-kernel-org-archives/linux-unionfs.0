@@ -1,262 +1,166 @@
-Received: from smtp-42a8.mail.infomaniak.ch (smtp-42a8.mail.infomaniak.ch [84.16.66.168])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 627AA552950
-	for <linux-unionfs@vger.kernel.org>; Tue, 29 Sep 2026 18:52:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=84.16.66.168
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 385A33126C0
+	for <linux-unionfs@vger.kernel.org>; Wed, 30 Sep 2026 10:22:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790707929; cv=none; b=cQmXHPDql9C/bOQYn2PvU6VnT7XJYCDRuTweht5rp2HJpV7nMU+2f2C8gd087QHr9/EFfkCxUu4GJ//qknG/Ki54+z3gxIZPihAfDcsBBB/7U79JHkfOqi/nMvjEkQGMUznMACkxQPVwAnxczkKN+Yi4riUEHdhfEF1A9oYouWo=
+	t=1790763733; cv=none; b=Ypsd3LzGikQinPr6jgFgymGb3ssWveOBKfupwr/acHT3bCCuse++IKaTPyP0FKcjXv1M3JecO0Gru0ir+WwQWoN8KkeBiqBwphl4/VflxlRECxRE0s/qPm7zNup9f+NWgPNQoK4X4mLh3zGPslL/EYxzeL6CbNXQHOWOGukqoPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790707929; c=relaxed/simple;
-	bh=XG42HsU/sMqXC+2mZyZtlSTX6jXkUuV0jGL7ftsUi1c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TDFruBqnG7cEsmUt6a4zF1vjmqc9Qx8zcORIMLdYW9Ghvh4P2SDxrsecqpcv36gf3nIVyZvkpOYJtHwjYtsm5M8/IIdNX5VhyFwoIeogZa/unx/B9vPxxTk79GHrhXE1VaFTqbnmW97JJGEBEFe5nOYgPxH4lqXKefjfWKykftc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=NmkxKvYY; arc=none smtp.client-ip=84.16.66.168
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="NmkxKvYY"
-Received: from smtp-4-0000.mail.infomaniak.ch (unknown [IPv6:2001:1600:7:10::a6b])
-	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4hvS2p2m6Sz1CD;
-	Tue, 29 Sep 2026 20:52:02 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1790707921;
-	bh=n8m+1/BomLkKgTbR4X98Agh5NHkdrJRlqsVG38xM61s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NmkxKvYY7IAkYpsQSw34+uAQW9dfJv3xKt7fsNkRohVNKzr5oP5BjUWuF2NdOi79t
-	 vvs4m9cuI+bBBRuJQAVOoHW1oRrA18o+pALFKcTK6U8VOdF0aQDADis65isVXer8D4
-	 UtHi4jAnDX1/It25jO4gSTSKy338JFE41uy/4218=
-Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4hvS2b4dnJzppl;
-	Tue, 29 Sep 2026 20:51:51 +0200 (CEST)
-Date: Tue, 29 Sep 2026 20:51:47 +0200
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Justin Suess <utilityemal77@gmail.com>
-Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
-	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack3000@gmail.com>, Cai Xinchen <caixinchen1@huawei.com>, paul@paul-moore.com, 
-	jmorris@namei.org, serge@hallyn.com, corbet@lwn.net, skhan@linuxfoundation.org, 
-	rdunlap@infradead.org, gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, 
-	dlemoal@kernel.org, hch@lst.de, axboe@kernel.dk, viro@zeniv.linux.org.uk, 
-	brauner@kernel.org, jack@suse.cz, dhowells@redhat.com, code@tyhicks.com, 
-	linkinjeon@kernel.org, sj1557.seo@samsung.com, yuezhang.mo@sony.com, 
-	hirofumi@mail.parknet.co.jp, cel@kernel.org, jlayton@kernel.org, neil@brown.name, 
-	okorniev@redhat.com, Dai.Ngo@oracle.com, tom@talpey.com, miklos@szeredi.hu, 
-	amir73il@gmail.com, senozhatsky@chromium.org, chenxiaosong@chenxiaosong.com, 
-	zohar@linux.ibm.com, roberto.sassu@huawei.com, dmitry.kasatkin@gmail.com, 
-	eric.snowberg@oracle.com, stephen.smalley.work@gmail.com, omosnacek@gmail.com, 
-	casey@schaufler-ca.com, nanx95726@gmail.com, djwong@kernel.org, daniel@iogearbox.net, 
-	linux-security-module@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	netfs@lists.linux.dev, ecryptfs@vger.kernel.org, exfat@lists.linux.dev, 
-	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
-	linux-integrity@vger.kernel.org, selinux@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	xiujianfeng@huawei.com, lujialin4@huawei.com
-Subject: Re: [PATCH RFC -next 00/12] landlock: Add READ_METADATA and
- WRITE_METADATA access rights
-Message-ID: <20260929.Ahgoo4yeetai@digikod.net>
-References: <20260924104831.1081137-1-caixinchen1@huawei.com>
- <araxO4ze0KZBz756@suesslenovo>
- <20260926.255b951d3013@gnoack.org>
- <arqcbjWLN1CLkL_Y@suesslenovo>
- <arurOphe6QIx2Zr8@google.com>
- <arvjb0HJYh1KyEBB@suesslenovo>
+	s=arc-20240116; t=1790763733; c=relaxed/simple;
+	bh=HTstWwHGvjQaqkxfRTX9fKd56IW56PagSfiTwJIrIgo=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
+	 Content-Type; b=JudMDE2YBdV5yML1fFmYvQemhBSQrBMrLEQ8Biimvf1+pBPAgopxFWQh7wlJ/0JkxhFgZd8xkf3UZRH6CrmQTiR0ljmhLtmkoKjgN5CMBjkvtFt0WUM7NKBBw+DzabJ0WPSXbxyspC8DH8m70W5uvlFJsSc4TwYuorAfyWepyPc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-4b597558c4cso8497158b6e.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Sep 2026 03:22:11 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790763730; x=1791368530;
+        h=content-type:cc:to:from:subject:message-id:in-reply-to:date
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=5ciPoU9g0L9TxJi7K6B543D4kgHHCBTjDma4BORePb8=;
+        b=EGTGrXevk+YJmUxqbUcRfUc+oCUvpr216XqqzXyHNQ+CMP+FdAkD3eC9GyhbfpLcGW
+         vPfuXLJ63YsoQkZusSpM9kjtpxKzXWxUTpG7WqOnlGoRdpYg8AAe6wxUSlGWG5LNrXnc
+         CHHQr9obU8p+fv6v3SeBg7LEc0l5yGwStlCw3vgJQsVn1WP+/8qWbjXuZdx/+wSaC0jP
+         dGk65xhqAw1IdGqjFAk475O1LpUauQNz13G01P35+2am0cxZmJgiLs6oiIws7lF43Rpn
+         lMz2P+v7Lcdja+IW6BxOHHZn1nTQYP2kNK2UVfweEy30ULSekn9uBzCKHkUCKVXeGFEW
+         EwVw==
+X-Forwarded-Encrypted: i=1; AKwUvBykesmhd+8lWWZgt7u8qF9cdQKyrOZRdUehpBEaTjcL4P+KnW0JjFumwf4+0tTlJ69eZau5u47IcV+lvHzb@vger.kernel.org
+X-Gm-Message-State: AFuF++mzSsxRP0Dt9sVCvcHP7iRK6Er4PfGp94lGioI31zEIql1y53Fv
+	KaZjstHBpj8B831D9Aj7yx/mbCIuVWm31W5gn2g/IEIGumtGhSdJRZ4XfDubCEBawhqaGZzEbiY
+	rEsmG5r2fBWnQySEbFpU6Y2FhtvhfIRhuu+JpdEDpilnWydjUSApyBJLINBs=
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <arvjb0HJYh1KyEBB@suesslenovo>
-X-Infomaniak-Routing: alpha
+X-Received: by 2002:a05:6808:c3d7:b0:4cb:f21c:a794 with SMTP id
+ 5614622812f47-4f1b5dd6029mr744708b6e.28.1790763730224; Wed, 30 Sep 2026
+ 03:22:10 -0700 (PDT)
+Date: Wed, 30 Sep 2026 03:22:10 -0700
+In-Reply-To: <20260929034158.1455429-1-neilb@ownmail.net>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6abce2d2.64639fcc.9812d.000c.GAE@google.com>
+Subject: [syzbot ci] Re: multiple-filesystems: prepare for changes to VFS locking
+From: syzbot ci <syzbot+cifa06034fce36fce1@syzkaller.appspotmail.com>
+To: a.hindborg@kernel.org, amir73il@gmail.com, anton.ivanov@cambridgegreys.com, 
+	baolin.wang@linux.alibaba.com, brauner@kernel.org, cem@kernel.org, 
+	coda@cs.cmu.edu, codalist@coda.cs.cmu.edu, fuse-devel@lists.linux.dev, 
+	hughd@google.com, hyc.lee@gmail.com, jack@suse.cz, jaharkes@cs.cmu.edu, 
+	jlayton@kernel.org, joel.granados@kernel.org, johannes@sipsolutions.net, 
+	kees@kernel.org, leitao@debian.org, linkinjeon@kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-mm@kvack.org, linux-um@lists.infradead.org, 
+	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, miklos@szeredi.hu, 
+	neilb@ownmail.net, ntfs@lists.linux.dev, richard@nod.at, 
+	viro@zeniv.linux.org.uk
+Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Sep 29, 2026 at 01:27:44PM -0400, Justin Suess wrote:
-> On Tue, Sep 29, 2026 at 02:12:42PM +0200, Günther Noack wrote:
-> > On Mon, Sep 28, 2026 at 01:13:35PM -0400, Justin Suess wrote:
-> > > On Sat, Sep 26, 2026 at 09:56:28AM +0200, Günther Noack wrote:
-> > > > Hello!
-> > > > 
-> > > > On Fri, Sep 25, 2026 at 02:03:05PM -0400, Justin Suess wrote:
-> > > > > On Thu, Sep 24, 2026 at 06:48:19PM +0800, Cai Xinchen wrote:
-> > > > > > This series adds two new Landlock filesystem access rights,
-> > > > > > LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
-> > > > > > which control access to file and directory metadata such as inode
-> > > > > > attributes (mode, ownership, timestamps), extended attributes and POSIX
-> > > > > > ACLs.  It picks up the work from the "landlock: add chmod and chown
-> > > > > > support" series [1] and follows the coarse-grained grouping discussed in
-> > > > > > that thread [2]: instead of separate chmod/chown rights, metadata
-> > > > > > operations are grouped into one read and one write right.
-> > > > > > 
-> > > > > > Landlock evaluates access rights on a per-path basis, but the metadata
-> > > > > > related LSM hooks (inode_getattr, inode_setattr, inode_setxattr,
-> > > > > > inode_getxattr, inode_listxattr, inode_removexattr, inode_set_acl,
-> > > > > > inode_get_acl, inode_remove_acl) only receive the dentry of the accessed
-> > > > > > object.  Patches 1-7 therefore first pass struct path instead of dentry
-> > > > > > through the metadata-related VFS helpers and LSM hooks.  This is a pure
-> > > > > > refactoring with no behavior change, split so that every patch builds
-> > > > > > and works on its own:
-> > > > > >
-> > > > > I like these patches, but is the ability to read metadata already
-> > > > > sorta controlled by LANDLOCK_ACCESS_FS_READ_DIR on the parent
-> > > > > directory?
-> > > > > 
-> > > > > The one case I see this being different is:
-> > > > > 
-> > > > > 1. if you wanted to grant read access to the file, but not metadata
-> > > > > read access, but I can't think of any usecase for being able to read
-> > > > > the contents of a file, but not the metadata. (see below)
-> > > > > 
-> > > > > 2. If you had the absolute path already and didn't need READ_DIR.
-> > > > > 
-> > > > > I see introducing this READ_METADATA as causing potential
-> > > > > hard-to-diagnose issues.
-> > > > > 
-> > > > > Say you handle READ_METADATA and READ_FILE, but only grant READ_FILE.
-> > > > > 
-> > > > > The program can technically open the file with the READ_FILE permission,
-> > > > > but it may error out because the stat() on it beforehand failed.
-> > > > > It's pretty common for programs to do that kind of thing (stat before
-> > > > > open), like for checking for config files (strace bash and you see it
-> > > > > stat .profile, /etc/profile)
-> > > > > 
-> > > > > There may be other bugs, because being able to set permissions to read
-> > > > > a file *but not read it's metadata* isn't possible currently in posix
-> > > > > acl and userspace may not work well if that assumption no longer holds.
-> > > > >
-> > > * posix acl and linux DAC.
-> > > 
-> > > > > So maybe WRITE_METADATA is good enough?
-> > > > 
-> > > > The existing use cases are the combinations of (a) READ_DIR
-> > > > allowed/denied and (b) READ_METADATA allowed/denied.  Because these
-> > > > two access rights overlap slightly, it seems likely that for a given
-> > > > directory or file, users will want to either grant both, or deny both.
-> > > > 
-> > > > At the moment, where the (not yet existing) READ_METADATA is
-> > > > implicitly always allowed, the problematic case is the one where the
-> > > > Landlock user wants to deny READ_DIR, but where much of the same
-> > > > metadata is still available through stat() and the various
-> > > > get-attribute syscalls.  (c.f. the warning box in the Landlock docs
-> > > > [1])
-> > > > 
-> > > > In my view the READ_METADATA right closes a gap that READ_DIR left
-> > > > open (which is also potentially surprising to callers if they did not
-> > > > read the docs closely).  Also, if its implementation is symmetric to
-> > > > WRITE_METADATA, I feel that it's worth having it in the same patch
-> > > > set.
-> > > > 
-> > > > –Günther
-> > > > 
-> > > > P.S.: I know, even after we can control stat(), there are likely ways
-> > > > to infer the presence of a file by observing Landlock error codes.
-> > > > This would be nice to fix as well, but is harder to do without
-> > > > controlling the path walk itself [2].  But also, the fact that this is
-> > > > currently not controllable is not an excuse for leaving READ_METADATA
-> > > > open IMHO.
-> > > >
-> > > I'm still sort of concerned about the case where read access is allowed,
-> > > but metadata isn't, due to how many applications will not cleanly handle
-> > > such an unexpected condition. You can reproduce this with a seccomp
-> > > policy forbidding stat().
-> > > 
-> > > Would it make sense to have the existing READ rights
-> > > (READ_DIR/READ_FILE) imply READ_METADATA on the files/directories 
-> > > if READ_METADATA is handled? Reading a file's contents should always
-> > > imply that you can read the metadata.
-> > 
-> > I am wary of situations where the handling of access rights implicity
-> > implies other access rights.  We have discussed such schemes in the
-> > past (e.g. we considered a design for RESOLVE_UNIX where we'd have
-> > both a "scoped" and a "access_fs" right that would interact with each
-> > other), but in the end we always settled for approaches where such
-> > interactions would not be necessary.  One of the concerns was that it
-> > would complicate "best effort" fallback logic in all Landlock
-> > libraries and in the countless places where people use the syscalls
-> > directly.
-> > 
-> > To throw another option in the mix.  (To be clear, I have only 70%
-> > confidence, so feel free to push back, but it feels like it might
-> > work?):
-> > 
-> > Is this similar to the "truncate" right?
-> > ----------------------------------------
-> > 
-> > With "truncate", there was an existing common operation (open(2) with
-> > O_TRUNC, a.k.a. creat(2)) which called the truncation hook and checked
-> > for the truncation access right.  But that was in fact OK.  The way we
-> > resolved it at the time was by documenting very loudly that WRITE_FILE
-> > and TRUNCATE access rights should always be requested in lockstep, if
-> > TRUNCATE is handled.
-> > 
-> > If READ_DIR and READ_FILE do in fact read and return metadata to the
-> > user, maybe the right thing would be to do it the same way here and
-> > *require* that we have READ_METADATA to do these operations?
-> > 
-> > (READ_METADATA is automatically allowed as long as it's not handled,
-> > so that approach does not break existing programs.  Programs who
-> > consciously start handling READ_METADATA must simply take into account
-> > that reading directories and opening files for reading requires
-> > READ_METADATA.)
-> > 
-> > (BTW, I can see it for reading directories, but I am not sure I fully
-> > follow the argument why opening files for reading means that you can
-> > read the metadata?  Can't that be guarded on fstat()-like operations?)
-> >
-> Many standard libraries will call stat before / after opening a file to
-> allocate a buffer matching the file size. Or to figure out if mmap
-> is more efficient than opening it directly.
-> 
-> So Python's open().read() or Go's os.ReadFile they may throw an error
-> when opening the file, making it look as if the file is inaccessible
-> when its contents are. They make the assumption that if a file is
-> readable, the metadata is too.
-> 
-> There's also a lot of metadata that is already leaked by just having
-> READ_FILE. FS_IOC_GETFLAGS/FS_IOC_FSGETXATTR ioctl / fileattr_get are
-> unrestrictable and allow you to see inode attributes. There's also
-> access(2) which isn't restricted here and allows you to see your rights
-> on the file. The size can be found by simply seeking to the beginning
-> and end. So much of the metadata is obtainable with just READ_DIR/READ_FILE.
-> 
-> ...
-> 
-> Another problem I'm just realizing is that this READ_METADATA
-> right is inconsistent with open file descriptor behavior. With most
-> rights, already open file descriptors are exempted, but here, fstat,
-> (and the other stat-family calls which takes a file descriptor) become
-> denied even on already open files. It's a catch 22 here, if you change
-> the fstat to not apply to opened files, then READ_FILE becomes a bypass
-> for READ_METADATA. But if you leave it as is, then it's inconsistent with
-> the other Landlock rights wrt already opened files.
+syzbot ci has tested the following series
 
-Indeed, these access rights should follow the
-LANDLOCK_ACCESS_FS_TRUNCATE mechanic.
+[v1] multiple-filesystems: prepare for changes to VFS locking
+https://lore.kernel.org/all/20260929034158.1455429-1-neilb@ownmail.net
+* [PATCH 1/7] VFS/xfs/ntfs: drop parent lock across d_alloc_parallel() in d_add_ci()
+* [PATCH 2/7] shmem: use d_duplicate()
+* [PATCH 3/7] coda: don't d_drop() early.
+* [PATCH 4/7] configfs: remove d_add() calls before configfs_attach_group()
+* [PATCH 5/7] hostfs: don't d_drop() before d_splice_alias() in hostfs_mkdir()
+* [PATCH 6/7] procfs: drop parent lock for d_alloc_parallel() in iterate_shared()
+* [PATCH 7/7] ovl: stop using lookup_one() in ovl_iterate().
 
-> 
-> Which isn't the end of the world, but just shows that either
-> approach is going to have it's quirks. 
-> 
-> I think it would be better to just avoid the cat and mouse game here
-> of trying to seperate READ_FILE/READ_METADATA and either require
-> READ_METADATA be specified with READ_FILE if READ_METADATA is handled
-> like Gunther proposed, or have READ_FILE imply READ_METADATA.
-> 
-> Documenting it strongly is OK too, but really there are really zero
-> usecases where you'd want to grant READ_FILE without READ_METADATA
-> so it would need to be made extremely clear.
+and found the following issue:
+WARNING in __d_instantiate
 
-What about a program that just need to read files? We can think about
-sanboxes such as those used in web browsers, but that applies to other
-tailored processes that don't need/want to access metadata e.g., for
-confidentiality or personal information (UID, timestamp) concerns.
+Full report is available here:
+https://ci.syzbot.org/series/b87296ff-c49f-416e-834c-a886ea8bd6c3
 
-This is similar to FILE_WRITE vs. TRUNCATE: most of the time we want
-them to be grouped.
+***
 
-> 
-> Thanks,
-> Justin
-> 
-> > —Günther
-> 
+WARNING in __d_instantiate
+
+tree:      linux-next
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/next/linux-next
+base:      3879f51857325da9bf3cfb073280257cd16ae067
+arch:      amd64
+compiler:  Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
+config:    https://ci.syzbot.org/builds/dd8fcfa5-13f0-458f-bd3b-9c06d4d67a78/config
+syz repro: https://ci.syzbot.org/findings/fdffe42d-ac1a-40d9-b05c-014808f5b0ec/syz_repro
+
+------------[ cut here ]------------
+d_in_lookup(dentry)
+WARNING: fs/dcache.c:2197 at __d_instantiate+0x3f4/0x700 fs/dcache.c:2197, CPU#1: syz.0.17/5823
+Modules linked in:
+CPU: 1 UID: 0 PID: 5823 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+RIP: 0010:__d_instantiate+0x3f4/0x700 fs/dcache.c:2197
+Code: 03 41 80 f6 01 41 0f b6 ce c1 e1 0d 09 c1 89 0b 48 83 c4 10 5b 41 5c 41 5d 41 5e 41 5f 5d e9 03 26 96 09 cc e8 0d 84 75 ff 90 <0f> 0b 90 e9 7f fd ff ff e8 ff 83 75 ff 41 81 cc 00 00 01 00 e9 34
+RSP: 0018:ffffc900038d73a0 EFLAGS: 00010293
+RAX: ffffffff825242a3 RBX: ffff8881b4eef380 RCX: ffff888169801e00
+RDX: 0000000000000000 RSI: 0000000001000000 RDI: 0000000000000000
+RBP: 0000000001000000 R08: 0000000000000003 R09: 0000000000000004
+R10: dffffc0000000000 R11: fffff5200071ae6c R12: 0000000000280000
+R13: dffffc0000000000 R14: ffff8881bc29f3e0 R15: ffff8881bc29f3e4
+FS:  00007f15d1af96c0(0000) GS:ffff8882a8cc9000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000200000001000 CR3: 00000001bd5c4000 CR4: 00000000000006f0
+Call Trace:
+ <TASK>
+ d_make_persistent+0x8e/0x180 fs/dcache.c:3139
+ shmem_mknod+0x2d4/0x340 mm/shmem.c:3851
+ shmem_whiteout mm/shmem.c:3982 [inline]
+ shmem_rename2+0x267/0x430 mm/shmem.c:4022
+ vfs_rename+0xbd9/0xef0 fs/namei.c:6219
+ ovl_do_rename_rd fs/overlayfs/overlayfs.h:371 [inline]
+ ovl_check_rename_whiteout fs/overlayfs/super.c:593 [inline]
+ ovl_make_workdir fs/overlayfs/super.c:713 [inline]
+ ovl_get_workdir+0x93d/0x1980 fs/overlayfs/super.c:836
+ ovl_fill_super_creds fs/overlayfs/super.c:1449 [inline]
+ ovl_fill_super+0x1702/0x4360 fs/overlayfs/super.c:1561
+ vfs_get_super fs/super.c:1405 [inline]
+ get_tree_nodev+0xbb/0x150 fs/super.c:1424
+ vfs_get_tree+0x92/0x2a0 fs/super.c:1947
+ fc_mount fs/namespace.c:1198 [inline]
+ do_new_mount_fc fs/namespace.c:3772 [inline]
+ do_new_mount+0x319/0xdc0 fs/namespace.c:3848
+ do_mount fs/namespace.c:4181 [inline]
+ __do_sys_mount fs/namespace.c:4397 [inline]
+ __se_sys_mount+0x31d/0x420 fs/namespace.c:4374
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f15d0b9e159
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f15d1af9028 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007f15d0e25fa0 RCX: 00007f15d0b9e159
+RDX: 0000200000000440 RSI: 0000200000000100 RDI: 0000000000000000
+RBP: 00007f15d0c3506b R08: 0000200000000080 R09: 0000000000000000
+R10: 0000000000000008 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f15d0e26038 R14: 00007f15d0e25fa0 R15: 00007ffe9e1b3308
+ </TASK>
+
+
+***
+
+If these findings have caused you to resend the series or submit a
+separate fix, please add the following tag to your commit message:
+  Tested-by: syzbot@syzkaller.appspotmail.com
+
+---
+This report is generated by a bot. It may contain errors.
+syzbot ci engineers can be reached at syzkaller@googlegroups.com.
+
+To test a fix for this bug, please reply with `#syz test`
+(on a separate line) and attach the patch to the email.
+
+Notes:
+- The patch will be applied on top of the tested series (as an
+  incremental fix).
+- To test a new version of the whole series, please send it directly
+  to syzbot@lists.linux.dev.
+- Arguments like custom git repos and branches are not supported.
