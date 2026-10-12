@@ -1,152 +1,89 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out28-75.mail.aliyun.com (out28-75.mail.aliyun.com [115.124.28.75])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 996CE46AF2D
-	for <linux-unionfs@vger.kernel.org>; Mon, 12 Oct 2026 09:47:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791798473; cv=pass; b=aiJ+tshGSvxvSdC7CkxmVcLF53vKm45iyXgj75Z9TIejqhwA2PvqI6yTjMDdZTJnea82sMOJiMjXtTVcg8xyHAMpX6F0A7BAlfhLXRnLu4kzRhYKJOaHrfNAdPZldYHULp9pw8Gbx7KoHN3NKSm/ncJ3WnMGYtAAa3O7pEK4OnY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791798473; c=relaxed/simple;
-	bh=SsZNCGRw3F7uVhp6Wx0pDGhtzKaaM9O6Ixab44d94cs=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=slUNEc4dX3jfBGbmjLQME84HM2ATZadRJzlAMGMKLk2cwgopMsQGpNiixNdfNY5iuo41PI/Tu+vGK65lwVt7wKo2CBpHFT5vakDlC+SM2xreSWSKQMs5m+RIX6pX89CUCsqqwaK4sLl6wkAPy8xJ12gW45/6GMILmLrEE9zVWI4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cJpDWweA; arc=pass smtp.client-ip=209.85.218.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C9E46EF6A;
+	Mon, 12 Oct 2026 09:55:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.28.75
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791798951; cv=none; b=aZlBtBuIhl6g7rNCZetqBnx5VsBWWNxwjvk6abel9sKBVefoCPSpJ5uFBgxiEwtCmBGjzTJxd9z49NDEHWX4Z0xY++W6HvC7Rb91FGyDjNWIjbV9Au7+zcrOzoRaCItR6aKcyat/+Fxwu69t2lKlii+lJosDAQyiEOJEl0GeUzc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791798951; c=relaxed/simple;
+	bh=8jjDp0mopqfEmT+20j7XuRc4b3Ao6eGqw7y9kS17+SA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=jestaz/dtd3nI2nQh+V8XMIYlmdI/5UEyC+BACrzTPKblJ7GJuqUiP0iM6CGw/pNL7buknlmmABk4PlCXhHAjS0POAzgs3XB3UZqjJZBNmurdL78zPJh2IluFBZOZzWWPQZbn/08VMnhkZv9kbuw8N8znzjfkyH2ItJ169Dgacw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com; spf=pass smtp.mailfrom=xiaopeng.com; dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b=gtfARsuR; arc=none smtp.client-ip=115.124.28.75
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xiaopeng.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cJpDWweA"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-c2e5f8fe879so272150766b.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Oct 2026 02:47:51 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791798470; cv=none;
-        d=google.com; s=arc-20260327;
-        b=CO/9QtlH8/S6uGikyckX5bWO3MhnUD000tFiGhG23Om9i0QUJvQyxf8jpTfCWK064W
-         d5Gf2xxAJ7tYl4shu7AiPz/Yp9bwWpFPc3LHTLl5zjTfvTY1JFbNY6zZHp9PTTgyFBPV
-         jQmwGYoI8N6eUHW+TtU9xnGZ1un6aOw2fRTBrIdm8ifuxgVdu7SUWNH+auFhC1cuOgUb
-         4HY5J8AR59pFA6iyw0gP/TdH8yWQgpQ7QlBMtK7k57ZQRqaE5KlIR8srMUb/VW/E5+5J
-         Uo6DLEAb2CNQCxKkHnlhVnX+J9TNdaCw/2wy3MWPWz6xySgzMWK9Udguw1mAtKtdDHRX
-         pQKg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=3VGDcycFylt1dIW2Zqg85s1x16i6rd6gN/8M5j2Yg3s=;
-        fh=gZG0s51VvrWL65+97m1rQDS+F1HS9Jrmkwqvf4l5y4c=;
-        b=Si2jzOnoQlpzyFuJAygLezU6BO2IIXASE5iScV1m8/v8+n0bQvdfBXYGkfVEpUC56r
-         rtjGRP/Phn5cD9o7ts6/MmwnGKBFW5ppytl6OHWJAz79yVlpnbqcZdymFQzXJS0YHngp
-         q3lKLuZpf9W/nHlO6DyqsBslQuxvtAFLfPfJYD4niqaPINWrvIf1yCu38Kx2EsohvokN
-         UxXsBbvuGTshZDXf56d9O8xkThx5hRbsiG03HxNJ+ZnKjdDsom+q3JwwAtbxwiPMfpz9
-         MEPxI8uXKCb0Ja4JQelmIyq4tFS76K9gaGv0XRJphIs8B7dJK9SwEIvWCwk8ni5K2NWX
-         ahzg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791798470; x=1792403270; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=3VGDcycFylt1dIW2Zqg85s1x16i6rd6gN/8M5j2Yg3s=;
-        b=cJpDWweACXRacSVT4LUgxxf87aK5w5wilcvKFuOZ4hSHUv5GdYrXHzgXdhievRis6X
-         jl0xIjapAt5p2r46+E5dgtJAncP1DPY2+3KKRCM/pTHQfR5Xh7OqlViBA2MIEHFsYYbA
-         ODWNCCd9592F/T5dnNuSQcEm7W9P2ALQ8GVuij7HKAiqH8e6oDrQy/jhHggcQyZgnRqy
-         PzefJWFJBiPMbCuG0wwkbVzASTcrry/A2qyVzZPTaXujt3z0qLr6IqNDeJDNYLasWtT0
-         SV9OFsORZCWpFw8i3AhN9i11Dzne7ksZSITjc5EJsGK9qG/54L93LZM53XWDIq7VFLx5
-         MXuw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791798470; x=1792403270;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=3VGDcycFylt1dIW2Zqg85s1x16i6rd6gN/8M5j2Yg3s=;
-        b=lPh9DFd0bDkQyVuXuP7ZnPDuLYifBlBfeuJKeLyyGQTOnNrxmki/qjTSnYowKn+CmY
-         N8piBZfZ/EadxxAW+mUoJr3B/FVUcUneOTJlHT6/7rXnKQc2Dp8dkOnCAOjHz/ZESmoX
-         M1toGOs5cl+b1BTG5xelQbBxIE5d6AYGql0UWSqGmCquYv3l8rPpu2aqWrPVidYJKaRx
-         OeVOHgth6FSlLGj5ucfSUUcx6nwLve6wGBHyQ4YSZzGQQKY7SDaDL5/qU3LKAbPmpPLg
-         zzdTzTb2APazc0WtJqVVKkFaSGQxIMET6OQxu0DZZWhkw5GvyL6ZDp7C9jBZg1qg+aUf
-         WNow==
-X-Forwarded-Encrypted: i=1; AKwUvBzeqJDXzT7C+oJ/3uXAXRlsAgDyoRKcmOwvC1RGqbktCWPqRd3oU+1CSwGBA6zP5UScqMvrMAIa2ftPAwrI@vger.kernel.org
-X-Gm-Message-State: AFq9FYJD+ZGgGeVbRK+WnqJfIVDzhjOCBa74GxyHGmU74MjYDYhOYv95
-	w7/78inSWMio+JlbVM0ikop5DQfq0itUM1Ul6g7+kTBn2P8auF6+XrXquPbARuXkJp3SbiPtxWK
-	ELz5j2FAOxGlrEoWlAY8LUoS+vTjlrmM=
-X-Gm-Gg: AYBFou3d57ULzFatPAXXZ3kmKq81MCleh+hTIfAbzGohBlWWowHyWSDc/4l9JyocAkN
-	kXYT6WJMdcHeMwTH4EPHOi3e73C9gEh5g9fLByhPqGyV6i48gG1147VofZ9V6ojErga7IcX5/az
-	mUJS2fBBmuLtiHL1c0NSi6QeEx07Atebg0fiAC/31TcPzmAmgnf2RgmPYUoSjHOd0f41OZTuX0s
-	evFCiixZmDhGULjC3jqhmO5qo5jO9DODC9Cig4znhDyqqUtq7gUWp5R5ZnXpsjeZyn+CROB+fh1
-	mnmPrnqq2iuLNYLNPtN8bwfBQQ7PmYyWmy0nOfcFWZGKIv78+kVguh3b
-X-Received: by 2002:a17:906:c105:b0:c31:5bb8:4b3b with SMTP id
- a640c23a62f3a-c31a9a335femr914440066b.2.1791798469497; Mon, 12 Oct 2026
- 02:47:49 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b="gtfARsuR"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=xiaopeng.com; s=default;
+	t=1791798939; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=hNUvCs+g+oZlxncGUXpqX0VwM9glkZ9wzt09M376ej4=;
+	b=gtfARsuRfg7SAYPT5vKWx8oErz7e34D6iiPUjk+6bpRj6+aEVmb7pnBxujVmoQ/kzIKlk9GqTG6uaqlJ+jonjNPAuzfuwkEuKZtFFfhKNLKDY71fwWAC/BwAj+xe9aSzdXGRDGvJDDHalJnTnONMFu5JkJTcDLrq8CSPT8EiZaQ=
+X-Alimail-AntiSpam:AC=CONTINUE;BC=0.2191282|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_system_inform|0.00150799-1.82752e-05-0.998474;FP=3025519633931349018|0|0|0|0|-1|-1|-1;HT=maildocker-contentspam033045220102;MF=zhugl3@xiaopeng.com;NM=1;PH=DS;RN=5;RT=5;SR=0;TI=SMTPD_---.jZwq6ZF_1791798938;
+Received: from DESKTOP-UL5U09E.xiaopeng.local(mailfrom:zhugl3@xiaopeng.com fp:SMTPD_---.jZwq6ZF_1791798938 cluster:ay29)
+          by smtp.aliyun-inc.com;
+          Mon, 12 Oct 2026 17:55:39 +0800
+From: Guanglei Zhu <zhugl3@xiaopeng.com>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	liuwb@xiaopeng.com
+Subject: [PATCH v2] ovl: reject lowerdir ending with unescaped backslash
+Date: Mon, 12 Oct 2026 17:55:38 +0800
+Message-ID: <20261012095538.938789-1-zhugl3@xiaopeng.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261012060847.836027-1-zhugl3@xiaopeng.com>
+References: <20261012060847.836027-1-zhugl3@xiaopeng.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261012060847.836027-1-zhugl3@xiaopeng.com>
-In-Reply-To: <20261012060847.836027-1-zhugl3@xiaopeng.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 12 Oct 2026 11:47:37 +0200
-X-Gm-Features: AclHuK_9ajsePmXQfH6j4Ek8BMjJ530fzizo6S3nLvq8SngFf7HNK5QSGn2kkRs
-Message-ID: <CAOQ4uxhMUfrBmD-cad+hTP64uvf5KXby7c0u+RCU2Ya4C3KK-Q@mail.gmail.com>
-Subject: Re: [PATCH] ovl: reject lowerdir ending with unescaped backslash
-To: Guanglei Zhu <zhugl3@xiaopeng.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, liuc63@xiaopeng.com, 
-	Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Oct 12, 2026 at 8:08=E2=80=AFAM Guanglei Zhu <zhugl3@xiaopeng.com> =
-wrote:
->
-> In ovl_parse_param_split_lowerdirs() the escape handling consumes
-> the backslash and the character after it.  When the backslash is the
-> last character of the lowerdir value, the loop increment moves the
-> cursor past the NUL terminator, so the loop scans heap memory beyond
-> the kstrdup'd string until it happens to hit a zero byte; a colon
-> found there is written over as well.
->
-> A trailing unescaped backslash escapes nothing, so reject it with
-> EINVAL.
->
-> Signed-off-by: Guanglei Zhu <zhugl3@xiaopeng.com>
-> ---
-> Found by code inspection.  Behavior check in a QEMU guest:
-> fsconfig(lowerdir=3D"...\") on an unpatched kernel returns -ENOENT
-> after the loop scanned past the allocation; with this patch it
-> returns -EINVAL.
->
->  fs/overlayfs/params.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index c93fcaa45..5a15e5478 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -216,6 +216,9 @@ static ssize_t ovl_parse_param_split_lowerdirs(char *=
-str)
->                 if (*s =3D=3D '\\') {
->                         /* keep esc chars in split lowerdir */
->                         *d++ =3D *s++;
-> +                       /* A trailing backslash escapes nothing. */
-> +                       if (!*s)
-> +                               return -EINVAL;
->                 } else if (*s =3D=3D ':') {
->                         bool next_colon =3D (*(s + 1) =3D=3D ':');
->
-> --
-> 2.43.0
->
+In ovl_parse_param_split_lowerdirs() a backslash consumes the
+character that follows it.  When the backslash is the last character
+of the lowerdir value, it consumes the NUL terminator: the loop exits
+normally and the backslash is kept in the output, so the lowerdir is
+passed downstream with a trailing backslash and the mount fails later
+with a confusing ENOENT from path lookup.
 
-Hi Guanglei Zhu,
+A trailing unescaped backslash escapes nothing, so reject it with
+EINVAL.
 
-The fix looks correct, but the commit message is inaccurately making
-wrong claims about heap memory and scanning past the allocation,
-which makes this sound more severe than it actually is.
+Signed-off-by: Guanglei Zhu <zhugl3@xiaopeng.com>
+---
+v2: fix the commit message.  v1 wrongly claimed that the loop
+scans heap memory past the allocation; there is no out-of-bounds
+access, the backslash merely consumes the NUL terminator.  Thanks
+to Amir Goldstein and Sashiko for catching this.
 
-See Sashiko review comment:
-https://sashiko.dev/#/patchset/20261012060847.836027-1-zhugl3%40xiaopeng.co=
-m
+Verified with an ASAN build of a user-space replica of the loop:
+no out-of-bounds access, the output retains the trailing backslash.
+With this patch fsconfig(lowerdir="...\") returns -EINVAL instead
+of -ENOENT.
 
-Thanks,
-Amir.
+ fs/overlayfs/params.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index c93fcaa45..5a15e5478 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -216,6 +216,9 @@ static ssize_t ovl_parse_param_split_lowerdirs(char *str)
+ 		if (*s == '\\') {
+ 			/* keep esc chars in split lowerdir */
+ 			*d++ = *s++;
++			/* A trailing backslash escapes nothing. */
++			if (!*s)
++				return -EINVAL;
+ 		} else if (*s == ':') {
+ 			bool next_colon = (*(s + 1) == ':');
+ 
+-- 
+2.43.0
+
