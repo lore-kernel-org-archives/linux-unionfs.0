@@ -1,256 +1,190 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+Received: from mail-ot1-f69.google.com (mail-ot1-f69.google.com [209.85.210.69])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DB7048FF71
-	for <linux-unionfs@vger.kernel.org>; Wed, 14 Oct 2026 10:03:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.222.173
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791972241; cv=pass; b=nrudx44I8CQAIeLNiefwRyyOaurr9voPvI+czwQV1UxMSav5185Mt5jBmA4mdVX3bjnrVfsinv0R0OcJfab93n3GPP3Ou5R6aezNQAEwTAyNgfx7DveYFqVS5oOmH2QMjVw546akQKHJPTvK5zaNSqCgK9ABTBf6LkuKLJHif/s=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791972241; c=relaxed/simple;
-	bh=UZrCYuaUTQMamg1VqCT1HPzV2dT0XAOB0sGgHU48HvM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=bUaSKTfdG4dBYQgPaxPFT6SHm/NIKYFUcbyt/7MU+6WpQkAWdJaOmRRn5vdDD65A7AKw9T414mJlwsYrv2om+9Nyb+2SKit/9E3gUH+pVGxw0aJEH/N8CeKwzv6bv+P/XgN8JZqMoA/PyDunlOIunZIkmDvp+Y/FWbuHDFYeLDc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=studiomoob.com; spf=pass smtp.mailfrom=studiomoob.com; dkim=pass (2048-bit key) header.d=studiomoob-com.20251104.gappssmtp.com header.i=@studiomoob-com.20251104.gappssmtp.com header.b=Au4soWdg; arc=pass smtp.client-ip=209.85.222.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=studiomoob.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=studiomoob.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=studiomoob-com.20251104.gappssmtp.com header.i=@studiomoob-com.20251104.gappssmtp.com header.b="Au4soWdg"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-93e56c287b3so15234685a.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Oct 2026 03:03:59 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791972238; cv=none;
-        d=google.com; s=arc-20260327;
-        b=FadJOcCnFFirZ5PuRCPp2qtrKtzQO9kA4PIIq6Z7hUmudYpbpAU48Du4YGVC89Cc74
-         2ghfXs1duagGyLdp0iwdiF4h/9Lf76zpG3Wb5Q9bfxIFFBFFp+SODsBxK7HJC5b2bdbF
-         jJ8sJIIM6kuHM+npWQBzpBdBAlv/KKEKlQyDO/egLNpNNZfgAnFg1esWxsHlQc2ZRzEM
-         YQ2YEUpPZRJB1kXfZDWbUI4p1GIdmoqLj7fRyeJ5VwqBD+opBKltfWcnsK3UH+WZ55s/
-         b0t63yDeC7eoGdUqdSixGSJ8lcfFenJqh3hcNbaTaB66aMAkPG72vpobOgAOFMANHAol
-         26vQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=thchtoRfpRattPd+CiIPEW5SsXn7q/xW7mGzqNSoohQ=;
-        fh=fomwzveE/Xjk3gStLLJro6nEI5DVJGG0mv/WGRreJEA=;
-        b=gopdaPZQLeMgu4nJetHtLmJFcCbsa/1Kl/kYSe+kmlbuxJ9KGpJ8bI60mPfkFrF3l+
-         ZJmBoeFo1wzQLVrdThWjF5Ur4Q6icU2mwiUuAICwF70oTk5j+TuaOlMMqj0zMBF1p02J
-         4mcdmFyLGc7ot8cQw+V0079D0++v2cKO6PQa1pXtNh7xftPiQ9a0pECUOkTvVXaIDdik
-         MxrnVyS5yeveE7Vgm7QaTVimllNpkaGpQcSlbE6iBc10zT2/FlN48xLFwxpaUrOtHZFE
-         jLRYUHnfBdGw0VmXOFddnZGpzSLEsRsyEYWOjtOQw5Z/BO6YE5TVm06S8O9AkzJs78Xm
-         sL4g==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=studiomoob-com.20251104.gappssmtp.com; s=20251104; t=1791972238; x=1792577038; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=thchtoRfpRattPd+CiIPEW5SsXn7q/xW7mGzqNSoohQ=;
-        b=Au4soWdgrHPoOCNlzaVvoDyv5hp8v/eXU0N4W0PkprKsittMbef5VYqC9g22oQ8zhE
-         hrcyk0YxEUJQ+gauFzq8GsqQgdfRc1B0IqHyrNph6fHX4fUcfrely9id6R2CBrZWAd6D
-         2UmyCn/XtyjM85v+LohcTOS06u+d/VvJPgfGhUM1zGueG3WNs26QG2G5H81cCPAimzbn
-         iEBOu5n2rhSP5ZYPFHDLJkPtwrFiljKgTpIG11CEm/LwNXyeJX1nCHhSaohh62L68o6y
-         M+fCb2f3t2RM7TGrDtWNoIPCRiP8YXsRxojYRH7hwSjyIZh1p+ITyEr8uIedfmJ6Ie2X
-         +yPg==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3303950128E
+	for <linux-unionfs@vger.kernel.org>; Thu, 15 Oct 2026 11:16:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.69
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792062998; cv=none; b=MWoYw9VYKXtJCIqtuxpoQ3Tpj5n3AzFfqUPXSUJGdK/XcwsdMvLqS4k3PlVPRBPU35Z6sWDsOZfZUD3KUkYNK+G/poAK+1SAZeop1DhB/aPEjXidz/5xfs/O/kb/86mnyNVDq2BRZ74Kp1mFr6emAOTChjwPcNNgKoLFy8b+zUA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792062998; c=relaxed/simple;
+	bh=aq0xX3/cPkEAM0nO5kMsIP5zC8LwsPjKPbF1/P8O8k8=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=ALJ9k/Eq5m7No/hfNmst/eYOs1O01jp8Tby4tZzlKixqak1hLxIL3/EXJ6Nps7Qsur79BdgbTSI78HhDnRODJhD8m7kqYYdd36dMn448yJzFVhIQ0YfUFU2f2F4uHsAQuqHz8HS5ZkW/o4Em/0QS8vQe3bY6KXgp7ombNL3qA48=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.69
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-8254ce65bfeso3295973a34.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 Oct 2026 04:16:34 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791972238; x=1792577038;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=thchtoRfpRattPd+CiIPEW5SsXn7q/xW7mGzqNSoohQ=;
-        b=neuHNzRvUPuRPyoMerbAPqcUCNPW7e8yNiMy8JGajsMKEJv+atsla+Arfn4+ydUWMw
-         I0osyz7kNQoErXAMOmrcSUeast0Ym6i6fDjj/7LbHM1iMSQIwluynBy88Qzxv8olZAE7
-         km87vQFH/pGK++Okn/sArGAWXMVMurQrd2QirgdNk2ydmqzT9Sn41KvpE4MvLEoWWpzf
-         p/XH1PkX8N8ypvRWCmlWd0XLj0Ij0VUrJBEbHGxIIMY3CdozpCJFzlRLKPOJ+mVNdlaV
-         buG7ngZBuC/fAYuIJeZ+XwU9tTsfgN99A/GqRwUc+tLXwhLygyazOSnql7STP3m2qZOz
-         zwLA==
-X-Gm-Message-State: AFq9FYJUm1rok2UEoP/Qj8Zqi0SOlp/AsIj+FH3uV4o8WpsTfagq3KQ9
-	osMGCO5/br4dKf3g2pkm+NiRrT4nf0LcXMhGd/PdpdWwPGKjuvSgOdsBCjEuK8mMW7I6IJ0EeHw
-	mVdBYllecL23++DVhanIY66MMKGMZgOxYDaUYmacdyYjcOEKiEGuspoo=
-X-Gm-Gg: AYBFou24FcKvm4VrU+jn7HeCLqTEqzZrdLX5XHrWu9UaZdknuDbHokO9ZAv3dsADK0k
-	bczj7dsISs+NbAT0CTfvGUAq+OCo9qQzRihsVtCJQb+tYqIVT8chfZIoRWF5ClyB081WveyhjI6
-	zlTbWEzGtEDLSO9N+Kiwa6tmy9DG/iYYhfLzfe41GBZLBfZ2fVTAmnz3gYLX7CvXgzI7M6W/FnZ
-	w3wgb17EHNqJf3RtQ2uNh7btkoyq+l5Ib5+FZS/qR/nXguNRIfd2e38nDU3F87PsgqipGUOO/Ww
-	kaa6ALPt9cSEg6JnyBobjWeDb5g/EWNel5TGFtE/tlcSLXX2saPBNN00aIO7oyUo38gYpYFoSvj
-	U5RlXYkNbomvm
-X-Received: by 2002:a05:620a:4456:b0:93b:be6d:4f3e with SMTP id
- af79cd13be357-93ebd1b7386mr2535918485a.25.1791972238079; Wed, 14 Oct 2026
- 03:03:58 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1792062994; x=1792667794;
+        h=content-type:to:from:subject:message-id:in-reply-to:date
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=ZMaWeQ8qRXsWqh/vQuYUD/x5APIi3Y53X4W2uV0kU3M=;
+        b=EULV6UCwVp9LTXp75JEti0s4dMxDBEptYrhrXeIoxhLnLWS+8cCH/zizbmFkDUhIVH
+         iZdSkbqfB3kDJmOAG/fqE6Xlsu8LmAU0ZEMzeKTqCkx+SxOLKJcWv7ixu0Oyp1MM+Bar
+         Wyg91U+xMzZkgZ2ic+JckkjhIfheXnQ7EDM7NeeRKzZ+MiU0eWLCT0fOlnkVChMpqg8w
+         DKX0WupUFwJgzR6wwyOfz6JmilsZ2LlYSv+DYPbBfQ6rMTJ7a2qC4SuLUvCPabNkJySC
+         QyJHF5KI2sMWRbcPUvSM4t9w3iURGJYIBV6r9tFZH+du2LA4XImM5+oZviFcH+jAr4w1
+         6pEw==
+X-Forwarded-Encrypted: i=1; AKwUvBwXxtLfbh8MdGOpH0czn1y5ORGPvdGxN7TZ5HafJ+zEmPtjWw8l4rPqpEMkT3WxFap5wopi7yTh6BlQ78bW@vger.kernel.org
+X-Gm-Message-State: AFq9FYL88sFTbgc41P/thzd7zwjLJSKsyM7EYp57NVgMlFXOhP1JmWwC
+	5RgLXDYnxZ/VCFC4xepiu3+GtgBUKTsbc+3NRO2XTeNaDtW5mdIlDF401ygG4yGu4Hca4/kEZCg
+	hK44vrTiuXyF9GB68Ni9l2XcdiZKDwyNpEaqpqNBJYOuj0fQkEFxpy+4PW80=
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CACU5Mh9eozKjrTdsLq1bzsO8Ceg9rtBXoS7YUyCkieZq1JRESw@mail.gmail.com>
- <CAOQ4uxg7wLF2VvK8b5Rqn3KX=DUC7MueprVVu5GhPDUtiFb_sw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxg7wLF2VvK8b5Rqn3KX=DUC7MueprVVu5GhPDUtiFb_sw@mail.gmail.com>
-From: =?UTF-8?Q?Cl=C3=A1udio_Fernando_Pinto?= <claudio@studiomoob.com>
-Date: Wed, 14 Oct 2026 07:03:45 -0300
-X-Gm-Features: AclHuK_Gw9ob23eMayD0yBTqPV_33tqMlwZIK9fxES14CtIFUhUdiUp452BZ28E
-Message-ID: <CACU5Mh-6MzpLT-hY0WoZsEWve+bAA7WvV877YhfyhkKFWhoadw@mail.gmail.com>
-Subject: Re: [RFC] Stacked fs, mounter creds: caller checks in the lower fs
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org
+X-Received: by 2002:a05:6808:f09:b0:4cb:abff:3db9 with SMTP id
+ 5614622812f47-50c45c64e1cmr19275571b6e.9.1792062993992; Thu, 15 Oct 2026
+ 04:16:33 -0700 (PDT)
+Date: Thu, 15 Oct 2026 04:16:33 -0700
+In-Reply-To: <6abfe422.7503fbd6.2d3f6.0023.GAE@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6ad0b611.5f317f00.247b6.0067.GAE@google.com>
+Subject: Re: [syzbot] [overlayfs?] possible deadlock in __d_alloc_parallel
+From: syzbot <syzbot+52aa59fd5e3cd8a19dd7@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, 14 Oct 2026, Amir Goldstein wrote:
-> This is an incorrect over simplification of the permission model.
-[...]
-> There is no distinction between data and 'name' operations.
+syzbot has found a reproducer for the following issue on:
 
-Thank you, you are right, and the error was mine to check. I read the
-"Permission model" section and fs/overlayfs/dir.c in 6.12.112: every
-access is checked against the caller on the overlay inode and against
-the mounter on the real inode, and the real operation, name operations
-included, runs with the mounter's credentials.
+HEAD commit:    d419d682257d Add linux-next specific files for 20261014
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+console output: https://syzkaller.appspot.com/x/log.txt?x=1157ce8e580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=2935483cab352f25
+dashboard link: https://syzkaller.appspot.com/bug?extid=52aa59fd5e3cd8a19dd7
+compiler:       Debian clang version 22.1.8 (1~deb13u4), Debian LLD 22.1.8
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12f9d3d1580000
 
-So what MoobFS does is its own model, not the overlayfs one:
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+52aa59fd5e3cd8a19dd7@syzkaller.appspotmail.com
 
-- name operations (create, unlink, rename, setattr, setxattr, ...) run
-with the caller's credentials on the real inode, so the real fs
-checks the caller, DAC and LSM, and nothing checks the mounter;
-- data operations on an open file run with the mounter's credentials
-on the backing file, after the caller passed the open.
+======================================================
+WARNING: possible circular locking dependency detected
+syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor151/5964 is trying to acquire lock:
+ffff88806b10d620 (DCACHE_PAR_LOOKUP){+.+.}-{0:0}, at: rcu_lock_acquire include/linux/rcupdate.h:309 [inline]
+ffff88806b10d620 (DCACHE_PAR_LOOKUP){+.+.}-{0:0}, at: rcu_read_lock include/linux/rcupdate.h:849 [inline]
+ffff88806b10d620 (DCACHE_PAR_LOOKUP){+.+.}-{0:0}, at: __d_alloc_parallel+0x39e/0x1700 fs/dcache.c:2883
 
-I have corrected our design record, which made the same wrong claim.
+but task is already holding lock:
+ffff88805c8d39e0 (&type->i_mutex_dir_key#3){++++}-{4:4}, at: inode_lock_shared include/linux/fs.h:1039 [inline]
+ffff88805c8d39e0 (&type->i_mutex_dir_key#3){++++}-{4:4}, at: lookup_slow+0x46/0x80 fs/namei.c:1936
 
-> Terminology nit: [...] If we refer to the underlying fs objects as
-> 'real' or 'backing' there is less confusion.
-
-Noted. MoobFS has one writable backing filesystem and no copy-up; I
-will say "backing" when writing here.
-
-> The resulting access permissions should be the same.
-
-That gives me a better test than a list of checks. Without copy-up the
-equivalent is a bind mount of the backing directory: the same
-operations, run by an unprivileged user through MoobFS and through
-"mount --bind", should give the same results and errors, except where
-MoobFS documents a difference. I will write that test.
-
-> If you find gaps between the overlayfs permission model and the
-> implementation, bug reports and fix patches are welcome.
-
-Understood. If the test turns up something that also applies to
-overlayfs, I will report it here.
-
-Thanks,
-Claudio
+which lock already depends on the new lock.
 
 
-Em qua., 14 de out. de 2026 =C3=A0s 05:01, Amir Goldstein
-<amir73il@gmail.com> escreveu:
->
-> On Tue, Oct 13, 2026 at 3:45=E2=80=AFPM Cl=C3=A1udio Fernando Pinto
-> <claudio@studiomoob.com> wrote:
-> >
-> > Hello,
-> >
-> > I maintain MoobFS, an out-of-tree, experimental GPL-2.0 stacked
-> > filesystem for 6.12. It is not proposed for merging and this is not
-> > a patch. It was developed with AI coding assistants; I review and
-> > test the result, and nothing in it has been externally audited.
-> >
-> > It follows the overlayfs credential model: name operations run with
-> > the caller's credentials, data operations on an open file with the
-> > mounter's.
->
-> This is an incorrect over simplification of the permission model.
->
-> See 'Permission model' section in Documentation/filesystems/overlayfs.rst=
-:
->
->  a) check if current task is allowed access based on local DAC (owner,
->     group, mode and posix acl), as well as MAC checks
->
->  b) check if stashed credentials would be allowed real operation on lower=
- or
->     upper layer based on underlying filesystem permissions, again includi=
-ng
->     MAC checks
->
-> There is no distinction between data and 'name' operations.
-> For example:
-> ovl_write_iter() -> ... > vfs_iter_write() -> .. -> security_file_permiss=
-ion()
-> calls the LSM hooks with mounter creds.
->
-> Your (or the AI) description above describes the UNIX DAC
-> permission model where permissions are checked at open time and
-> not at data access time.
->
-> >
-> > This week fstests showed that our copy_file_range and clone paths
-> > called the lower as the mounter without file_remove_privs first.
->
-> Terminology nit: in overlayfs 'lower' refers to one of the immutable unde=
-rlying
-> layers, unlike in ecryptfs where 'lower' refers to the mutable underlying=
- layer.
-> In overlayfs the mutable underlying layer is called 'upper' and IIUC
-> your experimental fs is 'upper' only.
-> If we refer to the underlying fs objects as 'real' or 'backing' there is
-> less confusion.
->
-> > The lower clears set-user-ID bits and file capabilities only for a
-> > caller without CAP_FSETID, and the mounter has it, so they survived.
-> > overlayfs calls file_remove_privs at that point; we now do too.
-> >
-> > Question: besides the cases below, is there another decision that a
-> > lower filesystem takes from the caller's capabilities or ownership
-> > during a data operation, which a stacked filesystem must take itself
-> > before switching to the mounter's credentials?
->
-> Short answer: I don't know off the top of my head.
->
-> The *expected* behavior is maybe best described in the doc:
->   Another way to demonstrate this model is drawing parallels between::
->     mount -t overlay overlay -olowerdir=3D/lower,upperdir=3D/upper,... /m=
-erged
->   and::
->     cp -a /lower /upper
->     mount --bind /upper /merged
->   The resulting access permissions should be the same.  The difference is=
- in
->   the time of copy (on-demand vs. up-front).
->
-> But we may have bugs here and there and some behaviors (e.g.
-> CAP_SYS_RESOURCE, mprotect) are hard or impossible to
-> implement with full fidelity in overlayfs.
->
-> >
-> > Already checked, against the 6.12.112 source:
-> >
-> > - file_remove_privs before write, splice, fallocate, copy, clone;
-> > - CAP_SYS_RESOURCE dropped from the mounter's credentials;
-> > - dedupe: allow_file_dedupe runs on our files with the caller;
-> > - removal of security.capability (cap_inode_removexattr);
-> > - open: may_open on our inode, permission asked of the lower inode
-> >   with the caller's credentials;
-> > - only S_SYNC, S_NOATIME, S_APPEND, S_IMMUTABLE copied to our inode.
-> >
->
-> To be clear - this is *not* a list of the only cases where call
-> credentials are used.
-> Most of the time it is generic vfs code that enforces the overlayfs layer=
- access
-> with caller credential.
-> This is a list of checks/actions where the vfs generic implementation
-> falls short of enforcing the overlayfs layer permission models.
-> (or remnants of redundant code from times when vfs fell short)
->
-> If you find gaps between the overlayfs permission model and the implement=
-ation,
-> bug reports and fix patches are welcome.
->
-> Thanks,
-> Amir.
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&type->i_mutex_dir_key#3){++++}-{4:4}:
+       down_read+0x45/0x320 kernel/locking/rwsem.c:1574
+       inode_lock_shared include/linux/fs.h:1039 [inline]
+       lookup_slow+0x46/0x80 fs/namei.c:1936
+       ovl_lookup_positive_unlocked fs/overlayfs/namei.c:216 [inline]
+       ovl_lookup_single+0x323/0xe90 fs/overlayfs/namei.c:260
+       ovl_lookup_layer+0x377/0x440 fs/overlayfs/namei.c:365
+       ovl_lookup_layers fs/overlayfs/namei.c:1109 [inline]
+       ovl_lookup+0x5e5/0x1c80 fs/overlayfs/namei.c:1403
+       lookup_open+0x94b/0x1970 fs/namei.c:4578
+       open_last_lookups fs/namei.c:4816 [inline]
+       path_openat+0x70c/0x20f0 fs/namei.c:5055
+       do_file_open+0x258/0x570 fs/namei.c:5087
+       do_sys_openat2+0x115/0x200 fs/open.c:1442
+       do_sys_open fs/open.c:1448 [inline]
+       __do_sys_openat fs/open.c:1788 [inline]
+       __se_sys_openat fs/open.c:1783 [inline]
+       __x64_sys_openat+0x138/0x170 fs/open.c:1783
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #0 (DCACHE_PAR_LOOKUP){+.+.}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3209 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3328 [inline]
+       validate_chain kernel/locking/lockdep.c:3952 [inline]
+       __lock_acquire+0x164c/0x2de0 kernel/locking/lockdep.c:5288
+       lock_acquire+0x115/0x350 kernel/locking/lockdep.c:5942
+       d_wait_lookup fs/dcache.c:2840 [inline]
+       __d_alloc_parallel+0xc32/0x1700 fs/dcache.c:2944
+       __lookup_slow+0x82/0x2f0 fs/namei.c:1905
+       lookup_slow+0x59/0x80 fs/namei.c:1937
+       walk_component fs/namei.c:2316 [inline]
+       lookup_last fs/namei.c:2824 [inline]
+       path_lookupat+0x3f5/0x8c0 fs/namei.c:2857
+       filename_lookup+0x258/0x5f0 fs/namei.c:2886
+       do_readlinkat+0xe3/0x510 fs/stat.c:575
+       __do_sys_readlink fs/stat.c:609 [inline]
+       __se_sys_readlink fs/stat.c:606 [inline]
+       __x64_sys_readlink+0x7f/0x90 fs/stat.c:606
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  rlock(&type->i_mutex_dir_key#3);
+                               lock(DCACHE_PAR_LOOKUP);
+                               lock(&type->i_mutex_dir_key#3);
+  lock(DCACHE_PAR_LOOKUP);
+
+ *** DEADLOCK ***
+
+locks held by syz-executor151/5964: 1, last CPU#1:
+ #0: ffff88805c8d39e0 (&type->i_mutex_dir_key#3){++++}-{4:4}, at: inode_lock_shared include/linux/fs.h:1039 [inline]
+ #0: ffff88805c8d39e0 (&type->i_mutex_dir_key#3){++++}-{4:4}, at: lookup_slow+0x46/0x80 fs/namei.c:1936
+
+stack backtrace:
+CPU: 1 UID: 0 PID: 5964 Comm: syz-executor151 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/07/2026
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ print_circular_bug+0x2e2/0x300 kernel/locking/lockdep.c:2087
+ check_noncircular+0x12f/0x150 kernel/locking/lockdep.c:2219
+ check_prev_add kernel/locking/lockdep.c:3209 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3328 [inline]
+ validate_chain kernel/locking/lockdep.c:3952 [inline]
+ __lock_acquire+0x164c/0x2de0 kernel/locking/lockdep.c:5288
+ lock_acquire+0x115/0x350 kernel/locking/lockdep.c:5942
+ d_wait_lookup fs/dcache.c:2840 [inline]
+ __d_alloc_parallel+0xc32/0x1700 fs/dcache.c:2944
+ __lookup_slow+0x82/0x2f0 fs/namei.c:1905
+ lookup_slow+0x59/0x80 fs/namei.c:1937
+ walk_component fs/namei.c:2316 [inline]
+ lookup_last fs/namei.c:2824 [inline]
+ path_lookupat+0x3f5/0x8c0 fs/namei.c:2857
+ filename_lookup+0x258/0x5f0 fs/namei.c:2886
+ do_readlinkat+0xe3/0x510 fs/stat.c:575
+ __do_sys_readlink fs/stat.c:609 [inline]
+ __se_sys_readlink fs/stat.c:606 [inline]
+ __x64_sys_readlink+0x7f/0x90 fs/stat.c:606
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f0e12a36e97
+Code: 00 00 90 48 83 ec 10 48 63 ff 45 31 c9 45 31 c0 6a 00 31 c9 e8 4a 0a 02 00 48 83 c4 18 c3 0f 1f 44 00 00 b8 59 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 01 c3 48 c7 c2 d0 ff ff ff f7 d8 64 89 02 48
+RSP: 002b:00007f0e12a02fe8 EFLAGS: 00000202 ORIG_RAX: 0000000000000059
+RAX: ffffffffffffffda RBX: 0000000000000002 RCX: 00007f0e12a36e97
+RDX: 0000000000000100 RSI: 00007f0e12a02ff0 RDI: 00007f0e12a030f0
+RBP: 00007f0e12a030f0 R08: 00007f0e12ad9b20 R09: 0000000000000005
+R10: 0000000000000000 R11: 0000000000000202 R12: 00007f0e12a02ff0
+R13: 00007f0e12ad9b20 R14: 00007f0e12aa5028 R15: 00007ffda7595668
+ </TASK>
 
 
-
---=20
-Cl=C3=A1udio Fernando Pinto
-claudio@studiomoob.com
-www.studiomoob.com @studiomoob
+---
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
