@@ -1,449 +1,340 @@
-Received: from mail-yw1-f170.google.com (mail-yw1-f170.google.com [209.85.128.170])
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA164D90B7
-	for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 14:44:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.170
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792161865; cv=none; b=Kbr9owz8jPWxRdniM0R3g25smHlss0ZfqkauMq45InrveINru88sfvIRYhyovoMRUJb2+dVEkdECYqTddFD2CjVzYkTr/vI1GU4byWTPME3wADaW3H25Kv/ngBp/kz4sv4gVgfjq2ijS8wmcstPBU3NVmAqtRufErgBHeI9Bxzg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792161865; c=relaxed/simple;
-	bh=TOIiJPI34vCinEaBrduHlT9a71FAHO435ctrN82VAoE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XJtGmLYvAdBWj+Ntp6+hMcBq993b48ZioNhk8cuwkCHegd/9Tp+Yui7rduaf9zBQQdqrwLF+559Foos7SnHw1ntQ7ZRsH6dgLEVDcU+5o8kJWJwH4HGwliHyv3VPl2sjpfhjjq7y21fH3RhuXt/fe5WCDnhzVYaE57vyOoLYSRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gTKfLCJY; arc=none smtp.client-ip=209.85.128.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E29344FD785
+	for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 15:29:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.45
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792164594; cv=pass; b=st32uRMJJkcZlIWBG1ieMi2IoMtXvUNeO7fFwPoOQ7VtwyFroEPPLmGRXzb2dFkuB59SPMMl1itQBka422LyOcjq5Mb/qK1KNLwO9sSqwJ9nXyS17pEX8DVt/QnzKrJORKz7W56cLOdHJd3UsCwWhJRV4/y87+UZMQdMnztLACY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792164594; c=relaxed/simple;
+	bh=JKYwIAWuEO4Fdpw/MxbYoMyckJMChKRc7N9CbueXOIc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=rMOE7DWVDS905q2lJS7V0PgkKS+6c+Cq1t2HNWpUVtStzzrxdYcP/rgy2ehZQQCZkKJdUwSJ4lXDOPye6ASxGh5ir47Mgq70mzGh9iSyv6tRsjmaZQtNgZL9Gtem6kr0MUxTd01fHRD7dQDMXzN/+A/xLxqsSp8X1NX1OziKJn4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OFiqM93Z; arc=pass smtp.client-ip=209.85.208.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gTKfLCJY"
-Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-8b0a28a720aso49099887b3.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 07:44:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OFiqM93Z"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-6b2237b596cso3525885a12.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 08:29:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792164590; cv=none;
+        d=google.com; s=arc-20260327;
+        b=aGvkeG7/XPqTNgg7ZRht4D5LUoeIKxFGX2qB9YHOV98On++0vCxqJ8o1koZxJW8z2Q
+         CBUj9++cg2ehwC+b/pMcHpyIAxCCj4I+m8msux3fH5CkEksdAxUOZ+8toU4smAuUtQpa
+         CbYv7lUYD16dZEj4JTLV/E2WLJq5Cp+aqvps/kcC5wourmGLNEaDVR5bqIQ+U9sdG1B0
+         TVvU/yj4Zj45sLfbW6gKxtW8zY8w3RZTKWFhvYB2CARddaFSHAl4XqFOprqtIw42OPUp
+         t3jbl2AS+DrkLdj0Cy3QKmujgOSi32dLUm1kYr7JLRhYgEex5Hip6ENu0MSuriUb/6yR
+         AYfQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=GzxCTLXZVWb1sztadDq28zCG+50J58vjQyR4GrqxYug=;
+        fh=vGQvMXUXSGBlfWSQq9xiLblWoeWSNyQIoUAj0YjRVDw=;
+        b=H8BjoERj/E1dLnRITmamofrs7LHeHQvfhEfRIuQK6muhhtbu4e2VxGgJu3vs2Si6TB
+         AHQCvg4sgBcdRz1MeQ3aA0f1OHAj9gAdOAB8R3HxEJVRCvllbZXATMVCe2w8LLxn6pnh
+         djJfEkmyoXJJQIR17ID4YLLW8FauBDOFQBNIK+T3jnbDX6FBZi/RHuZEQAStQ4M4CqkZ
+         JkgkprtJo5iUEGyIsl2StADl486xOT1W8WEQ4S0xc1I2UifP7YMkRg9J5bgBQRfDNpmn
+         2NWQAn2Mw8G5UoCL6odiO6eqEFwaCaAf+g+rMlT4ewVAuwuRDvCKlbBKLnnqNxcc9stV
+         K9rw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792161860; x=1792766660; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+        d=gmail.com; s=20251104; t=1792164590; x=1792769390; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=b5mPysmOg/X2gxFC8sSeZVp+7zx/SSikTAHOJ0n/l4g=;
-        b=gTKfLCJYZqf9Va4X2gK4hWvh8JGoXo5O8GFEPbdK5EGPNk1+nMF69RBEbV56m7VuOa
-         u1/uUe52eoiqI9sJYiLcG8LRb7athiBY4YQdiuquYPDED6zea7ip1ow8YfUiVI5ALhmQ
-         L+EQJFBIjJ6HUsDnxw+ITN5Q1ujd38a6+1giBhswT7LZd0r5VyP94zQOvnzn4r3xOOHD
-         g+hmZ1QF9i+dNNoRfoqKzDPfpDjJ/fdl/Ygmq//k/M8kIvU278oZpbQ8rILnv2tqpwXL
-         3A2dYomZAyKqfrfk8w7PFMNPIFePM/8IocWMtWX19I88Ccq3Nfrz7GCPL0+eCWDnKAFR
-         Xiiw==
+        bh=GzxCTLXZVWb1sztadDq28zCG+50J58vjQyR4GrqxYug=;
+        b=OFiqM93ZCLlXRKY44x9U7OTh3RRe0V6EResUzopNGgheVu98sJJnlUfU1F/psk8phD
+         3t3obRICfkxuJLESf23c64jKNyDycpgomiBJ9leu9XUnYbbtNsPOjwagA2qzyJlxsHSt
+         wMN25rrNAftvtP/uaWMXn0HmmZS2udyLp5q+iOMNpCcNvsDEGPVS1jgq34N2H8EW4u6L
+         Zdm9qqZPj4ctkOI/xuY3WGHRNjPEMljH1NSYn8N3GGbrgiGyqH583geNiIW1EBc/teRf
+         nsPeP08JGqKpK9Ggma5Pcg58zT7gSbx6ActpHtgwhvKCPnNmb5hIqgM/DYlLxvP8Ye0A
+         6S1g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792161860; x=1792766660;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1792164590; x=1792769390;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=b5mPysmOg/X2gxFC8sSeZVp+7zx/SSikTAHOJ0n/l4g=;
-        b=IwcYYGI1ywAi5gbTU9MdIgUNtQwvRG1Ci+M9peoETvK8IJg2sycmRFIrUT0E9jZrmk
-         2BjADTAJaObj7NODWZ7wC4/sUKeMyr1wdtx9b+P+DYjEALVrFVXl70PaP2YscE//cDXn
-         jyMxlFCvoQYkX0cgHZ3SXMEOkR99y9806PZKEUeWXIB66KRfTTEy20Ay0Ihc4Me8zvzg
-         1XSJDtp4C/aMxC8Gu4VHj1BZJZYKNYN07ItZjvUc6GBOneVCrs1qlypUSvJCVQwqy6rb
-         iJEIc8zl2VmzcebUKinwZad6siukPfYHbB8/DpEAOZ+t8+i1IDzx8ZFt2eEQ9yibI0Sc
-         s9Vg==
-X-Forwarded-Encrypted: i=1; AKwUvBxqU+oJzPmhRGHs9zKFqPdSROeQXHTJDz8vk5Z0KIRDGnimyinQPDeCPempmxvrnEUCXI3d5DlGWE7nhHSd@vger.kernel.org
-X-Gm-Message-State: AFq9FYI8ueG1YxK0/XNAywUOafnO4da9VN9gkDtCUKFezXp57fcw53JP
-	p4yxU4imMEiHbDoKABz6bR4VYQ3+v53OtZbqafJ6deFjVnyaiGHXxwPU
-X-Gm-Gg: AYBFou1oy+OCNMwmk2FmiDh0VsdWeXeJ/kjF3ioAWWTAYPkQFE/ejVlBDiJ3ASk4ESj
-	R3//oXUromms37BKhl8qL3XL5E6ecyffH2bj0ZrCHGk0LDslnXabzAALXnzlnYO9jUqPxOpYRsE
-	9iL81lXsioSCkk7mApiEXHYCtcbDYavP4FgqAYaLFKv8D4/Zo6PYihfgAyxzE//ZiUlLMJDHQHk
-	BBe+2DMjzpIyIxWyfuAwDET1eXzw4VebmV04D9CBu86KK2e1Xj1Be5pmUSTTTenJ1V5b3mRR9Bm
-	C5Hj+NoXfSu1AbuNsLr4HzarcyRgjbH3XljLPwrP+BX5gaO5KxI147tGt0dI0Y5evT9MckkzoP9
-	dBVOaqW6yw7bDlSnxC2K4e3qrFZQUrno9JOnQqPFmQ1yalRfywjVoj26Y/hJPVVPYYbd8QU22XI
-	5NDB75rtQAE+VFb6OEFgyh1baJedlj6zXtKAlFQnxgr/Srq3T5k54Jkcq1IwDuYCQnKZjJLkEn
-X-Received: by 2002:a05:690c:a4d4:b0:8ae:8d28:77be with SMTP id 00721157ae682-8b0f205d6dfmr777507b3.1.1792161858531;
-        Fri, 16 Oct 2026 07:44:18 -0700 (PDT)
-Received: from zenbox ([2600:1700:18fb:6011:1002:ecef:6e38:613d])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-8b0e5888166sm9663717b3.14.2026.10.16.07.44.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 07:44:17 -0700 (PDT)
-Date: Fri, 16 Oct 2026 10:44:16 -0400
-From: Justin Suess <utilityemal77@gmail.com>
-To: Cai Xinchen <caixinchen1@huawei.com>
-Cc: mic@digikod.net, gnoack@google.com, paul@paul-moore.com, 
-	jmorris@namei.org, serge@hallyn.com, corbet@lwn.net, skhan@linuxfoundation.org, 
-	ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org, eddyz87@gmail.com, 
-	memxor@gmail.com, martin.lau@linux.dev, song@kernel.org, yonghong.song@linux.dev, 
-	jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev, 
-	rdunlap@infradead.org, gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, 
-	johan@kernel.org, dlemoal@kernel.org, hch@lst.de, axboe@kernel.dk, 
-	viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz, dhowells@redhat.com, 
-	code@tyhicks.com, linkinjeon@kernel.org, sj1557.seo@samsung.com, 
-	yuezhang.mo@sony.com, hirofumi@mail.parknet.co.jp, cel@kernel.org, jlayton@kernel.org, 
-	neil@brown.name, okorniev@redhat.com, Dai.Ngo@oracle.com, tom@talpey.com, 
-	hyc.lee@gmail.com, miklos@szeredi.hu, amir73il@gmail.com, senozhatsky@chromium.org, 
-	chenxiaosong@chenxiaosong.com, kpsingh@kernel.org, matt@bobrowski.net, rostedt@goodmis.org, 
-	mhiramat@kernel.org, mathieu.desnoyers@efficios.com, john.johansen@canonical.com, 
-	georgia.garcia@canonical.com, zohar@linux.ibm.com, roberto.sassu@huawei.com, 
-	dmitry.kasatkin@gmail.com, eric.snowberg@oracle.com, stephen.smalley.work@gmail.com, 
-	omosnacek@gmail.com, casey@schaufler-ca.com, takedakn@nttdata.co.jp, 
-	penguin-kernel@i-love.sakura.ne.jp, xiujianfeng@huawei.com, nanx95726@gmail.com, djwong@kernel.org, 
-	lujialin4@huawei.com, bpf@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	netfs@lists.linux.dev, ecryptfs@vger.kernel.org, exfat@lists.linux.dev, 
-	linux-nfs@vger.kernel.org, ntfs@lists.linux.dev, linux-unionfs@vger.kernel.org, 
-	linux-cifs@vger.kernel.org, linux-trace-kernel@vger.kernel.org, apparmor@lists.ubuntu.com, 
-	linux-integrity@vger.kernel.org, selinux@vger.kernel.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH v2 -next 09/18] landlock: Add READ_METADATA and
- WRITE_METADATA access rights
-Message-ID: <atI20Vs7Du9-g1Hz@zenbox>
-References: <20261015125425.3246251-1-caixinchen1@huawei.com>
- <20261015125425.3246251-10-caixinchen1@huawei.com>
+        bh=GzxCTLXZVWb1sztadDq28zCG+50J58vjQyR4GrqxYug=;
+        b=oaKWj+NJFyDUjKttDCJsUQErYL4dH6sYDUHNVOYFb3CZtbHsPUkCcUKHWBN9BoziY4
+         UFDSJDK+NcX+7MlzpLhGGAJjoBjJWwoMA4HDpL1tlGSz9rWaFTOxjfbyET2hrRMTCRSP
+         eP4wAxgbm4doRYtQRR8e8VedBw0OQj3F+RvOADjhM9G+KwRSRbohPS5fZzavw0uJoSlW
+         CG8KD6sUvYGSlz2qvYRI9GGEEQrLTfJfapqNQZl8DLnMDCHMxN4iGGkgcw4E8UCbeu6E
+         d4Ncqddv2aTq3yJIP/P+Bq36UaF3qxkLcjt9wBaE3xcNpcNWEJGcWYxKqwZFmxTplKV8
+         5ZVg==
+X-Forwarded-Encrypted: i=1; AKwUvBwxx7f7+CIklotxE6UIVs/nQt8dTfa5F0TRI5JZSECYsnxhamA1TArn7vFk258uR15O1ReURWzF+G4tVG9d@vger.kernel.org
+X-Gm-Message-State: AFq9FYIpxsG72njVmOUCCRML4FJoaNgHMtfLcQbJN9eh6wPqF0tSpRir
+	ZqYTpzs3MQQalW2zHX58AVSh9lf9/GNMyFzelgK+apZMq3SP80RhVg375qd07Qi91M5NW5pzk3F
+	NTmIR6vGutCYWrqCHZXdE41h6lOGw7uQ=
+X-Gm-Gg: AYBFou0P5RIxD9/rSIx5ykHpSZ3HxBcYFMQfx0DDsTi1KgKWSnk61/XeFyLxfx77cca
+	pd05kk2GthDwuhiat0HFwSqf0mlGMXzN1V7JKYjLm0C992caq1rZeM8cfJ5N18WW1BpPZUE6yvg
+	c46IysOUON//nFzakFV4dMyFbDPStFD8W4XA23/6Ubm8uKSCWSm2B44C+RTQ3gAj3N63ORLm2cD
+	fBVl433LMT799DImMtKFd6hcZ2ssfED0WLsKeKrBAs5ZYoCcpQv6CTHUtQXA0Djgk2Oey51Uxtx
+	7O6TCjCVl6I1SWuOR5fsjEpK1VDBLSrs2ZUjcYx5IcjW+AMC9xYqWOYc
+X-Received: by 2002:a05:6402:2115:b0:6a9:f88d:c092 with SMTP id
+ 4fb4d7f45d1cf-6b17c164de5mr18251328a12.0.1792164589590; Fri, 16 Oct 2026
+ 08:29:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261015125425.3246251-10-caixinchen1@huawei.com>
+References: <20260924112858.51392-1-disgoel@linux.ibm.com> <20260924112858.51392-2-disgoel@linux.ibm.com>
+ <CAOQ4uxgj3RL2roivmha9yeWToR-s9kaBm8WUK1vJ_q7pWOjxOQ@mail.gmail.com> <95790639-84d0-4cc2-92a8-c97c920b2d22@linux.ibm.com>
+In-Reply-To: <95790639-84d0-4cc2-92a8-c97c920b2d22@linux.ibm.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 16 Oct 2026 17:29:38 +0200
+X-Gm-Features: AclHuK9GCD3mbn9wIGFBZNK990RRcALNugyHWGuR9k1nQAaxajqzHCCrTNtnk_A
+Message-ID: <CAOQ4uxh2yMYuzjJbmnw3eq-0b-nmmb4J=6zhJcVuHaNHUN3YBA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ovl: fix wrong layer paths in mountinfo for detached
+ mount FDs
+To: Disha Goel <disgoel@linux.ibm.com>, brauner@kernel.org
+Cc: miklos@szeredi.hu, viro@zeniv.linux.org.uk, jack@suse.cz, shuah@kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 15, 2026 at 08:54:15PM +0800, Cai Xinchen wrote:
-> Add two new filesystem access rights to control file metadata access:
-> 
-> - LANDLOCK_ACCESS_FS_READ_METADATA: Read file or directory metadata
->   (e.g. inode attributes, extended attributes and POSIX ACLs) through
->   stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
->   friends, listxattr(2) and friends, and the POSIX ACL read
->   operations.
-> - LANDLOCK_ACCESS_FS_WRITE_METADATA: Change file or directory
->   metadata through chmod(2) and friends, chown(2) and friends,
->   utimensat(2) and friends, setxattr(2) and friends, removexattr(2)
->   and friends, and the POSIX ACL set and remove operations.
-> 
-> This follows the coarse-grained grouping approach discussed in the
-> mailing list [1], where file metadata operations are grouped by
-> security relevance rather than by individual syscall.
-> 
-> Implement the two rights by hooking the inode_getattr,
-> inode_file_getattr, inode_setattr, inode_file_setattr,
-> inode_setxattr, inode_getxattr, inode_listxattr, inode_removexattr,
-> inode_set_acl, inode_get_acl and inode_remove_acl LSM hooks, which
-> now receive a struct path thanks to the preceding VFS and LSM
-> refactoring.  The following system calls are now controlled:
-> 
-> - stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
->   friends, listxattr(2) and friends, POSIX ACL reads, and the
->   chattr(1)/xfs_io style reads: ioctl(FS_IOC_GETFLAGS),
->   ioctl(FS_IOC_FSGETXATTR) and file_getattr(2) via inode_getattr,
->   inode_getxattr, inode_listxattr, inode_get_acl and
->   inode_file_getattr (READ_METADATA)
-> - chmod(2), fchmod(2), fchmodat(2), fchmodat2(2), chown(2), fchown(2),
->   lchown(2), fchownat(2), chgrp(2), utimensat(2), futimens(2),
->   utime(2), setxattr(2) and friends, removexattr(2) and friends,
->   POSIX ACL set and remove, and the chattr(1)/xfs_io style writes:
->   ioctl(FS_IOC_SETFLAGS), ioctl(FS_IOC_FSSETXATTR) and
->   file_setattr(2) via inode_setattr, inode_file_setattr,
->   inode_setxattr, inode_removexattr, inode_set_acl and
->   inode_remove_acl (WRITE_METADATA)
-> 
-> Both new rights are added to ACCESS_FILE as they apply to both files
-> and directories.
-> 
-> hook_inode_setattr only restricts explicit metadata changes, i.e. it
-> checks WRITE_METADATA only when the ia_valid mask contains
-> ATTR_MODE, ATTR_UID, ATTR_GID, ATTR_TIMES_SET or ATTR_TOUCH.
-> Metadata changes that the kernel performs implicitly, such as
-> timestamp updates on write(2) or size changes on truncate(2), are
-> therefore not restricted, and neither are chmod(2)/chown(2) calls
-> that do not change any attribute (e.g. chown(2) with -1/-1, which is
-> a no-op that never reaches the hook), matching the behavior of the
-> SELinux inode_setattr hook.
-> 
-> Stacking filesystems forward fileattr operations to underlying inodes
-> without calling the LSM hooks again (see the preceding patch), so a
-> fileattr operation on an overlayfs file is checked once on the
-> user-facing merged path and is not spuriously denied because of the
-> kernel-side creator credentials used for the forward.
-> 
-> Kernel-internal accesses performed with override_creds() (e.g.
-> overlayfs and cachefiles) are not affected because Landlock domains
-> are attached to credentials, and kernel threads without a Landlock
-> domain (e.g. nfsd and ksmbd) are not restricted either.
-> 
-> Remove stat(2), chmod(2), chown(2), setxattr(2) and utime(2) from the
-> list of file-related actions that cannot be restricted yet, and add
-> the names of the new rights to _LANDLOCK_ACCESS_FS_NAMES in
-> include/linux/landlock.h, which is shared by audit records and trace
-> events, so that denied accesses can be reported with a human-readable
-> name and the static assertion on fs_access_strings in
-> security/landlock/audit.c stays valid.
-> 
-> Increment the Landlock ABI version from 12 to 13, and update the ABI
-> version check in tools/testing/selftests/landlock/base_test.c
-> accordingly.
+On Mon, Sep 28, 2026 at 9:22=E2=80=AFAM Disha Goel <disgoel@linux.ibm.com> =
+wrote:
 >
-LANDLOCK_ACCESS_FS_*_METADATA should be checked at open time and follow
-the mechanic for the truncate right. Otherwise the access for already
-opened file descriptors would be changed. See hook_file_open in
-security/landlock/fs.c and this discussion here [1]
+> On 25/09/26 9:27 pm, Amir Goldstein wrote:
+> > On Thu, Sep 24, 2026 at 1:29=E2=80=AFPM Disha Goel <disgoel@linux.ibm.c=
+om> wrote:
+> >>
+> >> When overlayfs layers are passed as detached mount file descriptors
+> >> (opened with open_tree(OPEN_TREE_CLONE)), ovl_parse_layer() uses d_pat=
+h()
+> >> to record the layer's path for display in mountinfo.
+> >>
+> >> d_path() walks up the mount tree to the process's filesystem root.  Fo=
+r
+> >> detached mounts this walk stops at the anonymous namespace root instea=
+d
+> >> of the real system root, producing a short incorrect path like "/l1"
+> >> instead of the full absolute path.
+> >>
+> >> Export mnt_is_anon() from fs/namespace.c to detect detached mounts.  I=
+n
+> >> ovl_parse_layer(), use dentry_path_raw() for detached mounts instead o=
+f
+> >> d_path().  dentry_path_raw() walks the dentry chain independent of mou=
+nt
+> >> namespace and returns the correct fs-relative path.  The path is
+> >> display-only; the actual layer_path used for mounting is always correc=
+t.
+> >>
+> >> Also fix the set_layers_via_detached_mount_fds selftest: the mountinfo
+> >> check strings were copy-pasted from the regular (non-detached) test an=
+d
+> >> expected absolute /tmp/ paths, causing the test to always fail.
+> >>
+> >> Fixes: a08557d19ef4 ("ovl: specify layers via file descriptors")
+> >> Cc: stable@vger.kernel.org
+> >> Signed-off-by: Disha Goel <disgoel@linux.ibm.com>
+> >
+> > Disha,
+> >
+> > Thanks for the report!
+> >
+> >> ---
+> >>   fs/namespace.c                                |  9 ++++++++
+> >>   fs/overlayfs/params.c                         | 14 ++++++++++-
+> >>   include/linux/mount.h                         |  1 +
+> >>   .../overlayfs/set_layers_via_fds.c            | 23 +++++++++++------=
+--
+> >>   4 files changed, 37 insertions(+), 10 deletions(-)
+> >>
+> >> diff --git a/fs/namespace.c b/fs/namespace.c
+> >> index ae5dc64f8b45..9feefa0a517d 100644
+> >> --- a/fs/namespace.c
+> >> +++ b/fs/namespace.c
+> >> @@ -363,6 +363,15 @@ bool __mnt_is_readonly(const struct vfsmount *mnt=
+)
+> >>   }
+> >>   EXPORT_SYMBOL_GPL(__mnt_is_readonly);
+> >>
+> >> +bool mnt_is_anon(struct vfsmount *mnt)
+> >> +{
+> >> +       struct mount *m =3D real_mount(mnt);
+> >> +       struct mnt_namespace *ns =3D READ_ONCE(m->mnt_ns);
+> >> +
+> >> +       return !IS_ERR_OR_NULL(ns) && is_anon_ns(ns);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(mnt_is_anon);
+> >> +
+> >>   static inline void mnt_inc_writers(struct mount *mnt)
+> >>   {
+> >>   #ifdef CONFIG_SMP
+> >> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> >> index c93fcaa45d4a..2758ff8426b7 100644
+> >> --- a/fs/overlayfs/params.c
+> >> +++ b/fs/overlayfs/params.c
+> >> @@ -477,7 +477,19 @@ static int ovl_parse_layer(struct fs_context *fc,=
+ struct fs_parameter *param,
+> >>                  layer_path =3D param->file->f_path;
+> >>                  path_get(&layer_path);
+> >>
+> >> -               layer_name =3D d_path(&layer_path, buf, PATH_MAX);
+> >> +               /*
+> >> +                * For detached mounts (open_tree(OPEN_TREE_CLONE)), d=
+_path()
+> >> +                * resolves against the anonymous namespace root and r=
+eturns a
+> >> +                * short fs-relative path rather than a full system pa=
+th.  Use
+> >> +                * dentry_path_raw() instead, which gives the path rel=
+ative to
+> >> +                * the filesystem root regardless of mount namespace. =
+ The name
+> >> +                * is display-only; layer_path itself is always correc=
+t.
+> >> +                */
+> >> +               if (mnt_is_anon(layer_path.mnt))
+> >> +                       layer_name =3D dentry_path_raw(layer_path.dent=
+ry,
+> >> +                                                    buf, PATH_MAX);
+> >> +               else
+> >> +                       layer_name =3D d_path(&layer_path, buf, PATH_M=
+AX);
+> >>                  if (IS_ERR(layer_name))
+> >>                          return PTR_ERR(layer_name);
+> >>
+> >> diff --git a/include/linux/mount.h b/include/linux/mount.h
+> >> index acfe7ef86a1b..51e9f228c9d1 100644
+> >> --- a/include/linux/mount.h
+> >> +++ b/include/linux/mount.h
+> >> @@ -78,6 +78,7 @@ extern void mnt_make_shortterm(struct vfsmount *mnt)=
+;
+> >>   extern struct vfsmount *mnt_clone_internal(const struct path *path);
+> >>   extern bool __mnt_is_readonly(const struct vfsmount *mnt);
+> >>   extern bool mnt_may_suid(struct vfsmount *mnt);
+> >> +extern bool mnt_is_anon(struct vfsmount *mnt);
+> >>
+> >>   extern struct vfsmount *clone_private_mount(const struct path *path)=
+;
+> >>   int mnt_get_write_access(struct vfsmount *mnt);
+> >> diff --git a/tools/testing/selftests/filesystems/overlayfs/set_layers_=
+via_fds.c b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fd=
+s.c
+> >> index 7a293544233d..12d930fe46be 100644
+> >> --- a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds=
+.c
+> >> +++ b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds=
+.c
+> >> @@ -686,23 +686,28 @@ TEST_F(set_layers_via_fds, set_layers_via_detach=
+ed_mount_fds)
+> >>          while (getline(&line, &len, f_mountinfo) !=3D -1) {
+> >>                  char *haystack =3D line;
+> >>
+> >> -               if (strstr(haystack, "workdir=3D/tmp/w"))
+> >> +               /*
+> >> +                * Detached mount FDs are resolved via dentry_path_raw=
+(),
+> >> +                * which gives a path relative to the underlying fs ro=
+ot
+> >> +                * (e.g. "/u/upper", "/l1") rather than a full system =
+path.
+> >> +                */
+> >> +               if (strstr(haystack, "upperdir=3D/u/upper"))
+> >>                          layers_found[0] =3D true;
+> >> -               if (strstr(haystack, "upperdir=3D/tmp/u"))
+> >> +               if (strstr(haystack, "workdir=3D/u/work"))
+> >>                          layers_found[1] =3D true;
+> >> -               if (strstr(haystack, "lowerdir+=3D/tmp/l1"))
+> >> +               if (strstr(haystack, "lowerdir+=3D/l1"))
+> >>                          layers_found[2] =3D true;
+> >> -               if (strstr(haystack, "lowerdir+=3D/tmp/l2"))
+> >> +               if (strstr(haystack, "lowerdir+=3D/l2"))
+> >>                          layers_found[3] =3D true;
+> >> -               if (strstr(haystack, "lowerdir+=3D/tmp/l3"))
+> >> +               if (strstr(haystack, "lowerdir+=3D/l3"))
+> >>                          layers_found[4] =3D true;
+> >> -               if (strstr(haystack, "lowerdir+=3D/tmp/l4"))
+> >> +               if (strstr(haystack, "lowerdir+=3D/l4"))
+> >>                          layers_found[5] =3D true;
+> >> -               if (strstr(haystack, "datadir+=3D/tmp/d1"))
+> >> +               if (strstr(haystack, "datadir+=3D/d1"))
+> >>                          layers_found[6] =3D true;
+> >> -               if (strstr(haystack, "datadir+=3D/tmp/d2"))
+> >> +               if (strstr(haystack, "datadir+=3D/d2"))
+> >>                          layers_found[7] =3D true;
+> >> -               if (strstr(haystack, "datadir+=3D/tmp/d3"))
+> >> +               if (strstr(haystack, "datadir+=3D/d3"))
+> >>                          layers_found[8] =3D true;
+> >>          }
+> >>          free(line);
+> >> --
+> >> 2.45.1
+> >>
+> >
+> > Christian,
+> >
+> > I confirm that the test is failing on upstream:
+> >
+> > # Starting 1 tests from 1 test cases.
+> > #  RUN           set_layers_via_fds.set_layers_via_detached_mount_fds .=
+..
+> > # set_layers_via_fds.c:717:set_layers_via_detached_mount_fds:Expected
+> > layers_found[i] (0) =3D=3D true (1)
+> > # set_layers_via_fds.c:39:set_layers_via_detached_mount_fds:Expected
+> > rmdir("/set_layers_via_fds") (-1) =3D=3D 0 (0)
+> > # set_layers_via_detached_mount_fds: Test terminated by assertion
+> > #          FAIL  set_layers_via_fds.set_layers_via_detached_mount_fds
+> > not ok 1 set_layers_via_fds.set_layers_via_detached_mount_fds
+> > # FAILED: 0 / 1 tests passed.
+> >
+> > I could not find a point of regression.
+> > Could it be that the test was merged failing?
+> > That would be strange.
+> >
+> > This is how mountinfo of detached layers look like on upstream:
+> > / /set_layers_via_fds rw,relatime - overlay none
+> > rw,lowerdir+=3D/,lowerdir+=3D/,lowerdir+=3D/,lowerdir+=3D/,datadir+=3D/=
+,datadir+=3D/,datadir+=3D/,upperdir=3D/upper,workdir=3D/work,uuid=3Don,meta=
+copy=3Don
+> >
+>
+> Hi Amir,
+>
+> Thanks for looking into this!
+>
+> On my ppc64le system (7.3.0-rc4) I saw dentry_path_raw() giving per-
+> directory names like lowerdir+=3D/l1, upperdir=3D/u/upper etc., which is =
+why
+> I went with the kernel fix. But your observation of lowerdir+=3D/ for all
+> layers is a valid outcome too depending on how d_path() terminates.
+>
+> You are right that the test strings (/tmp/l1 etc.) never matched
+> detached mount output.
+>
+> > Whether the suggested solution is what we want for it, I am not sure.
+> > I also don't recall if we discussed this at the time and whether
+> > there were any decisions about how to present this mountinfo.
+> >
+> > Maybe this mountinfo is fine and then we only need to fix the test.
+>
+> Happy to send a v2 with just the selftest fix if that is the preferred
+> direction.
+>
 
-It should have clear documentation for this as well.
+Hi Disha,
 
-Justin
-[1] https://lore.kernel.org/all/20260929.Ahgoo4yeetai@digikod.net/
+Sorry for the delay, you caught us just before traveling to Plumbers.
+I have applied a patch to my tree to fix just the test paths expectation.
 
+w.r.t the regression of the override_cred feature and test case
+set_override_creds_nomknod due to commit
+c28f922c9dcee ("clone_private_mnt(): make sure that caller has
+CAP_SYS_ADMIN in the right userns")
 
-> [1]
-> https://lore.kernel.org/all/abc960a1-e66e-792e-6869-cfd201c29dbe@digikod.net/
-> 
-> Assisted-by: opencode: glm-5.3
-> Signed-off-by: Cai Xinchen <caixinchen1@huawei.com>
-> ---
->  include/linux/landlock.h      |   4 +-
->  include/uapi/linux/landlock.h |  25 ++++++-
->  security/landlock/fs.c        | 126 ++++++++++++++++++++++++++++++++++
->  security/landlock/limits.h    |   2 +-
->  security/landlock/syscalls.c  |   2 +-
->  5 files changed, 153 insertions(+), 6 deletions(-)
-> 
-> diff --git a/include/linux/landlock.h b/include/linux/landlock.h
-> index 0ee4880988ba..ee1234fbc9f0 100644
-> --- a/include/linux/landlock.h
-> +++ b/include/linux/landlock.h
-> @@ -41,7 +41,9 @@
->  	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_REFER, "refer"), \
->  	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_TRUNCATE, "truncate"), \
->  	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_IOCTL_DEV, "ioctl_dev"), \
-> -	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_RESOLVE_UNIX, "resolve_unix")
-> +	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_RESOLVE_UNIX, "resolve_unix"), \
-> +	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_READ_METADATA, "read_metadata"), \
-> +	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_WRITE_METADATA, "write_metadata")
->  
->  #define _LANDLOCK_ACCESS_NET_NAMES \
->  	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_NET_BIND_TCP, "bind_tcp"), \
-> diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
-> index 24510e5d8479..36dfb499e48e 100644
-> --- a/include/uapi/linux/landlock.h
-> +++ b/include/uapi/linux/landlock.h
-> @@ -429,6 +429,25 @@ struct landlock_capability_attr {
->   *
->   *   The rationale for this design is described in
->   *   :ref:`Documentation/security/landlock.rst <scoped-flags-interaction>`.
-> + * - %LANDLOCK_ACCESS_FS_READ_METADATA: Read file or directory metadata (e.g.
-> + *   inode attributes, extended attributes, and POSIX ACLs) through
-> + *   :manpage:`stat(2)`, :manpage:`fstat(2)`, :manpage:`lstat(2)`,
-> + *   :manpage:`newfstatat(2)`, :manpage:`getxattr(2)`, and
-> + *   :manpage:`listxattr(2)`.
-> + *
-> + *   This access right is available since the thirteenth version of the
-> + *   Landlock ABI.
-> + * - %LANDLOCK_ACCESS_FS_WRITE_METADATA: Change file or directory metadata
-> + *   (e.g. inode attributes, extended attributes, and POSIX ACLs) through
-> + *   :manpage:`chmod(2)`, :manpage:`chown(2)`, :manpage:`utimensat(2)`,
-> + *   :manpage:`setxattr(2)`, and :manpage:`removexattr(2)`, as well as related
-> + *   system calls.  Implicit metadata changes performed by the kernel (e.g.
-> + *   timestamp updates with :manpage:`write(2)`, or set-user-ID and
-> + *   set-group-ID bit clearing with :manpage:`write(2)` or
-> + *   :manpage:`truncate(2)`) are not restricted by this access right.
-> + *
-> + *   This access right is available since the thirteenth version of the
-> + *   Landlock ABI.
->   *
->   * Whether an opened file can be truncated with :manpage:`ftruncate(2)` or used
->   * with `ioctl(2)` is determined during :manpage:`open(2)`, in the same way as
-> @@ -493,9 +512,7 @@ struct landlock_capability_attr {
->   *
->   *   It is currently not possible to restrict some file-related actions
->   *   accessible through these syscall families: :manpage:`chdir(2)`,
-> - *   :manpage:`stat(2)`, :manpage:`flock(2)`, :manpage:`chmod(2)`,
-> - *   :manpage:`chown(2)`, :manpage:`setxattr(2)`, :manpage:`utime(2)`,
-> - *   :manpage:`fcntl(2)`, :manpage:`access(2)`.
-> + *   :manpage:`flock(2)`, :manpage:`fcntl(2)`, :manpage:`access(2)`.
->   *   Future Landlock evolutions will enable to restrict them.
->   */
->  /* clang-format off */
-> @@ -516,6 +533,8 @@ struct landlock_capability_attr {
->  #define LANDLOCK_ACCESS_FS_TRUNCATE			(1ULL << 14)
->  #define LANDLOCK_ACCESS_FS_IOCTL_DEV			(1ULL << 15)
->  #define LANDLOCK_ACCESS_FS_RESOLVE_UNIX			(1ULL << 16)
-> +#define LANDLOCK_ACCESS_FS_READ_METADATA		(1ULL << 17)
-> +#define LANDLOCK_ACCESS_FS_WRITE_METADATA		(1ULL << 18)
->  /* clang-format on */
->  
->  /**
-> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
-> index a8fa8f77e775..f56277c67a24 100644
-> --- a/security/landlock/fs.c
-> +++ b/security/landlock/fs.c
-> @@ -318,6 +318,8 @@ static struct landlock_object *get_inode_object(struct inode *const inode)
->  	LANDLOCK_ACCESS_FS_EXECUTE | \
->  	LANDLOCK_ACCESS_FS_WRITE_FILE | \
->  	LANDLOCK_ACCESS_FS_READ_FILE | \
-> +	LANDLOCK_ACCESS_FS_READ_METADATA | \
-> +	LANDLOCK_ACCESS_FS_WRITE_METADATA | \
->  	LANDLOCK_ACCESS_FS_TRUNCATE | \
->  	LANDLOCK_ACCESS_FS_IOCTL_DEV | \
->  	LANDLOCK_ACCESS_FS_RESOLVE_UNIX)
-> @@ -1676,6 +1678,119 @@ static int hook_path_truncate(const struct path *const path)
->  	return current_check_access_path(path, LANDLOCK_ACCESS_FS_TRUNCATE);
->  }
->  
-> +static int hook_inode_getattr(const struct path *const path)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_READ_METADATA);
-> +}
-> +
-> +static int hook_inode_file_getattr(const struct path *const path,
-> +				   struct file_kattr *const fa)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_READ_METADATA);
-> +}
-> +
-> +static int hook_inode_setattr(const struct path *const path,
-> +			      struct iattr *const attr)
-> +{
-> +	unsigned int ia_valid = attr->ia_valid;
-> +
-> +	/*
-> +	 * Only explicit metadata changes are checked: implicit
-> +	 * timestamp updates never go through notify_change(), and size
-> +	 * changes (ATTR_SIZE) are governed by the truncate hooks
-> +	 * instead.  See the "File metadata" section in the user space
-> +	 * documentation for the full semantics.
-> +	 *
-> +	 * Clearing the setuid and setgid bits on write(2) or
-> +	 * truncate(2) is also an implicit change: callers request it
-> +	 * with ATTR_KILL_S[UG]ID, and do_notify_change() then adds a
-> +	 * synthesized ATTR_MODE (with these bits removed) before
-> +	 * calling this hook.  As do_notify_change() makes it a bug for
-> +	 * callers to pass ATTR_MODE together with a kill flag, an
-> +	 * ATTR_MODE seen along with ATTR_KILL_S[UG]ID is always
-> +	 * kernel-synthesized and must not be checked.  An explicit
-> +	 * chmod(2) never sets a kill flag, and an explicit chown(2) on
-> +	 * a privileged file is still checked thanks to ATTR_UID and
-> +	 * ATTR_GID.
-> +	 */
-> +	if (ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
-> +		ia_valid &= ~ATTR_MODE;
-> +
-> +	if (!(ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID |
-> +			  ATTR_TIMES_SET | ATTR_TOUCH)))
-> +		return 0;
-> +
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_WRITE_METADATA);
-> +}
-> +
-> +static int hook_inode_file_setattr(const struct path *const path,
-> +				   struct file_kattr *const fa)
-> +{
-> +	/*
-> +	 * The chattr(2) style flags (e.g. FS_IMMUTABLE_FL) and fsxattr
-> +	 * fields are metadata: writing them requires WRITE_METADATA.  The
-> +	 * user-facing path is checked here; stacking filesystems skip this
-> +	 * hook on their internal forwards because they were already
-> +	 * checked on the user-facing path.
-> +	 */
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_WRITE_METADATA);
-> +}
-> +
-> +static int hook_inode_setxattr(const struct path *const path,
-> +			       const char *const name,
-> +			       const void *const value, const size_t size,
-> +			       const int flags)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_WRITE_METADATA);
-> +}
-> +
-> +static int hook_inode_getxattr(const struct path *const path,
-> +			       const char *const name)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_READ_METADATA);
-> +}
-> +
-> +static int hook_inode_listxattr(const struct path *const path)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_READ_METADATA);
-> +}
-> +
-> +static int hook_inode_removexattr(const struct path *const path,
-> +				  const char *const name)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_WRITE_METADATA);
-> +}
-> +
-> +static int hook_inode_set_acl(const struct path *const path,
-> +			      const char *const acl_name,
-> +			      struct posix_acl *const kacl)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_WRITE_METADATA);
-> +}
-> +
-> +static int hook_inode_get_acl(const struct path *const path,
-> +			      const char *const acl_name)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_READ_METADATA);
-> +}
-> +
-> +static int hook_inode_remove_acl(const struct path *const path,
-> +				 const char *const acl_name)
-> +{
-> +	return current_check_access_path(path,
-> +					LANDLOCK_ACCESS_FS_WRITE_METADATA);
-> +}
-> +
->  /**
->   * unmask_scoped_access - Remove access right bits in @masks in all layers
->   *                        where @client and @server have the same domain
-> @@ -2100,6 +2215,17 @@ static struct security_hook_list landlock_hooks[] __ro_after_init = {
->  	LSM_HOOK_INIT(path_unlink, hook_path_unlink),
->  	LSM_HOOK_INIT(path_rmdir, hook_path_rmdir),
->  	LSM_HOOK_INIT(path_truncate, hook_path_truncate),
-> +	LSM_HOOK_INIT(inode_getattr, hook_inode_getattr),
-> +	LSM_HOOK_INIT(inode_file_getattr, hook_inode_file_getattr),
-> +	LSM_HOOK_INIT(inode_setattr, hook_inode_setattr),
-> +	LSM_HOOK_INIT(inode_file_setattr, hook_inode_file_setattr),
-> +	LSM_HOOK_INIT(inode_setxattr, hook_inode_setxattr),
-> +	LSM_HOOK_INIT(inode_getxattr, hook_inode_getxattr),
-> +	LSM_HOOK_INIT(inode_listxattr, hook_inode_listxattr),
-> +	LSM_HOOK_INIT(inode_removexattr, hook_inode_removexattr),
-> +	LSM_HOOK_INIT(inode_set_acl, hook_inode_set_acl),
-> +	LSM_HOOK_INIT(inode_get_acl, hook_inode_get_acl),
-> +	LSM_HOOK_INIT(inode_remove_acl, hook_inode_remove_acl),
->  	LSM_HOOK_INIT(unix_find, hook_unix_find),
->  
->  	LSM_HOOK_INIT(file_alloc_security, hook_file_alloc_security),
-> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
-> index ddd300e10689..ed606ee3102f 100644
-> --- a/security/landlock/limits.h
-> +++ b/security/landlock/limits.h
-> @@ -21,7 +21,7 @@
->  #define LANDLOCK_MAX_NUM_LAYERS		16
->  #define LANDLOCK_MAX_NUM_RULES		U32_MAX
->  
-> -#define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_RESOLVE_UNIX
-> +#define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_WRITE_METADATA
->  #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
->  #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
->  
-> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-> index fb5af318b69b..11d3a2abcec1 100644
-> --- a/security/landlock/syscalls.c
-> +++ b/security/landlock/syscalls.c
-> @@ -191,7 +191,7 @@ static const struct file_operations ruleset_fops = {
->   * If the change involves a fix that requires userspace awareness, also update
->   * the errata documentation in Documentation/userspace-api/landlock.rst .
->   */
-> -const int landlock_abi_version = 12;
-> +const int landlock_abi_version = 13;
->  
->  /**
->   * sys_landlock_create_ruleset - Create a new ruleset
-> -- 
-> 2.18.0.huawei.25
-> 
-> 
+I am still not sure what's the best way to handle this yet.
+Will wait for Christian to chime in, but I don't expect that to happen
+during the upcoming merge window.
+
+Thanks,
+Amir.
