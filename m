@@ -1,124 +1,128 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ECE526C385
-	for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 06:58:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68DB3442B39
+	for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 07:59:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.49
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792133886; cv=pass; b=JzSGtey4kKI/dlor3a5YXidw7VIugr1t4TtqlBAW0Un0HXe3n9g+FzSZfa5d1yKbDgFe6SDktEbcBQPQjl0tYJ46i5bEo3jXkMPCx1o6So6LJjAH0sQFEze2afnsZBYconGYyDh5oowjdQUF7hROjEEM51AhgDVP4FYtQGuvz0Y=
+	t=1792137581; cv=pass; b=F2SKIOAce13+e1K+dvUCAMUgrnSl8jXkN3w5VmN/aA77DrsfLL4U44NxW/tWQUUlUE697Tjpk2h8aBVjZE+My1yWpu74r68RE6172O+wnQXSaZT3wGNewZEDHxcihUGdKD54Famd0kUeaEX6vX7aQNbefd3tnvlFG9JY7f/8GjQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792133886; c=relaxed/simple;
-	bh=U76ebMoSyTQsuVPgYGLotffYpp8DopeIDr7nhIKrbho=;
+	s=arc-20240116; t=1792137581; c=relaxed/simple;
+	bh=9bth1vD7yHDRAYYXeuMH5rIgXb7rCuLzadFyMCAZY5Y=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fREgAsIskz8V/KwJJ8PYxhommmUEGKUND0ItYliOC3h3XbMT45aI7Ks46iwgqDVVLIuRb8kcRIDT7JmOj+0r2nc0EH3HpbavHVFnBivWpmC0FjszSJSzdR79t/tPM6y3cRVwRixB7mW6lB/7ZPpiMT68WNmCU1xLgLhzZRsSzQI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BugadP+j; arc=pass smtp.client-ip=209.85.208.41
+	 To:Cc:Content-Type; b=NRky7Rn/cTzxrgkfo304W/YAPzSlNh7MGGC7hOd8xdTm3hXnHQBFdhx1NdvdOmcC9SWweK+B+gTp2faZR5DDWFwwu1CNdH/COyAkCFKCgXM80bc7A7sVyphwcu2X1pKy9yrrwuiDMj+oo24OuFqOXtXZEQXhSpPQbqPv3Vc80IE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EssNCZU2; arc=pass smtp.client-ip=209.85.218.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BugadP+j"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6b1cc392d8bso3849302a12.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 15 Oct 2026 23:58:05 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792133883; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EssNCZU2"
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-c411e139259so8249366b.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Oct 2026 00:59:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792137577; cv=none;
         d=google.com; s=arc-20260327;
-        b=CZKOv2RSQRpJvGDnrD5QFjXmtM78ulZN5/v2OB6XvU+QDsSJo80z2HMFA5SQ6xrTvn
-         NPWta5+nA7fsqLsETtj0xSSsSwSE7IsWoJJRcjwEwsBsIzWW80BNRSUxJLzdY1yUxFIr
-         GQ+Yv4uzy1PIT7i6pVm/Q0IZCj0porYMzobhONLF4RXl3zHuc/2EuuAakSICZGNtnx79
-         7jT27AvifPWWtTKJAE/3ENhu8Z7UAe5H1wtZcnJqE0hyEaWuls93DifYxLSYp6Qw6byA
-         tNu6bPvgQ+NhKcvly/j2Xlmt0C8FDDAexLz+nw+bgb4c0aN6ZiVMtQWymBU5K42ju9//
-         EzhQ==
+        b=bJw786o5zLKtpZmk6nDO8h6a7vxYFnGhCfy4RyrnSeNR9jz9VZE/tKnWtzN0pexRov
+         H/EstQSoDMJzzff0ft0XogsoPu5crIKaBfS00ojFrgECMct9NRlsQTpHBxdOne6lkOTb
+         bO6xluCVghrJ0C+aG+1CtRPZq1D7E6CpfMVscisK3Q5ae4GD15us/7c2luDIY3ZibpI1
+         z36HOI6m63TPlNrGbVXrryF9f/Y35ZFHCy7Q/E6IMlXiv5fYlUGChxV8PUhI1NgEz9A6
+         mLlexVB66cpNw7Job6cx6ockwNdx9RRr89nODEq/tqH4ez45Kv5tRLvoM7jFS5UdERDg
+         3Aog==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=SLmKggqak5/Dj+cuhyZUgxKGUgEOUrXFwflmJJiDsks=;
-        fh=VBRNFJtl2lez5bVdFVpJA/wHmLQBhpXeHk+QElVf8b8=;
-        b=qjNM3GatMEfDIyXVhQgj3G6hIvEF42XhdPa80rXWgvCcBdp8WsxE3fQAIz43cXjYfY
-         kCvCT52bLxEp/ZzbaPYLN59JQtF3lblDhr2QZocZghPgD9N31tRVSCnUsG000r0o6SBi
-         La1bbJoGNsJtdvrJGe8x8jRJAXu8xB5aIMroAZEAKkL6XQVXYRJHfbkKS6r57ekjwI56
-         YmHkQ+Rz18vD86lR5re+l9J0YGH4MixV6VGLDi0gSlJHHePi4kqzcC3TjlAMiN+sO8dY
-         7eKHyIFhklku+rkf+DWdEWa5PXEvZcwAJusvXavhMUoKHtCWli3WzwI0afBQ5VKDH76X
-         EO+A==;
+        bh=CqeWUEBI6e0Y684j10gyEkaIDx00oGMgtXL5mTvqppw=;
+        fh=34W39lVGwwYj2fx+qSenXmkA9zcfQxP/o9YQ2L8z654=;
+        b=pH0dUEx7k12smw56LV4L5XTsuWnxiVdJWx4N+EX6GLeJz2jj5V6LxzxC7+gDr6xltL
+         B94Rn9u0ON72t/eIgEYdmLfiRN+nyDjJ/o8nZGmv0VOp6FO2y5baGlgHjE6LGP3++Rox
+         iuK0ZMyloWhEcqg9jVj2+8aCdTeIDQgSkzUkIt7DqJEDRpLTPnH15yf/iUZLxlgRB0sE
+         t5ncL7vC2Jb7FlXuhjsu6suTgNthwwhawNJPqWIZsjsDXAxiA7oyJ5XtKsgWnN5oJwSb
+         kkvcJ69CsWCv8BboPMnRZBXYa4Csk+8oQEiBlOdeN84mQtba0vEH3HnT5f9sdUgEDXrB
+         3qMw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792133883; x=1792738683; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1792137577; x=1792742377; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=SLmKggqak5/Dj+cuhyZUgxKGUgEOUrXFwflmJJiDsks=;
-        b=BugadP+jf8T/v67A/JZWzdLRyW4AdJANwF79NplWKBXhKgdrT0gT+DKp9Nc96q0g4i
-         7SsTwmyUVBckHll0pINvBD6Kk9lE3rYk41B1Rc8/pVVxuxfXEP7T3Hgqd6K35uebzOeU
-         ftYZo+a8UHNm5Dmj/4/QMnDbLDbaybFVxQxqNjUy9h47XJ1LW8b8HtDpiHCcQsRasznw
-         cvlaB6v2dNUcYfOotwIvATL72CllhzEMLPQh2wbFjQ9Hf6uILynFO2XQxabhETwzE2+Q
-         I8BTsP/VqZk500g3spKzLYEheOgoVX1iywgT4m3F91Nshu00qpYPudpoDlGrwKNA/55H
-         JXRA==
+        bh=CqeWUEBI6e0Y684j10gyEkaIDx00oGMgtXL5mTvqppw=;
+        b=EssNCZU22L2PJ54SA3PCvPhbTm4N9Ue8uokPDwtgECJWuzCx0UsehkqK3nxVmZ3sF8
+         cpwy/x9l1DH3J5uhVvjcCAwRsD3fA44e40rrZlbRjKMt2b1tpg0IpBqi53l5Wj89LtRI
+         DsUp6DRcG0l/qKckcmSbqbI+pgfWp8wtHNXZDGlzaPO99au1FitEVyEv7EfdvGo1lP+G
+         zaaP/WpLavMMhpvPCZ31K+g6b/7NtNnvBV9DKdm84DoUBW+qYcAcpQhRR5bc48hj/e8c
+         uxCY0+wN659f18zIVixG03TXiWgeY+lrG0+s9JgfXtuYHXku8XoVQ4jjSjQhyKVg4vPn
+         yMDw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792133883; x=1792738683;
+        d=1e100.net; s=20260707; t=1792137577; x=1792742377;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=SLmKggqak5/Dj+cuhyZUgxKGUgEOUrXFwflmJJiDsks=;
-        b=W9bgDe+m9TjJBMuQkqmEQm0OkINsGpioXWK2aoJpQYx4X7p+F6dQzsZbEnG0TD8wV7
-         bqI5gfXhespdoXsWaV7hhJsPJyHng9P4l1wsJpwqIAvkDv+z/VuksRRC5iPOj78X+cND
-         AipWS+mpMCtO/d0gjR+heGoTQ/Twxxu+RRG6aUQs/5QXLNavOdFFiPF1crJA+JzrxIwI
-         xf1B2qMqDpUnvw3o28TaUJYdD6qoprzxUzTnclvDjZaAxURnWiaAa2MZEyN8lwOMio6z
-         9ewAmSP1W5zJ+2QDtTzTzd2QWS8MNmbrFm4V0s8a5BhQhx6PILRGyOvoPCry89BMGhhW
-         NcNA==
-X-Forwarded-Encrypted: i=1; AKwUvBwoJRYOJ2GovhYgTae0pO3+c9I+OkYTGCkXc05RfLkxZENQpBU6DQ7KM+zPjI1dzocKJUCoQZoySx7ZU1Do@vger.kernel.org
-X-Gm-Message-State: AFq9FYJCe7AicFN+awO1KgjC+Bhv0tGS2imokHyqKuYw1uSiZedc3scx
-	XP5mvCc4yTrp7XyZz90LN/ne/ZN90uo3eAoi9kuC3NleKS0i9kiM7GJJ6FUQWhwwMHQ5kKLbrK+
-	vMk53EmGfSARwk0zETZMgXn4Hnw/dtoE=
-X-Gm-Gg: AYBFou053yBQIgYj77JrDGLf5xgvN58nN1cngR8NoG8iRAFWNupWWXmW76QEW1p1ocO
-	u9wRN1DuqtciEhUq+WwwHpE/0zOdLB/RgtuR6Df66zCUx95a3vIqN4N5N8UECNwNoeCAZju8nRr
-	LwjTuYj6tExhOeWVbfzcpbqMMzQ5zXyP+6s1P9mK2oxyPvHoja73X82xOfLwb9EM/WA0DCFDAuz
-	Z9rq78Av2wQEryVHTp3pu862anSgPq8eeSS2hVAp7tnyjdPwqCXFVTQ4DLukLD9ssJ+6E0a+LRF
-	LYJPvUuWbggq2rq5WCmHh1bsvQ3pJnTZcgOd1t5/I5gaM3alSL9MZJGB
-X-Received: by 2002:a05:6402:5006:b0:6ac:fe75:16a with SMTP id
- 4fb4d7f45d1cf-6b17c21c293mr17047655a12.1.1792133883273; Thu, 15 Oct 2026
- 23:58:03 -0700 (PDT)
+        bh=CqeWUEBI6e0Y684j10gyEkaIDx00oGMgtXL5mTvqppw=;
+        b=OnmKm+Lk2hpBdu6JhzdLYvlvXWtAbaR8fLF2cr63MCNSPz4AcZ9Q/ClX36n2FgYps5
+         0usqT/GDz9jqj28ub28cF4KTX5zk3WqlvdOZrhHNBuWFGxS8nHzYR/uaI8JTf/lKy4vi
+         fIk1iquDnboAXvIuVAeDYrQxSWxfaWnG9MZ2IzNDBGBMtrpKv4wVUgLJbtO0N1623u3h
+         bHHX/J7Ekox99qgRhCDeO/wW1Ig29xQaeOTBxx99U5pefU3wVf+pr604Kob5qu15bQJP
+         5FbHb7Kl04fl8d3MVr/FAtC3Ec2HQhwvj+9bbmmeYMMQEijraCRF2dESeGiTEKuKe2AJ
+         Ovtg==
+X-Forwarded-Encrypted: i=1; AKwUvBxoERRcDD6cT9QfRuhiRYHMq8hACZ1Q8v5QZBHjA5DopaU7a3H2jt4djUbxQr6ZgfNGwC2Z4yDwBbub2vm0@vger.kernel.org
+X-Gm-Message-State: AFq9FYIblWul1UmfWRAa8jyGKBkmudpPHhypDvYkYqWDO8JN5AGjXc8A
+	ATBZA3ytjZyRfTNSe1RJ1IEkx38rNJTIZmpvRODCOXmdGhtKfMK9QgSiCW/KHrj74w/IM0a1ip0
+	LUQ4ODxPs7rgqjmRGBoYEMK5rAlgaErk=
+X-Gm-Gg: AYBFou1fyLi3dHq0rMHX8u/3dwtTMpSpR0yFu3JgyklCrXRgely7mUTN+JQsnk2IffJ
+	G3WCuwRWG7ebsSlu59wLe/0GFl0JeFJzcQCBrI8UtduoRuVYYaEO0Ufzry9Vm279PBTZoDb7haw
+	cJ83zMDNcDG8u56jT+09rsfcLzJqAFtMtIntY31+zJwCHVESxKy28yGa0+ROfJZZr654e2HF5Mj
+	ndaDW/nrloQzN/nhIzVhEhO9aSwuGKXQ0PP6v5Kqepk2LpYijQakT8h/1U/JzycEup7zAuC+nFk
+	5WeLJCy8Ejp/xu7XYUmckfVqGbGwFNcQEACwP6e7Vy37HwggsxMaX3A0gVMS78IRoz4=
+X-Received: by 2002:a17:907:3e05:b0:c41:10ca:b4f9 with SMTP id
+ a640c23a62f3a-c4110cabb6dmr32561566b.20.1792137577402; Fri, 16 Oct 2026
+ 00:59:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261002223746.3248726-1-neilb@ownmail.net>
-In-Reply-To: <20261002223746.3248726-1-neilb@ownmail.net>
+References: <CAOQ4uxhX_neohTAjZDOT0oSWC-JNiqNWqnfE5YSa7Ln05QPQ-A@mail.gmail.com>
+ <20260824204534.1951414-1-fahad@codepure.com> <CAJfpegvbvmznSSdjZH_XqrGZHWgwb4fGux80h02ncopBC48RqA@mail.gmail.com>
+In-Reply-To: <CAJfpegvbvmznSSdjZH_XqrGZHWgwb4fGux80h02ncopBC48RqA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 16 Oct 2026 08:57:50 +0200
-X-Gm-Features: AclHuK9MH6B6PzJPsaSzlLYudYyT9yvA5ySybSRksoXyZI_T9lFw0oouAp4jzR8
-Message-ID: <CAOQ4uxhkGPc8Wiik61_9-u_Jf=gUx0Z4EDaW1z=FMhx73oE_eQ@mail.gmail.com>
-Subject: Re: [PATCH 0/3] Fixes for dentry lockdep tracking on stacking filesystems
-To: NeilBrown <neil@brown.name>, Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	"Borah, Chaitanya Kumar" <chaitanya.kumar.borah@intel.com>, Jeff Layton <jlayton@kernel.org>, 
-	Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
+Date: Fri, 16 Oct 2026 09:59:26 +0200
+X-Gm-Features: AclHuK808ARhKGpUcEpEJymoXXkrPYwYvO8--c-MHfLrBM82Xx-BFnxmgYwNSJM
+Message-ID: <CAOQ4uxgZRdWYdBCqhbz1FyH06WM8cLub6ysbqzP05FcAyah6yw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fortify ovl_copy_xattr() against underlying layer modifications
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Fahad Alharbi <fahad@codepure.com>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, security@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 3, 2026 at 12:41=E2=80=AFAM NeilBrown <neilb@ownmail.net> wrote=
-:
+On Tue, Aug 25, 2026 at 10:21=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu>=
+ wrote:
 >
-> The recent addition of lockdep tracking for in-lookup dentries didn't
-> take into account the needs of stacking filesystems.  For this we need
-> different lock keys for different filesystems in the stack.
+> On Mon, 24 Aug 2026 at 22:47, Fahad Alharbi <fahad@codepure.com> wrote:
+> >
+> > TL;DR: your patch fixes it.  On v7.2-rc6, FUSE probe LEAK -> NO LEAK, a=
+nd the
+> > unprivileged tmpfs racer goes from 78 of 5,000,000 copy-ups leaking (5 =
+of 5
+> > boots) to 0 of 5,000,000 (0 of 5 boots).  51 of 51 functional xattr che=
+cks
+> > unchanged.  One behaviour change worth a look: under a racing lower fs =
+about
+> > 6% of copy-ups now fail with EIO.  Tested-by below.
 >
-> Thanks,
-> NeilBrown
+> > Tested-by: Fahad Alharbi <fahad@codepure.com>
 >
+> Thanks for the detailed test and analysis.
 >
->  [PATCH 1/3] VFS: per-fs-type lockdep key for dentry in-lookup locking
->  [PATCH 2/3] VFS: rename lookup_map to dep_map
->  [PATCH 3/3] ovl: provide private lockdep class for dentry->dep_map
 
-Christian,
+Sorry guys, I guess I dropped the ball on this.
 
-These are fixed to the series you have staged on vfs-7.4.lookup
+However, on second thought, I prefer to break this up into two patches -
+the smaller backportable EIO fix first and then the ovl_getxattr_value()
+bigger change which is harder to backport.
 
-Best append them to this branch per PR?
-
-I have added my RVB for the ovl patch.
+I will prepare this for ovl-fixes PR.
 
 Thanks,
 Amir.
