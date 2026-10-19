@@ -1,146 +1,157 @@
 Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF19F396D28
-	for <linux-unionfs@vger.kernel.org>; Sat, 17 Oct 2026 16:51:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792255891; cv=none; b=igryyTXyyO9ec2sYOCscYjznxavNsDDGroWliEHi1TSkiFXR9gJqUBTqO/0JEwLj6CMsD4XpIseQDq+3+ljfKd69GC7FfLLL8/pMgTOY3OLqOEoHL5sdhACenImsaAPmm+h7RhpgVMVKmvgqL3SazBtdHyEpltkHlvH8sxZ8oHs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792255891; c=relaxed/simple;
-	bh=pPWBmM/X+uYky/gKQ+5EBYcMPQ+iL6bPJtE8VbYUpwc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YmWs68a99DAhl84Epwys3Kj/KPcgtR6NEgjQKu3HYeTsPfOIm+DPP4vMr29i1wC45wVCHXXRz70UtYLy1b3VHAnL1awK/wNfp1kZp59qK/ugdH3U6DIVps8LRFsYklVdEDBgBneCBbvqdZtNTd2lMeOuWWgSoHIIcIaq+n+0e7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SQMdXipJ; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC3944F54D
+	for <linux-unionfs@vger.kernel.org>; Mon, 19 Oct 2026 09:03:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792400613; cv=pass; b=QKGZp8XhpP93pRfwWZ1e9NpWd5SgHajjGJlHr56hWyqezWEpjY/tt09EEBrp06UoAiPuLd7qEpFIwrVUJF5UXbLbDNoZB9X8xt6rGjQ9h2xiCk2f/Hho+DFpG6tk99vnchClRmizar2RK0xx3QUnBUFNKLsmhtldPAtiBC0jVGs=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792400613; c=relaxed/simple;
+	bh=fuxqQ+tD7DylDffylfpxIVNQwIoMDvXpxPmzZop1mxM=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=D4MHuiSAB7xlxQAV4QUzsHWStaisczwsXNTX9AqMmJzD7dLBlsK6CQE9yh6W46F25Fv5jezwSHji2ZDLMR/M0rHKHoGfK/8gk4L1LXGt+oG8JkSS0G3XmxFDgu3RnckeZpzqvVn2FXlL779h/faM9SuYMtRCG+bp2SoLlPefmhA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MnHymimK; arc=pass smtp.client-ip=209.85.218.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SQMdXipJ"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c2afa22e1dcso134548266b.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Oct 2026 09:51:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MnHymimK"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c434376dbebso171654266b.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 19 Oct 2026 02:03:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792400610; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Y4xiJ9towOqQWGw7Y48X4KerQ6J3mEfJGmeafmQb0MG1ThyX1ohXWMpnhPQrE79TIq
+         7anHegv+DWbVtvwRWTiH+ntYbR+H44fNPmSnocOewZ+KqjHCbSj9AE+X7TzraxUPFbtm
+         5vpjgQRdB1IQe1fhKv/PZBaAw3qS5ObSud1ARpuCaXeGtJNpGFYi8MlddvnTDfu3eLUe
+         AszgTr2hJgNL3NFnNYc/AYxzEmhZvkWSqOgBPrjvYdn9wPaBJbdFHyACZKASFVFIy+DJ
+         qYerCLiHwBUWl2RNKwBxAE49e/+i5r7wWrp94JJZ1g2wnDZ6l5Ozrqug+ZxNtsHOK9Wo
+         nSLg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=btI5b4NYBKhWiTT7g2SaCW5SPW+H1/AeKO+HgacT8Bw=;
+        fh=lUMnrQNWIDTEGwvnCPZdNT6eG06rRU9I8vTaYbdbcL0=;
+        b=N67s7UlUqM54n3CUkCZ4bYAwlDWC/n21BxvqbNYxcKRt82nBmqZVecVqsxPYeZPu6S
+         8KErBHcnc38Qf3epKZKD289py5i1Zn2DmSHRwa7VKot4a0Jniaqr5J5Aqnr1M6ZcGcmV
+         cCt5hZ/7BXVlIg1LRjWsAnHHvzyhOUeaHBVC5ukQBLWTHzpnVtO6yoCaSw1GNk5ESxVR
+         sun9cXsM+ovkwKm+neJ6G72Jynsyuns/Naacp6QE4aRcrnhe8OT6P88Z4IVnx1DH/e9T
+         YCzeaXnHVlQR3qQUUB50Zt/pO9GqCjvE7kjx6zotMI/zidEtoZ6gGXFKOwqGxfXDdRK2
+         yo1A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792255887; x=1792860687; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=zPmxIE9jKtEtBa3fhEQJEoH+3Pe3VBtJ1OEhScFLQkg=;
-        b=SQMdXipJcTnSkdIGdtzCdDzGcYwxa1YpZNAwlZt/b8fc/uLY/fjBHjIf+NNoV59nqc
-         cflleyxC6nZbEptKnxtwTMz8Fg6Ix/yMFWn4B1aPei/RTNA/8RnAKDlXMUMFu2blNVL2
-         VN/7dfqPVGoLXQ7sfyHe72buVr5GZ7NYbOjvDaXyoOSSYUHZDT8IMUSnkWTcG3Hhas8Z
-         3355SIJyPa7mA98qj5KaBHv6qsY2B1noPccuoFkI54T159/Dan91qbYaXmefQ47bp3FF
-         q2yWdQn47KNDjOctg5tWVgzzpEswxbjkKD8s91cvp7U4lOIsgfOd2wfiH7Bh+TQmo8Xf
-         vBjg==
+        d=gmail.com; s=20251104; t=1792400610; x=1793005410; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=btI5b4NYBKhWiTT7g2SaCW5SPW+H1/AeKO+HgacT8Bw=;
+        b=MnHymimKCDg2vDblm3yT0A+pvzWDJ1gI33YFVI/PSfsUXMQaypxERtofuXMMpdpQPr
+         FbV92P9Bo8gdDJR2dGEVuheUoar0ZwhvSupQ7wtGXymAdVK6kDnFOQXaObXSJTsih/VB
+         Uo7qcu9QSaWPB/evCBH2TSBQ2BSkH30zc1Sm+LBppiI1GYMFm3GhTUE5wiUTsUKlNgnv
+         cv/Dh2mzu2OZ8h65DY6wpIoDScWEjQ3koubONdX9GlA/hGVOPP79E7v3izibVZ6bU7k9
+         L7UakgGM+/Q6pQYsdWvI9/9DhJQSbEDk9P3RkbXYqzaxZZReLX6OpcdXyLQC388GbglJ
+         xbhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792255887; x=1792860687;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=zPmxIE9jKtEtBa3fhEQJEoH+3Pe3VBtJ1OEhScFLQkg=;
-        b=d0W0WKfboitiZyrwmXO96eCK6Z62UK3AQq3mlGOVpX7onBhXb+xJBQk7NEqA0CY9lB
-         gpvTbU5RPgliBWFyfIFzrocYV33X9sxIGHGD9h9IXO6GXOif4gRimyVKgJWfFyEY5C8P
-         N/fk7rAJQCMpN1BxnzGu7SsbIKEL3fiSoZ5qvLJcXYWhw80mSNvwT6IO5kYtJ7HpUWlX
-         YKPJHl+SomAcpkxPW0uPrOaJJqtSqmxjl7HGfQI9fMmszovu1j8EpbpIBnHGWoQy4A3T
-         xhvXCjXbdfzRSeIkHY4V2TH66Lq1sJPzF7RjCOeL2lbPNdYu6VFgotsNAs3SzIoO/tn0
-         sYvw==
-X-Forwarded-Encrypted: i=1; AKwUvByB6g9USEFR5oXtniXrdrNdYvzHXjsXM72+Xa5MbBaw6jQ82Np7Rj3LJri1CICclGLrRioLXks2zlv7Gazh@vger.kernel.org
-X-Gm-Message-State: AFq9FYKIxj0E+D9RERz2eiLG5xmDmjkiIRLmy7u68A5+cbfLD/MIDSPT
-	gS8de+ySNefLugyeNo3DUwRfVAO/4SsyyyjeaAe2dQ7xQ+eIfQonTR35
-X-Gm-Gg: AYBFou0sJmKjtxBz0LJAv4igYAxWEgz8B57vntkSl/VBCps4D5DIMt6JUT+t3hseKB8
-	tzreI3n294dctb3vRjd2KwI/2M3iv8EX8jfqX6DkstUgft8edrkzSH+fl1VfS8taJf8sMYprneP
-	8FS4pET6tWW5hk+kS2lsA9Md3VqlYrmY1BEdi6M5e7QTyppqRqX1SzJ1yldl2Wx03GUw58mmWoK
-	nr/YKy/59Bbqr7UigGDPWfo/Tn68s85H2y5ikppqBH6HMGyOt2O0dh49BofPVzg5+ZWunLflTuk
-	HXeCevmava/dGbHg1gdC6vO0wIDh1sAEpw2nc0sCkpxYFMHC06EzKp60vVKQjb+2S8iq0I3hcYT
-	7xSAjpDipMiuMhRs+EkxqMXzfLVDJPwabw+J6Vj8GkqC3gSAvsMSUG9mDYpvxhxZ6ocRVP0dKn9
-	Dhwman9BOtgaUOXexaE9gUcRTHOSAMmU4fUBEKeJ9Hz2YXFFDQZZs4AHaiUMffktvyDKHeMbfs3
-	9z4jMcxl5hy0A9NtjJskUYvcg==
-X-Received: by 2002:a17:907:a892:b0:c3f:c10c:2178 with SMTP id a640c23a62f3a-c419eb337bbmr218862466b.28.1792255886777;
-        Sat, 17 Oct 2026 09:51:26 -0700 (PDT)
-Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4090dd3190sm196301866b.23.2026.10.17.09.51.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Oct 2026 09:51:26 -0700 (PDT)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Disha Goel <disgoel@linux.ibm.com>
-Subject: [PATCH] ovl: fix mount setup failing when override_creds drops CAP_SYS_ADMIN
-Date: Sat, 17 Oct 2026 18:51:25 +0200
-Message-ID: <20261017165125.2450059-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.55.0
+        d=1e100.net; s=20260707; t=1792400610; x=1793005410;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=btI5b4NYBKhWiTT7g2SaCW5SPW+H1/AeKO+HgacT8Bw=;
+        b=nepjDM4lovAeB8D2/yo9iY1Sfdp4YuIM8C/08S+HVka+8966Av5wUubmGjJ2dotWaB
+         0uNXmXm+Rc6e/cYn5FhUyNXrRGFHcEggqIzATSwhcWCpDXFC4PSAeFE9rBltNzkya+K7
+         KKHRDgoOPjBBlrrSZOjzofnyOgA7Rmvs4RBrUF3oRcp1sYSGlsG7XfMXFJ3DIaTG0F9A
+         c9JYAiCEOgSv0w4/UHl1RovUiUsnxyOj76IweNsPqKfmigmyEBuSbdkVlzHYVvdGrpl9
+         pJiwly9+PgmG90uqkAdM0GNvF0mTHT5mXZgjntqAQ/1AiQ96wPsdex6+r2f//tnFbMgo
+         V6dg==
+X-Gm-Message-State: AFq9FYJj0aHylGiVmDPuL79VyJYzqyJqIPuCHb5wFe8tjfDYbZeADBb5
+	XIqcHnYk2w7M72jfFEz8UeYiqvzyxKC0VyA2QoeFCUBUmwCHG1kpEdpp8ANpK2Anln07M/TFcFj
+	m7GtgG2tJXlR6x4jMqMZYx2vonsPF1KplLZTR
+X-Gm-Gg: AYBFou0Zrh8qafhI8iKe0bCfcJSPwrH6BeC+AS+bz5k/TJ8PAuXQ4NnVWPQZLgh/dI1
+	yBMp7niKA3AqeeOPqHRDlPMqfs/eb/INskHXCdYU3hXjuiCxiC8Ft+rQaR14IhTyTy0P//bDUUw
+	LE2CeurGjb9QcdUhZwBn4CVPiQtidXOaMHCR4F+NaG76AyU/XYkP9qGJodAe9THZTPtC4cHIH6m
+	X72nY5WNreMsszg01vrziIczeRA989OqnFPhqQPOXlGMhXYhWCVeaosvAilLCQ49t/RXzoXIx+d
+	l7FiwiWSfvms2pNYZb+yMhcwU6bfwjTm8VDOnYOFNryGmr3WRgAvAnHb+SghWTJ+U0UCFI6pisj
+	Qy9i53WhFqwJR
+X-Received: by 2002:a17:907:2d94:b0:c42:4557:452c with SMTP id
+ a640c23a62f3a-c4245574af6mr347230866b.8.1792400609324; Mon, 19 Oct 2026
+ 02:03:29 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Claudio Fernando Pinto <claudiofernandopinto@gmail.com>
+Date: Mon, 19 Oct 2026 06:03:17 -0300
+X-Gm-Features: AclHuK_L8gqHgvPTdsvh6QXtOxLsYcgjeNl5xe03pNlJ309cbPzfcQHTAVmU44M
+Message-ID: <CACs2WyyyGBxznvnJRDYWziAbzz8QROr41CF9Wtu9fOj7jX1fDw@mail.gmail.com>
+Subject: overlayfs: unprivileged writes can use ext4's reserved blocks with
+ the default resuid
+To: linux-unionfs@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, linux-ext4@vger.kernel.org, 
+	"Theodore Ts'o" <tytso@mit.edu>
+Content-Type: text/plain; charset="UTF-8"
 
-When a process drops CAP_SYS_ADMIN and calls fsconfig(FSCONFIG_SET_FLAG,
-"override_creds"), overlayfs saves those restricted credentials in
-ofs->creator_cred. ovl_fill_super() then wraps the entire mount setup in
-with_ovl_creds(), switching to those restricted credentials for the
-duration.
+Hello,
 
-Mount setup calls clone_private_mount(), which checks CAP_SYS_ADMIN
-against current credentials. With restricted credentials active, this
-check fails with -EPERM even though the task issuing
-FSCONFIG_CMD_CREATE is fully privileged.
+ovl_fill_super() lowers CAP_SYS_RESOURCE in the creator credentials with
+the comment "Never override disk quota limits or use reserved space"
+(fs/overlayfs/super.c:1511 in v7.3-rc7). On an ext4 upper with the
+default reserve owner, the second half does not hold:
+ext4_has_free_clusters() grants the reserve when the allocating task's
+fsuid equals s_resuid, 0 by default, before it looks at the capability
+(fs/ext4/balloc.c:654-657). Writes through overlayfs run with the
+mounter's credentials (ovl_write_iter() sets .cred = ovl_creds(sb) and
+backing_file_write_iter() applies it), so with a root mounter the fsuid
+that reaches ext4 is 0, and an unprivileged writer can spend the blocks
+reserved for root.
 
-Use the mounter's real credentials only for cloning the private layer
-mounts. Keep all other backing filesystem operations during mount setup
-under the stashed credentials.
+Reproducer, a 64 MiB ext4 image with the default 5% reserve (1146
+blocks), the same user ("nobody") filling it once directly and once
+through an overlay mounted by root:
 
-Reported-by: Disha Goel <disgoel@linux.ibm.com>
-Closes: https://lore.kernel.org/linux-unionfs/20260924112858.51392-1-disgoel@linux.ibm.com
-Fixes: c28f922c9dcee ("clone_private_mnt(): make sure that caller has CAP_SYS_ADMIN in the right userns")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/super.c | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+  direct:  reserve=1146 free_after=1146  (reserve kept)
+  overlay: reserve=1146 free_after=327   (819 reserved blocks used)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index bd0a3f9039d25..c8145b62ea99d 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -497,6 +497,20 @@ static int ovl_report_in_use(struct ovl_fs *ofs, const char *name)
- 	}
- }
- 
-+/*
-+ * clone_private_mount() checks CAP_SYS_ADMIN in current->cred.
-+ * ovl_fill_super_creds() runs under the stashed creator cred, which
-+ * override_creds may have dropped.
-+ * The task that issued FSCONFIG_CMD_CREATE is still current->real_cred, so
-+ * use that only for the clone. creator_cred stays in effect for every other
-+ * backing-fs operation.
-+ */
-+static struct vfsmount *ovl_clone_private_mount(const struct path *path)
-+{
-+	scoped_with_creds(current_real_cred())
-+		return clone_private_mount(path);
-+}
-+
- static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 			 struct ovl_layer *upper_layer,
- 			 const struct path *upperpath)
-@@ -520,7 +534,7 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 	if (err)
- 		goto out;
- 
--	upper_mnt = clone_private_mount(upperpath);
-+	upper_mnt = ovl_clone_private_mount(upperpath);
- 	err = PTR_ERR(upper_mnt);
- 	if (IS_ERR(upper_mnt)) {
- 		pr_err("failed to clone upperpath\n");
-@@ -1093,7 +1107,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 			}
- 		}
- 
--		mnt = clone_private_mount(&l->path);
-+		mnt = ovl_clone_private_mount(&l->path);
- 		err = PTR_ERR(mnt);
- 		if (IS_ERR(mnt)) {
- 			pr_err("failed to clone lowerpath\n");
--- 
-2.55.0
+v7.3-rc7 (24a19b953e2a), arm64 under QEMU, writer uid 65534; the same
+on 7.0.14 in Docker Desktop's VM (1148 and 331). Script below.
 
+I ran into this in an out-of-tree stacked filesystem I work on, which
+copied the overlayfs approach and had the same gap. There I now run
+data writes, fallocate, clone and copy_file_range with a copy of the
+mounter credentials that carries the writer's fsuid, fsgid and groups
+(built the way ovl_create_or_link() builds creation credentials, and
+cached per file while the same identity writes), so ext4 decides the
+reserve as it would for a direct write. I do not know whether that is
+the direction you would want here, given the per-write cost and copy-up
+also allocating with the mounter credentials, or whether this case is
+already known and accepted as one of the behaviours that cannot be
+implemented with full fidelity. Is it worth a patch, or should the
+comment just say that resuid/resgid still apply?
+
+Thanks,
+Claudio
+
+---8<--- repro.sh (run as root) ---8<---
+#!/bin/sh
+set -u
+cd /tmp
+for case in direct overlay; do
+    rm -f img; truncate -s 64M img
+    mkfs.ext4 -q -F -b 4096 img
+    mkdir -p /mnt/low; mount -o loop img /mnt/low
+    cd /mnt/low; mkdir -p upper work lower /mnt/ovl; cd /tmp
+    chmod 1777 /mnt/low/upper /mnt/low/lower
+    target=/mnt/low/upper
+    if [ $case = overlay ]; then
+        o=lowerdir=/mnt/low/lower,upperdir=/mnt/low/upper
+        o=$o,workdir=/mnt/low/work
+        mount -t overlay overlay -o $o /mnt/ovl
+        target=/mnt/ovl
+    fi
+    set -- $(stat -f -c '%f %a' /mnt/low); reserve=$(($1 - $2))
+    dd="dd if=/dev/zero of=$target/fill bs=64k 2>/dev/null"
+    su -s /bin/sh nobody -c "$dd"
+    sync
+    set -- $(stat -f -c '%f %a' /mnt/low)
+    echo "$case: reserve=$reserve free_after=$1"
+    [ $case = overlay ] && umount /mnt/ovl
+    umount /mnt/low
+done
