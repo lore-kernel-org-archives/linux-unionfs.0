@@ -1,240 +1,175 @@
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.52
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792446923;
+	b=xvIUauj7T0Tog4h/wqErLTk+fYahAM3EV7PY5IMIUQlD/WafB3aLHWpCgjhhNmpZSUiy
+	 2lb9CRozaiB6k3yNRa2SF9NJbS1KbF/Mf08Z4ltjInUHuEktKa8vgzOdXd17ZShikijJQ
+	 FsXhSi4yXLrpQLUWksn+gShc78XgTqUK41UqIuZ0+bRRA2810W3r2PtY1m/lFaq/pVHHt
+	 bXXTosDhA9dZc0wm9gZ7zqn4A+uty3+L35y+CTxQRyiH2QLLR8jW3OqCslAaw7/ehtEK3
+	 Aub4F8kB20wMeJPLzDNqVkbVqIKTDyRmr60kEQPWWCXQleVLer35BrO4khBLW3PSTEw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792446923;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
+	b=aOAoUNH4JVYByf+yfhlezPUOwghH6J37nAa8EhhgGzuBIY+RibdcPqsfh2QvJ8OuSiJI
+	 +Mx7m7ECXTx8UClNYcOIAXipsTjSu4wSUh1n2nOiVtng6scdHBAe2vx3zUflKoieRiNDw
+	 0NjRxNFKY4YHvPToeuuNEM6Bf9zboEb0HP5B29tDo5tYG3sfTchWfxnBzT3ZUuEBJUb/q
+	 6/9HEEH7SzbYAdFRTq6beOTnXkDn8a6Zu9tOrqkdIFEVSRaUfClOKHMebxF5UDk73SUa5
+	 /gyXMNz3GlKs3FXSPpYW7XCjz2zL3TmfLVSI9SNNmKSsZipxkTAa2FY7EZS0Pqc9q5g==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=YIjlvJfH;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.52
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A61305E1F;
-	Mon, 19 Oct 2026 13:18:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792415913; cv=none; b=XKpGr6cTWSlm9myuwrL+gKYJ8rJ0rkt4YaPISt1QFbmLH9IkJqocFAjflYXjHB+wt/r/MNrI7xlYbixEiPQFNgnFQMlbqdnzcyIPkvex+Xj1o4qLojCx2D8cBZKyjpAQyatyeORvDFxEgl418FZR7BAbkbhnyijFfemdZIf+ITE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792415913; c=relaxed/simple;
-	bh=tw/NIA6n/WlEM9gbRkoL6G9qlG0bYIFMcFGFohHaOpg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=SZL35z+CpLiuo6vCm6aly2QyiPs4uF4CT4zRUSarulMebxS9/EzQOL9u8UYaOyNWunhpfWIUelZ0Z0FgErUEZCtkcwyigPlh3fnpEAOl9Yw3Z/+NRjV/Pf2Nj50eiWQ9wqphUdXNPyviNUVaMr7gyuObr1PuSxuaFnPOxCECuLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=4TBSCuQs; arc=none smtp.client-ip=113.46.200.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FDAB606A319
+	for <linux-unionfs@vger.kernel.org>; Mon, 19 Oct 2026 21:55:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5FDAB606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="4TBSCuQs"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=nsTgvIZAvLZ3AkHd7te1YwAT5vQcze+ZS3sOvyFtcIg=;
-	b=4TBSCuQs0ZdnPFMgTM9bX9OvAvFEfbIZ0LIjSwYBzm0TCIeE0rVraJFOIej4k1X7EItvC1NmR
-	DX3BwVJS/9MaAexRTXkUg/68Kdod6DsiNW4k5ZZ6iNTl5sWy1P0de+g7jr1skB7fCwujvSD5mIa
-	tukVtvADo4Ri0z5qNKiN+rE=
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4j7bhR2MFBz1K96D;
-	Mon, 19 Oct 2026 21:18:15 +0800 (CST)
-Received: from whupemk100010.china.huawei.com (unknown [7.152.184.41])
-	by mail.maildlp.com (Postfix) with ESMTPS id 23C6D4057A;
-	Mon, 19 Oct 2026 21:18:18 +0800 (CST)
-Received: from [10.67.110.140] (10.67.110.140) by
- whupemk100010.china.huawei.com (7.152.184.41) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Mon, 19 Oct 2026 21:18:11 +0800
-Message-ID: <bfc74a80-92e9-4dcf-926e-0a2e2c33e4d5@huawei.com>
-Date: Mon, 19 Oct 2026 21:18:10 +0800
-Precedence: bulk
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=YIjlvJfH
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-6b1cc392d8bso3179861a12.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 19 Oct 2026 14:55:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792446922; cv=none;
+        d=google.com; s=arc-20260327;
+        b=lPArKG6Rq+tVFyZdrNrUdVOf9m2NoLijkRZ2yCio7T0F5lHruY3WqEYmbXKLC4i1xC
+         N9BxnJJlf4U/B32gox65i6DHqMv4qSFd8NkYJ41gSuo2HLzLF+nUBWQvkFRpEGxKbJGg
+         rVdQ4DilFcjKBsCopW4Ub26tQ82VCN2QkzssWL718Vp6OHyJJI/0grHq2tOubL/sDpZJ
+         rmiriikX2EKNVwIH8QLDMQ190kkYG5CDLoPWrhGxk/M7B69KVb3lWQ54dmlw3zVzkNOs
+         ANFVCirOnYpoubsCMbZYApkXFaslCLDbs7f4bAci2OMVLwtn7O/vj3ObK+tJtsO3yUDv
+         YGhw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
+        fh=0Gyctx8BjhuQLiE2jubUmjDwnhMLEyQ5vmbBwGOrd28=;
+        b=Qo/sqMhuKixgqnTat+Hxz5JOSJQWvUcjKmUV2sEvUw5TAERuObtfsnluXp9T/Zn12Y
+         k25Ev6wAfTBjgCTMA8+FtHoJ6DUROrriCiL9Uc1cJ1UZ9JVDfu7gApLRx9DIttykleMn
+         ocezTIFtuYVAq1HG+79pGo1lJfr8zXL1qr2X1L95D1Pd6d8DskpQrFrRD+lzQ7YOBy+d
+         4rdj9F3SCSlC2ZRzIOMH9iJgL3i7KGq4piHvcieMzUpsZ4bofVgDB82FyQ0maCnNMf4x
+         RRnTLlTxokx5/7fLNAcZ0Hlptb3WS/SdKQib3gi/cI24bGYUp74MybHVlk19P/Gadtux
+         0P5A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792446922; x=1793051722; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
+        b=YIjlvJfHZJwzkDyVmDSHEGAGGTMlDR73ZU13Cwy94sKyiVLB9MKtyGRhLVh4c6afSs
+         pyX2JFu3rjoA/5fRLWrzZm/RA15uUw8PpgNkgmXxpjHfeqih/2zKcbgp1QiI0iglnHS1
+         DeetUffXBMirCyrXz1ltNwGrxQZaInAgU81ac0FPiNtzdJ13bx6xJ3cKXmvVUqTWfVku
+         ViCsmIb4npJY8gLEyn94IIBoZqJvXwPi9ut0+NC2k6ty9BWt1t8Nqu79uhQj7heOZ/aF
+         teSxFtDqptinuBf+x5GlOWU7+UGF7q0OIemPd47oBCnSmIWb8j4DLI/V68ux/xzxnqqb
+         VwGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792446922; x=1793051722;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
+        b=yZZn94SkzqjJRVv7czIH+eOeByusUCGPeF75VAi9hlHlHIa4ByYZ4S7f3mfPV6uOzq
+         wUKsNLebE/T9IpyjYuInYWYtG6sMXG+RKG+pruW0GcKRXIVS9Xx/JJoDsSAIPVK1AHrO
+         KvfHfmJ1U8HRVGn9pCn/okm5XPrIF/vyINGHEnq9tCt26fVNnwLEFqhr+NVFmRkPW64C
+         cAH4FSuFegUhYy9v7ofXwMf0fXxQpOoooOhFRAY8oTpuklEI8C2Lyg0bbK4lh94qAGk4
+         gLKl/sNIgCF4gGY4DYhoeS3KbD7agDhCA7vqybSyLOwaFSM6Ce+gBN8waXD2vZiOQK07
+         N7wQ==
+X-Gm-Message-State: AFq9FYJIzwH9M4324O5hpRK8zv8yu7WVpyQcWg2jiBtyJGf9ViaroqeG
+	cRIM0UnQc91p1IvxZtZowq0xGCQRojXsKkI3qj2Lq9CWasqOdQClI3MnFSXHHa0zwOXWGaKM6yg
+	3Bjej2ZHgmgqW6vRfygUrOHcTnRpwvNU=
+X-Gm-Gg: AYBFou2XzAEQiQzOySeEsiCtcXgg9nSYd4WuoW+bfcOReQ7AMwhzV7ad+E1/Z6WzwI+
+	R4zb1LLKP+iDC90is+XyAfqssI7IDSHK4fMt5+iSWik7Ow/ke5VmpK7nnBSiwhk0C+J0vcA2k4B
+	mvMmc53vciKHOxXEfkPsMPTr4m5T06a4cloPbqZYNSCESSR+iVj/qRaqR/ggr2/P+wXxEqAntzC
+	5WsMZNVMbZDM4bOVDqJVrq1Z6cHmFrM2SsoajVc6NhgI2e3+Uvh5BcUkvx2MX9iCPdr1FNDp+Nv
+	vbpBMO45+PB3cCv51LD++oEDNt+FGuTHAPNCrldGLfu3TBnSDmHwGx1QPYMp7KAX/Q==
+X-Received: by 2002:a05:6402:21d2:b0:6b3:c0a8:721a with SMTP id
+ 4fb4d7f45d1cf-6b3c0a876a7mr3271800a12.32.1792446921583; Mon, 19 Oct 2026
+ 14:55:21 -0700 (PDT)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
+List-Post: <mailto:linux-unionfs@vger.kernel.org>
+List-Help: <mailto:linux-unionfs+help@vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
+List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
+Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 -next 09/18] landlock: Add READ_METADATA and
- WRITE_METADATA access rights
-To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>, Justin Suess
-	<utilityemal77@gmail.com>
-CC: <mic@digikod.net>, <paul@paul-moore.com>, <jmorris@namei.org>,
-	<serge@hallyn.com>, <corbet@lwn.net>, <skhan@linuxfoundation.org>,
-	<ast@kernel.org>, <daniel@iogearbox.net>, <andrii@kernel.org>,
-	<eddyz87@gmail.com>, <memxor@gmail.com>, <martin.lau@linux.dev>,
-	<song@kernel.org>, <yonghong.song@linux.dev>, <jolsa@kernel.org>,
-	<emil@etsalapatis.com>, <ihor.solodrai@linux.dev>, <rdunlap@infradead.org>,
-	<gregkh@linuxfoundation.org>, <rafael@kernel.org>, <dakr@kernel.org>,
-	<johan@kernel.org>, <dlemoal@kernel.org>, <hch@lst.de>, <axboe@kernel.dk>,
-	<viro@zeniv.linux.org.uk>, <brauner@kernel.org>, <jack@suse.cz>,
-	<dhowells@redhat.com>, <code@tyhicks.com>, <linkinjeon@kernel.org>,
-	<sj1557.seo@samsung.com>, <yuezhang.mo@sony.com>,
-	<hirofumi@mail.parknet.co.jp>, <cel@kernel.org>, <jlayton@kernel.org>,
-	<neil@brown.name>, <okorniev@redhat.com>, <Dai.Ngo@oracle.com>,
-	<tom@talpey.com>, <hyc.lee@gmail.com>, <miklos@szeredi.hu>,
-	<amir73il@gmail.com>, <senozhatsky@chromium.org>,
-	<chenxiaosong@chenxiaosong.com>, <kpsingh@kernel.org>, <matt@bobrowski.net>,
-	<rostedt@goodmis.org>, <mhiramat@kernel.org>,
-	<mathieu.desnoyers@efficios.com>, <john.johansen@canonical.com>,
-	<georgia.garcia@canonical.com>, <zohar@linux.ibm.com>,
-	<roberto.sassu@huawei.com>, <dmitry.kasatkin@gmail.com>,
-	<eric.snowberg@oracle.com>, <stephen.smalley.work@gmail.com>,
-	<omosnacek@gmail.com>, <casey@schaufler-ca.com>, <takedakn@nttdata.co.jp>,
-	<penguin-kernel@i-love.sakura.ne.jp>, <xiujianfeng@huawei.com>,
-	<nanx95726@gmail.com>, <djwong@kernel.org>, <lujialin4@huawei.com>,
-	<bpf@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-security-module@vger.kernel.org>,
-	<driver-core@lists.linux.dev>, <linux-block@vger.kernel.org>,
-	<linux-fsdevel@vger.kernel.org>, <netfs@lists.linux.dev>,
-	<ecryptfs@vger.kernel.org>, <exfat@lists.linux.dev>,
-	<linux-nfs@vger.kernel.org>, <ntfs@lists.linux.dev>,
-	<linux-unionfs@vger.kernel.org>, <linux-cifs@vger.kernel.org>,
-	<linux-trace-kernel@vger.kernel.org>, <apparmor@lists.ubuntu.com>,
-	<linux-integrity@vger.kernel.org>, <selinux@vger.kernel.org>,
-	<linux-kselftest@vger.kernel.org>
-References: <20261015125425.3246251-1-caixinchen1@huawei.com>
- <20261015125425.3246251-10-caixinchen1@huawei.com> <atI20Vs7Du9-g1Hz@zenbox>
- <atYBVCIYE1zDb7do@google.com>
-Content-Language: en-US
-From: Cai Xinchen <caixinchen1@huawei.com>
-In-Reply-To: <atYBVCIYE1zDb7do@google.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- whupemk100010.china.huawei.com (7.152.184.41)
+References: <CACs2WyyyGBxznvnJRDYWziAbzz8QROr41CF9Wtu9fOj7jX1fDw@mail.gmail.com>
+In-Reply-To: <CACs2WyyyGBxznvnJRDYWziAbzz8QROr41CF9Wtu9fOj7jX1fDw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 19 Oct 2026 23:55:09 +0200
+X-Gm-Features: AclHuK-vu5bxZTtJjQZs-cG_GwqGQ0GiQt0sHWbR5qBAbzeswFscmOXiOptU_M0
+Message-ID: <CAOQ4uxh0g1MtgCO7Q2f4yJP5vq5rLEiiXHbVfeCxwXB5ff4-VQ@mail.gmail.com>
+Subject: Re: overlayfs: unprivileged writes can use ext4's reserved blocks
+ with the default resuid
+To: Claudio Fernando Pinto <claudiofernandopinto@gmail.com>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
+	linux-ext4@vger.kernel.org, "Theodore Ts'o" <tytso@mit.edu>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello Günther,
+On Mon, Oct 19, 2026 at 12:03=E2=80=AFPM Claudio Fernando Pinto
+<claudiofernandopinto@gmail.com> wrote:
+>
+> Hello,
+>
+> ovl_fill_super() lowers CAP_SYS_RESOURCE in the creator credentials with
+> the comment "Never override disk quota limits or use reserved space"
+> (fs/overlayfs/super.c:1511 in v7.3-rc7). On an ext4 upper with the
+> default reserve owner, the second half does not hold:
+> ext4_has_free_clusters() grants the reserve when the allocating task's
+> fsuid equals s_resuid, 0 by default, before it looks at the capability
+> (fs/ext4/balloc.c:654-657). Writes through overlayfs run with the
+> mounter's credentials (ovl_write_iter() sets .cred =3D ovl_creds(sb) and
+> backing_file_write_iter() applies it), so with a root mounter the fsuid
+> that reaches ext4 is 0, and an unprivileged writer can spend the blocks
+> reserved for root.
+>
+> Reproducer, a 64 MiB ext4 image with the default 5% reserve (1146
+> blocks), the same user ("nobody") filling it once directly and once
+> through an overlay mounted by root:
+>
+>   direct:  reserve=3D1146 free_after=3D1146  (reserve kept)
+>   overlay: reserve=3D1146 free_after=3D327   (819 reserved blocks used)
+>
+> v7.3-rc7 (24a19b953e2a), arm64 under QEMU, writer uid 65534; the same
+> on 7.0.14 in Docker Desktop's VM (1148 and 331). Script below.
+>
+> I ran into this in an out-of-tree stacked filesystem I work on, which
+> copied the overlayfs approach and had the same gap. There I now run
+> data writes, fallocate, clone and copy_file_range with a copy of the
+> mounter credentials that carries the writer's fsuid, fsgid and groups
+> (built the way ovl_create_or_link() builds creation credentials, and
+> cached per file while the same identity writes), so ext4 decides the
+> reserve as it would for a direct write. I do not know whether that is
+> the direction you would want here, given the per-write cost and copy-up
+> also allocating with the mounter credentials, or whether this case is
+> already known and accepted as one of the behaviours that cannot be
+> implemented with full fidelity.
 
-Yes, this seems reasonable to me, and I agree it should be a conscious
-decision: the next revision will make the *_METADATA rights follow the
-same "file descriptor as capability" semantic as *_TRUNCATE and
-*_IOCTL_DEV.
+Practically it is one of those cases
 
-Concretely:
+> Is it worth a patch,
 
-- hook_file_open() will record READ_METADATA and WRITE_METADATA
-   availability at open() time, together with TRUNCATE and IOCTL_DEV;
-   both rights will join the _LANDLOCK_ACCESS_FS_OPTIONAL set, which
-   also keeps the deny-mask and quiet-audit logic consistent.
-- Metadata operations that go through a file descriptor (fstat() and
-   statx() on a descriptor, fchmod(), fchown(), futimensat() with
-   AT_EMPTY_PATH, fgetxattr(), fsetxattr(), flistxattr(),
-   fremovexattr(), POSIX ACLs set through a descriptor, the FS_IOC_*
-   flag ioctls, and file_getattr() / file_setattr() with AT_EMPTY_PATH)
-   will be authorized with the rights recorded at open() time,
-   regardless of the domain of the calling thread -- like ftruncate()
-   today.
-- Operations on paths keep being checked against the current domain.
-- The "Rights associated with file descriptors" documentation section
-   will be updated accordingly, together with a note that
-   READ_METADATA should usually be requested in lockstep with
-   READ_FILE and READ_DIR, as for WRITE_FILE and TRUNCATE.
+Which patch? How would you suggest solving it?
 
-On 10/19/2026 7:43 PM, Günther Noack wrote:
-> Hello!
+> or should the
+> comment just say that resuid/resgid still apply?
 >
-> On Fri, Oct 16, 2026 at 10:44:16AM -0400, Justin Suess wrote:
->> On Thu, Oct 15, 2026 at 08:54:15PM +0800, Cai Xinchen wrote:
->>> Add two new filesystem access rights to control file metadata access:
->>>
->>> - LANDLOCK_ACCESS_FS_READ_METADATA: Read file or directory metadata
->>>    (e.g. inode attributes, extended attributes and POSIX ACLs) through
->>>    stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
->>>    friends, listxattr(2) and friends, and the POSIX ACL read
->>>    operations.
->>> - LANDLOCK_ACCESS_FS_WRITE_METADATA: Change file or directory
->>>    metadata through chmod(2) and friends, chown(2) and friends,
->>>    utimensat(2) and friends, setxattr(2) and friends, removexattr(2)
->>>    and friends, and the POSIX ACL set and remove operations.
->>>
->>> This follows the coarse-grained grouping approach discussed in the
->>> mailing list [1], where file metadata operations are grouped by
->>> security relevance rather than by individual syscall.
->>>
->>> Implement the two rights by hooking the inode_getattr,
->>> inode_file_getattr, inode_setattr, inode_file_setattr,
->>> inode_setxattr, inode_getxattr, inode_listxattr, inode_removexattr,
->>> inode_set_acl, inode_get_acl and inode_remove_acl LSM hooks, which
->>> now receive a struct path thanks to the preceding VFS and LSM
->>> refactoring.  The following system calls are now controlled:
->>>
->>> - stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
->>>    friends, listxattr(2) and friends, POSIX ACL reads, and the
->>>    chattr(1)/xfs_io style reads: ioctl(FS_IOC_GETFLAGS),
->>>    ioctl(FS_IOC_FSGETXATTR) and file_getattr(2) via inode_getattr,
->>>    inode_getxattr, inode_listxattr, inode_get_acl and
->>>    inode_file_getattr (READ_METADATA)
->>> - chmod(2), fchmod(2), fchmodat(2), fchmodat2(2), chown(2), fchown(2),
->>>    lchown(2), fchownat(2), chgrp(2), utimensat(2), futimens(2),
->>>    utime(2), setxattr(2) and friends, removexattr(2) and friends,
->>>    POSIX ACL set and remove, and the chattr(1)/xfs_io style writes:
->>>    ioctl(FS_IOC_SETFLAGS), ioctl(FS_IOC_FSSETXATTR) and
->>>    file_setattr(2) via inode_setattr, inode_file_setattr,
->>>    inode_setxattr, inode_removexattr, inode_set_acl and
->>>    inode_remove_acl (WRITE_METADATA)
->>>
->>> Both new rights are added to ACCESS_FILE as they apply to both files
->>> and directories.
->>>
->>> hook_inode_setattr only restricts explicit metadata changes, i.e. it
->>> checks WRITE_METADATA only when the ia_valid mask contains
->>> ATTR_MODE, ATTR_UID, ATTR_GID, ATTR_TIMES_SET or ATTR_TOUCH.
->>> Metadata changes that the kernel performs implicitly, such as
->>> timestamp updates on write(2) or size changes on truncate(2), are
->>> therefore not restricted, and neither are chmod(2)/chown(2) calls
->>> that do not change any attribute (e.g. chown(2) with -1/-1, which is
->>> a no-op that never reaches the hook), matching the behavior of the
->>> SELinux inode_setattr hook.
->>>
->>> Stacking filesystems forward fileattr operations to underlying inodes
->>> without calling the LSM hooks again (see the preceding patch), so a
->>> fileattr operation on an overlayfs file is checked once on the
->>> user-facing merged path and is not spuriously denied because of the
->>> kernel-side creator credentials used for the forward.
->>>
->>> Kernel-internal accesses performed with override_creds() (e.g.
->>> overlayfs and cachefiles) are not affected because Landlock domains
->>> are attached to credentials, and kernel threads without a Landlock
->>> domain (e.g. nfsd and ksmbd) are not restricted either.
->>>
->>> Remove stat(2), chmod(2), chown(2), setxattr(2) and utime(2) from the
->>> list of file-related actions that cannot be restricted yet, and add
->>> the names of the new rights to _LANDLOCK_ACCESS_FS_NAMES in
->>> include/linux/landlock.h, which is shared by audit records and trace
->>> events, so that denied accesses can be reported with a human-readable
->>> name and the static assertion on fs_access_strings in
->>> security/landlock/audit.c stays valid.
->>>
->>> Increment the Landlock ABI version from 12 to 13, and update the ABI
->>> version check in tools/testing/selftests/landlock/base_test.c
->>> accordingly.
->>>
->> LANDLOCK_ACCESS_FS_*_METADATA should be checked at open time and follow
->> the mechanic for the truncate right. Otherwise the access for already
->> opened file descriptors would be changed. See hook_file_open in
->> security/landlock/fs.c and this discussion here [1]
->>
->> It should have clear documentation for this as well.
->>
->> Justin
->> [1] https://lore.kernel.org/all/20260929.Ahgoo4yeetai@digikod.net/
->
-> I agree with Justin here.
->
-> Apart from what I said in [1], Justin and Mickaël pointed out this
-> other aspect in which it is similar to *_TRUNCATE, in [2] and [3]:
-> System calls like fstat(2) operate on an already-opened file
-> descriptor, and the semantic that Landlock has so far been following
-> for these is that the effective access rights for that file descriptor
-> would be determined at the time of open(2) and stored in the opened
-> struct file, just as it has been done for the *_TRUNCATE and
-> *_IOCTL_DEV access rights in the hook_file_open() call which Justin
-> points to above.
->
-> That way, an already opened file acts as a handle for a "capability"
-> (in the more general sense of the word), and the things you can do
-> with that opened file don't change as the process enforces nested
-> Landlock domains.
->
-> Landlock's documentation describes this in
-> https://docs.kernel.org/userspace-api/landlock.html#rights-associated-with-file-descriptors
->
-> It feels that this would be in order for the *_METADATA rights as
-> well?  Does this seem reasonable to you?
->
-> (If you have arguments against that, I'm also more than happy to
-> discuss, but we should make a conscious decision. :-))
->
-> —Günther
->
-> [1] https://lore.kernel.org/all/arurOphe6QIx2Zr8@google.com/
-> [2] https://lore.kernel.org/all/arvjb0HJYh1KyEBB@suesslenovo/
-> [3] https://lore.kernel.org/all/20260929.Ahgoo4yeetai@digikod.net/
+
+I don't object to a patch clarifying the comment,
+but don't overdo it.
+
+I would just drop mention of resuid, but tbh I don't think it matters
+so much.
+
+Thanks,
+Amir.
