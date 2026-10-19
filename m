@@ -1,98 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.52
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792446923;
-	b=xvIUauj7T0Tog4h/wqErLTk+fYahAM3EV7PY5IMIUQlD/WafB3aLHWpCgjhhNmpZSUiy
-	 2lb9CRozaiB6k3yNRa2SF9NJbS1KbF/Mf08Z4ltjInUHuEktKa8vgzOdXd17ZShikijJQ
-	 FsXhSi4yXLrpQLUWksn+gShc78XgTqUK41UqIuZ0+bRRA2810W3r2PtY1m/lFaq/pVHHt
-	 bXXTosDhA9dZc0wm9gZ7zqn4A+uty3+L35y+CTxQRyiH2QLLR8jW3OqCslAaw7/ehtEK3
-	 Aub4F8kB20wMeJPLzDNqVkbVqIKTDyRmr60kEQPWWCXQleVLer35BrO4khBLW3PSTEw==
+	t=1792452747;
+	b=txOlVJI/sSIy6+PtM5uC/uK+dE7mVvLc1BDLEcOvFyr8LTCgS4AYn3oTI3+BNczzgkyU
+	 koHKvaYVHMVNXy0q1eSjUorxyB2G70zmdttGQcoz6UBeFYryJQ5l3es6qPadGbSlGql+a
+	 1PK4hsGg9pWLl6bqFoy5GFyJZYf1bLGJPWobGr+DfUGHfkBoDbWO4qjjw7i+bQBJPlqIl
+	 pCWQ68dKngJl76jGSPs0T1GsC62xPS+yL4bjWLz0eFSxOCLg63xj+1REWjaaxbO1myGsY
+	 k2wjVMJ8ZUrmKRbvUcXkIjCdTH70EPOJ5N5FqliP/Yt7A7wCR+4OTdI2XFxGxi7oHZw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792446923;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
-	b=aOAoUNH4JVYByf+yfhlezPUOwghH6J37nAa8EhhgGzuBIY+RibdcPqsfh2QvJ8OuSiJI
-	 +Mx7m7ECXTx8UClNYcOIAXipsTjSu4wSUh1n2nOiVtng6scdHBAe2vx3zUflKoieRiNDw
-	 0NjRxNFKY4YHvPToeuuNEM6Bf9zboEb0HP5B29tDo5tYG3sfTchWfxnBzT3ZUuEBJUb/q
-	 6/9HEEH7SzbYAdFRTq6beOTnXkDn8a6Zu9tOrqkdIFEVSRaUfClOKHMebxF5UDk73SUa5
-	 /gyXMNz3GlKs3FXSPpYW7XCjz2zL3TmfLVSI9SNNmKSsZipxkTAa2FY7EZS0Pqc9q5g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792452747;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=e/4/nuHPVA5Rc7pcd7JGJCfAuSVxHB+gr6Y1QG32cPA=;
+	b=Y9CucIjKI0OOREB4LDuryifm29FEr3J7P9KO34JkygAKmI0u25hD8OWzbFyE4/zRKk5J
+	 SSpDlEUryw3+b6rQJXK8hyWPQFwryx43AuWpa7YlC7EDtla/+/GL4RXQ67uO87X/oNzR3
+	 dWfpjWhjTwVQM8HmS37wQjtBK6Wo6gHL2VUdcQlCvqiZweMX4ZimZ99lTiSSkFTtRl0Us
+	 UzsXQQAyHdFhZqlZQIipvIvnTX5wZSFhxN9kHfC/tFOITnovFILbA29Cs1GR7vi04f7uY
+	 hvZ+fA59lFzru9I+BIyd0RO49u1MRa8PJBux/XQBV6x2DSg/IjvwS7HQ0JkiDz6HYpA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=YIjlvJfH;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.52
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bq6ruBC3;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4586C606A33D;
+	Mon, 19 Oct 2026 23:32:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bq6ruBC3
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1792452746;
+	b=zMnm7lVB4s8ITeTM3pv0KQ+fM53/r7SdkqrUDH7YSWPCOH1sK3lu/ZoWz20rbq1TNXZ9
+	 z4tCw6jpNIaC2Uoa/OesH47bZpjG9bEYHHBlA2UHmhw/KO3AzfnbJbTHKZrZ17HMNhpEf
+	 dQ6KOz649NtYNKyBmTYdWYzILE+LHqkiylaKBI7DMZy3LF0nMqgKKszZoLMP3Cj7chkmj
+	 s314XJAA5qAC26rdm5WmbVAa/P5Fz6QMsHa/dNk8jJH/gMJv9a+vFMkm8NCWn/AJQxB9Y
+	 f3GIQECB7TiZYFCpbV1Aub1LeV32fO/MSUnYn8i7yT0zXiUrKsaxhtbKXCXLxr8S71A==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1792452746;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=e/4/nuHPVA5Rc7pcd7JGJCfAuSVxHB+gr6Y1QG32cPA=;
+	b=hSTtYNkFBIa1npBfBCwnsjWEBzBIep+l8bSES4qyJbh2Mz6H2zApFyTGiZ4umExU4/p/
+	 HIiEf4QqD1gaEBvibC03H3l/DhN0c4OPmePTZPtQ9zswwcYMmy3tisgI1Y9JBFL2P/RLx
+	 7rIRTEog1mJgAD9iBZuQ9BnDa4Sr1sPUhJiTAlAd7b49OHOPD2/yLq6icJNhtRDaUZQSt
+	 E0wLsdAQ1oY5yPzN68ooUnu2fc3sSEAKSNTxYXIJnwT9xLXxsKWSWkG5f9C4he8c4cAFK
+	 S/ZxzUbo31G2b1+aSwFYteaAH5wYCMDKOcRMFfA0ixfkmcfni95tdYvZy+XKH2va8Ww==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FDAB606A319
-	for <linux-unionfs@vger.kernel.org>; Mon, 19 Oct 2026 21:55:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5FDAB606A319
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=YIjlvJfH
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-6b1cc392d8bso3179861a12.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 19 Oct 2026 14:55:23 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792446922; cv=none;
-        d=google.com; s=arc-20260327;
-        b=lPArKG6Rq+tVFyZdrNrUdVOf9m2NoLijkRZ2yCio7T0F5lHruY3WqEYmbXKLC4i1xC
-         N9BxnJJlf4U/B32gox65i6DHqMv4qSFd8NkYJ41gSuo2HLzLF+nUBWQvkFRpEGxKbJGg
-         rVdQ4DilFcjKBsCopW4Ub26tQ82VCN2QkzssWL718Vp6OHyJJI/0grHq2tOubL/sDpZJ
-         rmiriikX2EKNVwIH8QLDMQ190kkYG5CDLoPWrhGxk/M7B69KVb3lWQ54dmlw3zVzkNOs
-         ANFVCirOnYpoubsCMbZYApkXFaslCLDbs7f4bAci2OMVLwtn7O/vj3ObK+tJtsO3yUDv
-         YGhw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
-        fh=0Gyctx8BjhuQLiE2jubUmjDwnhMLEyQ5vmbBwGOrd28=;
-        b=Qo/sqMhuKixgqnTat+Hxz5JOSJQWvUcjKmUV2sEvUw5TAERuObtfsnluXp9T/Zn12Y
-         k25Ev6wAfTBjgCTMA8+FtHoJ6DUROrriCiL9Uc1cJ1UZ9JVDfu7gApLRx9DIttykleMn
-         ocezTIFtuYVAq1HG+79pGo1lJfr8zXL1qr2X1L95D1Pd6d8DskpQrFrRD+lzQ7YOBy+d
-         4rdj9F3SCSlC2ZRzIOMH9iJgL3i7KGq4piHvcieMzUpsZ4bofVgDB82FyQ0maCnNMf4x
-         RRnTLlTxokx5/7fLNAcZ0Hlptb3WS/SdKQib3gi/cI24bGYUp74MybHVlk19P/Gadtux
-         0P5A==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792446922; x=1793051722; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
-        b=YIjlvJfHZJwzkDyVmDSHEGAGGTMlDR73ZU13Cwy94sKyiVLB9MKtyGRhLVh4c6afSs
-         pyX2JFu3rjoA/5fRLWrzZm/RA15uUw8PpgNkgmXxpjHfeqih/2zKcbgp1QiI0iglnHS1
-         DeetUffXBMirCyrXz1ltNwGrxQZaInAgU81ac0FPiNtzdJ13bx6xJ3cKXmvVUqTWfVku
-         ViCsmIb4npJY8gLEyn94IIBoZqJvXwPi9ut0+NC2k6ty9BWt1t8Nqu79uhQj7heOZ/aF
-         teSxFtDqptinuBf+x5GlOWU7+UGF7q0OIemPd47oBCnSmIWb8j4DLI/V68ux/xzxnqqb
-         VwGA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792446922; x=1793051722;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=T8Iq4pdPlGHJEwvjJiX0aDJUqpeYVl+t+UzpRIrJcyY=;
-        b=yZZn94SkzqjJRVv7czIH+eOeByusUCGPeF75VAi9hlHlHIa4ByYZ4S7f3mfPV6uOzq
-         wUKsNLebE/T9IpyjYuInYWYtG6sMXG+RKG+pruW0GcKRXIVS9Xx/JJoDsSAIPVK1AHrO
-         KvfHfmJ1U8HRVGn9pCn/okm5XPrIF/vyINGHEnq9tCt26fVNnwLEFqhr+NVFmRkPW64C
-         cAH4FSuFegUhYy9v7ofXwMf0fXxQpOoooOhFRAY8oTpuklEI8C2Lyg0bbK4lh94qAGk4
-         gLKl/sNIgCF4gGY4DYhoeS3KbD7agDhCA7vqybSyLOwaFSM6Ce+gBN8waXD2vZiOQK07
-         N7wQ==
-X-Gm-Message-State: AFq9FYJIzwH9M4324O5hpRK8zv8yu7WVpyQcWg2jiBtyJGf9ViaroqeG
-	cRIM0UnQc91p1IvxZtZowq0xGCQRojXsKkI3qj2Lq9CWasqOdQClI3MnFSXHHa0zwOXWGaKM6yg
-	3Bjej2ZHgmgqW6vRfygUrOHcTnRpwvNU=
-X-Gm-Gg: AYBFou2XzAEQiQzOySeEsiCtcXgg9nSYd4WuoW+bfcOReQ7AMwhzV7ad+E1/Z6WzwI+
-	R4zb1LLKP+iDC90is+XyAfqssI7IDSHK4fMt5+iSWik7Ow/ke5VmpK7nnBSiwhk0C+J0vcA2k4B
-	mvMmc53vciKHOxXEfkPsMPTr4m5T06a4cloPbqZYNSCESSR+iVj/qRaqR/ggr2/P+wXxEqAntzC
-	5WsMZNVMbZDM4bOVDqJVrq1Z6cHmFrM2SsoajVc6NhgI2e3+Uvh5BcUkvx2MX9iCPdr1FNDp+Nv
-	vbpBMO45+PB3cCv51LD++oEDNt+FGuTHAPNCrldGLfu3TBnSDmHwGx1QPYMp7KAX/Q==
-X-Received: by 2002:a05:6402:21d2:b0:6b3:c0a8:721a with SMTP id
- 4fb4d7f45d1cf-6b3c0a876a7mr3271800a12.32.1792446921583; Mon, 19 Oct 2026
- 14:55:21 -0700 (PDT)
+	by smtp.kernel.org (Postfix) with ESMTPS id 5017A1F000C5;
+	Mon, 19 Oct 2026 23:32:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792452746;
+	bh=e/4/nuHPVA5Rc7pcd7JGJCfAuSVxHB+gr6Y1QG32cPA=;
+	h=From:Date:Subject:To:Cc:Reply-To;
+	b=bq6ruBC36jORNLeQfWC9Z0LMq/v5AgDhhm68ejXSxMTNGeKGPDMO4K9j0/qPcSvp5
+	 dkPYgR1pdlW1NDwpsXwwL0J/AyBHQEq9f01wk4Q50nbAlz0wc/0iPmiTIIzONSr+C0
+	 GaSwsYEWnMh1hygzJQfolwC6z8zBglsiy8x59Qgj0T5pYlxjLvI2yJuyr1ejFykIjc
+	 baNzwl7WUZ+7B9CIyn3t6Re7T1FsdKX0s4GZtgGY4f+Yq36Fv9Kw+FtSx/YGbiMxu6
+	 /gLOu+d7Q4x2goT6lpZPP7tYQMbGJBjGmBjvrBxPpfHNrgnoaVSDcZx1/voczqztc5
+	 XK8x0YdwOYjdA==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id D1DD1400AB;
+	Mon, 19 Oct 2026 23:32:25 +0000 (UTC)
+From: =?utf-8?q?Cl=C3=A1udio_Fernando_Pinto_via_B4_Relay?= <devnull+claudio.studiomoob.com@kernel.org>
+Date: Mon, 19 Oct 2026 23:32:26 +0000
+Subject: [PATCH] ovl: say that only the capability to use reserved space is
+ dropped
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -102,74 +83,68 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <CACs2WyyyGBxznvnJRDYWziAbzz8QROr41CF9Wtu9fOj7jX1fDw@mail.gmail.com>
-In-Reply-To: <CACs2WyyyGBxznvnJRDYWziAbzz8QROr41CF9Wtu9fOj7jX1fDw@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 19 Oct 2026 23:55:09 +0200
-X-Gm-Features: AclHuK-vu5bxZTtJjQZs-cG_GwqGQ0GiQt0sHWbR5qBAbzeswFscmOXiOptU_M0
-Message-ID: <CAOQ4uxh0g1MtgCO7Q2f4yJP5vq5rLEiiXHbVfeCxwXB5ff4-VQ@mail.gmail.com>
-Subject: Re: overlayfs: unprivileged writes can use ext4's reserved blocks
- with the default resuid
-To: Claudio Fernando Pinto <claudiofernandopinto@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
-	linux-ext4@vger.kernel.org, "Theodore Ts'o" <tytso@mit.edu>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261019-ovl-comment-v1-1-499b532b69de@studiomoob.com>
+X-B4-Tracking: v=1; b=H4sIAImo1moC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzNDA0NL3fyyHN3k/Nzc1LwSXWNTC5NUM+PExFQjUyWgjoKi1LTMCrBp0bE
+ QfnFpUlZqcgnICKXaWgB7XG2abwAAAA==
+X-Change-ID: 20261019-ovl-comment-3584e63aae25
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ =?utf-8?q?Cl=C3=A1udio_Fernando_Pinto?= <claudio@studiomoob.com>
+X-Mailer: b4 0.16.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1792452745; l=1558;
+ i=claudio@studiomoob.com; s=20261019; h=from:subject:message-id;
+ bh=KXvEZ5G4Kj83Jeh1CpWL8I93iCpOGNPJqUtMEL2j73A=;
+ b=k1RpYgvbOWFTm33t5Hs8KNeba/OwD1daCjGvJuC3aPSimW7C/7BwDDHxoa/zF+WWTutjcP4z8
+ Eu7JfEPEMB9A4Mi/zx1/fzX6Po+YM/bt6ExG3DtsgoYs7dCPGTNOMPe
+X-Developer-Key: i=claudio@studiomoob.com; a=ed25519;
+ pk=cJXPz68Qvj2c2L6TWJsYP1yNYCU+KA1USyC+oykJv6A=
+X-Endpoint-Received: by B4 Relay for claudio@studiomoob.com/20261019 with
+ auth_id=1246
+X-Original-From: =?utf-8?q?Cl=C3=A1udio_Fernando_Pinto?= <claudio@studiomoob.com>
+Reply-To: claudio@studiomoob.com
+Content-Transfer-Encoding: 8bit
 
-On Mon, Oct 19, 2026 at 12:03=E2=80=AFPM Claudio Fernando Pinto
-<claudiofernandopinto@gmail.com> wrote:
->
-> Hello,
->
-> ovl_fill_super() lowers CAP_SYS_RESOURCE in the creator credentials with
-> the comment "Never override disk quota limits or use reserved space"
-> (fs/overlayfs/super.c:1511 in v7.3-rc7). On an ext4 upper with the
-> default reserve owner, the second half does not hold:
-> ext4_has_free_clusters() grants the reserve when the allocating task's
-> fsuid equals s_resuid, 0 by default, before it looks at the capability
-> (fs/ext4/balloc.c:654-657). Writes through overlayfs run with the
-> mounter's credentials (ovl_write_iter() sets .cred =3D ovl_creds(sb) and
-> backing_file_write_iter() applies it), so with a root mounter the fsuid
-> that reaches ext4 is 0, and an unprivileged writer can spend the blocks
-> reserved for root.
->
-> Reproducer, a 64 MiB ext4 image with the default 5% reserve (1146
-> blocks), the same user ("nobody") filling it once directly and once
-> through an overlay mounted by root:
->
->   direct:  reserve=3D1146 free_after=3D1146  (reserve kept)
->   overlay: reserve=3D1146 free_after=3D327   (819 reserved blocks used)
->
-> v7.3-rc7 (24a19b953e2a), arm64 under QEMU, writer uid 65534; the same
-> on 7.0.14 in Docker Desktop's VM (1148 and 331). Script below.
->
-> I ran into this in an out-of-tree stacked filesystem I work on, which
-> copied the overlayfs approach and had the same gap. There I now run
-> data writes, fallocate, clone and copy_file_range with a copy of the
-> mounter credentials that carries the writer's fsuid, fsgid and groups
-> (built the way ovl_create_or_link() builds creation credentials, and
-> cached per file while the same identity writes), so ext4 decides the
-> reserve as it would for a direct write. I do not know whether that is
-> the direction you would want here, given the per-write cost and copy-up
-> also allocating with the mounter credentials, or whether this case is
-> already known and accepted as one of the behaviours that cannot be
-> implemented with full fidelity.
+From: Cláudio Fernando Pinto <claudio@studiomoob.com>
 
-Practically it is one of those cases
+The comment above cap_lower(CAP_SYS_RESOURCE) in
+ovl_fill_super_creds(), added by commit 51f8f3c4e225 ("ovl: drop
+CAP_SYS_RESOURCE from saved mounter's credentials"), says overlayfs
+never uses reserved space. Lowering the capability does not stop ext4
+from granting its reserved blocks by fsuid: with the default reserve
+owner and a root mounter, a write through overlayfs still spends them.
+Say what the code does, without going further.
 
-> Is it worth a patch,
+Link: https://lore.kernel.org/linux-unionfs/CAOQ4uxh0g1MtgCO7Q2f4yJP5vq5rLEiiXHbVfeCxwXB5ff4-VQ@mail.gmail.com/
+Assisted-by: LLM
+Signed-off-by: Cláudio Fernando Pinto <claudio@studiomoob.com>
+---
+Follow-up to the reserve report after Amir's reply: comment only.
+---
+ fs/overlayfs/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Which patch? How would you suggest solving it?
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index bd0a3f9039..21d0cb8719 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1508,7 +1508,7 @@ static int ovl_fill_super_creds(struct fs_context *fc, struct super_block *sb)
+ 	else if (!ofs->nofh)
+ 		sb->s_export_op = &ovl_export_fid_operations;
+ 
+-	/* Never override disk quota limits or use reserved space */
++	/* Never override disk quota limits or use reserved space by capability */
+ 	cap_lower(creator_cred->cap_effective, CAP_SYS_RESOURCE);
+ 
+ 	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
 
-> or should the
-> comment just say that resuid/resgid still apply?
->
+---
+base-commit: 24a19b953e2a3d0ea5a8c4951a0ab8f32720c907
+change-id: 20261019-ovl-comment-3584e63aae25
 
-I don't object to a patch clarifying the comment,
-but don't overdo it.
+Best regards,
+--  
+Cláudio Fernando Pinto <claudio@studiomoob.com>
 
-I would just drop mention of resuid, but tbh I don't think it matters
-so much.
 
-Thanks,
-Amir.
