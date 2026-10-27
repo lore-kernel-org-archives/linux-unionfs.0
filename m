@@ -1,55 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.223
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.222
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793101162;
-	b=UNJH/b8GF1Ib+8kl5EoMWmHsixfFoz+x77/n6mvWEH/gUIQW3XkGBzli6fd/iFtgVX79
-	 aoYhb8MLIst0StjrYEx3Y+bmh99AHYCwoVOI6foszYQ06WHDQRMWSMS9Zpw770TaHXZiN
-	 DDdD1mkz3JUvwGphNUL2idtavkbU3bUt7mlqkl6xKtRuHUTnkKRkg8MutmEN28DSrQ1FG
-	 WaWmALWOFh/9slkUUO26wj3l+Wv/EwQIM0biAEqkfQK/PMmo9hUWObOFDcoI3vL1R0soI
-	 DNC20nvM7pOICCAfiirukk7TmIWPyqt2l9gESZnKYpcD9UaGSpvKAtu8lwuswEkmdSw==
+	t=1793101168;
+	b=PpJNO0OLuDA1JWM3n/5FuzA3gh/+zUg/1WhuuiVSx41gDjyCEEdslcM6qJ9dlyK1DZSb
+	 FKglGk6wau0wSZlvOT0wyAimAWdw4JFRYxQaHJZL1OUaXQtE8lFJHXbzlXr+L+Bdeq4kV
+	 xwfpY8fCY8OWgK4pRvR8ilc3hNxeF+p36zDoYCBWy/W8hcZ3WoROdSXhvFHHmp+bqeVpc
+	 5VzfUvAewsnJRT9MQqwj1X59R2NRHYTKbK/0aIR0sjLfkIMhoBVDSwBQaS/lxIFLy5G3x
+	 Opqf21pxUrfnHKgn26gi5V+iQw8Lb7XiOWxrIaGcqcTiyBe7J6HdEmSFphVhNWKG12A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793101162;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793101168;
 	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Type:X-Originating-IP:X-ClientProxiedBy;
-	bh=i8v2NhoJ9ynMPpbzLlLQrAS4ueIrDfKhJGXA39YJhw8=;
-	b=kY0/SnXqdPjaxVlJfEsKQZyLjXVBu5msjAj5+5n7w64hP404Ci2w58596oqCtL1CslhQ
-	 ZyJYISjPvl310Ey/bMMBQWLeLPeoGkD/MXAGTjTblo9SpbY/02Vw/DECESG/wWplYPdjp
-	 o0k0PYQT+QwozS7TRhPn/ldQjD7nI90IrFhJfkKKebQKllYlY++Yd3YnOa2AHRa5xpjRV
-	 Th66BEQvn3Yc2tugVAvhqd3QcNIP2URySFjY7h1tRNbCETHh424Jz4y2d8yrySDwjD80k
-	 ioXUHpBzk22m5yH0YPED2HuQpbUPOlx9xYuYAan/w6Rg19oWAjdbJ+P4zy0n/uh40Tw==
+	bh=1VtIHJ+tuGs/IAWNrnPIyzriRVCAOpszDHNED4Rp19M=;
+	b=mteloP/HD424a5WeOaEI2kUFFSW+o/EC7PedQVyLHhxNnmw2gln52T+y3AQCHgUF41Ug
+	 wwg50Q1SNHr8Y16huuLIHmkI0ghcGaaHr1EFEgyVTk27XtxP5/JGObi6jkqdiCcA18a9E
+	 GOdQsWXCWuysMTx+44PQya4OaHJinsJruKpxN1xOjt67n9kUPAxnKCBsQspllDd/4ui0B
+	 XvCjDETQxzr0k5Sy/8JxJ9PjYJ5pUK7fr9QYGTqDntRu9v336ADKY9AfS7H3JLplImUTY
+	 rHk4NPUF9lLrao0rRR2QA1NV1w5uy+lD38jVJJMAakUkESmFsAqEFSaZMyzC17BF61g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=huawei.com;
 	spf=pass smtp.mailfrom=huawei.com;
-	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=fw6xy346;
-	arc=none smtp.remote-ip=113.46.200.223
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=X4+TOg1k;
+	arc=none smtp.remote-ip=113.46.200.222
+Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43767606A7D2;
-	Tue, 27 Oct 2026 11:39:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 43767606A7D2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4025F606A7CA;
+	Tue, 27 Oct 2026 11:39:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4025F606A7CA
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=fw6xy346
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=X4+TOg1k
 dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=i8v2NhoJ9ynMPpbzLlLQrAS4ueIrDfKhJGXA39YJhw8=;
-	b=fw6xy346xV+DYzzfACpCaXdKx2P86yDZNytRj67Jclvnru9+9sgM5X9W4Y8eQfmrPDXzgfmct
-	/hpEgLDYbVfsG4NSY/NW/Wxa1s8+uA683g4PkJoMsJApxjLKbyN2SdcqF6PvGWYL7GCzxzjMCHx
-	2l1ewEQ1gkQQCd1I40bX97w=
-Received: from mail.maildlp.com (unknown [172.19.163.127])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4jDT6S48FxzmV7W;
-	Tue, 27 Oct 2026 19:39:12 +0800 (CST)
+	bh=1VtIHJ+tuGs/IAWNrnPIyzriRVCAOpszDHNED4Rp19M=;
+	b=X4+TOg1kXiYvmpqnqEUsOw2/o4gX+xV+1569HON0wT1fQGrmHjHU8A0BNQHIMw+pfg3/7YMsl
+	5WLEWqfSJM7q5IXJ3JozYKtj/xsPvkMAqF9ePeDWAlmgXK9wBGLlfjS2e9l6bFNhq+lg9aBOGyM
+	Y5xQOhGZaFTMygAyC2tLIIE=
+Received: from mail.maildlp.com (unknown [172.19.163.214])
+	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4jDT6Y548qzLlVS;
+	Tue, 27 Oct 2026 19:39:17 +0800 (CST)
 Received: from whupemk100010.china.huawei.com (unknown [7.152.184.41])
-	by mail.maildlp.com (Postfix) with ESMTPS id 50E9140561;
-	Tue, 27 Oct 2026 19:39:18 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 829A04056C;
+	Tue, 27 Oct 2026 19:39:23 +0800 (CST)
 Received: from octopus.huawei.com (10.67.174.191) by
  whupemk100010.china.huawei.com (7.152.184.41) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 27 Oct 2026 19:39:12 +0800
+ 15.2.2562.45; Tue, 27 Oct 2026 19:39:18 +0800
 From: Cai Xinchen <caixinchen1@huawei.com>
 To: <mic@digikod.net>, <gnoack@google.com>, <paul@paul-moore.com>,
 	<jmorris@namei.org>, <serge@hallyn.com>, <corbet@lwn.net>,
@@ -88,9 +88,9 @@ CC: <ast@kernel.org>, <daniel@iogearbox.net>, <andrii@kernel.org>,
 	<linux-trace-kernel@vger.kernel.org>, <apparmor@lists.ubuntu.com>,
 	<linux-integrity@vger.kernel.org>, <selinux@vger.kernel.org>,
 	<linux-kselftest@vger.kernel.org>
-Subject: [PATCH v3 -next 15/18] landlock: Add READ_METADATA and WRITE_METADATA access rights
-Date: Tue, 27 Oct 2026 20:11:48 +0800
-Message-ID: <20261027121151.1887650-16-caixinchen1@huawei.com>
+Subject: [PATCH v3 -next 16/18] selftests/landlock: Add tests for metadata access rights
+Date: Tue, 27 Oct 2026 20:11:49 +0800
+Message-ID: <20261027121151.1887650-17-caixinchen1@huawei.com>
 X-Mailer: git-send-email 2.18.0.huawei.25
 In-Reply-To: <20261027121151.1887650-1-caixinchen1@huawei.com>
 References: <20261027121151.1887650-1-caixinchen1@huawei.com>
@@ -107,226 +107,132 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
  whupemk100010.china.huawei.com (7.152.184.41)
 
-Add two new filesystem access rights to control file metadata access:
+Add layout1 tests for the LANDLOCK_ACCESS_FS_READ_METADATA and
+LANDLOCK_ACCESS_FS_WRITE_METADATA access rights:
 
-- LANDLOCK_ACCESS_FS_READ_METADATA: Read file or directory metadata
-  (e.g. inode attributes, extended attributes and POSIX ACLs) through
-  stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
-  friends, listxattr(2) and friends, and the POSIX ACL read
-  operations.
-- LANDLOCK_ACCESS_FS_WRITE_METADATA: Change file or directory
-  metadata through chmod(2) and friends, chown(2) and friends,
-  utimensat(2) and friends, setxattr(2) and friends, removexattr(2)
-  and friends, and the POSIX ACL set and remove operations.
+- unhandled_metadata: metadata access is allowed when the new rights
+  are not handled by the ruleset;
+- write_metadata: chmod(2), fchmod(2), chown(2), fchown(2), lchown(2),
+  utimensat(2) (both with explicit times and with UTIME_NOW),
+  setxattr(2), and removexattr(2) are denied with EACCES without
+  WRITE_METADATA, and allowed with it.  Writing to or truncating a
+  set-user-ID file clears the set-user-ID bit implicitly, which
+  stays allowed without WRITE_METADATA, while an explicit chown(2)
+  with (-1, -1) requesting the same clearing is denied without
+  WRITE_METADATA and allowed with it;
+- read_metadata: stat(2), fstat(2), getxattr(2), and listxattr(2) are
+  denied with EACCES without READ_METADATA, and allowed with it.
 
-This follows the coarse-grained grouping approach discussed in the
-mailing list [1], where file metadata operations are grouped by
-security relevance rather than by individual syscall.
+Add layout1 and layout2_overlay tests for the fileattr interfaces
+controlled by the same rights:
 
-Implement the two rights by hooking the path_getattr,
-path_file_getattr, path_setattr, path_file_setattr, path_setxattr,
-path_getxattr, path_listxattr, path_removexattr, path_set_acl,
-path_get_acl and path_remove_acl LSM hooks, which now receive a
-struct path thanks to the preceding VFS and LSM refactoring.  All of
-them receive the struct file through which the operation is
-requested, when there is one.  The following system
-calls are now controlled:
+- fileattr: ioctl(FS_IOC_GETFLAGS), ioctl(FS_IOC_SETFLAGS),
+  file_getattr(2) and file_setattr(2) (both with a path and with
+  AT_EMPTY_PATH) are denied with EACCES without the corresponding
+  right, and allowed with it;
+- fileattr_write_only: with only WRITE_METADATA handled, metadata
+  writes (ioctl(FS_IOC_SETFLAGS)) and reads (ioctl(FS_IOC_GETFLAGS))
+  are both allowed, as READ_METADATA is not handled; when
+  READ_METADATA is handled as well but not granted, metadata reads
+  through a file descriptor opened from then on are denied with
+  EACCES while writes are still allowed, because the kernel-side
+  read of the old flags performed when setting new ones does not go
+  through the READ_METADATA check.  Reading metadata through a file
+  descriptor opened while READ_METADATA was not handled yet is still
+  allowed;
+- layout2_overlay.fileattr: the same fileattr checks on files
+  accessed through an overlayfs mount created by the (unrestricted)
+  test process;
+- overlay_mount_denied: a restricted process cannot bypass the
+  metadata rights by mounting a new overlayfs with mount(2), even
+  with CAP_SYS_ADMIN: landlock denies mount(2) with EPERM for any
+  landlocked process.
 
-- stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
-  friends, listxattr(2) and friends, POSIX ACL reads, and the
-  chattr(1)/xfs_io style reads: ioctl(FS_IOC_GETFLAGS),
-  ioctl(FS_IOC_FSGETXATTR) and file_getattr(2) via path_getattr,
-  path_getxattr, path_listxattr, path_get_acl and path_file_getattr
-  (READ_METADATA)
-- chmod(2), fchmod(2), fchmodat(2), fchmodat2(2), chown(2), fchown(2),
-  lchown(2), fchownat(2), chgrp(2), utimensat(2) and friends,
-  utime(2), setxattr(2) and friends, removexattr(2) and friends,
-  POSIX ACL set and remove, and the chattr(1)/xfs_io style writes:
-  ioctl(FS_IOC_SETFLAGS), ioctl(FS_IOC_FSSETXATTR) and
-  file_setattr(2) via path_setattr, path_file_setattr, path_setxattr,
-  path_removexattr, path_set_acl and path_remove_acl
-  (WRITE_METADATA)
+The file-based metadata checks follow the
+LANDLOCK_ACCESS_FS_TRUNCATE mechanic: it is the access rights at the
+time of open(2) which decide whether an operation on an already
+opened file is permitted.  Adapt the fchown(2) denial case of the
+write_metadata test and the second phase of the fileattr_write_only
+test to that semantic by (re)opening the file descriptors after the
+ruleset is enforced, and add layout1 tests for the open-time
+semantic itself:
 
-For operations on already opened files (e.g. fchmod(2), fchown(2),
-utimensat(2) with an empty path, fgetxattr(2), fstat(2), or the
-FS_IOC_* ioctls), it is the access rights at the time of open(2)
-which decide whether the operation is permitted, not the rights of
-the current thread, as for LANDLOCK_ACCESS_FS_TRUNCATE.  To that
-end, READ_METADATA and WRITE_METADATA are included in
-_LANDLOCK_ACCESS_FS_OPTIONAL, deny_masks_t is widened from u8 to u16
-to keep tracking one nibble per optional access right for the audit
-logs, and both rights are recorded in the allowed_access of opened
-files in hook_file_open().  The metadata hooks consume this record
-when they are called with a file, and fall back to the current
-domain's rights for path-based operations.  The hook_file_truncate()
-check is factored out into the shared check_access_file() helper for
-that purpose.
+- metadata_open_time: a file descriptor opened before the ruleset is
+  enforced keeps allowing fchmod(2), fchown(2), futimens(2),
+  fstat(2), fgetxattr(2), fsetxattr(2), ioctl(FS_IOC_GETFLAGS) and
+  file_getattr(2)/file_setattr(2) with AT_EMPTY_PATH, whereas the
+  same operations through a file descriptor opened while the
+  ruleset is enforced are denied with EACCES, and the same
+  operations through paths are denied as well.  Data accesses
+  (write(2)) still work through the restricted file descriptor, and
+  an O_PATH file descriptor is checked against the current domain,
+  like path-based accesses;
+- metadata_transfer: a file descriptor opened by a landlocked
+  process without the metadata access rights and passed to a
+  non-landlocked process through a unix socket still denies metadata
+  accesses, while data accesses work: the file descriptor carries
+  the rights of the process which opened it, whatever the rights of
+  the process using it.
 
-As for truncate, file descriptors therefore carry the rights of the
-process which opened them: a file descriptor opened before sandboxing
-keeps working, whereas a file descriptor opened with a restricted set
-of rights keeps denying metadata accesses even when passed to another
-process.  This also closes the metadata leak through file descriptors
-opened without READ_METADATA, e.g. via fstat(2) or the
-FS_IOC_GETFLAGS ioctl.  O_PATH file descriptors are an exception:
-they are not opened through the open permission checks (cf.
-do_dentry_open()), so they do not carry access rights stashed at open
-time; metadata accesses through them are checked against the current
-domain, like path-based accesses.
+The fallback syscall numbers for file_getattr(2) and file_setattr(2)
+used when building against older headers are not universal: alpha
+assigns 578 and 579 to them instead of the generic 468 and 469.
 
-hook_path_setattr only restricts explicit metadata changes, i.e. it
-checks WRITE_METADATA only when the ia_valid mask contains
-ATTR_MODE, ATTR_UID, ATTR_GID, ATTR_TIMES_SET or ATTR_TOUCH.
-Metadata changes that the kernel performs implicitly, such as
-timestamp updates on write(2) or size changes on truncate(2), are
-therefore not restricted.  The setuid/setgid bit clearing that the
-kernel performs after write(2) or truncate(2) comes through
-notify_change() with ATTR_FORCE set, and the ATTR_MODE that
-do_notify_change() synthesizes from ATTR_KILL_S[UG]ID is therefore
-ignored; an explicit chown(2), including chown(2) with (-1, -1) on
-a privileged file, does not set ATTR_FORCE and is still checked,
-matching the behavior of the SELinux path_setattr hook.  A chown(2)
-that changes nothing (e.g. with (-1, -1) on a file without privilege
-bits) sets no checkable attribute and is not restricted either.
+Rule enforcement is checked per file and per directory.
 
-Stacking filesystems forward fileattr operations to underlying inodes
-without calling the LSM hooks again (cf. the patch passing struct path
-and struct file to the inode fileattr hooks), so a fileattr operation
-on an overlayfs file is checked once on the user-facing merged path
-and is not spuriously denied because of the kernel-side creator
-credentials used for the forward.
+Update the ACCESS_FILE and ACCESS_LAST definitions to include the new
+rights.
 
-Kernel-internal accesses performed with override_creds() (e.g.
-overlayfs and cachefiles) are not affected because Landlock domains
-are attached to credentials, and kernel threads without a Landlock
-domain (e.g. nfsd and ksmbd) are not restricted either.
-
-Both new rights are added to ACCESS_FILE as they apply to both files
-and directories.  Add the names of the new rights to
-_LANDLOCK_ACCESS_FS_NAMES in include/linux/landlock.h, which is
-shared by audit records and trace events, so that denied accesses can
-be reported with a human-readable name and the static assertion on
-fs_access_strings in security/landlock/audit.c stays valid.
-
-Remove stat(2), chmod(2), chown(2), setxattr(2) and utime(2) from the
-list of file-related actions that cannot be restricted yet, and
-increment the Landlock ABI version from 12 to 13.
-
-[1]
-https://lore.kernel.org/all/abc960a1-e66e-792e-6869-cfd201c29dbe@digikod.net/
+The new rights are appended to _LANDLOCK_ACCESS_FS_NAMES, which
+extends the absolute access mask expanded by
+landlock_append_fs_rule(); update the expected access_rights suffix in
+the trace_fs.add_rule_path_beneath_escaped_path_overflow test
+accordingly.
 
 Signed-off-by: Cai Xinchen <caixinchen1@huawei.com>
 ---
- include/linux/landlock.h      |   4 +-
- include/uapi/linux/landlock.h |  25 +++-
- security/landlock/access.h    |  13 +-
- security/landlock/fs.c        | 232 ++++++++++++++++++++++++++++++----
- security/landlock/limits.h    |   2 +-
- security/landlock/syscalls.c  |   2 +-
- 6 files changed, 241 insertions(+), 37 deletions(-)
+ tools/testing/selftests/landlock/base_test.c  |   2 +-
+ tools/testing/selftests/landlock/fs_test.c    | 921 +++++++++++++++++-
+ .../selftests/landlock/trace_fs_test.c        |   3 +-
+ 3 files changed, 923 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/landlock.h b/include/linux/landlock.h
-index 0ee4880988ba..ee1234fbc9f0 100644
---- a/include/linux/landlock.h
-+++ b/include/linux/landlock.h
-@@ -41,7 +41,9 @@
- 	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_REFER, "refer"), \
- 	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_TRUNCATE, "truncate"), \
- 	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_IOCTL_DEV, "ioctl_dev"), \
--	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_RESOLVE_UNIX, "resolve_unix")
-+	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_RESOLVE_UNIX, "resolve_unix"), \
-+	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_READ_METADATA, "read_metadata"), \
-+	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_FS_WRITE_METADATA, "write_metadata")
+diff --git a/tools/testing/selftests/landlock/base_test.c b/tools/testing/selftests/landlock/base_test.c
+index 89c0d96607de..14078ad203d8 100644
+--- a/tools/testing/selftests/landlock/base_test.c
++++ b/tools/testing/selftests/landlock/base_test.c
+@@ -76,7 +76,7 @@ TEST(abi_version)
+ 	const struct landlock_ruleset_attr ruleset_attr = {
+ 		.handled_access_fs = LANDLOCK_ACCESS_FS_READ_FILE,
+ 	};
+-	ASSERT_EQ(12, landlock_create_ruleset(NULL, 0,
++	ASSERT_EQ(13, landlock_create_ruleset(NULL, 0,
+ 					      LANDLOCK_CREATE_RULESET_VERSION));
  
- #define _LANDLOCK_ACCESS_NET_NAMES \
- 	_LANDLOCK_NAME_ENTRY(LANDLOCK_ACCESS_NET_BIND_TCP, "bind_tcp"), \
-diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
-index 24510e5d8479..36dfb499e48e 100644
---- a/include/uapi/linux/landlock.h
-+++ b/include/uapi/linux/landlock.h
-@@ -429,6 +429,25 @@ struct landlock_capability_attr {
-  *
-  *   The rationale for this design is described in
-  *   :ref:`Documentation/security/landlock.rst <scoped-flags-interaction>`.
-+ * - %LANDLOCK_ACCESS_FS_READ_METADATA: Read file or directory metadata (e.g.
-+ *   inode attributes, extended attributes, and POSIX ACLs) through
-+ *   :manpage:`stat(2)`, :manpage:`fstat(2)`, :manpage:`lstat(2)`,
-+ *   :manpage:`newfstatat(2)`, :manpage:`getxattr(2)`, and
-+ *   :manpage:`listxattr(2)`.
-+ *
-+ *   This access right is available since the thirteenth version of the
-+ *   Landlock ABI.
-+ * - %LANDLOCK_ACCESS_FS_WRITE_METADATA: Change file or directory metadata
-+ *   (e.g. inode attributes, extended attributes, and POSIX ACLs) through
-+ *   :manpage:`chmod(2)`, :manpage:`chown(2)`, :manpage:`utimensat(2)`,
-+ *   :manpage:`setxattr(2)`, and :manpage:`removexattr(2)`, as well as related
-+ *   system calls.  Implicit metadata changes performed by the kernel (e.g.
-+ *   timestamp updates with :manpage:`write(2)`, or set-user-ID and
-+ *   set-group-ID bit clearing with :manpage:`write(2)` or
-+ *   :manpage:`truncate(2)`) are not restricted by this access right.
-+ *
-+ *   This access right is available since the thirteenth version of the
-+ *   Landlock ABI.
-  *
-  * Whether an opened file can be truncated with :manpage:`ftruncate(2)` or used
-  * with `ioctl(2)` is determined during :manpage:`open(2)`, in the same way as
-@@ -493,9 +512,7 @@ struct landlock_capability_attr {
-  *
-  *   It is currently not possible to restrict some file-related actions
-  *   accessible through these syscall families: :manpage:`chdir(2)`,
-- *   :manpage:`stat(2)`, :manpage:`flock(2)`, :manpage:`chmod(2)`,
-- *   :manpage:`chown(2)`, :manpage:`setxattr(2)`, :manpage:`utime(2)`,
-- *   :manpage:`fcntl(2)`, :manpage:`access(2)`.
-+ *   :manpage:`flock(2)`, :manpage:`fcntl(2)`, :manpage:`access(2)`.
-  *   Future Landlock evolutions will enable to restrict them.
-  */
- /* clang-format off */
-@@ -516,6 +533,8 @@ struct landlock_capability_attr {
- #define LANDLOCK_ACCESS_FS_TRUNCATE			(1ULL << 14)
- #define LANDLOCK_ACCESS_FS_IOCTL_DEV			(1ULL << 15)
- #define LANDLOCK_ACCESS_FS_RESOLVE_UNIX			(1ULL << 16)
-+#define LANDLOCK_ACCESS_FS_READ_METADATA		(1ULL << 17)
-+#define LANDLOCK_ACCESS_FS_WRITE_METADATA		(1ULL << 18)
- /* clang-format on */
+ 	ASSERT_EQ(-1, landlock_create_ruleset(&ruleset_attr, 0,
+diff --git a/tools/testing/selftests/landlock/fs_test.c b/tools/testing/selftests/landlock/fs_test.c
+index f725882fa4a7..1e819ba952ac 100644
+--- a/tools/testing/selftests/landlock/fs_test.c
++++ b/tools/testing/selftests/landlock/fs_test.c
+@@ -12,6 +12,7 @@
+ #include <fcntl.h>
+ #include <libgen.h>
+ #include <linux/fiemap.h>
++#include <linux/fs.h>
+ #include <linux/landlock.h>
+ #include <linux/magic.h>
+ #include <sched.h>
+@@ -26,8 +27,10 @@
+ #include <sys/sendfile.h>
+ #include <sys/socket.h>
+ #include <sys/stat.h>
++#include <sys/syscall.h>
+ #include <sys/sysmacros.h>
+ #include <sys/un.h>
++#include <sys/xattr.h>
+ #include <sys/vfs.h>
+ #include <unistd.h>
  
- /**
-diff --git a/security/landlock/access.h b/security/landlock/access.h
-index f9eaa2f53686..a719760cdeff 100644
---- a/security/landlock/access.h
-+++ b/security/landlock/access.h
-@@ -31,7 +31,9 @@
- /* clang-format off */
- #define _LANDLOCK_ACCESS_FS_OPTIONAL ( \
- 	LANDLOCK_ACCESS_FS_TRUNCATE | \
--	LANDLOCK_ACCESS_FS_IOCTL_DEV)
-+	LANDLOCK_ACCESS_FS_IOCTL_DEV | \
-+	LANDLOCK_ACCESS_FS_READ_METADATA | \
-+	LANDLOCK_ACCESS_FS_WRITE_METADATA)
- /* clang-format on */
- 
- typedef u32 access_mask_t;
-@@ -156,11 +158,12 @@ struct layer_masks {
-  * required by update_request().
-  *
-  * Each nibble represents the layer index of the newest layer which denied a
-- * certain access right.  For file system access rights, the upper four bits are
-- * the index of the layer which denies LANDLOCK_ACCESS_FS_IOCTL_DEV and the
-- * lower nibble represents LANDLOCK_ACCESS_FS_TRUNCATE.
-+ * certain access right.  For file system access rights, the nibbles from the
-+ * least to the most significant one represent the layers which deny
-+ * LANDLOCK_ACCESS_FS_TRUNCATE, LANDLOCK_ACCESS_FS_IOCTL_DEV,
-+ * LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA.
-  */
--typedef u8 deny_masks_t;
-+typedef u16 deny_masks_t;
- 
- /*
-  * Makes sure all optional access rights can be tied to a layer index (cf.
-diff --git a/security/landlock/fs.c b/security/landlock/fs.c
-index 2ab67bcad198..73c6353ecbf8 100644
---- a/security/landlock/fs.c
-+++ b/security/landlock/fs.c
-@@ -318,6 +318,8 @@ static struct landlock_object *get_inode_object(struct inode *const inode)
+@@ -571,11 +574,13 @@ TEST_F_FORK(layout1, inval)
  	LANDLOCK_ACCESS_FS_EXECUTE | \
  	LANDLOCK_ACCESS_FS_WRITE_FILE | \
  	LANDLOCK_ACCESS_FS_READ_FILE | \
@@ -335,291 +241,945 @@ index 2ab67bcad198..73c6353ecbf8 100644
  	LANDLOCK_ACCESS_FS_TRUNCATE | \
  	LANDLOCK_ACCESS_FS_IOCTL_DEV | \
  	LANDLOCK_ACCESS_FS_RESOLVE_UNIX)
-@@ -1676,6 +1678,192 @@ static int hook_path_truncate(const struct path *const path)
- 	return current_check_access_path(path, LANDLOCK_ACCESS_FS_TRUNCATE);
+ 
+-#define ACCESS_LAST LANDLOCK_ACCESS_FS_RESOLVE_UNIX
++#define ACCESS_LAST LANDLOCK_ACCESS_FS_WRITE_METADATA
+ 
+ #define ACCESS_ALL ( \
+ 	ACCESS_FILE | \
+@@ -10916,4 +10921,918 @@ TEST_F(trace_layout1, check_rule_fs_empty_grant)
+ 	free(buf);
  }
  
-+static int check_access_file(const struct file *const file,
-+			     const access_mask_t access)
++/* Invokes chmod(2) and returns its errno or 0. */
++static int test_chmod(const char *const path, mode_t mode)
 +{
-+	/*
-+	 * O_PATH file descriptors do not go through the open permission
-+	 * checks (cf. do_dentry_open()) and therefore do not carry the
-+	 * access rights stashed at open time: they are checked against the
-+	 * current domain, like path-based accesses.
-+	 */
-+	if (unlikely(file->f_mode & FMODE_PATH))
-+		return current_check_access_path(&file->f_path, access);
++	if (chmod(path, mode) < 0)
++		return errno;
++	return 0;
++}
 +
-+	/*
-+	 * Allows accesses if the requested access right was available at the
-+	 * time of opening the file, to get a consistent access check as for
-+	 * read, write and execute operations.
-+	 *
-+	 * Note: For checks done based on the file's Landlock allowed access,
-+	 * we enforce them independently of whether the current thread is in
-+	 * a Landlock domain, so that open files passed between independent
-+	 * processes retain their behaviour.
-+	 */
-+	if (landlock_file(file)->allowed_access & access)
-+		return 0;
++/* Invokes fchmod(2) and returns its errno or 0. */
++static int test_fchmod(int fd, mode_t mode)
++{
++	if (fchmod(fd, mode) < 0)
++		return errno;
++	return 0;
++}
 +
-+	landlock_log_denial(landlock_cred(file->f_cred), &(struct landlock_request) {
-+		.type = LANDLOCK_REQUEST_FS_ACCESS,
-+		.audit = {
-+			.type = LSM_AUDIT_DATA_FILE,
-+			.u.file = file,
++/* Invokes chown(2) and returns its errno or 0. */
++static int test_chown(const char *const path, uid_t uid, gid_t gid)
++{
++	if (chown(path, uid, gid) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes fchown(2) and returns its errno or 0. */
++static int test_fchown(int fd, uid_t uid, gid_t gid)
++{
++	if (fchown(fd, uid, gid) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes lchown(2) and returns its errno or 0. */
++static int test_lchown(const char *const path, uid_t uid, gid_t gid)
++{
++	if (lchown(path, uid, gid) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes utimensat(2) with explicit times and returns its errno or 0. */
++static int test_utimensat(const char *const path)
++{
++	const struct timespec times[] = {
++		{
++			.tv_sec = 0,
++			.tv_nsec = UTIME_OMIT,
 +		},
-+		.all_existing_optional_access = _LANDLOCK_ACCESS_FS_OPTIONAL,
-+		.access = access,
-+#ifdef CONFIG_SECURITY_LANDLOCK_LOG
-+		.deny_masks = landlock_file(file)->deny_masks,
-+		.quiet_optional_accesses = landlock_file(file)->quiet_optional_accesses,
-+#endif /* CONFIG_SECURITY_LANDLOCK_LOG */
-+	});
-+	return -EACCES;
++		{
++			.tv_sec = 1,
++			.tv_nsec = 0,
++		},
++	};
++
++	if (utimensat(AT_FDCWD, path, times, 0) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int check_access_path_or_file(const struct path *const path,
-+				     const struct file *const file,
-+				     const access_mask_t access)
++/* Invokes utimensat(2) with UTIME_NOW and returns its errno or 0. */
++static int test_utimensat_now(const char *const path)
 +{
-+	if (file)
-+		return check_access_file(file, access);
-+
-+	return current_check_access_path(path, access);
++	if (utimensat(AT_FDCWD, path, NULL, 0) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_getattr(const struct path *const path,
-+			     struct file *const file)
++/* Invokes futimens(2) and returns its errno or 0. */
++static int test_futimensat(int fd)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_READ_METADATA);
++	const struct timespec times[] = {
++		{
++			.tv_sec = 0,
++			.tv_nsec = UTIME_OMIT,
++		},
++		{
++			.tv_sec = 1,
++			.tv_nsec = 0,
++		},
++	};
++
++	if (futimens(fd, times) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_file_getattr(const struct path *const path,
-+				  struct file_kattr *const fa,
-+				  struct file *const file)
++/* Invokes setxattr(2) and returns its errno or 0. */
++static int test_setxattr(const char *const path, const char *const name,
++			 const void *const value, const size_t size)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_READ_METADATA);
++	if (setxattr(path, name, value, size, 0) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_setattr(const struct mnt_idmap *const idmap,
-+			     const struct path *const path,
-+			     struct iattr *const attr,
-+			     struct file *const file)
++/* Invokes getxattr(2) and returns its errno or 0. */
++static int test_getxattr(const char *const path, const char *const name,
++			 void *const value, const size_t size)
 +{
-+	unsigned int ia_valid = attr->ia_valid;
++	if (getxattr(path, name, value, size) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes listxattr(2) and returns its errno or 0. */
++static int test_listxattr(const char *const path, void *const list,
++			  const size_t size)
++{
++	if (listxattr(path, list, size) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes removexattr(2) and returns its errno or 0. */
++static int test_removexattr(const char *const path, const char *const name)
++{
++	if (removexattr(path, name) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes fsetxattr(2) and returns its errno or 0. */
++static int test_fsetxattr(int fd, const char *const name,
++			  const void *const value, const size_t size)
++{
++	if (fsetxattr(fd, name, value, size, 0) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes fgetxattr(2) and returns its errno or 0. */
++static int test_fgetxattr(int fd, const char *const name, void *const value,
++			  const size_t size)
++{
++	if (fgetxattr(fd, name, value, size) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes stat(2) and returns its errno or 0. */
++static int test_stat(const char *const path, struct stat *statbuf)
++{
++	if (stat(path, statbuf) < 0)
++		return errno;
++	return 0;
++}
++
++/* Invokes fstat(2) and returns its errno or 0. */
++static int test_fstat(int fd, struct stat *statbuf)
++{
++	if (fstat(fd, statbuf) < 0)
++		return errno;
++	return 0;
++}
++
++TEST_F_FORK(layout1, unhandled_metadata)
++{
++	int file_fd;
++	int ruleset_fd;
++	const char *const file1 = file1_s1d1;
++	const char *const file2 = file2_s1d1;
++	const char *const dir1 = dir_s1d1;
++	struct stat statbuf;
++	const struct rule rules[] = {
++		{
++			.path = file1,
++			.access = LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{
++			.path = file2,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{
++			.path = dir1,
++			.access = ACCESS_RW,
++		},
++		{},
++	};
 +
 +	/*
-+	 * Only explicit metadata changes are checked: implicit
-+	 * timestamp updates never go through notify_change(), and size
-+	 * changes (ATTR_SIZE) are governed by the truncate hooks
-+	 * instead.  See the "File metadata" section in the user space
-+	 * documentation for the full semantics.
-+	 *
-+	 * The setuid/setgid bit clearing that the kernel performs
-+	 * after write(2) or truncate(2) is an implicit change as
-+	 * well: it comes through __remove_privs() and do_truncate()
-+	 * with ATTR_FORCE set, and do_notify_change() then adds a
-+	 * synthesized ATTR_MODE (with these bits removed) before
-+	 * calling this hook.  As do_notify_change() makes it a bug for
-+	 * callers to pass ATTR_MODE together with a kill flag, an
-+	 * ATTR_MODE seen along with ATTR_FORCE is always
-+	 * kernel-synthesized and must not be checked.  An explicit
-+	 * chown(2) does not set ATTR_FORCE, so the same clearing
-+	 * requested through chown(2), including chown(2) with
-+	 * (-1, -1) on a privileged file, is still checked through the
-+	 * synthesized ATTR_MODE, matching the SELinux behavior.  A
-+	 * chown(2) that changes nothing (e.g. with (-1, -1) on a file
-+	 * without privilege bits) sets neither a changed attribute
-+	 * nor a synthesized ATTR_MODE, and is not checked.
++	 * READ_METADATA and WRITE_METADATA are not handled, so metadata
++	 * access should be allowed.
 +	 */
-+	if (ia_valid & ATTR_FORCE)
-+		ia_valid &= ~(ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_MODE);
++	ruleset_fd = create_ruleset(_metadata, ACCESS_RW, rules);
++	ASSERT_LE(0, ruleset_fd);
++	file_fd = open(file1, O_WRONLY | O_CLOEXEC);
++	ASSERT_LE(0, file_fd);
 +
-+	if (!(ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID |
-+			  ATTR_TIMES_SET | ATTR_TOUCH)))
-+		return 0;
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
 +
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_WRITE_METADATA);
++	EXPECT_EQ(0, test_chmod(file1, 0644));
++	EXPECT_EQ(0, test_fchmod(file_fd, 0644));
++	EXPECT_EQ(0, test_chmod(file2, 0400));
++	EXPECT_EQ(0, test_chmod(dir1, 0700));
++
++	EXPECT_EQ(0, test_chown(file1, -1, 0));
++	EXPECT_EQ(0, test_fchown(file_fd, -1, 0));
++	EXPECT_EQ(0, test_lchown(file1, -1, 0));
++
++	EXPECT_EQ(0, test_utimensat(file1));
++	EXPECT_EQ(0, test_utimensat_now(file1));
++
++	EXPECT_EQ(0, test_setxattr(file1, "user.test", "a", 1));
++	EXPECT_EQ(0, test_getxattr(file1, "user.test", NULL, 0));
++	EXPECT_EQ(0, test_listxattr(file1, NULL, 0));
++	EXPECT_EQ(0, test_removexattr(file1, "user.test"));
++
++	EXPECT_EQ(0, test_stat(file1, &statbuf));
++	EXPECT_EQ(0, test_fstat(file_fd, &statbuf));
++	EXPECT_EQ(0, test_stat(dir1, &statbuf));
++
++	ASSERT_EQ(0, close(file_fd));
 +}
 +
-+static int hook_path_file_setattr(const struct path *const path,
-+				  struct file_kattr *const fa,
-+				  struct file *const file)
++TEST_F_FORK(layout1, write_metadata)
 +{
++	int file_fd, file2_fd, trunc_fd, chown_fd;
++	int ruleset_fd;
++	const char *const file1 = file1_s1d1;
++	const char *const file2 = file2_s1d1;
++	const char *const trunc_file = file1_s1d2;
++	const char *const chown_file = file2_s1d2;
++	const char *const dir1 = dir_s1d1;
++	struct stat statbuf;
++	const struct rule rules[] = {
++		{
++			.path = file1,
++			.access = LANDLOCK_ACCESS_FS_WRITE_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		},
++		{
++			.path = file2,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{
++			.path = chown_file,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{
++			.path = dir1,
++			.access = ACCESS_RW,
++		},
++		{},
++	};
++
++	ruleset_fd = create_ruleset(_metadata, ACCESS_RW |
++				    LANDLOCK_ACCESS_FS_WRITE_METADATA, rules);
++	ASSERT_LE(0, ruleset_fd);
++	file_fd = open(file1, O_WRONLY | O_CLOEXEC);
++	ASSERT_LE(0, file_fd);
++	file2_fd = open(file2, O_RDWR | O_CLOEXEC);
++	ASSERT_LE(0, file2_fd);
++	trunc_fd = open(trunc_file, O_RDWR | O_CLOEXEC);
++	ASSERT_LE(0, trunc_fd);
++	chown_fd = open(chown_file, O_RDWR | O_CLOEXEC);
++	ASSERT_LE(0, chown_fd);
++
 +	/*
-+	 * The chattr(2) style flags (e.g. FS_IMMUTABLE_FL) and fsxattr
-+	 * fields are metadata: writing them requires WRITE_METADATA.  The
-+	 * user-facing path is checked here; stacking filesystems skip this
-+	 * hook on their internal forwards because they were already
-+	 * checked on the user-facing path.
++	 * Arm the setuid bit for the setuid-clearing tests below:
++	 * writing or truncating a setuid file clears that bit
++	 * implicitly, which must not require WRITE_METADATA, whereas
++	 * an explicit chown(2) with (-1, -1) requests the same
++	 * clearing and must require it.  The clearing happens when
++	 * the caller has no CAP_FSETID, which is the case here
++	 * because tests run without capabilities (see disable_caps()
++	 * in prepare_layout()).
 +	 */
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_WRITE_METADATA);
++	ASSERT_EQ(0, fchmod(file_fd, 04666));
++	ASSERT_EQ(0, fchmod(file2_fd, 04666));
++	ASSERT_EQ(0, fchmod(trunc_fd, 04666));
++	ASSERT_EQ(0, fchmod(chown_fd, 04666));
++	/* Closes the file descriptor opened before sandboxing. */
++	ASSERT_EQ(0, close(chown_fd));
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	/*
++	 * Reopens the file while the ruleset is enforced: the fchown(2)
++	 * below is denied because the WRITE_METADATA right is missing from
++	 * the rights stashed at open time.
++	 */
++	chown_fd = open(chown_file, O_RDWR | O_CLOEXEC);
++	ASSERT_LE(0, chown_fd);
++
++	/*
++	 * An explicit chown(2) with (-1, -1) on a setuid file is an
++	 * explicit request to clear the setuid bit: it requires
++	 * WRITE_METADATA, which file1 has, and clears the bit.
++	 */
++	EXPECT_EQ(0, test_fchown(file_fd, -1, -1));
++	ASSERT_EQ(0, fstat(file_fd, &statbuf));
++	EXPECT_EQ(0, statbuf.st_mode & S_ISUID);
++
++	/* file1 has WRITE_METADATA: allowed */
++	EXPECT_EQ(0, test_chmod(file1, 0644));
++	EXPECT_EQ(0, test_fchmod(file_fd, 0644));
++	EXPECT_EQ(0, test_chown(file1, -1, 0));
++	EXPECT_EQ(0, test_fchown(file_fd, -1, 0));
++	EXPECT_EQ(0, test_lchown(file1, -1, 0));
++	EXPECT_EQ(0, test_utimensat(file1));
++	EXPECT_EQ(0, test_utimensat_now(file1));
++	EXPECT_EQ(0, test_setxattr(file1, "user.test", "a", 1));
++	EXPECT_EQ(0, test_removexattr(file1, "user.test"));
++
++	/*
++	 * Writing is not an explicit metadata change: implicit timestamp
++	 * updates and the implicit setuid-bit clearing are allowed
++	 * without WRITE_METADATA.
++	 */
++	EXPECT_EQ(1, write(file2_fd, "a", 1));
++	ASSERT_EQ(0, fstat(file2_fd, &statbuf));
++	EXPECT_EQ(0, statbuf.st_mode & S_ISUID);
++
++	/* file2 does not have WRITE_METADATA: denied */
++	EXPECT_EQ(EACCES, test_chmod(file2, 0400));
++	EXPECT_EQ(EACCES, test_chown(file2, -1, 0));
++	EXPECT_EQ(EACCES, test_lchown(file2, -1, 0));
++	EXPECT_EQ(EACCES, test_utimensat(file2));
++	EXPECT_EQ(EACCES, test_utimensat_now(file2));
++	EXPECT_EQ(EACCES, test_setxattr(file2, "user.test", "a", 1));
++	EXPECT_EQ(EACCES, test_removexattr(file2, "user.test"));
++
++	/*
++	 * Without the WRITE_METADATA right (i.e. without the right stashed
++	 * at open time), the same explicit chown(2) with (-1, -1) is
++	 * denied and leaves the setuid bit in place.
++	 */
++	EXPECT_EQ(EACCES, test_fchown(chown_fd, -1, -1));
++	ASSERT_EQ(0, fstat(chown_fd, &statbuf));
++	EXPECT_EQ(S_ISUID, statbuf.st_mode & S_ISUID);
++
++	/* dir1 does not have WRITE_METADATA: denied */
++	EXPECT_EQ(EACCES, test_chmod(dir1, 0700));
++	EXPECT_EQ(EACCES, test_chown(dir1, -1, 0));
++
++	/*
++	 * Truncating a setuid file implicitly clears the setuid bit as
++	 * well: this must not require WRITE_METADATA, which trunc_file
++	 * does not have.
++	 */
++	EXPECT_EQ(0, ftruncate(trunc_fd, 0));
++	ASSERT_EQ(0, fstat(trunc_fd, &statbuf));
++	EXPECT_EQ(0, statbuf.st_mode & S_ISUID);
++
++	ASSERT_EQ(0, close(file_fd));
++	ASSERT_EQ(0, close(file2_fd));
++	ASSERT_EQ(0, close(trunc_fd));
++	ASSERT_EQ(0, close(chown_fd));
 +}
 +
-+static int hook_path_setxattr(const struct mnt_idmap *const idmap,
-+			       const struct path *const path,
-+			       const char *const name,
-+			       const void *const value, const size_t size,
-+			       const int flags,
-+			       struct file *const file)
++TEST_F_FORK(layout1, read_metadata)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_WRITE_METADATA);
++	int file_fd, file2_fd, sandbox_fd;
++	int ruleset_fd;
++	const char *const file1 = file1_s1d1;
++	const char *const file2 = file2_s1d1;
++	const char *const dir1 = dir_s1d1;
++	struct stat statbuf;
++	const struct rule rules[] = {
++		{
++			.path = file1,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_READ_METADATA,
++		},
++		{
++			.path = file2,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{
++			.path = dir1,
++			.access = ACCESS_RW,
++		},
++		{},
++	};
++
++	ruleset_fd = create_ruleset(_metadata, ACCESS_RW |
++				    LANDLOCK_ACCESS_FS_READ_METADATA, rules);
++	ASSERT_LE(0, ruleset_fd);
++
++	ASSERT_EQ(0, setxattr(file1, "user.test", "a", 1, 0));
++	ASSERT_EQ(0, setxattr(file2, "user.test", "a", 1, 0));
++
++	/*
++	 * A file descriptor opened before the ruleset is enforced carries
++	 * all access rights.
++	 */
++	sandbox_fd = open(file1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, sandbox_fd);
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	/* file1 has READ_METADATA: allowed */
++	EXPECT_EQ(0, test_stat(file1, &statbuf));
++	file_fd = open(file1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, file_fd);
++	EXPECT_EQ(0, test_fstat(file_fd, &statbuf));
++	EXPECT_EQ(0, test_getxattr(file1, "user.test", NULL, 0));
++	EXPECT_EQ(0, test_listxattr(file1, NULL, 0));
++
++	/*
++	 * Reading metadata through the file descriptor opened before
++	 * sandboxing is still allowed.
++	 */
++	EXPECT_EQ(0, test_fstat(sandbox_fd, &statbuf));
++	ASSERT_EQ(0, close(sandbox_fd));
++
++	/*
++	 * file2 does not have READ_METADATA: denied, both through the path
++	 * and through a file descriptor opened while the ruleset is
++	 * enforced.
++	 */
++	EXPECT_EQ(EACCES, test_stat(file2, &statbuf));
++	file2_fd = open(file2, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, file2_fd);
++	EXPECT_EQ(EACCES, test_fstat(file2_fd, &statbuf));
++	EXPECT_EQ(EACCES, test_fgetxattr(file2_fd, "user.test", NULL, 0));
++	ASSERT_EQ(0, close(file2_fd));
++	EXPECT_EQ(EACCES, test_getxattr(file2, "user.test", NULL, 0));
++	EXPECT_EQ(EACCES, test_listxattr(file2, NULL, 0));
++	/* dir1 does not have READ_METADATA: denied */
++	EXPECT_EQ(EACCES, test_stat(dir1, &statbuf));
++
++	ASSERT_EQ(0, close(file_fd));
 +}
 +
-+static int hook_path_getxattr(const struct path *const path,
-+			      const char *const name,
-+			      struct file *const file)
++/* Invokes ioctl(FS_IOC_GETFLAGS) and returns its errno or 0. */
++static int test_getflags(int fd, unsigned int *const flags)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_READ_METADATA);
++	if (ioctl(fd, FS_IOC_GETFLAGS, flags) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_listxattr(const struct path *const path,
-+			       struct file *const file)
++/* Invokes ioctl(FS_IOC_SETFLAGS) and returns its errno or 0. */
++static int test_setflags(int fd, const unsigned int flags)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_READ_METADATA);
++	unsigned int flags_ = flags;
++
++	if (ioctl(fd, FS_IOC_SETFLAGS, &flags_) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_removexattr(const struct mnt_idmap *const idmap,
-+				  const struct path *const path,
-+				  const char *const name,
-+				  struct file *const file)
++#ifndef __NR_file_getattr
++#if defined(__alpha__)
++#define __NR_file_getattr 578
++#else
++#define __NR_file_getattr 468
++#endif
++#endif
++#ifndef __NR_file_setattr
++#if defined(__alpha__)
++#define __NR_file_setattr 579
++#else
++#define __NR_file_setattr 469
++#endif
++#endif
++
++/* Invokes file_getattr(2) and returns its errno or 0. */
++static int test_file_getattr(int dfd, const char *const path,
++			     struct file_attr *const fattr,
++			     const unsigned int at_flags)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_WRITE_METADATA);
++	if (syscall(__NR_file_getattr, dfd, path, fattr, sizeof(*fattr),
++		    at_flags) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_set_acl(const struct mnt_idmap *const idmap,
-+			      const struct path *const path,
-+			      const char *const acl_name,
-+			      struct posix_acl *const kacl,
-+			      struct file *const file)
++/* Invokes file_setattr(2) and returns its errno or 0. */
++static int test_file_setattr(int dfd, const char *const path,
++			     struct file_attr *const fattr,
++			     const unsigned int at_flags)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_WRITE_METADATA);
++	if (syscall(__NR_file_setattr, dfd, path, fattr, sizeof(*fattr),
++		    at_flags) < 0)
++		return errno;
++	return 0;
 +}
 +
-+static int hook_path_get_acl(const struct mnt_idmap *const idmap,
-+			      const struct path *const path,
-+			      const char *const acl_name,
-+			      struct file *const file)
++TEST_F_FORK(layout1, fileattr)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_READ_METADATA);
++	const struct rule rules[] = {
++		{
++			.path = file1_s1d1,
++			.access = LANDLOCK_ACCESS_FS_READ_METADATA |
++				  LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		},
++		{},
++	};
++	struct file_attr fattr;
++	unsigned int flags;
++	int fd, fd2, ruleset_fd;
++
++	ruleset_fd = create_ruleset(
++		_metadata,
++		LANDLOCK_ACCESS_FS_READ_METADATA |
++			LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		rules);
++	ASSERT_LE(0, ruleset_fd);
++
++	fd = open(file1_s1d1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, fd);
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	/* Allowed file: FS_IOC_GETFLAGS */
++	flags = 0;
++	EXPECT_EQ(0, test_getflags(fd, &flags));
++	EXPECT_EQ(0, flags & FS_NODUMP_FL);
++
++	/* Allowed file: FS_IOC_SETFLAGS */
++	EXPECT_EQ(0, test_setflags(fd, FS_NODUMP_FL));
++	flags = 0;
++	EXPECT_EQ(0, test_getflags(fd, &flags));
++	EXPECT_EQ(FS_NODUMP_FL, flags & FS_NODUMP_FL);
++	EXPECT_EQ(0, test_setflags(fd, 0));
++
++	/* Allowed file: file_getattr(2), with a path and with AT_EMPTY_PATH */
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(0, test_file_getattr(AT_FDCWD, file1_s1d1, &fattr, 0));
++	EXPECT_EQ(0, fattr.fa_xflags & FS_XFLAG_NODUMP);
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(0, test_file_getattr(fd, NULL, &fattr, AT_EMPTY_PATH));
++
++	/* Allowed file: file_setattr(2), with a path and with AT_EMPTY_PATH */
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = FS_XFLAG_NODUMP;
++	EXPECT_EQ(0, test_file_setattr(AT_FDCWD, file1_s1d1, &fattr, 0));
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(0, test_file_getattr(AT_FDCWD, file1_s1d1, &fattr, 0));
++	EXPECT_EQ(FS_XFLAG_NODUMP, fattr.fa_xflags & FS_XFLAG_NODUMP);
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = 0;
++	EXPECT_EQ(0, test_file_setattr(fd, NULL, &fattr, AT_EMPTY_PATH));
++
++	/* Non-allowed file: FS_IOC_GETFLAGS and FS_IOC_SETFLAGS */
++	fd2 = open(file2_s1d1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, fd2);
++	EXPECT_EQ(EACCES, test_getflags(fd2, &flags));
++	EXPECT_EQ(EACCES, test_setflags(fd2, FS_NODUMP_FL));
++
++	/* Non-allowed file: file_getattr(2) and file_setattr(2) */
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(EACCES, test_file_getattr(AT_FDCWD, file2_s1d1, &fattr, 0));
++	fattr.fa_xflags = FS_XFLAG_NODUMP;
++	EXPECT_EQ(EACCES, test_file_setattr(AT_FDCWD, file2_s1d1, &fattr, 0));
++
++	ASSERT_EQ(0, close(fd));
++	ASSERT_EQ(0, close(fd2));
 +}
 +
-+static int hook_path_remove_acl(const struct mnt_idmap *const idmap,
-+				const struct path *const path,
-+				const char *const acl_name,
-+				struct file *const file)
++TEST_F_FORK(layout1, fileattr_write_only)
 +{
-+	return check_access_path_or_file(path, file,
-+					 LANDLOCK_ACCESS_FS_WRITE_METADATA);
++	const struct rule rules[] = {
++		{
++			.path = file1_s1d1,
++			.access = LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		},
++		{},
++	};
++	struct file_attr fattr;
++	unsigned int flags;
++	int fd, fd2, ruleset_fd;
++
++	ruleset_fd = create_ruleset(_metadata,
++				    LANDLOCK_ACCESS_FS_WRITE_METADATA, rules);
++	ASSERT_LE(0, ruleset_fd);
++
++	fd = open(file1_s1d1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, fd);
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	/*
++	 * WRITE_METADATA alone must be enough to set flags: the kernel-side
++	 * read of the old flags must not require READ_METADATA.
++	 */
++	EXPECT_EQ(0, test_setflags(fd, FS_NODUMP_FL));
++	flags = 0;
++	/* READ_METADATA is not handled: reading is allowed. */
++	EXPECT_EQ(0, test_getflags(fd, &flags));
++	EXPECT_EQ(FS_NODUMP_FL, flags & FS_NODUMP_FL);
++
++	/*
++	 * Handle READ_METADATA as well, without granting it.  Reading is
++	 * now denied for file descriptors opened from now on, but writing
++	 * must still work because the kernel-side read of the old flags
++	 * does not go through the READ_METADATA check.
++	 */
++	ruleset_fd = create_ruleset(
++		_metadata,
++		LANDLOCK_ACCESS_FS_READ_METADATA |
++			LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		rules);
++	ASSERT_LE(0, ruleset_fd);
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	fd2 = open(file1_s1d1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, fd2);
++	EXPECT_EQ(EACCES, test_getflags(fd2, &flags));
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(EACCES,
++		  test_file_getattr(fd2, NULL, &fattr, AT_EMPTY_PATH));
++
++	EXPECT_EQ(0, test_setflags(fd2, 0));
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = FS_XFLAG_NODUMP;
++	EXPECT_EQ(0, test_file_setattr(fd2, NULL, &fattr, AT_EMPTY_PATH));
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = 0;
++	EXPECT_EQ(0, test_file_setattr(fd2, NULL, &fattr, AT_EMPTY_PATH));
++
++	/*
++	 * Reading through the file descriptor opened before READ_METADATA
++	 * was handled is still allowed: it carries the rights of the time
++	 * it was opened with.
++	 */
++	EXPECT_EQ(0, test_getflags(fd, &flags));
++
++	ASSERT_EQ(0, close(fd));
++	ASSERT_EQ(0, close(fd2));
 +}
 +
- /**
-  * unmask_scoped_access - Remove access right bits in @masks in all layers
-  *                        where @client and @server have the same domain
-@@ -1876,7 +2064,9 @@ static int hook_file_open(struct file *const file)
- 	 * We look up more access than what we immediately need for open(), so
- 	 * that we can later authorize operations on opened files.
- 	 */
--	optional_access = LANDLOCK_ACCESS_FS_TRUNCATE;
-+	optional_access = LANDLOCK_ACCESS_FS_TRUNCATE |
-+			  LANDLOCK_ACCESS_FS_READ_METADATA |
-+			  LANDLOCK_ACCESS_FS_WRITE_METADATA;
- 	if (is_device(file))
- 		optional_access |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
- 
-@@ -1928,32 +2118,11 @@ static int hook_file_open(struct file *const file)
- static int hook_file_truncate(struct file *const file)
++TEST_F_FORK(layout1, metadata_open_time)
++{
++	int file_fd, opath_fd, ruleset_fd;
++	struct stat statbuf;
++	unsigned int flags;
++	struct file_attr fattr;
++	const char *const file1 = file1_s1d1;
++	const struct rule rules[] = {
++		{
++			.path = file1,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{},
++	};
++
++	ruleset_fd = create_ruleset(_metadata, ACCESS_RW |
++				    LANDLOCK_ACCESS_FS_READ_METADATA |
++				    LANDLOCK_ACCESS_FS_WRITE_METADATA,
++				    rules);
++	ASSERT_LE(0, ruleset_fd);
++
++	/*
++	 * A file descriptor opened before the ruleset is enforced carries
++	 * all access rights: metadata accesses through it remain allowed
++	 * even though the current thread cannot access the file's metadata
++	 * anymore.
++	 */
++	file_fd = open(file1, O_RDWR | O_CLOEXEC);
++	ASSERT_LE(0, file_fd);
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	EXPECT_EQ(0, test_fchmod(file_fd, 0600));
++	EXPECT_EQ(0, test_fchown(file_fd, -1, 0));
++	EXPECT_EQ(0, test_futimensat(file_fd));
++	EXPECT_EQ(0, test_fstat(file_fd, &statbuf));
++	EXPECT_EQ(0, test_getflags(file_fd, &flags));
++	EXPECT_EQ(0, test_fsetxattr(file_fd, "user.test", "a", 1));
++	EXPECT_EQ(0, test_fgetxattr(file_fd, "user.test", NULL, 0));
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(0,
++		  test_file_getattr(file_fd, NULL, &fattr, AT_EMPTY_PATH));
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = FS_XFLAG_NODUMP;
++	EXPECT_EQ(0,
++		  test_file_setattr(file_fd, NULL, &fattr, AT_EMPTY_PATH));
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = 0;
++	EXPECT_EQ(0,
++		  test_file_setattr(file_fd, NULL, &fattr, AT_EMPTY_PATH));
++
++	/* Path-based accesses use the rights of the current thread. */
++	EXPECT_EQ(EACCES, test_chmod(file1, 0644));
++	EXPECT_EQ(EACCES, test_chown(file1, -1, 0));
++	EXPECT_EQ(EACCES, test_utimensat(file1));
++	EXPECT_EQ(EACCES, test_stat(file1, &statbuf));
++	EXPECT_EQ(EACCES, test_setxattr(file1, "user.test", "a", 1));
++	EXPECT_EQ(EACCES, test_getxattr(file1, "user.test", NULL, 0));
++
++	ASSERT_EQ(0, close(file_fd));
++
++	/*
++	 * A file descriptor opened while the ruleset is enforced only
++	 * carries the rights granted to the file: metadata accesses
++	 * through it are denied, but data accesses still work.
++	 */
++	file_fd = open(file1, O_RDWR | O_CLOEXEC);
++	ASSERT_LE(0, file_fd);
++
++	EXPECT_EQ(EACCES, test_fchmod(file_fd, 0600));
++	EXPECT_EQ(EACCES, test_fchown(file_fd, -1, 0));
++	EXPECT_EQ(EACCES, test_futimensat(file_fd));
++	EXPECT_EQ(EACCES, test_fstat(file_fd, &statbuf));
++	EXPECT_EQ(EACCES, test_getflags(file_fd, &flags));
++	EXPECT_EQ(EACCES, test_fsetxattr(file_fd, "user.test", "a", 1));
++	EXPECT_EQ(EACCES, test_fgetxattr(file_fd, "user.test", NULL, 0));
++	memset(&fattr, 0, sizeof(fattr));
++	EXPECT_EQ(EACCES,
++		  test_file_getattr(file_fd, NULL, &fattr, AT_EMPTY_PATH));
++	memset(&fattr, 0, sizeof(fattr));
++	fattr.fa_xflags = FS_XFLAG_NODUMP;
++	EXPECT_EQ(EACCES,
++		  test_file_setattr(file_fd, NULL, &fattr, AT_EMPTY_PATH));
++
++	EXPECT_EQ(0, lseek(file_fd, 0, SEEK_SET));
++	EXPECT_EQ(1, write(file_fd, "a", 1));
++
++	/*
++	 * An O_PATH file descriptor does not carry open-time rights: it is
++	 * checked against the current domain, like path-based accesses.
++	 */
++	opath_fd = open(file1, O_PATH | O_CLOEXEC);
++	ASSERT_LE(0, opath_fd);
++	EXPECT_EQ(EACCES, test_fstat(opath_fd, &statbuf));
++
++	ASSERT_EQ(0, close(file_fd));
++	ASSERT_EQ(0, close(opath_fd));
++}
++
++TEST_F_FORK(layout1, metadata_transfer)
++{
++	int child, fd, status;
++	int socket_fds[2];
++	struct stat statbuf;
++	unsigned int flags;
++	const char *const file1 = file1_s1d1;
++	const struct rule rules[] = {
++		{
++			.path = file1,
++			.access = LANDLOCK_ACCESS_FS_READ_FILE |
++				  LANDLOCK_ACCESS_FS_WRITE_FILE,
++		},
++		{},
++	};
++
++	ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0,
++				socket_fds));
++
++	child = fork();
++	ASSERT_LE(0, child);
++	if (child == 0) {
++		/*
++		 * Enables Landlock in the child process, opens a file
++		 * descriptor without the metadata access rights and sends it
++		 * to the non-landlocked parent process.
++		 */
++		int fd;
++
++		enforce_fs(_metadata, ACCESS_RW |
++					  LANDLOCK_ACCESS_FS_READ_METADATA |
++					  LANDLOCK_ACCESS_FS_WRITE_METADATA,
++			   rules);
++
++		fd = open(file1, O_RDWR | O_CLOEXEC);
++		ASSERT_LE(0, fd);
++		ASSERT_EQ(0, send_fd(socket_fds[0], fd));
++		ASSERT_EQ(0, close(fd));
++		ASSERT_EQ(0, close(socket_fds[0]));
++
++		_exit(_metadata->exit_code);
++		return;
++	}
++
++	/*
++	 * The non-landlocked parent process can use the received file
++	 * descriptor for data accesses, but its metadata accesses are
++	 * still denied with the rights stashed at open time.
++	 */
++	fd = recv_fd(socket_fds[1]);
++	ASSERT_LE(0, fd);
++	EXPECT_EQ(1, write(fd, "a", 1));
++	EXPECT_EQ(EACCES, test_fchmod(fd, 0600));
++	EXPECT_EQ(EACCES, test_fchown(fd, -1, 0));
++	EXPECT_EQ(EACCES, test_futimensat(fd));
++	EXPECT_EQ(EACCES, test_fstat(fd, &statbuf));
++	EXPECT_EQ(EACCES, test_getflags(fd, &flags));
++	ASSERT_EQ(0, close(fd));
++
++	ASSERT_EQ(child, waitpid(child, &status, 0));
++	ASSERT_EQ(1, WIFEXITED(status));
++	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
++
++	ASSERT_EQ(0, close(socket_fds[0]));
++	ASSERT_EQ(0, close(socket_fds[1]));
++}
++
++TEST_F_FORK(layout2_overlay, fileattr)
++{
++	const struct rule rules[] = {
++		{
++			.path = MERGE_DATA,
++			.access = LANDLOCK_ACCESS_FS_READ_METADATA |
++				  LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		},
++		{},
++	};
++	unsigned int flags;
++	int fd, fd2, ruleset_fd;
++
++	if (self->skip_test)
++		SKIP(return, "overlayfs is not supported (test)");
++
++	ruleset_fd = create_ruleset(
++		_metadata,
++		LANDLOCK_ACCESS_FS_READ_METADATA |
++			LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		rules);
++	ASSERT_LE(0, ruleset_fd);
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	/*
++	 * The overlay mount was created before the ruleset was enforced
++	 * (i.e. as an administrator): the internal forwards to the real
++	 * paths must not interfere with the allowed accesses below.
++	 */
++	fd = open(merge_fl1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, fd);
++
++	flags = 0;
++	EXPECT_EQ(0, test_getflags(fd, &flags));
++	EXPECT_EQ(0, flags & FS_NODUMP_FL);
++	/* Copies the file up and sets the flag on the upper real file. */
++	EXPECT_EQ(0, test_setflags(fd, FS_NODUMP_FL));
++	flags = 0;
++	EXPECT_EQ(0, test_getflags(fd, &flags));
++	EXPECT_EQ(FS_NODUMP_FL, flags & FS_NODUMP_FL);
++	EXPECT_EQ(0, test_setflags(fd, 0));
++
++	ASSERT_EQ(0, close(fd));
++
++	/* Non-allowed path: raw lower tmpfs path, outside of MERGE_DATA. */
++	fd2 = open(lower_fl1, O_RDONLY | O_CLOEXEC);
++	ASSERT_LE(0, fd2);
++	EXPECT_EQ(EACCES, test_getflags(fd2, &flags));
++	EXPECT_EQ(EACCES, test_setflags(fd2, FS_NODUMP_FL));
++	ASSERT_EQ(0, close(fd2));
++
++	/*
++	 * Removes the copied-up file to keep the upper tree in the state
++	 * expected by FIXTURE_TEARDOWN_PARENT().
++	 */
++	EXPECT_EQ(0, remove_path(merge_fl1));
++}
++
++/*
++ * A landlocked process cannot change the mount topology with mount(2),
++ * even with CAP_SYS_ADMIN (see hook_sb_mount()).  An overlay filesystem
++ * can therefore not be mounted this way by a restricted process.
++ */
++TEST_F_FORK(layout1, overlay_mount_denied)
++{
++	const char lower_dir[] = TMP_DIR "/ovl-lower";
++	const char upper_dir[] = TMP_DIR "/ovl-upper";
++	const char work_dir[] = TMP_DIR "/ovl-work";
++	const char merge_dir[] = TMP_DIR "/ovl-merge";
++	char mount_data[256];
++	const struct rule rules[] = {
++		{
++			.path = merge_dir,
++			.access = LANDLOCK_ACCESS_FS_READ_METADATA |
++				  LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		},
++		{},
++	};
++	int ruleset_fd;
++
++	ASSERT_EQ(0, mkdir(lower_dir, 0700));
++	ASSERT_EQ(0, mkdir(upper_dir, 0700));
++	ASSERT_EQ(0, mkdir(work_dir, 0700));
++	ASSERT_EQ(0, mkdir(merge_dir, 0700));
++
++	snprintf(mount_data, sizeof(mount_data),
++		 "lowerdir=%s,upperdir=%s,workdir=%s", lower_dir, upper_dir,
++		 work_dir);
++
++	ruleset_fd = create_ruleset(
++		_metadata,
++		LANDLOCK_ACCESS_FS_READ_METADATA |
++			LANDLOCK_ACCESS_FS_WRITE_METADATA,
++		rules);
++	ASSERT_LE(0, ruleset_fd);
++
++	enforce_ruleset(_metadata, ruleset_fd);
++	ASSERT_EQ(0, close(ruleset_fd));
++
++	set_cap(_metadata, CAP_SYS_ADMIN);
++	EXPECT_EQ(-1, mount("overlay", merge_dir, "overlay", 0, mount_data));
++	EXPECT_EQ(EPERM, errno);
++	clear_cap(_metadata, CAP_SYS_ADMIN);
++
++	EXPECT_EQ(0, rmdir(lower_dir));
++	EXPECT_EQ(0, rmdir(upper_dir));
++	EXPECT_EQ(0, rmdir(work_dir));
++	EXPECT_EQ(0, rmdir(merge_dir));
++}
++
+ TEST_HARNESS_MAIN
+diff --git a/tools/testing/selftests/landlock/trace_fs_test.c b/tools/testing/selftests/landlock/trace_fs_test.c
+index 64014ade3a0e..97506d249c4f 100644
+--- a/tools/testing/selftests/landlock/trace_fs_test.c
++++ b/tools/testing/selftests/landlock/trace_fs_test.c
+@@ -252,7 +252,8 @@ TEST_F(trace_fs, add_rule_path_beneath)
+ TEST_F(trace_fs, add_rule_path_beneath_escaped_path_overflow)
  {
- 	/*
--	 * Allows truncation if the truncate right was available at the time of
--	 * opening the file, to get a consistent access check as for read, write
--	 * and execute operations.
--	 *
--	 * Note: For checks done based on the file's Landlock allowed access, we
--	 * enforce them independently of whether the current thread is in a
--	 * Landlock domain, so that open files passed between independent
--	 * processes retain their behaviour.
-+	 * Allows truncation if the truncate right was available at the time
-+	 * of opening the file, to get a consistent access check as for read,
-+	 * write and execute operations.
- 	 */
--	if (landlock_file(file)->allowed_access & LANDLOCK_ACCESS_FS_TRUNCATE)
--		return 0;
--
--	landlock_log_denial(landlock_cred(file->f_cred), &(struct landlock_request) {
--		.type = LANDLOCK_REQUEST_FS_ACCESS,
--		.audit = {
--			.type = LSM_AUDIT_DATA_FILE,
--			.u.file = file,
--		},
--		.all_existing_optional_access = _LANDLOCK_ACCESS_FS_OPTIONAL,
--		.access = LANDLOCK_ACCESS_FS_TRUNCATE,
--#ifdef CONFIG_SECURITY_LANDLOCK_LOG
--		.deny_masks = landlock_file(file)->deny_masks,
--		.quiet_optional_accesses = landlock_file(file)->quiet_optional_accesses,
--#endif /* CONFIG_SECURITY_LANDLOCK_LOG */
--	});
--	return -EACCES;
-+	return check_access_file(file, LANDLOCK_ACCESS_FS_TRUNCATE);
- }
- 
- static int hook_file_ioctl_common(const struct file *const file,
-@@ -2100,6 +2269,17 @@ static struct security_hook_list landlock_hooks[] __ro_after_init = {
- 	LSM_HOOK_INIT(path_unlink, hook_path_unlink),
- 	LSM_HOOK_INIT(path_rmdir, hook_path_rmdir),
- 	LSM_HOOK_INIT(path_truncate, hook_path_truncate),
-+	LSM_HOOK_INIT(path_getattr, hook_path_getattr),
-+	LSM_HOOK_INIT(path_file_getattr, hook_path_file_getattr),
-+	LSM_HOOK_INIT(path_setattr, hook_path_setattr),
-+	LSM_HOOK_INIT(path_file_setattr, hook_path_file_setattr),
-+	LSM_HOOK_INIT(path_setxattr, hook_path_setxattr),
-+	LSM_HOOK_INIT(path_getxattr, hook_path_getxattr),
-+	LSM_HOOK_INIT(path_listxattr, hook_path_listxattr),
-+	LSM_HOOK_INIT(path_removexattr, hook_path_removexattr),
-+	LSM_HOOK_INIT(path_set_acl, hook_path_set_acl),
-+	LSM_HOOK_INIT(path_get_acl, hook_path_get_acl),
-+	LSM_HOOK_INIT(path_remove_acl, hook_path_remove_acl),
- 	LSM_HOOK_INIT(unix_find, hook_unix_find),
- 
- 	LSM_HOOK_INIT(file_alloc_security, hook_file_alloc_security),
-diff --git a/security/landlock/limits.h b/security/landlock/limits.h
-index ddd300e10689..ed606ee3102f 100644
---- a/security/landlock/limits.h
-+++ b/security/landlock/limits.h
-@@ -21,7 +21,7 @@
- #define LANDLOCK_MAX_NUM_LAYERS		16
- #define LANDLOCK_MAX_NUM_RULES		U32_MAX
- 
--#define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_RESOLVE_UNIX
-+#define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_WRITE_METADATA
- #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
- #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
- 
-diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-index fb5af318b69b..11d3a2abcec1 100644
---- a/security/landlock/syscalls.c
-+++ b/security/landlock/syscalls.c
-@@ -191,7 +191,7 @@ static const struct file_operations ruleset_fops = {
-  * If the change involves a fix that requires userspace awareness, also update
-  * the errata documentation in Documentation/userspace-api/landlock.rst .
-  */
--const int landlock_abi_version = 12;
-+const int landlock_abi_version = 13;
- 
- /**
-  * sys_landlock_create_ruleset - Create a new ruleset
+ 	static const char access_prefix[] = "execute|write_file|read_file|";
+-	static const char access_suffix[] = "|ioctl_dev|resolve_unix";
++	static const char access_suffix[] =
++		"|ioctl_dev|resolve_unix|read_metadata|write_metadata";
+ 	struct landlock_ruleset_attr ruleset_attr = {
+ 		.handled_access_fs = LANDLOCK_ACCESS_FS_READ_FILE,
+ 	};
 -- 
 2.18.0.huawei.25
 
