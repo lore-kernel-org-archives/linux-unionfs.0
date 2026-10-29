@@ -1,95 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.205.69.214
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793297003;
-	b=vkoZl+g6rOfwDBpymbkYjzF1NSPrJnpTeHctaCXmTtKo0jhr3Gdm+2/Lq2n7Dtx4orgY
-	 /KBrRLWmkHerCbl1u9Iq03G348CYcaNXiKKr28gbHdZwaWnAvRI9QULfxvrdcoCLkq84I
-	 ByJ7sX5tz67h2okTWRPXtVWYwzhZeHgWm4xOG1estXs8bxfd3mUQzLaNmQwMjeVe5Rrst
-	 RMIQkrlxiZ4N/ZcXct44OMasPbJYC+uYvNUcK6QgCjLkVCPoYm84amt65bWihx/6Z9k8u
-	 Io9nqXSuSjdDGDMlvkhNzdMIdGNOhyC1TngdXYfMvUXRA0BiqbOfEyGDkJ64dIAkKQA==
+	t=1793308722;
+	b=wF87cwGIkq4uGG7XP2Iy+mTvZHHYdZ5OockDtrifrqVAPh/ELCTn7TVSs5RJmkxeZorL
+	 AwAzASmy++0QpoYFDaTuPEM62/ZyWpY/vKft+XmWS2X+ie9IvtxGG37bPrhZo43U56t9B
+	 Z8rFROXdMBbNEo9xOizmbRiTqyk8WoLhXGqYlcnQEJIaHVqf37e4L6OTfQPTBOnwd6+qD
+	 Fs2/MV4P7zmZJDsA6eD/XcKCNFehyAWrBw3khkxBt3+eR4PvlsnANLoXX+wNA6PRra2UN
+	 oGD2unQE3uxbFo8OvsCayXJR10yosPDHgP0AjzX/Di1OL4c3iPTfcRPDC8jmOmAfC9w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793297003;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=VPSwyQABsxDeIKe15KWcg49fMkA5mZOjf5WHg6hn20w=;
-	b=UnkRlPSNCuXkjZeAg4jSkp/fMo+G7/sW/E/CJCoAZTFdqG6TVSE6Weh1lZ6F8PrbGpjH
-	 nrR8w6obTE0TIYJ4OiQQhZEUFebE7QnsPGWrWZPzgM5hO3MooK33oQdgwnBfkgaGeTey0
-	 E7yd/BjLbb/MNwuPuJ7BYxLOXX8CipUgsNf/sdID1dQKbYtV9X2f77xTjijcfXHpUM57+
-	 nXtcbElrO4UMbp6OMXy685eRJH4PcUXovU39Iamsn+jY/sYJ0Gh4+b1Hw5SgT+nav1P3i
-	 /jdwDKKxsM82KW37IlNhVkk1XSPhJL3mkLC9K/975XvKR8K9xJ3lRYYcDJEaC3Gmzsg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793308722;
+	h=DMARC-Filter:Received:DKIM-Signature:Date:From:To:Cc:Message-ID:
+	 Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Feedback-ID;
+	bh=I5X+ZmPO3CQba0esVboJm4mky7PH5KkFaOsJl1sLn5g=;
+	b=A/MhpgYwXlK9Ze08bLLTCxCBTmFfyPI9JrLpipBjr36i6Lg1fwo0PFcVlFtsAV+nzQ8X
+	 DfaOS8kmGaCp131N++8LfoAI9kTV9/ak0dPpHusuu713zflsBYEKSP3HKalA5a2IgRbz6
+	 VE67i/BUegORcVYQ0DJK0fd0Fnw+/RiJBh0vWCXRT1p4dfzAgGAl8MLG40NKecKer4KOg
+	 s2Hkzu9Ouddc4+vVno5wu9am5USHkq38lnSBoOhR4rQIjRXFVpxA3CpgSzwNli874+Voh
+	 Dg4Udf4kr8sfKI0rnjB3m9dd8L+icMng76UmcWFhPVIo8ADB6ROp+4bgwOFe4SmDH1w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZSsrL1ec;
-	arc=none smtp.remote-ip=209.85.218.43
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=tuta.io;
+	spf=pass smtp.mailfrom=tuta.io;
+	dkim=pass header.d=tuta.io header.i=@tuta.io header.a=rsa-sha256 header.s=s1 header.b=utQ9KhMm;
+	arc=none smtp.remote-ip=185.205.69.214
+Received: from mail.w14.tutanota.de (mail.w14.tutanota.de [185.205.69.214])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE104606A321
-	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 18:03:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CE104606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFA3F606A31C
+	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 21:18:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DFA3F606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=tuta.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tuta.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZSsrL1ec
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c49c32650adso291794766b.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 11:03:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793297001; x=1793901801; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=VPSwyQABsxDeIKe15KWcg49fMkA5mZOjf5WHg6hn20w=;
-        b=ZSsrL1ecNekN3zaxWylXVh3KMWw3H1DckiwhWZhQsH2Fjxq/KCRzXlEdBL++OKYd72
-         /tT9WcgWdzlhXV3VUmMy6OtAgikfoNKRY/W45ycj3ICAf166SZysPvClGAwBH76+my3L
-         6h0z8Xr0XyCrBpYuC87CFbto4rYfuv+EkATe7hkSMm4Str6blamnW4iH2xjaoJ7hrjgA
-         mgwhp3WnIm5ZEFEiriXois1iPfdcUpHWoY6VXmPKaP2TJbU5uHTNsFxZirU0f+269bgU
-         iiKCBnrU7Ie91OvpnHRsU3ZORrqv+p/+CmbLEDrsHmazHn+YOumaD1rnmfAOGw1Ow7Kl
-         2BZw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793297001; x=1793901801;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=VPSwyQABsxDeIKe15KWcg49fMkA5mZOjf5WHg6hn20w=;
-        b=ZpN+LBr+bYsZ/Y6KfzvAFOO4G2mC72QmKS0GYta/t8GUlxJWHyGAuR+J3JC0BGnqHd
-         iD9GO3e7sdl+Yj85YUa8gBQbo9Mpa6hdwwwpfyfTZANGUaLz7wQWi21BtXEG9FkqOTqq
-         EuDxeyCW3dtEEBWWZnxoafs9iRGeS0f0vCJWUBD+xsFZXtNPYFxAX/pjyNQrdsS+ycxf
-         XOYdgxxK+UdGGwTmK95JkPYmOPsxpvOJOCdmTMHIOFJa/4UnlVxmYHLAVZb/TkcoyUir
-         8xUl9wHwy7y0h2GEjwk0BQNOYEVl6k89eERg07/e0wbBMXjawdkmaPgXW1lvx0+pi+9W
-         92GA==
-X-Forwarded-Encrypted: i=1; AKwUvBwIeKZFMrVxPKQdBRbCCal57Tv/Rf/yAlWSOdK1LMAVC+O8EwLIjhr6nHuBTSzFQwZPSx0z+n4pUSwRY8JN@vger.kernel.org
-X-Gm-Message-State: AFq9FYLilKYX6AVYtEgHIqjHdIol9l/l8DnEDzTWIGgIsrrNarxVYiXx
-	GJOk9jYaXMGqKX8IPwqe1A8SKKPQAlMj7HQ5PgHcTPRvxzVZf6lCK91C
-X-Gm-Gg: AYBFou3Ib7uhwl8Kphv3DC1q97kFDs07GQBjo2xw4GpVDTK4HMrbJry71Hh2ehILve/
-	U2vtzb0uJpXJd6VCvgjglc48s8hKug407qQsvRx31brmuROUXDHV8v4oJfmA83ch4lfsGTS37Dh
-	pWXHU0jzMTSgBgd67hpt782I8z58YVkreiQCZgw50HegWkpSYBWTeZyJAptO9Bu+DFOQy0NUVeN
-	BEq1IGfTCb58aQ8Wb68Lcsou5lc10AYHFmGmmtuE1J6ZjNB/uJ1n4C7L/K/mJ4U54/t7UoC0yjD
-	5hHgnf1ONFpQqnBdBPi2D1MndhgQvuipIf4pfGT58tNyTGDD0UYnhFvP0SeCMUZGMp/tInSs2kS
-	pHC9H5suz9VNCD7KssfUiQazNfDQwV9BuhJO0Y3GILPf/VMlqf8GoZWXRUAD+nO0n0ayCZxL3rr
-	/3E3GNnguI0oCny4FbPJORli3TLiR7s2sVDYWJYCv2NTNFo6WlE+4X6HLai7K0bWuJ5dORS9jlF
-	cE5LOSgGYLiDlzTv5bF+z2Z6ZtgKawOjMdneCcFUCItzvjIPcNEXX6G3EST7wd1PPFr7gnpcd29
-	EFGMBlVrV4VD7x6GyiS54WY40oLX1DgFro0tW9roZT5G5VMxQyHBPrMEwJXP9SHO3hAvH9EJAuz
-	sW/O/2Y783Mec
-X-Received: by 2002:a17:907:d92:b0:c41:26b8:c49c with SMTP id a640c23a62f3a-c49bdf0b4aemr514913166b.10.1793297000979;
-        Thu, 29 Oct 2026 11:03:20 -0700 (PDT)
-Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4ca3003e65sm8631466b.21.2026.10.29.11.03.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 11:03:20 -0700 (PDT)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Chris Mason <mason@kernel.org>,
-	Josef Bacik <josef@toxicpanda.com>,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH] backing-file: always end a queued write
-Date: Thu, 29 Oct 2026 19:03:19 +0100
-Message-ID: <20261029180319.2852090-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key, unprotected) header.d=tuta.io header.i=@tuta.io header.a=rsa-sha256 header.s=s1 header.b=utQ9KhMm
+Received: from tutadb.w10.tutanota.de (w10.api.tuta.com [IPv6:fd:ac::d:10])
+	by mail.w14.tutanota.de (Postfix) with ESMTP id 5B17519EEEF84
+	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 22:18:40 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1793308720;
+	s=s1; d=tuta.io;
+	h=From:From:To:To:Subject:Subject:Content-Description:Content-ID:Content-Type:Content-Type:Content-Transfer-Encoding:Content-Transfer-Encoding:Cc:Cc:Date:Date:In-Reply-To:MIME-Version:MIME-Version:Message-ID:Message-ID:Reply-To:References:Sender;
+	bh=I5X+ZmPO3CQba0esVboJm4mky7PH5KkFaOsJl1sLn5g=;
+	b=utQ9KhMmUiayjU7ShO6AXmX5GpP/0UNEEvpiSsWJQYWaqVmXR1ymstTjp4VPlWDG
+	szoBccsqPpfHzCBZBt8cR3RfuN4OEVGnBc1gAekVq4e6p4e8OVoWISfwNx3F/h2HkQN
+	NYMIvkt3n1hMQ8YCnkBsB5k6w8I0ZQiNscLpIQJ2A0CWONm1pEx8UCFa41DUkZ0EMsK
+	OLHOytO85DZLF6GqypfCDBMBPh//J8v1Rg4b+FB3fjrshYxDC1wF5KqpwieHAoGNlA1
+	jElNYjM3AMnHov5L0S6vENoAIUK8A2BzHtwMucp+e7VUO+ovL+nP1eBznUt97DPjAxM
+	Vtyec9edBg==
+Date: Thu, 29 Oct 2026 22:18:40 +0100 (CET)
+From: Edvard Conrad <edvard@tuta.io>
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Edvard Conrad <edvard@tuta.io>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>
+Message-ID: <P58Wrer--F-9@tuta.io>
+Subject: [PATCH v3] fs: let backing files inherit FMODE_NONOTIFY from the
+ user file
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -99,90 +69,138 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Feedback-ID: 0127f977f5e13e8051b46c6e7f57d0f95a0470d24b79d7c31d07fdf611cc427ab823e0f4692a810119c92d8768973a9281:TurnOnPrivacy!:tutamail
 
-From: Chris Mason <mason@kernel.org>
+When fanotify reports a permission event, copy_event_to_user() creates
+the event fd with dentry_open_nonotify(), so that the listener's use of
+that fd does not generate further events. If the event's path is on a
+stacked filesystem, the stacked filesystem's ->open() opens the real
+file with backing_file_open(). Since commit ebe559609d78 ("fs: get rid
+of __FMODE_NONOTIFY kludge"), FMODE_NONOTIFY lives in f_mode only and
+the backing file does not inherit it: it is allocated with the default
+fsnotify mode, and fsnotify_open_perm_and_set_mode() raises FS_OPEN_PERM
+on the real path if the backing filesystem has permission event
+watchers.
 
-Writes to a loop device with direct I/O on an overlay file make the
-next freeze of the upper filesystem hang for ever.
+Before that commit __FMODE_NONOTIFY travelled in f_flags, and overlayfs
+copies the user file's f_flags into the backing open
+(ovl_open_realfile()), so the backing file was exempt implicitly. Commit
+bc2473c90fca ("ovl: enable fsnotify events on underlying real files")
+relied on that when it dropped FMODE_NONOTIFY from OVL_OPEN_FLAGS.
 
-Every kiocb_start_write() needs a kiocb_end_write(). For a write that
-is queued, vfs_iocb_iter_write() leaves the end to the completion, and
-backing_aio_rw_complete() only calls kiocb_end_write() when IOCB_WRITE
-is set in the flags copied from the submitter. In-kernel submitters
-such as loop do not set that flag, so each queued write keeps the
-freeze protection of the backing filesystem.
+The nested event is queued to the same group, from inside the
+listener's read(2), and can only be answered by another reader thread
+of that group. A listener holding filesystem marks on both the stacked
+and the backing filesystem therefore deadlocks as soon as all of its
+reader threads are inside such a read(2) at the same time, and every
+other task that touches a marked filesystem queues up behind it.
 
-Direct writes to a loop device with direct I/O backed by an overlay
-file left fsfreeze of the ext4 upper filesystem, and a later touch
-there, blocked in D state. It takes write access to the node of the
-loop device, which root has by default, to attach the file and to write.
+Observed with a commercial anti-malware agent (16 reader threads) on an
+ostree/composefs host: / is an overlayfs whose data layer is the ostree
+object store on the same btrfs that holds /etc and /home, and a
+systemd-sysext overlay sits on /usr. Every on-demand scan of /usr wedged
+the whole machine until the group was killed. Stack of a blocked reader
+thread on 7.2.7:
 
-The fix used here is to mark a write in struct backing_aio and to call
-kiocb_end_write() on completion of every marked write.
+  fanotify_get_response
+  fanotify_handle_event
+  send_to_group
+  fsnotify
+  __fsnotify_parent
+  do_dentry_open
+  vfs_open
+  backing_file_open
+  ovl_open_realfile [overlay]
+  ovl_open [overlay]
+  do_dentry_open
+  vfs_open
+  backing_file_open
+  ovl_open_realfile [overlay]
+  ovl_open [overlay]
+  do_dentry_open
+  vfs_open
+  dentry_open_nonotify
+  copy_event_to_user
+  fanotify_read
+  vfs_read
+  ksys_read
 
-Reproduced under qemu without KVM, on v7.3-rc6-21-g602042bf29f6 with
-earlier fixes of this series applied, with and without this change,
-once each. The kernel was not changed for the run. With this change
-fsfreeze finished in about a second. Not run: the nvmet and LIO file
-backends, which do not set IOCB_WRITE either, FUSE passthrough, and an
-xfs upper filesystem.
+Userspace cannot avoid this: the backing open happens while the kernel
+builds the fd, before the event is reported, and fid reporting is not
+available for permission event classes.
 
-Fixes: 2406a307ac7d ("ovl: implement async IO routines")
+Make a backing file inherit FMODE_NONOTIFY when the user file it is
+opened for must not generate events. This restores the pre-6.14
+behaviour for the fds that fanotify creates (and for any other
+FMODE_NONOTIFY file), while ordinary opens through a stacked filesystem
+keep generating events on the real path, as intended by bc2473c90fca.
+
+Verified with a self-contained reproducer (private tmpfs lower layers, an
+overlayfs over them, FAN_OPEN_PERM filesystem marks on the overlay and on
+one lower layer, a child opening a file through the overlay) in a qemu
+VM on this tree built with defconfig plus OVERLAY_FS, FANOTIFY and
+FANOTIFY_ACCESS_PERMISSIONS: without this patch the listener's read(2)
+never returns and the child's open is released only by the listener's
+death; with it read(2) returns, the event is answered and the open
+completes.
+
+backing_tmpfile_open() is left alone: its only caller is
+ovl_create_tmpfile(), whose user file is a regular overlayfs file.
+
+Fixes: ebe559609d78 ("fs: get rid of __FMODE_NONOTIFY kludge")
 Cc: stable@vger.kernel.org
-Signed-off-by: Chris Mason <mason@kernel.org>
-[amir: use aio->is_write to explicitly mark a write aio]
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Edvard Conrad <edvard@tuta.io>
 ---
+v3:
+- Back to the v1 change in backing_file_open(). The init_file()
+  variant posted as v2 was larger without being more general; Amir
+  withdrew that suggestion and reviewed v1 instead.
+- Add Amir's Reviewed-by. Drop the Assisted-by and Suggested-by
+  trailers and the blank line in the trailer block, as asked.
+- Keep the subject line from v2, which is the prefix used for
+  fs/backing-file.c.
+- The reproducer posted inline with v1 is now an LTP test, under
+  review as syscalls/fanotify26:
+  https://lore.kernel.org/ltp/P50G-yE--F-9@tuta.io/
 
-Christian,
+v2: https://lore.kernel.org/all/P4wV1J9--F-9@tuta.io/
+v1: https://lore.kernel.org/all/P4sl5iz--F-9@tuta.io/
 
-This fixes a nasty little bug.
-It is not critical because it cannot be exploited by unpriv, but
-innocent priv users could hit it by mistake.
+Tool disclosure (Documentation/process/generated-content.rst): the
+stack analysis, the git-history search for the regressing commit, the
+patch text, the commit message and the reproducer were produced with
+an AI coding assistant (Anthropic Claude Code) under my direction over
+interactive sessions; I reviewed, built and tested the result. No
+static analysis tools beyond checkpatch were used.
 
-I could carry it via ovl-fixes with your ACK or you could take it with
-your other backing file fixes.
-
-Which way do you prefer?
-
-Thanks,
-Amir.
-
-
- fs/backing-file.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/backing-file.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 diff --git a/fs/backing-file.c b/fs/backing-file.c
-index cc101143f9212..ca8654fa1d83b 100644
+index 5614cb7801e..24357bf9328 100644
 --- a/fs/backing-file.c
 +++ b/fs/backing-file.c
-@@ -84,6 +84,7 @@ struct backing_aio {
- 	refcount_t ref;
- 	struct kiocb *orig_iocb;
- 	/* used for aio completion */
-+	bool is_write;
- 	void (*end_write)(struct kiocb *iocb, ssize_t);
- 	struct work_struct work;
- 	long res;
-@@ -124,7 +125,8 @@ static void backing_aio_rw_complete(struct kiocb *iocb, long res)
- 	struct backing_aio *aio = container_of(iocb, struct backing_aio, iocb);
- 	struct kiocb *orig_iocb = aio->orig_iocb;
+@@ -43,6 +43,17 @@ struct file *backing_file_open(const struct file *user_file, int flags,
+ 	if (IS_ERR(f))
+ 		return f;
  
--	if (iocb->ki_flags & IOCB_WRITE)
-+	/* Pairs with kiocb_start_write() in vfs_iocb_iter_write() */
-+	if (aio->is_write)
- 		kiocb_end_write(iocb);
- 
- 	backing_aio_cleanup(aio, res);
-@@ -239,6 +241,7 @@ static int do_backing_file_write_iter(struct file *file, struct iov_iter *iter,
- 		return -ENOMEM;
- 
- 	aio->orig_iocb = iocb;
-+	aio->is_write = true;
- 	aio->end_write = end_write;
- 	kiocb_clone(&aio->iocb, iocb, get_file(file));
- 	aio->iocb.ki_flags = flags;
++	/*
++	 * A user file that must not generate fsnotify events (e.g. the fd
++	 * that fanotify creates for a permission event with
++	 * dentry_open_nonotify()) must not generate them through its backing
++	 * file either. Otherwise a listener watching the backing filesystem
++	 * gets a nested permission event from its own read(2), which only
++	 * another reader of the same group can answer.
++	 */
++	if (FMODE_FSNOTIFY_NONE(user_file->f_mode))
++		file_set_fsnotify_mode(f, FMODE_NONOTIFY);
++
+ 	path_get(user_path);
+ 	backing_file_set_user_path(f, user_path);
+ 	error = vfs_open(real_path, f);
 -- 
-2.55.0
+2.56.0
 
