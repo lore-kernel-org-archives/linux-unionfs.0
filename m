@@ -1,101 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793293767;
-	b=c2m8xJPagzJDHSRXNIOU7LTUPPFfwlG2NL4j5k9JNSdN0XUeTVx737GL3BqN7m3zzVdg
-	 D0RoL/woQVXNt8V37IoEaZa9j4jDN4pVTUSU5EA7D4y+0B28UITqbQ6geO7rYFEfuVat5
-	 37uta7a2YcTh0U+xsspwmjuIrGnWpetlbzn3GdrbjnU1Q0DbDdfckphDRz6ZHDdjIYsgM
-	 6AzYASo5TIU7OxqachWH8aEMas2+JOQ+ceyOqwRwfgSbnWctAcdHzEKwkv+oVEnFhKD6J
-	 6wLFvTBCzWPpDVvQBgMyBtF0WJiPPjaK22IqWMdneSHnk7AWRoHQt39xVEnr/xjGlng==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793293767;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.43
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793297003;
+	b=vkoZl+g6rOfwDBpymbkYjzF1NSPrJnpTeHctaCXmTtKo0jhr3Gdm+2/Lq2n7Dtx4orgY
+	 /KBrRLWmkHerCbl1u9Iq03G348CYcaNXiKKr28gbHdZwaWnAvRI9QULfxvrdcoCLkq84I
+	 ByJ7sX5tz67h2okTWRPXtVWYwzhZeHgWm4xOG1estXs8bxfd3mUQzLaNmQwMjeVe5Rrst
+	 RMIQkrlxiZ4N/ZcXct44OMasPbJYC+uYvNUcK6QgCjLkVCPoYm84amt65bWihx/6Z9k8u
+	 Io9nqXSuSjdDGDMlvkhNzdMIdGNOhyC1TngdXYfMvUXRA0BiqbOfEyGDkJ64dIAkKQA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793297003;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=n5CrxIdnLHrI4ftpsB79WHBSJ2U5HNFlrN9+LthF+nk=;
-	b=uM1IGZ1umTY2TV0NFS9oX9ohnwLUii5bIzmIZxdyoc0Azl+Lp8j7fdMykvS+9ZL17mgj
-	 ugpKWs+NzArOSSaUOUhyhZHAvUCde5RKRhfbMPl3D3cKtSfhuuwCGk6d1YQesKfN5DBKl
-	 29Yu6t/FeO6ma6pBsFpzmNcTxebrJMTCCg9+vgp9WBzESyCDMvCgQl6MP00z32dzgZRAI
-	 IJemWv8RFAVEvIn46AEchBLOZ92QuYt6e+9imtp5IIx2RPNzE5HiKa/Q32+I8pc5eC9KK
-	 EZR3jDPZWlaziEqktTA960srN0kp65b+7N9HKzTATFC6vO9IhTZupFCJcA9baVsqWlg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=VPSwyQABsxDeIKe15KWcg49fMkA5mZOjf5WHg6hn20w=;
+	b=UnkRlPSNCuXkjZeAg4jSkp/fMo+G7/sW/E/CJCoAZTFdqG6TVSE6Weh1lZ6F8PrbGpjH
+	 nrR8w6obTE0TIYJ4OiQQhZEUFebE7QnsPGWrWZPzgM5hO3MooK33oQdgwnBfkgaGeTey0
+	 E7yd/BjLbb/MNwuPuJ7BYxLOXX8CipUgsNf/sdID1dQKbYtV9X2f77xTjijcfXHpUM57+
+	 nXtcbElrO4UMbp6OMXy685eRJH4PcUXovU39Iamsn+jY/sYJ0Gh4+b1Hw5SgT+nav1P3i
+	 /jdwDKKxsM82KW37IlNhVkk1XSPhJL3mkLC9K/975XvKR8K9xJ3lRYYcDJEaC3Gmzsg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sHRgtcfR;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZSsrL1ec;
+	arc=none smtp.remote-ip=209.85.218.43
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F59A606A31A
-	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 17:09:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F59A606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE104606A321
+	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 18:03:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CE104606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sHRgtcfR
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b1dae0febeso3573380a12.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 10:09:26 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1793293765; cv=none;
-        d=google.com; s=arc-20260327;
-        b=liJ0hxY0C7roTT3bD/VhkXWf1UctXoaoGhyJne7HfarILLFwGHezIWbUkObUGQn1bh
-         8UQ25lPn65tyCKVF9DxRPAB5Yk2ANueES2Vs52eXUY0vPUUGShid2vjyJNIrOajksGnx
-         cTuNrmeTjpcP1FkYd3c06uRhupf8F1P/PW/X07Qs8OFV/0Gq78eXCpwQtKgifYg0fz6n
-         qArXFCyh73o4Xt18tFJJDFgxAOgGvHZsWrkhx/iuROtD049+0FubpIZjzZXV2fJtjfdf
-         Dful0nge/ZI0wHwsA0aBGBkt9hCw+KIB1mAJlrwysnD+GuemgkWmW5U/QGm9zephYpyj
-         RyNg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=n5CrxIdnLHrI4ftpsB79WHBSJ2U5HNFlrN9+LthF+nk=;
-        fh=o4r5q2+EjCnnwARWDrBNsTBBK6u83WhJJfsi5L+YQj4=;
-        b=fHc3RSuU83qMgKnhseqxSJsdz/jimW+0QTsL3tGlBQBkkj06eBI31oUhXayjkrKuX5
-         hpLcmKfJiGOQFV1sj9TisP4K0X7y6WlWU9A1K8qetmXEcR2aujId6jfY7k1lLEfVrX6K
-         0j3xwoGxoMGCpSTCPXEWKH8ZUP7o2OsTpHBocv4ywrbiC6QhtRGDN00GNRLURfiXTAbG
-         CKdQ8IS55ydA2LFnVkdbsur/Il8WztJsVggyNDL7SqzAq4EVDLif67DpgK07h5U7EojS
-         e6q7cmPZGauydedymwJlhIQqczDl3Q88GNQogdG/4hHwTE8BC43ufWKWlU0Q7zh7w0j0
-         VEuA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZSsrL1ec
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c49c32650adso291794766b.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 11:03:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793293765; x=1793898565; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=n5CrxIdnLHrI4ftpsB79WHBSJ2U5HNFlrN9+LthF+nk=;
-        b=sHRgtcfRtujwso1fgJmrsF7rrmHv4F4Zpr8X8fxVKLW4d2rVNFOobOOT2HNMTlLxhj
-         t9BGwaIcJOr71hQzS/kLIC9q7JEX1n47xSmGpayt5S1slWaCjFgYmMEDG9iKpJPzOye+
-         Wc1qCFquAx8KpLo0bRsLsrhb0R4hLSAhlzpQIXw11kcTQdvLV0anIwvbBEV7esRLbN5V
-         +qUbcH4qtagqLVOYsHOV7OHedWMONIV510vMwUI6HRnhEum0hY+Tq9nrnx06LqubKUrm
-         +B+ivfLUac+hoT0zXmT/hfrXvZDStmuMeN7jAsYmt/NfrkdEvCW7QYMfRTK3g8zOrspC
-         qAPQ==
+        d=gmail.com; s=20260707; t=1793297001; x=1793901801; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=VPSwyQABsxDeIKe15KWcg49fMkA5mZOjf5WHg6hn20w=;
+        b=ZSsrL1ecNekN3zaxWylXVh3KMWw3H1DckiwhWZhQsH2Fjxq/KCRzXlEdBL++OKYd72
+         /tT9WcgWdzlhXV3VUmMy6OtAgikfoNKRY/W45ycj3ICAf166SZysPvClGAwBH76+my3L
+         6h0z8Xr0XyCrBpYuC87CFbto4rYfuv+EkATe7hkSMm4Str6blamnW4iH2xjaoJ7hrjgA
+         mgwhp3WnIm5ZEFEiriXois1iPfdcUpHWoY6VXmPKaP2TJbU5uHTNsFxZirU0f+269bgU
+         iiKCBnrU7Ie91OvpnHRsU3ZORrqv+p/+CmbLEDrsHmazHn+YOumaD1rnmfAOGw1Ow7Kl
+         2BZw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793293765; x=1793898565;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=n5CrxIdnLHrI4ftpsB79WHBSJ2U5HNFlrN9+LthF+nk=;
-        b=kne/DbK7mSutlSAaXC6DPCEY4/VYK6i8hEbjsXV2XO9unovWlDXFR0ctjho40+vhqt
-         viLH7h+cvpx+7MY/OzN7OZSs8N9DnLdx8nqCQxRYvLFfJVSi54w6MC2Sde1fO0IkGIXH
-         bvLBISYibN5OfpvSlQtx2rF7aZPRyx7GXpokoXMwDmP7WhEwZU9b3CKauwW2ruIX/2/q
-         cb77l+gd2GINbj9ZSrEDj+2BowmWR/yn3jxAewT1xy01SJb+32zjdTqbKme2uchYrKHO
-         UwGmov5HadaxTV2Ky51a/M8Y7QALKcyDg8N3oVHeL7DnnM1glbnx8uW/9xJohrwEPzOY
-         U63A==
-X-Forwarded-Encrypted: i=1; AKwUvBytgqurfEGN+QBhX0jXEWjGYQ4AGzrWoKn4WANggs+WUoUGZDpwnEnm+pJ8o84WQwt9cHXqt+duRjbX39es@vger.kernel.org
-X-Gm-Message-State: AFq9FYK9sVsqmQno2/kCyFxposz07vxR4LweYxLk2H3C3p0gDOh88LgE
-	+3TLwEIGSB5MZVIeDP5F3fSgVf5nbxx+31aJIhmRxHXeDTJdC1p9CYNtn1xMxLP17CNXSkVKJjm
-	D8DT2v5U+cehSdxcL/19b65Lm5gezGjk=
-X-Gm-Gg: AYBFou0iGoN/bp57bngFXrP0HCyAiP+F4pTmWKrkEdG0m+SqHcd4zs7haMRO1pVQyQt
-	oIJ/JVEK5FYaclwKEcHeHzppUP66Ve+h5TYnfR5QZRwdR+0U7I6F2amWOOL3JVED96+8gjwByyD
-	hptqAIvi7Uo3QyPm2pNA4qNG6biDno/d1gFwbQgNC4sRZtWQ994f7E2zC3NtcaVr1tdkGtsDZrf
-	RCyeXKaQmQjQ+drtIc5plnDS2DmQI0ZujnUedLXr31VORiAfA99rIdg+vmct9RSOXC1H4mpDgif
-	Gj+Ht8I4/DuuSqyK2pFcCRLsvuRHzVXxj4xxzSMZg91JqlhJqZpIV15YBjBePBUEUJ/E1gAhL2p
-	cxtTVhh7x1Kuz2Qib+uev6Ip/MJxjQMGo5JOjhQ/Cmp6K979nWYj0VeTmQcF4/MQ0tCodjkD2c9
-	UBFveqTR+HEl3t09g=
-X-Received: by 2002:aa7:cfd1:0:b0:6b3:c382:364a with SMTP id
- 4fb4d7f45d1cf-6b49cc12254mr3101007a12.35.1793293765251; Thu, 29 Oct 2026
- 10:09:25 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1793297001; x=1793901801;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=VPSwyQABsxDeIKe15KWcg49fMkA5mZOjf5WHg6hn20w=;
+        b=ZpN+LBr+bYsZ/Y6KfzvAFOO4G2mC72QmKS0GYta/t8GUlxJWHyGAuR+J3JC0BGnqHd
+         iD9GO3e7sdl+Yj85YUa8gBQbo9Mpa6hdwwwpfyfTZANGUaLz7wQWi21BtXEG9FkqOTqq
+         EuDxeyCW3dtEEBWWZnxoafs9iRGeS0f0vCJWUBD+xsFZXtNPYFxAX/pjyNQrdsS+ycxf
+         XOYdgxxK+UdGGwTmK95JkPYmOPsxpvOJOCdmTMHIOFJa/4UnlVxmYHLAVZb/TkcoyUir
+         8xUl9wHwy7y0h2GEjwk0BQNOYEVl6k89eERg07/e0wbBMXjawdkmaPgXW1lvx0+pi+9W
+         92GA==
+X-Forwarded-Encrypted: i=1; AKwUvBwIeKZFMrVxPKQdBRbCCal57Tv/Rf/yAlWSOdK1LMAVC+O8EwLIjhr6nHuBTSzFQwZPSx0z+n4pUSwRY8JN@vger.kernel.org
+X-Gm-Message-State: AFq9FYLilKYX6AVYtEgHIqjHdIol9l/l8DnEDzTWIGgIsrrNarxVYiXx
+	GJOk9jYaXMGqKX8IPwqe1A8SKKPQAlMj7HQ5PgHcTPRvxzVZf6lCK91C
+X-Gm-Gg: AYBFou3Ib7uhwl8Kphv3DC1q97kFDs07GQBjo2xw4GpVDTK4HMrbJry71Hh2ehILve/
+	U2vtzb0uJpXJd6VCvgjglc48s8hKug407qQsvRx31brmuROUXDHV8v4oJfmA83ch4lfsGTS37Dh
+	pWXHU0jzMTSgBgd67hpt782I8z58YVkreiQCZgw50HegWkpSYBWTeZyJAptO9Bu+DFOQy0NUVeN
+	BEq1IGfTCb58aQ8Wb68Lcsou5lc10AYHFmGmmtuE1J6ZjNB/uJ1n4C7L/K/mJ4U54/t7UoC0yjD
+	5hHgnf1ONFpQqnBdBPi2D1MndhgQvuipIf4pfGT58tNyTGDD0UYnhFvP0SeCMUZGMp/tInSs2kS
+	pHC9H5suz9VNCD7KssfUiQazNfDQwV9BuhJO0Y3GILPf/VMlqf8GoZWXRUAD+nO0n0ayCZxL3rr
+	/3E3GNnguI0oCny4FbPJORli3TLiR7s2sVDYWJYCv2NTNFo6WlE+4X6HLai7K0bWuJ5dORS9jlF
+	cE5LOSgGYLiDlzTv5bF+z2Z6ZtgKawOjMdneCcFUCItzvjIPcNEXX6G3EST7wd1PPFr7gnpcd29
+	EFGMBlVrV4VD7x6GyiS54WY40oLX1DgFro0tW9roZT5G5VMxQyHBPrMEwJXP9SHO3hAvH9EJAuz
+	sW/O/2Y783Mec
+X-Received: by 2002:a17:907:d92:b0:c41:26b8:c49c with SMTP id a640c23a62f3a-c49bdf0b4aemr514913166b.10.1793297000979;
+        Thu, 29 Oct 2026 11:03:20 -0700 (PDT)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4ca3003e65sm8631466b.21.2026.10.29.11.03.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Oct 2026 11:03:20 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Chris Mason <mason@kernel.org>,
+	Josef Bacik <josef@toxicpanda.com>,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] backing-file: always end a queued write
+Date: Thu, 29 Oct 2026 19:03:19 +0100
+Message-ID: <20261029180319.2852090-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.55.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -105,153 +99,90 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261029-work-fs-ai-fixes-v1-0-88f22792f6f7@kernel.org> <20261029-work-fs-ai-fixes-v1-2-88f22792f6f7@kernel.org>
-In-Reply-To: <20261029-work-fs-ai-fixes-v1-2-88f22792f6f7@kernel.org>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 29 Oct 2026 18:09:13 +0100
-X-Gm-Features: AclHuK8Mk1uWay8TR8m6wNWSt-hr7nW1jofiuRs6EA2tpf0YUkmH554XzChvDMw
-Message-ID: <CAOQ4uxjEa=bMJ+oMJs+EhSDo_0mhUx93uAy10AJ-y8wnHykoQA@mail.gmail.com>
-Subject: Re: [PATCH 2/3] backing-file: enforce append-only and immutable
- backing inodes
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Jan Kara <jack@suse.cz>, Chris Mason <mason@kernel.org>, Josef Bacik <josef@toxicpanda.com>, 
-	Jens Axboe <axboe@kernel.dk>, linux-aio@kvack.org, linux-unionfs@vger.kernel.org, 
-	stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 29, 2026 at 3:00=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> FUSE passthrough opens the backing file anew whenever the FUSE file is
-> opened. fuse_passthrough_open() passes the flags of that open to
-> backing_file_open() which opens the backing file with vfs_open() and the
-> credentials of the server. But vfs_open() doesn't go through may_open().
-> So the backing inode is never checked for S_APPEND and S_IMMUTABLE. The
-> checks that did run were done on the FUSE inode and that one never has
-> either flag.
->
-> So anyone who may open the FUSE file for writing can overwrite an
-> append-only backing file anywhere or write to an immutable one. The
-> server only has to register the file and a read-only or even an O_PATH
-> file descriptor is enough for that. Registering requires CAP_SYS_ADMIN
-> but the writer can be any user that the server lets open the file.
->
-> The FUSE inode is checked instead of the backing inode in a few more
-> places:
->
-> - do_mmap() refuses a shared mapping of an append-only file that was
->   opened for writing. A FUSE file opened with O_RDWR | O_APPEND passes
->   the open check and can then be mapped shared and written to at any
->   offset.
->
-> - fcntl(F_SETFL) and RWF_NOAPPEND refuse to take append mode away from a
->   file on an append-only inode. On the FUSE file both succeed. A
->   synchronous write still appends because the backing file was opened
->   with O_APPEND. But an asynchronous write is submitted with the flags
->   of the user's kiocb and lands at the given offset.
->
-> Do the checks on the backing inode. backing_file_open() refuses to open
-> an immutable inode for writing and an append-only inode for writing
-> without O_APPEND, just like may_open(). backing_file_mmap() refuses a
-> shared mapping of an append-only inode, just like do_mmap(). And writes
-> and splices to a backing file in append mode fail if append mode was
-> taken away from the user file.
->
-> A FUSE file that was opened before the backing file became append-only
-> can still write anywhere. That's what happens on the native filesystem
-> as well and the backing file of such a file isn't in append mode. Two
-> differences remain. F_SETFL succeeds and the next write fails. And FUSE
-> reports EIO for a refused open because it turns every error from opening
-> the backing file into EIO.
->
-> overlayfs uses the same helpers but it mirrors S_APPEND and S_IMMUTABLE
-> in its own inode and a chattr through the overlay never sets them on the
-> upper inode. So for overlayfs this only changes something if the upper
-> inode is changed behind the overlay's back.
->
-> Fixes: 4a90451bbc7f ("fuse: implement open in passthrough mode")
-> Reported-by: Chris Mason <mason@kernel.org>
-> Cc: stable@vger.kernel.org # v6.9+
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+From: Chris Mason <mason@kernel.org>
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/backing-file.c | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
->
-> diff --git a/fs/backing-file.c b/fs/backing-file.c
-> index 5614cb7801e1..2424dc38d21a 100644
-> --- a/fs/backing-file.c
-> +++ b/fs/backing-file.c
-> @@ -36,9 +36,21 @@ struct file *backing_file_open(const struct file *user=
-_file, int flags,
->                                const struct cred *cred)
->  {
->         const struct path *user_path =3D file_user_path(user_file);
-> +       struct inode *real_inode =3D d_inode(real_path->dentry);
->         struct file *f;
->         int error;
->
-> +       /*
-> +        * may_open() checked the inode of the user file, which need not =
-carry
-> +        * S_APPEND and S_IMMUTABLE of the backing inode.
-> +        */
-> +       if ((flags & O_ACCMODE) !=3D O_RDONLY) {
-> +               if (IS_IMMUTABLE(real_inode))
-> +                       return ERR_PTR(-EPERM);
-> +               if (IS_APPEND(real_inode) && !(flags & O_APPEND))
-> +                       return ERR_PTR(-EPERM);
-> +       }
-> +
->         f =3D alloc_empty_backing_file(flags, cred, user_file);
->         if (IS_ERR(f))
->                 return f;
-> @@ -263,6 +275,14 @@ ssize_t backing_file_write_iter(struct file *file, s=
-truct iov_iter *iter,
->         if (!iov_iter_count(iter))
->                 return 0;
->
-> +       /*
-> +        * F_SETFL and RWF_NOAPPEND can take append mode away from the us=
-er
-> +        * file. They checked its inode, not the backing one.
-> +        */
-> +       if ((file->f_flags & O_APPEND) && !(flags & IOCB_APPEND) &&
-> +           IS_APPEND(file_inode(file)))
-> +               return -EPERM;
-> +
->         ret =3D file_remove_privs(iocb->ki_filp);
->         if (ret)
->                 return ret;
-> @@ -309,6 +329,10 @@ ssize_t backing_file_splice_write(struct pipe_inode_=
-info *pipe,
->         if (!out->f_op->splice_write)
->                 return -EINVAL;
->
-> +       /* splice refuses a user file in append mode, so F_SETFL cleared =
-it */
-> +       if ((out->f_flags & O_APPEND) && IS_APPEND(file_inode(out)))
-> +               return -EPERM;
-> +
->         ret =3D file_remove_privs(iocb->ki_filp);
->         if (ret)
->                 return ret;
-> @@ -338,6 +362,10 @@ int backing_file_mmap(struct file *file, struct vm_a=
-rea_struct *vma,
->         if (!can_mmap_file(file))
->                 return -ENODEV;
->
-> +       /* do_mmap() checked the inode of the user file */
-> +       if ((vma->vm_flags & VM_SHARED) && IS_APPEND(file_inode(file)))
-> +               return -EACCES;
-> +
->         vma_set_file(vma, file);
->
->         scoped_with_creds(ctx->cred) {
->
-> --
-> 2.53.0
->
+Writes to a loop device with direct I/O on an overlay file make the
+next freeze of the upper filesystem hang for ever.
+
+Every kiocb_start_write() needs a kiocb_end_write(). For a write that
+is queued, vfs_iocb_iter_write() leaves the end to the completion, and
+backing_aio_rw_complete() only calls kiocb_end_write() when IOCB_WRITE
+is set in the flags copied from the submitter. In-kernel submitters
+such as loop do not set that flag, so each queued write keeps the
+freeze protection of the backing filesystem.
+
+Direct writes to a loop device with direct I/O backed by an overlay
+file left fsfreeze of the ext4 upper filesystem, and a later touch
+there, blocked in D state. It takes write access to the node of the
+loop device, which root has by default, to attach the file and to write.
+
+The fix used here is to mark a write in struct backing_aio and to call
+kiocb_end_write() on completion of every marked write.
+
+Reproduced under qemu without KVM, on v7.3-rc6-21-g602042bf29f6 with
+earlier fixes of this series applied, with and without this change,
+once each. The kernel was not changed for the run. With this change
+fsfreeze finished in about a second. Not run: the nvmet and LIO file
+backends, which do not set IOCB_WRITE either, FUSE passthrough, and an
+xfs upper filesystem.
+
+Fixes: 2406a307ac7d ("ovl: implement async IO routines")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chris Mason <mason@kernel.org>
+[amir: use aio->is_write to explicitly mark a write aio]
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Christian,
+
+This fixes a nasty little bug.
+It is not critical because it cannot be exploited by unpriv, but
+innocent priv users could hit it by mistake.
+
+I could carry it via ovl-fixes with your ACK or you could take it with
+your other backing file fixes.
+
+Which way do you prefer?
+
+Thanks,
+Amir.
+
+
+ fs/backing-file.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/backing-file.c b/fs/backing-file.c
+index cc101143f9212..ca8654fa1d83b 100644
+--- a/fs/backing-file.c
++++ b/fs/backing-file.c
+@@ -84,6 +84,7 @@ struct backing_aio {
+ 	refcount_t ref;
+ 	struct kiocb *orig_iocb;
+ 	/* used for aio completion */
++	bool is_write;
+ 	void (*end_write)(struct kiocb *iocb, ssize_t);
+ 	struct work_struct work;
+ 	long res;
+@@ -124,7 +125,8 @@ static void backing_aio_rw_complete(struct kiocb *iocb, long res)
+ 	struct backing_aio *aio = container_of(iocb, struct backing_aio, iocb);
+ 	struct kiocb *orig_iocb = aio->orig_iocb;
+ 
+-	if (iocb->ki_flags & IOCB_WRITE)
++	/* Pairs with kiocb_start_write() in vfs_iocb_iter_write() */
++	if (aio->is_write)
+ 		kiocb_end_write(iocb);
+ 
+ 	backing_aio_cleanup(aio, res);
+@@ -239,6 +241,7 @@ static int do_backing_file_write_iter(struct file *file, struct iov_iter *iter,
+ 		return -ENOMEM;
+ 
+ 	aio->orig_iocb = iocb;
++	aio->is_write = true;
+ 	aio->end_write = end_write;
+ 	kiocb_clone(&aio->iocb, iocb, get_file(file));
+ 	aio->iocb.ki_flags = flags;
+-- 
+2.55.0
+
