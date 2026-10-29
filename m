@@ -1,100 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.218.47
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793271361;
-	b=sGXIl9UlHlhuAtMcaZMG6Hj8AGukh8qT5UTKqVwM8A+3ZCfNajCl3YknUtOO1MoWTuSm
-	 Vkdu7+k00DV209y1nyiOxUVlEjney3qXeiyTIpxGpeigA7UpsAEWpzNeYoTNtVuTy5Cc2
-	 GlwgNIAR4u7imAfJ7EJGXNz1kKkjPEw8uNOB7IYZeUhNXu8DixZD0QAG/CZOMrqD/Gptv
-	 zgRYt4N91ydITVeaYUcsXkNxiTRoLBK3kubC2SgQAmsQuTGAOfn4TEEf1zxuoaaNiFXjy
-	 62XhTP9UK1WGZOAtRnolYu6Xd7e1GTMPaTgnmla0AaY9b54om2qQM5K+DpeVnZG7meA==
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=209.85.208.48
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1793271808;
+	b=KMM20ZhAosMgR02f4iGut41eIoOfhYjnhnYFg9LJXNZqwOROo7CpBZDzwnezjY3I1ALX
+	 KgjmMA/6bkFtI3ADeDZL/3+Sw32QZfIdQQIgVizyH50NXM1LJRl4U3fhADflkD606iA7Z
+	 E5QFbffJNh9RSnjBxHYXdfMjiDCj0jXz9ZUEl1D5dFbILdkTzA6fHj3ITAoCb0Ibfui5A
+	 a39hlKB0zoV1dZ4DbqyRn+uVSsSrqB+GfJ4Z/J20YhB8ClwoVpjPfNz4Gwmbx7eZoXbA2
+	 nGUCnYUEmt5c04cxjJ7gREt5Cty4lD5yqV2CabCL6MlwZKI8EecQOYR4nE8w16qk/2Q==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793271361;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793271808;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=3fGS6loIim+Swa1mX7t46+mUdJqeixhvle4YB5lLPZ4=;
-	b=C7smNyqbkcHUuv4QRw6N2GziwOSHQxfOtoQIKyDdlWTBIS8OXcUVwuYccmiVyXmpGP/e
-	 h1mQhmWCN4+me3cY3UVvIgA+NkFtkvfOuxUbyJ21XrMGQv3za68RqMC3wo45SbZswRFvW
-	 nM2Pfrjbo4vksJyAeJdJA6P5dWMwB+lRYEQHQMdqgv9i2yc/8C22TQc208GgObQdZm6Vc
-	 XQajL7PVn4+BiBI8+8cBj/wsrsUFDwIeTWsHjPYZl2NrJ5MqPzFkB3HZ7tC/G2qht2Zh8
-	 4l7MZe0AbCU2w2Svk3BLjxY7BRD8GvJph0NX7tLQzeqvhQzxoVcKjHsxs8dPc/jWAJA==
+	bh=+oFxDAll8dGtyrd+E10y47gRwGYiWN3UeaM2jcZ9GXw=;
+	b=q1/4qBkrkIvgw9UuOYtnqa7oqnCAUuDbk/tN9vz2+jVroADtl+YBF4cHsy5/Wz+T8Ki9
+	 21IK9g/YfmLFFbk0VcEUoE+ad6KoBymSosEnLAAm4NzNqgavhXockLTb8TgzhwFycsGhH
+	 kqG+eRgV3JgO9g20W9bUgIBVhqoBLDu9PWpUqFZ6dQV3JhE2wX9z+e8/uKrYUbehLcIVZ
+	 0UeyE20ZF5pnd1P+tsj2yEsiK9aGV2l72ECobIhpf4LKr90Ibjbc3ZXDuB76VF5oSpVqX
+	 r26NXmHpennfIoF+i9Ns6AXfFxv+Cx9JWN64fGlIWMUPzv+J7PWCfF/Iy74AHkR/c0w==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=aDa6YDIn;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.218.47
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XAmXfFyx;
+	arc=fail smtp.remote-ip=209.85.208.48
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1955606A31A
-	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 10:56:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E1955606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FE42606A31D
+	for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 11:03:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5FE42606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=aDa6YDIn
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-c169ae1cb26so91480966b.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 03:56:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1793271359; cv=none;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XAmXfFyx
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-6af9a9451daso2453142a12.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 29 Oct 2026 04:03:28 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793271807; cv=none;
         d=google.com; s=arc-20260327;
-        b=bCzpG2Y/FHg0JnezP2Rnk+L6LDyOU4uSgywWXb/bElkszkgghnX2o4G8NFv5vz6Izm
-         jXMPaO2A25BFNKGMeE3L1KSX9d5g72h+at7Py9TaA5YCe5K4lO2SF23fjxLQqs4Qd6gR
-         bJ5n8owS2r3kAPxmCrPJA0mjT35+bVsOYbCWx9RUaNm+rHfyQ+nK6cX4dpRaO3gEDAEH
-         z8LYSDIRsjCprN7O2osipkJCzD38alzTQPE2pJJNjuADk77avuQ8hd1LuBlyIi5rqk0e
-         2k5aXaojVyDeL8dFHRap8EAQ6PlGgmcDZIjc+txDN0PQHlZnKme+IlvVnCKqjpj78QYR
-         GIzg==
+        b=dD55jOaVzIc9K1YPIqFzZ7qLDUqal8DGTrgO7CaYNQRH0ucDW+9qdPDJxQL8TwhoIw
+         rMxDKDwEB6m0u2JgzyXoA2Th3qqgx2Urf6HLuHqWQAJg/6gCBOrJ4Gm39OpMjkM7vfOJ
+         dqJyxpkyLUHxpI0dFgcGW2MskOBub3GYPOUFbq90WrQZjjLozvA+pTLJASlSc7wK5iPR
+         A6hveCl7a7zpKeRpoX79EL4CgLkgWFwdVnIDCQ+pvXFgXXs98OL8DgqAOlvky9+HY5DY
+         ahyYxKqSDjRc8tTMfjLGY83oNRYXUW0PoiF1yjwqaPqwsVfYxeKTUJh/ddkLCPjRRnwd
+         U3LQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=3fGS6loIim+Swa1mX7t46+mUdJqeixhvle4YB5lLPZ4=;
-        fh=UyfeU5lbrjk1ayvE05A6GZ9jxpYm2ACbeeWNKssJeNE=;
-        b=iqxTfrTIS0VS9vrtx1B2kt9eA2rKNH/Dcschbpxl6VBVinIl0EXFR4qViZgGVjXeEZ
-         fSs80hrx89bZTZ6EUcE7YgsGeKfDa1wBD2XBMptE3b8UXywEkCxJJZBu23d7Psbq7Uw6
-         +2yZfMoqfpF1My9yMCh0aVRsUrfdmyycdjH7vYN/2j8mrRlYy6IvB76pr+sullfO8Xdi
-         o84e2MEvTlmwuHh4/S6ivHDui4yXYvavGNKU5YOzNWNH4FO7Uo52oyrGbmLBTtVlk8KY
-         I9TkQTDorFTxPdH/ikirYrAtzb6kmRyNabQMQlvb9VD2nwF9rqU8lQ8Nev6znjMJ1nJE
-         jONA==;
+        bh=+oFxDAll8dGtyrd+E10y47gRwGYiWN3UeaM2jcZ9GXw=;
+        fh=b1hZRVouzWUVFcEkn6A7Ub2gxGPJI87/b+n+zXZNQB4=;
+        b=hqqRTxZcNSYPlcY6oquSDvFIvr/6F+ER14RoOfg3X5MHK9NGYK2OKay4sAMCWDOxbP
+         J4uCdr/jVHZZ7r3iWCWFAIw/FTh6nXQyLOaspqOdEWojNKCat/55dr1ozQzTMHSp/gPL
+         AzsC5JZfgbSbLFoUHnzyFwPRAB3tZJ+rAF7e4TrbvsrqSX5pZHJenH5nsSDvzaWhfhZ9
+         t5gbxQtujWBoPldNwEA2Yj4BZZcDg9zIVBsYe2BKssrx5r/cLItn+sBBwMcAupEuYIXb
+         OHsN7R6eF6n+kz7RLYl1pc+tRp3wowSmJVaoLJxKs9oLPIbRuHA+kqVU98i5Am2yay7w
+         MdCg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793271359; x=1793876159; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1793271807; x=1793876607; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=3fGS6loIim+Swa1mX7t46+mUdJqeixhvle4YB5lLPZ4=;
-        b=aDa6YDIns00zqTqrPCKgp5NqUduDBvv/bV2D9/roX28//Qm4jLBZeNEDCJBoxLxGYQ
-         3deQplSXIB4dGOBpsXUlzlSyGM8+f/V65tj2kzCO+HIFi23vUmupF/K2QwQrMt6eBNFz
-         NvwDNZJi4UCAi4M0oQHbYVPmxVudV9V1fWpgW5IneFG2GZIFBXRNTcPKxhERt80v0+j9
-         DBItCsZ5yudK5t35vTLzHsgO0WbzthAXGGQKmQPFzA3FhrDwQLCU+Gg0I/Icf18qQCSY
-         xROhsSzumYexKJtliqcMeqogE6Zs3iKhWq58DD0amHAcIztBMpIfeCsfWWEg6e+3OZXA
-         yIow==
+        bh=+oFxDAll8dGtyrd+E10y47gRwGYiWN3UeaM2jcZ9GXw=;
+        b=XAmXfFyxR37ur5ieYkpUjtc0G8B7XfPmNN/QJVLMm40nz0G3ycyjyEIPX5tjlf59il
+         CMGtoROgxaFWYpUVFtqBpQDXWF1CsXLq+YWIoYLDA0ssMCFszt51ULbe/IWEYIFWg+Jo
+         wePXQyzQIx1rz/BHtW0ZJjKH28dy6w1RgznDWiXhbKjdwaVbeVDt2iYCTqZzqf5IKows
+         udP5s/lqTK7Zj/ZnB2Eozd+J+NE4iBmFlcY7jskXteh+vNhjd9YO5jz3M5dvrhRH4TUk
+         aGo418N0Lq/giIhsVKwF6I+PbWa84+LNxtGwB5VavIQgheX3c9hpH2FaguMfjlY1Nx+k
+         q8Bg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793271359; x=1793876159;
+        d=1e100.net; s=20260707; t=1793271807; x=1793876607;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=3fGS6loIim+Swa1mX7t46+mUdJqeixhvle4YB5lLPZ4=;
-        b=AKPp8H8l5Ia0RonSy2hUjcOm2YgMzGUsbLLKfRrnV5r3e+decwU7fwR/TdK3dpKi0/
-         hmzKiMegUXuXww5/OWEagruQgGa+p3i/Nr5oq6Rxhs2IPLNuS0J8mU9qjn9SiGEIm3XC
-         gTD9dm2EWn9Nw4cv/0/n6h7/Ch9mUozVUQMdNJozLKoQkYa0rgsVGw6TCI+XGWvvgCMa
-         +6lB82+vsyV2OsVr4AHIzuSw0JQZWflFM3YHA0GEg5YmU4y296kAmzIuw0sDGGZ7FEAO
-         AEpasVLzp87gRmC8zPS7WuQpHADHJugQqcOrJikNZIOG1VtmiAtwGbtqSX9Er6Mx9rw7
-         qLqA==
-X-Forwarded-Encrypted: i=1; AKwUvBx2z82Iyp+S8hcUonyM45VSrO4JACVwlE1i9iZnY+cUUVawk/CHET/cllq60SRU2kQvGokXB9MfPd9xxIqZ@vger.kernel.org
-X-Gm-Message-State: AFq9FYKJb6WvsePVcDwy87Th11gUvzPlTY0M/DXBLlsa+DMgNvaEanaT
-	vTA6UMXCMxvQAU5RF4IUm6sNzPeydAUjj0j94/M7nHbK9TurxomRQqPNplZRtJV0vu6Uwb5R/Ai
-	mIJqIoqFAnx7QVYqAvxDh0Hz3C6Fitz0=
-X-Gm-Gg: AYBFou0uKb8/ofGOaxMRs5VpirhFviKGvnmA9Lcry0QaC/sSqA6OGbgzewcNKJntA2x
-	hMQP3WcCMNYHpCSS9HJfQhERc3x25N1MQt6aqH6WLySYlUuThEr8Mx4cccBEfjOtOQ/MBdnR/8z
-	kI+6z9JbNqV3Qtp33pH3SdW7mkoTT74OChB7C0vi6xkm+9D9q7f+xRUw4+7qB0R+IhyFqebZdMb
-	+N5tViB7oworUVGCT84r0wCscZQ6X4y9a01z7vShoXNKmIOCygDs+ZqqnJzJuFat/2yAKHscvd/
-	rLSWgTAQVASdQ12zTHWFe904SbygUyPmICuPukbMfdBa810jLyy6qrHQcRhBKCRJDbOLuYolvRg
-	silxcSnNHX5ZFO/um1doAJSB+LJiK8RhhNAAtSWq9XTgsjOgWkSTSjTTvdQCFYHRGtoEAaw==
-X-Received: by 2002:a17:907:d308:b0:c2e:2275:1168 with SMTP id
- a640c23a62f3a-c49d13b7f8amr182816166b.19.1793271359214; Thu, 29 Oct 2026
- 03:55:59 -0700 (PDT)
+        bh=+oFxDAll8dGtyrd+E10y47gRwGYiWN3UeaM2jcZ9GXw=;
+        b=ZY9Bo91GANAR0ImO0shrnWBivhLByD9UrkCK6/nDBLtiockmyUi6/0X3KREi7Kd3vC
+         z7qM73cl37COgfo/TUGlAsXOFeG1YTgrd2JdRzdyyBS1S8L3gIhhoC3NU+SOX7dw28DK
+         27w81ESYEDdZCeViFh0YJ1Bs2IhxKzsyaAZ+lSCs37m/Ke9ewuWWBX3Qaxsnw4RWOVxq
+         396pNIRDmjaj+lHGgV+T36PQY7HLE/frCaEpLlK86flJX/+ljfghVCDBAhcAPAkTdhn/
+         Li1BC3p2Nu1cHwh9z1Oj2z4TiGV0FMF0A7a1orUrq8yOd/aXU38XrqPWMRbAAMwsG6PP
+         aLCQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzZxqScD6cuw5vvvjdZFKsb3fswO6hiynK99qSn3lZe7ZjJziVYjjOxddTW41WOfgpvfJG1rEmnJ62xMsNx@vger.kernel.org
+X-Gm-Message-State: AFq9FYLm699CBCYAAZKa4o7QMurPPis8KcwVxpftGr90pDSq7OgmWuBV
+	d49CneqM6gpoAUj8DlY6sW13M7pWU5yI3USpbRhMs5byex835FMn8QtOmXXVxpO0Ebp0Q1Ce7+J
+	D/Kr1gIw14sCLibieZSrGxO7p20Q0Xl0=
+X-Gm-Gg: AYBFou15iMEkgB8kOlTSrD0MUD8jHTc1anOvarMGXE14EXk2tm81artcLUMZdj63jng
+	+Tlozm9beaVAhUbvpLSI+FedEqGSzw+pXxFAmGi0puNLWScLUduQJH/ftG0SqFl27O3FinleASH
+	B1KTcGnX9huTWItSQoRInnMFOJptEw97CZ8MVOF4shhv7OMd1jLUIAYjnB0hN1Ak216HJV3LVs/
+	H3D9Ru4Jh04WuB0Ls0QyFCEneNao5kguQwvN29GStF4pO47/e9rq9RaE+Bk1kQmxiMXr3ziANIu
+	55mjInuQy3IYI6cc/6O16GiAl2v+Koz+rrgTh9AcDuEoQcQHBSwEdfqhKKbH6DKrW3OOrWUWaXz
+	tpxFLj6dJGtSOIxPYcRFKo5OO8+660lgkVFwxhURbpXKCIdnotk34q7XuOSR1Nu07BQaQ0Q==
+X-Received: by 2002:a05:6402:34a:b0:6b4:1037:2bb1 with SMTP id
+ 4fb4d7f45d1cf-6b49cbe7cedmr2797089a12.22.1793271806191; Thu, 29 Oct 2026
+ 04:03:26 -0700 (PDT)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -104,13 +104,13 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261028195133.86636-1-dennylin0707@gmail.com>
-In-Reply-To: <20261028195133.86636-1-dennylin0707@gmail.com>
+References: <20261028154008.67451-1-dennylin0707@gmail.com>
+In-Reply-To: <20261028154008.67451-1-dennylin0707@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 29 Oct 2026 11:55:47 +0100
-X-Gm-Features: AclHuK9ES-fJm4qV7qIWyYn7jHeO1ZZUKHOCjIZSlhGweuLSd8vCQZhkASRtuK0
-Message-ID: <CAOQ4uxgDk-NQ3hrHLwPkLT_6T6EvM1Mxk1aOtCsz1TYgup_FNg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: reserve space for the casefolded name terminator
+Date: Thu, 29 Oct 2026 12:03:13 +0100
+X-Gm-Features: AclHuK_jPOxWwcTntrGiyWxXQmQ4_F2fFzrd1WHf0WA2kaDI5_4JgryUKHV6fdI
+Message-ID: <CAOQ4uxgDmhddqpFawaK874cfWCp4jVDnE67eqXyDA9eumpMEpg@mail.gmail.com>
+Subject: Re: [PATCH] ovl: restrict casefold consistency checks to directories
 To: Hungyu Lin <dennylin0707@gmail.com>
 Cc: miklos@szeredi.hu, andrealmeid@igalia.com, linux-unionfs@vger.kernel.org, 
 	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
@@ -118,56 +118,80 @@ Cc: miklos@szeredi.hu, andrealmeid@igalia.com, linux-unionfs@vger.kernel.org,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 28, 2026 at 8:51=E2=80=AFPM Hungyu Lin <dennylin0707@gmail.com>=
+On Wed, Oct 28, 2026 at 4:40=E2=80=AFPM Hungyu Lin <dennylin0707@gmail.com>=
  wrote:
 >
-> ovl_casefold() allocates NAME_MAX bytes and passes that capacity to
-> utf8_casefold(), which also needs room for a terminating NUL. A valid
-> name whose folded form is exactly NAME_MAX bytes therefore fails to
-> fold, and ovl_fill_merge() falls back to comparing the original bytes.
+> ovl_lookup_single() compares every positive child's casefold flag with
+> that of the overlay. On casefolded ext4, regular files do not inherit
+> the casefold flag from their parent directory. Looking up an existing
+> regular file on a casefolded overlay therefore fails with EREMOTE.
+> Symlinks, FIFOs and whiteouts are rejected by the same check.
 >
-> For example, when two casefolded layers contain directories named with
-> 255 uppercase and lowercase ASCII letters respectively, readdir lists
-> both names even though lookup treats them as the same directory. The
-> same names merge correctly at 254 bytes.
+> Restrict the child consistency check to directories, along with the
+> corresponding assertion in ovl_get_inode(). This allows nondirectory
+> objects to be looked up without rejecting them or warning about their
+> flags, while directories with inconsistent casefold settings are still
+> rejected.
 >
-> Reserve one additional byte in both the allocation and the folding
-> capacity so that NAME_MAX-byte folded names use the canonical merge key.
->
-> Fixes: ee95c5fc86dd ("ovl: Create ovl_casefold() to support casefolded st=
-rncmp()")
+> Fixes: 16754d61dc69 ("ovl: Support mounting case-insensitive enabled laye=
+rs")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 > ---
->  fs/overlayfs/readdir.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  fs/overlayfs/inode.c | 2 +-
+>  fs/overlayfs/namei.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index 7d6f7f6022eb..6113d690f8ad 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -81,13 +81,13 @@ static int ovl_casefold(struct ovl_readdir_data *rdd,=
- const char *str, int len,
->             name_is_dot_dotdot(str, len))
->                 return 0;
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index 63906b3dafcb..4428c50c3185 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -1278,7 +1278,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+>         }
+>         ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
+>         ovl_inode_init(inode, oip, ino, fsid);
+> -       WARN_ON_ONCE(!!IS_CASEFOLDED(inode) !=3D ofs->casefold);
+> +       WARN_ON_ONCE(is_dir && !!IS_CASEFOLDED(inode) !=3D ofs->casefold)=
+;
 >
-> -       cf_name =3D kmalloc(NAME_MAX, GFP_KERNEL);
-> +       cf_name =3D kmalloc(NAME_MAX + 1, GFP_KERNEL);
->         if (!cf_name) {
->                 rdd->err =3D -ENOMEM;
->                 return -ENOMEM;
+>         if (upperdentry && ovl_is_impuredir(sb, upperdentry))
+>                 ovl_set_flag(OVL_IMPURE, inode);
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index ca899fdfaafd..023966d89f74 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -266,7 +266,7 @@ static int ovl_lookup_single(struct dentry *base, str=
+uct ovl_lookup_data *d,
+>                 goto out_err;
 >         }
 >
-> -       cf_len =3D utf8_casefold(rdd->map, &qstr, cf_name, NAME_MAX);
-> +       cf_len =3D utf8_casefold(rdd->map, &qstr, cf_name, NAME_MAX + 1);
->         if (cf_len > 0)
->                 *dst =3D cf_name;
->         else
+> -       if (ofs->casefold !=3D ovl_dentry_casefolded(this)) {
+> +       if (d_is_dir(this) && ofs->casefold !=3D ovl_dentry_casefolded(th=
+is)) {
+>                 warn =3D "child wrong casefold";
+>                 err =3D -EREMOTE;
+>                 goto out_warn;
 > --
 > 2.43.0
 >
 
-Queued for ovl-fixes
+Applied to ovl-fixes.
+
+Hungyu,
+
+Thank you for the overlayfs patches.
+
+I see that you are sending patches to several subsystem, so I assume that y=
+ou
+do not have any specific interest in overlayfs casefold issues particularly=
+?
+
+I am asking because I got some patches for overlayfs casefold which I do no=
+t
+prioritize because I do not know how widely the feature is really in use.
+
+If you are interested in reviewing or testing said patches, let me know
+and I will send them to you.
 
 Thanks,
 Amir.
