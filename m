@@ -1,57 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793372306;
-	b=OAN20+ZMpvTHCP9evi+bQDHqIYoqnzvjtasosQ599gqmI0rJane7jbSHP/7oHEyJSWnI
-	 FiFHCXIqkA5AXoWNHTY3mYnT23jthocxPjcvpBoxfqsFSzZKjFvGjSUxwnIs44pO0hwy1
-	 a4S9O5Ox2s4qDKuEHnzi8hgpJpmJLG+vdMRgK0lM1hJjjg7kubtZMIakKNsgfMRxju27n
-	 3HbndsDW0daQZpWRfaicpVSlR1Pm4h6qSkkQxbiMNebE5Qj5OtWTa7TYJHRhWCipcR0TR
-	 nxfXBc32Fz31wnFwccds5t9n/5PdDWK5Kw4ZbPKYZA4sSfSYkq3jcqppZgt/VKQrhuQ==
+	t=1793373122;
+	b=JfNOSawDFEE+m38PWHz2bG0yr1LEXDOk8NUwiIaaKsg6Djjdo9R2RQ0X2zF069FWZwL3
+	 sXfJb90IrugOa8I0zZV52v6YpmVvTt5BRVntOYMyaI4i/t7x+3a8JSXwqOnxomdpTLIxQ
+	 sgt8ugNLBY8pbfgHGlNbgBou5MdX7maLvLdZkjU2HDW9God0BlL1fGEwoFR8oWqiISwpd
+	 wluFpq8y6xu6pX/7qStp+POXPMak4ua6pNnYyctI/944rtEKePT+gm8Cf07yTmI5EAwy5
+	 +gWAiLjwXcfwDgARpvV94ehFYPPh7wj/wQI8Q1MXFQvwbeHylTNL/gck8QH+Y/2eKBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793372306;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793373122;
 	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
 	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 X-Mailer;
-	bh=DUNXpN2VVEcIQImbc7YoIxdXpeHxb6W2cXiqNoHVCq4=;
-	b=HunBciTO/WKWyERwuBGFNYZ51F79EugZGkGwLkASHIn5ReA9MCfMKzDuVfKnLTYVvFhE
-	 hob0ubwD6oIrDkVE5WwzyWHy+LJaSnysEXu/gck6jvIM3lO72Th6oBofCOxQPk7xVwSVw
-	 rPzD7n8lM63o+gEvtMYzW/tROSEGbewCoVEsWdAQWpqOPh37ppnGcodWX0COWHxB1RUU7
-	 pipq/OvvexAYP5/nA8VbqaLOnj3NOkyEghvRJxXi2mI4CinvVYbj+8kqtIemWGFBYr2dg
-	 lUBuHigsy1pZIrAE19XNkSSPM9OywJuvdVUTyIeLfhNO+ZwjzdAeFz8y+Ir/iK36HBg==
+	bh=Xz4L2PE1s4opxoGiNv7GY/X753OzSirPrx1rscu/iWc=;
+	b=3psOJO+BHcBw9nxBjEfYwIgcTywQ//t2U0qypMCR1IIMzfzcI6LAF0ts57rL0bJDsYdN
+	 Efe37VdsdYeOBP7uRtL4iFh2S0ia0reLKqvXGcwiW6PIciBX8IBEZQhXpqbgHReMGZ9Tf
+	 4ofZtJkzWJi6D6FridbVLXv0Hwflq9CuBCMKOwu+jKH7iOG0n7VSkDNYAgBvn57IBV8CC
+	 dUsj/i3qLy5ED310JQw7UF/+Gzv+cECI5+EhuG/9/9nNJMj1vyZ/T/qR2Cb8GZKtCZr1v
+	 Va2oNcZF1Ct3xrBn3D1tEVO2/Pt5MzCmRdFjUabDM7my1EpCpU4el8mWfkROEcCBiQQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LL1N7P9G;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="SON/rSHJ";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 735B2606A31C;
-	Fri, 30 Oct 2026 14:58:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EADF606A31A;
+	Fri, 30 Oct 2026 15:12:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LL1N7P9G
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDBE01F000C1;
-	Fri, 30 Oct 2026 14:58:23 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SON/rSHJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4AB01F000C1;
+	Fri, 30 Oct 2026 15:12:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793372305;
-	bh=DUNXpN2VVEcIQImbc7YoIxdXpeHxb6W2cXiqNoHVCq4=;
+	s=k20260515; t=1793373122;
+	bh=Xz4L2PE1s4opxoGiNv7GY/X753OzSirPrx1rscu/iWc=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=LL1N7P9GiWY+Ht9DHaO4CPj7BWn5gUuTu7rVqxKzVddINHxmgsNUa42MxQM7UO/ra
-	 TxZlU9nYaarOBEqQKo6DxZs7tF6+Nl298ZihkVcw9dKlwQ/0Zn5hvZn+FqWUboEAVB
-	 5YHr/8jXogDKPsN0XtC1DnMVE/K68qb59gzGvXc3qbJOvTDIR618ccoLwJGxTQ/oXy
-	 NJAEqSGUt0/Vy2HpjFvsGqEnzdVQGc4GID1ymZIy230COvAkvPvW+4lZ/3mvKkfFXd
-	 g/fOf01idt7ScYJR/D9I0zKUayhFIp3eskMSUBaFUciIICSrxP79lkpNFp5fENp94C
-	 Tx75d7F6hRZ9Q==
+	b=SON/rSHJdyPvjx50TQlnkSPE+R/mz/Um2l9Z7t5LI45fOwa6n7hPNeUZQt9Q9/E0o
+	 /YMWIZimi2n/Vuu4DUSFU8Fut3+f3Qlw+T/SpO9Vovb9HQQqCMHiX9sY/6N7xjmpHG
+	 3J3cjSh7Vx3bRPB8Ar/oKi3blBA7GcPIofvESURdLqVxsXl/KfH5Yqyr17EWmLZPGM
+	 583KcoChvRNHJDOF4llQukVaU5OL06YGHVMLfp6AOraaW1TIPZSVzK5UVWJrUZNA6r
+	 lw4AUrI2JQwFEdL1/21UpcbiLWoybA6CVl1C8DxVs1zXQmnczh/WxKoiHMcrk9zO1J
+	 MmKQYOJH3ScgQ==
 From: Christian Brauner <brauner@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Alexander Viro <viro@zeniv.linux.org.uk>, Edvard Conrad <edvard@tuta.io>
-Cc: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, 
- linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
- stable@vger.kernel.org
-In-Reply-To: <P58Wrer--F-9@tuta.io>
-References: <P58Wrer--F-9@tuta.io>
-Subject: Re: [PATCH v3] fs: let backing files inherit FMODE_NONOTIFY from
- the user file
-Message-Id: <20261030-erdumlaufbahn-zehnkampf-annullieren-f6068ed99cc1@brauner>
-Date: Fri, 30 Oct 2026 15:58:22 +0100
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, Disha Goel <disgoel@linux.ibm.com>
+In-Reply-To: <20261017165103.2450042-1-amir73il@gmail.com>
+References: <20261017165103.2450042-1-amir73il@gmail.com>
+Subject: Re: [PATCH] selftests/ovl: fix detached layer mountinfo
+ expectations
+Message-Id: <20261030-pluspunkt-kreis-lawinen-274971662578@brauner>
+Date: Fri, 30 Oct 2026 16:11:59 +0100
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -65,17 +63,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.17-dev-ce4c1
 
-On Thu, 29 Oct 2026 22:18:40 +0100, Edvard Conrad wrote:
-> When fanotify reports a permission event, copy_event_to_user() creates
-> the event fd with dentry_open_nonotify(), so that the listener's use of
-> that fd does not generate further events. If the event's path is on a
-> stacked filesystem, the stacked filesystem's ->open() opens the real
-> file with backing_file_open(). Since commit ebe559609d78 ("fs: get rid
-> of __FMODE_NONOTIFY kludge"), FMODE_NONOTIFY lives in f_mode only and
-> the backing file does not inherit it: it is allocated with the default
-> fsnotify mode, and fsnotify_open_perm_and_set_mode() raises FS_OPEN_PERM
-> on the real path if the backing filesystem has permission event
-> watchers.
+On Sat, 17 Oct 2026 18:51:03 +0200, Amir Goldstein wrote:
+> set_layers_via_detached_mount_fds was copied from the attached-fd test
+> and still looks for /tmp paths. Detached open_tree() layers are recorded
+> by d_path() as upperdir=/upper, workdir=/work, and lowerdir+=/ and
+> datadir+=/ for each cloned directory. The test has failed since it was
+> added.
+> 
 > 
 > [...]
 
@@ -94,6 +88,6 @@ trailer updates or similar. If in doubt, please check the listed branch.
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
 branch: vfs.fixes
 
-[1/1] fs: let backing files inherit FMODE_NONOTIFY from the user file
-      https://git.kernel.org/vfs/vfs/c/c3d355f427ce
+[1/1] selftests/ovl: fix detached layer mountinfo expectations
+      https://git.kernel.org/vfs/vfs/c/8457ca071fab
 
