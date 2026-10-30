@@ -1,55 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793372113;
-	b=q33MBMeYY27lI/R9bZ1yA3mXYnyCpoKm+Bqm7F8JoXd/IkAfoSOEzygD6jHs8fr3U/Ak
-	 EVKES0GkDbjWtpHadmUUbfmgXuAUj8PVbF4/iy5FjPJp92ofI20zTSvN+oNpVXDPBCUZ+
-	 yw/Q8mYeEfRxq5yGLI83c4lcaU1BH1qBWyQnW1/XANAL2XxktquGvnwJec2MFaHR5IyNH
-	 CbiNGvaYtyr65CUyErqoi6SJtDBuWgFM8jhc1Dy4y2VnpQGWvfHpmyx75MU/AfrVRrRLd
-	 7yC0hDJzGQTYJUBTKuNwFXvIlfL1N64ZIGMjl37twYXkU2NL46pFK0ROvDE3TNb9z6A==
+	t=1793372274;
+	b=jdtEc+lQX20lAbJDeZN5x8bNQFjfM6JbCSe16HltlCmRLjLYfkSQGJzrk79JS0KXYuF+
+	 YS4KelECqdg631X8bckLm0o1SEIM9zSLHZiSwzi42//pB6a+DHcwybpUNP9oruzc3JbK7
+	 GJoNAxLUFTIDoS4wCP9P7T+RqwfC4EGkl8T81P/8+zKlUatmgtaDSiBzksxZOpkO1LrHA
+	 W6NEiuof5Rv21sYveztz8mI5ZxfioSAjy1+hf0InQwMg+9iyDgBm1vrmllAADMjjUVlYp
+	 j/P4utFz74fzBlEH2piXMtYDLL0zAXc7jDStQgSV7XOnEXYRUUz4J4p46Ugrp6TuUBw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793372113;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=gCS/gL1ghdsd5VLwrlo0xHatJ9rSk58jF1auEVhGOn0=;
-	b=UN8jhLH3Q03vIS8v/w17A64/IEFSYo/ib6YSIQNfBONS9g+8gYOjziGXvgp8mRWIGa8x
-	 dneV7w2t5hoEuHNjcX/QvJrHSSNxcV/zAEmKXjIR71z1/0BV98IYCWJauwxGg+UxP9L/d
-	 yxL5QoYwdAJeQa05LgFp8ZfwUSUpPwzTG9QHNBKYW4rRBao9P1/qsqpn606FVN/lvz6vX
-	 2Jctt+9LDAcShIx0GNcscYjjqzQ5wQ5o/oofoP0Qe98rlsgplZOSLtzTB9tEshkeaaa9I
-	 F9/IyJzdgR/BlQAezWHxw2f/LjQbZIIgGkRXzoW8ZYSTH9P4bozL2oVbsELqyU8pDpg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793372274;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=jdzo/JB3v48SeneKPfJ1gOvJLI6gIMIp+FynceKuycM=;
+	b=GmjCuaaPc4/yMDnjInyFQ3w44RCO41Jm3IupPzjTBQEiPO8DLTMORfOeG7976n1oOB4x
+	 w1BpNGbRLK48pcSx9gykRj/YDtXn781uPzh3M6DLzJLntHBmH08/0XEXXo9cjfVicB6X9
+	 LqiPk8ix0OThF8muD7jL4n067gOo+HqJPsC59IFI3EHvEx2maVMnA91hWUJ69OLlYP8nb
+	 iA1wk4nO753GDk0IPGCjUPLWlFsNMtvj7wr9sEaA0PPtDCei+Mw3lhMV665lL3uaR3ab+
+	 QrzQQ7Wz7jyamUqK4GiVeR1KKUlEOxjfhYoGDPNWc6lQq9WxeVFIDjnMfXzv37wqIug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QuKNrflx;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KDtmM5U9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF84A606A31D;
-	Fri, 30 Oct 2026 14:55:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28B0E606A31A;
+	Fri, 30 Oct 2026 14:57:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QuKNrflx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 082CD1F000C1;
-	Fri, 30 Oct 2026 14:55:10 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KDtmM5U9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B83CE1F000C1;
+	Fri, 30 Oct 2026 14:57:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793372112;
-	bh=gCS/gL1ghdsd5VLwrlo0xHatJ9rSk58jF1auEVhGOn0=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=QuKNrflxz97W76RC2SuGeC3BNLKM/9/sSx0kwSVhVSJ/tpNzF16hiKqXb/9admXFW
-	 2Is3p569Dpy6NtKgvIDf/TjKFHgMHchv7kMYfc39TaKB8UTV5xOjG4C4H/8oY8x4RT
-	 CMhzuvRu+F7013+qHTya2Nmse5W5l6AX87vAMkOPEmnhRjfP1bORUNRvhr3jtG6Dky
-	 YCdMepplAtJri5zDYU+6jSRO6C1mK2QNvaBqKc8Iew5bsuLdMQVKNpg768UmXhfbuU
-	 f6npXTXeXHr6p/paXR513uqVh3eupoJpL/NI+yYGDGhDa+qTl/Hh4tZPuAP6jntZXk
-	 SSe6wqr3FthWQ==
+	s=k20260515; t=1793372273;
+	bh=jdzo/JB3v48SeneKPfJ1gOvJLI6gIMIp+FynceKuycM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=KDtmM5U9/nlLDrvkYK477BJ6l62T7j3Tq61FVrN1RPIoswoDY6osdmLedz7FG7ZNz
+	 nyKKOYYn7v0PDdl6GhDXOCSvt0PDLyL6tg6tdB2J8v8QCFzgrPkU6o9H5JEhhSLjq3
+	 qEPMg5AR1UnOY2EszabX7fOmdau0IquNp4c3/hNhhh8vu85TGAKqd/uURl1ccD47Oe
+	 lruFjzGdBGLjW9RxSgppdcv2Cd0Zo2npHfpgHJSMNhacNU/sMyqZ6QoUnx2QnBpqu1
+	 4yWH1v7l/hy8f84veiUbdKCIV3ieDDy082/rpdBxoAPQeKnIZ/wyiF/M2KTDZIhGGn
+	 7PZf9dTpmujSg==
+Date: Fri, 30 Oct 2026 15:57:49 +0100
 From: Christian Brauner <brauner@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Chris Mason <mason@kernel.org>, 
- Josef Bacik <josef@toxicpanda.com>, linux-unionfs@vger.kernel.org, 
- linux-fsdevel@vger.kernel.org, stable@vger.kernel.org
-In-Reply-To: <20261029180319.2852090-1-amir73il@gmail.com>
-References: <20261029180319.2852090-1-amir73il@gmail.com>
-Subject: Re: [PATCH] backing-file: always end a queued write
-Message-Id: <20261030-heilt-punkband-pochen-5055df590897@brauner>
-Date: Fri, 30 Oct 2026 15:55:09 +0100
+To: Edvard Conrad <edvard@tuta.io>, Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v3] fs: let backing files inherit FMODE_NONOTIFY from the
+ user file
+Message-ID: <20261030-welpen-anbinden-nullen-b2432cee1d10@brauner>
+References: <P58Wrer--F-9@tuta.io>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -59,38 +58,22 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.17-dev-ce4c1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <P58Wrer--F-9@tuta.io>
 
-On Thu, 29 Oct 2026 19:03:19 +0100, Amir Goldstein wrote:
-> Writes to a loop device with direct I/O on an overlay file make the
-> next freeze of the upper filesystem hang for ever.
-> 
-> Every kiocb_start_write() needs a kiocb_end_write(). For a write that
-> is queued, vfs_iocb_iter_write() leaves the end to the completion, and
-> backing_aio_rw_complete() only calls kiocb_end_write() when IOCB_WRITE
-> is set in the flags copied from the submitter. In-kernel submitters
-> such as loop do not set that flag, so each queued write keeps the
-> freeze protection of the backing filesystem.
-> 
-> [...]
+On Thu, Oct 29, 2026 at 10:18:40PM +0100, Edvard Conrad wrote:
+> Make a backing file inherit FMODE_NONOTIFY when the user file it is
+> opened for must not generate events. This restores the pre-6.14
+> behaviour for the fds that fanotify creates (and for any other
+> FMODE_NONOTIFY file), while ordinary opens through a stacked filesystem
+> keep generating events on the real path, as intended by bc2473c90fca.
 
-Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+Looks good to me. I'll take this via vfs.fixes and fix up the subject to
+use the "backing-file:" prefix while applying.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
-
-[1/1] backing-file: always end a queued write
-      https://git.kernel.org/vfs/vfs/c/627cdcbc2a2e
-
+Amir, note that the same deadlock is still there for directories.
+ovl_dir_open_realfile() goes through ovl_path_open() -> dentry_open()
+and not through backing_file_open(). So a FAN_OPEN_PERM|FAN_ONDIR
+listener that opens an overlay directory through the fd fanotify handed
+it wedges the same way. That needs to be fixed on the overlayfs side.
