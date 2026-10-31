@@ -1,81 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.5
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.8
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793484991;
-	b=hTvrNhmjavaRCKVteyc1DwGnnyn2WeA4QBbTLKFtSZj2jOFi2E7UfwFzbxI/Dwk136AW
-	 8+44PuRMKDmYeisH8W7PAaGzyzLV3+N5ZCy4VLRrTRDmJmFxTu/RG8Tf9/UDpuYxsv3H5
-	 TkamBtNUGvz24x4DC9+UgJAeAzexyVv5tE9naiQFRZEGSa3vN1ePGN7plHv6kCw0akjJJ
-	 rtsnbDdXZiUHoItP0+TsdRDNYBRbS/Dkt9rn43ogbD6cMM2aIvYAZgeYm/Q3mjr7QKTw6
-	 j4bwh3AmC2Z+XLsv3AiXmfS0YgPi4MHgD4aZVD7Kl7RVojYMV389CmHQTZ1kUVCXKtA==
+	t=1793484993;
+	b=t8i3Ny8EccfpDlkdRMrGRz5BCq3jeWWl1XVY/md+3SMIW2/y2AHftTRaRrsnpB0gB5c8
+	 PldVk9zmalT8DBnbxT04z4q1huQ/SoSgnOQIhnLjuwWEvVy+IofcVCMKkaiAKlshHOoy0
+	 KpeLYOm/jR5m8Ptwg/GvbiT9P1faxHG+z70Jzj43aUJl5nZp2DCopmC/HfAgByAqhe0jJ
+	 QAkKRfapUchscNM7iuy5Ue6tfFVezm5diPmAofIBTq05/x+i5oI3ofgFAp3E56yhx+/6G
+	 gQMA+ISVFFaTjVj3wrI+5m3a6emyjJJGOEm3IXnA2A5iHS1Lb4vO52+lwOJO0DxNG3g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793484991;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793484993;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=cjIPJURKq1ZAyaHb+Ric6lew/ofviOmHezHw+9sI8qM=;
-	b=dzuUbpBbTrpmAh7k5tqcI+8dvUB7IPALHTYqspl05zFDO/aTEHKJbJ4CwOhJmkcgKs3x
-	 Mw8DJZ7EmokX4AowZEpYqRSl30fK9sEYe5Q4p2LuQGXxhnYUiqE4qKjVZqs3JJeTUfSwf
-	 Wo7a6PPVjr+tRagxzoUq44v4+iYkfKrN+YMUV90W+wgw3wvwi8hoMN5HnAYIf37yBkSia
-	 rK2j6a+F5fWJfUXRGuMoyjpu5JsRCEsNNmUmOwIiccJFlzpPfOTtMoM8JHOwzYcFmrtBA
-	 kdVkwnPdYAgNAJ1DWT63VajOoQuaXHjYv7lR1spZYMqX3LE5bhMJUnx9XM9KiztsDwQ==
+	bh=GJoYtmlEWC341A7cBgsZ3mQTJ4svk+sity18hk+Hva4=;
+	b=EmLGFhJ3LuCallo4tQHZSnMBZzPybE0+FiDhNb1u7cxt0Bbs9LD7ceVHWHxpFNdeHsTV
+	 9p/tbOfuHy1Midy8cDwlmQtXGKYMGt4E/v1PEo+8S1Dg4jv67cToO/gASBdXMvjkhbrmT
+	 2AgNl0PGUHRgJRJ8OnXsPb8u3dIwERCVu+q2lFaMuKryfxeJv/zZ3UCB15ocz289Kyjqj
+	 tFLoUkvdAu7Fb8yQRPpHMKc70DnGz3RnAX6mGRs1oXrxxtVFfmTIaASBW+epKCfJsBV36
+	 xYSGA5zyYv9OmY6zmRAgZIZx7sSi/aXwSoBnHNUIHrBqx3XyBJP1T5rrl30EeZ2lykQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=AYr0c1Jl;
-	arc=none smtp.remote-ip=74.125.229.5
-Received: from mail-dy2-f5.google.com (mail-dy2-f5.google.com [74.125.229.5])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="whiuqm/Y";
+	arc=none smtp.remote-ip=74.125.229.8
+Received: from mail-dy2-f8.google.com (mail-dy2-f8.google.com [74.125.229.8])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867EC606A320
-	for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 22:16:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 867EC606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78104606A31D
+	for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 22:16:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 78104606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=AYr0c1Jl
-Received: by mail-dy2-f5.google.com with SMTP id 5a478bee46e88-35dc2af1f2fso817478eec.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 15:16:31 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=whiuqm/Y
+Received: by mail-dy2-f8.google.com with SMTP id 5a478bee46e88-36a24f47293so1140561eec.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 15:16:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793484991; x=1794089791; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1793484992; x=1794089792; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=cjIPJURKq1ZAyaHb+Ric6lew/ofviOmHezHw+9sI8qM=;
-        b=AYr0c1JlIqFd3Hi+tHy7rV+yx+tE3quDXNOycVcixSw416S/ZREMpbRG1HJMvkKmlN
-         8UJaIjfq0E0h1LSQKIaQd+gkede62yufc0LnSoEXKEv5wOthf4x+bwgXk8QoUPWJr2+o
-         rvdNORe3YntHm+BEBgmsypyeiR7QBbsoaScQx9laOdYRnWJY/Qk9Gma2CXhF7+G0p3Pk
-         SOWfXMrcY33lQd1jecPGUaIST/xZj55Bt0DOgqe8sUTFooASDJBxhCqXXxep9D3xMqtY
-         RYdxItxhQOoW/InvkWMnmLwQSZ+B9t+x8Kn5xmgG2eTYU111bPsqYd79hQN+5PVfCcuC
-         /xxA==
+        bh=GJoYtmlEWC341A7cBgsZ3mQTJ4svk+sity18hk+Hva4=;
+        b=whiuqm/YkHfoW8R6vyQa6KtR7/1csiE5NsVLv4902gK+bI6LIm2slClM/fSgoFdzWs
+         phl6MgOt6N74gPSd2/liYnWgjX+EqCr+VAQbXGWpdtBco6rh4aLuR1MdiAjEDnbq2fAf
+         Tth0E4FzGJqGSDOfXIu4zs/TYjDKH9a/FvuD7z7YSzaKzSBScLabq9GooBP/CHMuUdIK
+         X2dwK/zgRbNNS3NZRFmXkNut5ks033hXxU3FlmfOrLoeXPXGrgAIf0Fio+10NUa49Leg
+         men5sW4+ECj438096SL9nnIYGriOgoaJADP7cP6u8/LSY/N7VYkQXxbiqa8Tdlh+zRwC
+         VfGQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793484991; x=1794089791;
+        d=1e100.net; s=20260707; t=1793484992; x=1794089792;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=cjIPJURKq1ZAyaHb+Ric6lew/ofviOmHezHw+9sI8qM=;
-        b=x5+z+BhlZ4/7Tg/vAr1jcAsUhcq7i9DsR/8peBIrIDpOrGNUtOt+6Q7ZrqArvEtbsN
-         heXpxIjxQa+o8J8umNvTXMZw7xTk/o+Kc9Uwy90E/LPTd2xXWTpAEohAunt1hont3LPI
-         LaK2M0Czlc+t6p51vwxVGs/+SYXKuHBsF966QMTN10mNiUQ3MF5wOTYK4FDGwi92/RFt
-         uo+quKUZI7ZYhOd9icOZopHAzhJsmBjmoOI/PPgpzTZsjkID018HXCj+0asWUNi4SWpD
-         gzjUG9hVbzE+mLGhokoZpC2Rsdlp+cVY04e5rNu0Dso+SkFq/upndF5HtVr0rlv3b/tE
-         fF7w==
-X-Forwarded-Encrypted: i=1; AKwUvBx+yyxZAoMBDVrMZ9i0zxKa6whP6n71mfa2fpMABC6/Nzbvvvm2ZnFgSS0P8oYrjU2Q+CwFOnh/eF04Upvw@vger.kernel.org
-X-Gm-Message-State: AFq9FYJnhgYS/Xhwj2JhbHgTjSzgx0i76V/WJZ3LluOGUZNUE1DD84mt
-	h8FiGsufXPvRvFyffMOv6gPUqR5hWusjXVxnfiuYFqL5pnVMAKKzE1ut
-X-Gm-Gg: AYBFou3+5hMuBJ1pt5IjKWdt9i3JZNW7maT03Ifr5ujgBKI10lBtWDGwt0XAyI+7BOF
-	ElwHI7T/O+RG98K2Ab2bynmiPWf767IqRuHGCxuUHsQPVt+Pxw71gHEw9/tR/uCmJ0YmluiJTyu
-	iIgpekNJQDlr2/f619rkP+HdTLOIp9gUdwhHVYpt8FvX7Dj3wx7oOQl/PKamIH1UDcr6RzZpOjo
-	uvJA/CDZEb5ut8QWMehZ0S3mHX4J3hASv7AXXfNCSMEqRUMq0tOd/vCeg1gAZUW/YEMPfh5ZmmG
-	nLH65tRbqJP1+Au90lUSoaDBKBPo9kJh2wZDcmbTxOJ1mh9lWcK52w4D/d/hAU69LPMP0FJ/Umf
-	uuKKXSaI6G7besCD51XYMpGMLPPAldQCgDs103ZnH1a+OtgdKxhPGeN3vKMOnbRzzEGwuLV6OxZ
-	BAczVBWMjVbuE3LIwkyOWBzb3dC7xadpVizJADnv2IeztWpU4pBH6jrBich2w8gZmXDTZkbC86U
-	99490nh3CeK/AI7y4RM/oleGfKanZf//nGqbMPY7rYd4Cy3EMDxgO3/S4jM75ElMddLo89yizkY
-	51jtC9mtejpry+3PQ47frmZLtI9u3LK9LuDGCucBacdOnXuo+HUJk94z
-X-Received: by 2002:a05:7301:1a15:b0:369:a113:756f with SMTP id 5a478bee46e88-36a423f980emr8430299eec.34.1793484990505;
-        Sat, 31 Oct 2026 15:16:30 -0700 (PDT)
+        bh=GJoYtmlEWC341A7cBgsZ3mQTJ4svk+sity18hk+Hva4=;
+        b=jbvdpjacN+EnJ2C3Go4/oGsGKNdydETa4FG1hlWi96BMmJBE6LLstYHwoRGHLx4jhw
+         tiP5QFxswltZzoAn26XU2JjG2QDoUX/ecDlht5WIOvI+mKec6jMfjHM1IEOf46TeyJDb
+         uIxlVUSxMh7XkCw3jQii9KP6o2/miAoj/o70zBKbCiT/qokUOSfTDrRnDO9bJiHC8FjI
+         TkUA3mFrQKIkVOFyrzfaIprDHPFHML/nreLbbPSt3FahSe3dBQNXlN1FCXOidc+rV26a
+         s18QfkRjNMwM2jUtMgCKuIGwq7AWZW8R1/n1GqZJSveeAldEpz9F7wwtO4ARKxuhFTHE
+         Ex5Q==
+X-Forwarded-Encrypted: i=1; AKwUvBzZ4G77EUr1yJ+iClREGmLmKmdxaWowZqmtpD62DdEQ6NCwXH+NOFpTrzlxK4qBSnCNB8xtlCBxbHiztYLD@vger.kernel.org
+X-Gm-Message-State: AFq9FYIAnn2XJXNLMnNRoa1zDK+FYMaiSlUu5epuS9FTMAoQoLSUXvgf
+	u76tpEo5u+RdwIzXE62wVQ5o8YxuIIeK7eK6xFR6xYKSNVcf2mxRrt/r
+X-Gm-Gg: AYBFou2OxqMSK2ibHXz5CDHtVKfeItXS5r74kza7MLOQvkM60hEsDqsjhVgJaxD3lm/
+	cfiM4CigL/2KZTmoXXt9xcj+i6zP/z/fTHtuwlwEwAg2J6brHoHWkcSUGqwx9p8khKSZLk12o9T
+	Vp7dgXfixKJxtFNs/cB/J6P4a2gBIHQM2tFEqWbhCU6UNfzPJ26yLRNe5EL4aubZTN1rxhDAL5+
+	Lh42ObD+a1rl+FTNNQvxt5sbXQo9yvOZbwueZ//DevbA+fow9cQ7r+pWK8QMtVxyQaFStIGvi4v
+	+17nPbETSeBLXAHsZWCTCYJ1wX9ovUBqMr0D7zuIQQsqgMHVwEUe4/WiO08i1AdtFr0J+lJuxVZ
+	SHVbXjVITN/Qy2gZRBUQglCGfzAWycaBlIlBMccQcMCMRpl+0yFv9WNmbJBAmDuw2Sh5w5U2SsX
+	8rF75KsRvxDVapqzaFCX7+8NjNkgV0FH4hWtCU1IuXOZLwyV6VOqsd9RaJ6/FSe3wI5md1uqdI8
+	Ydi5mDb/FJAml+pCXd5El35i1117fyQQiGO/nLBXoLaLZYbrAZet3aRgfhRyidHZ4tPCMTYXqWQ
+	/k0uxLo9+QBUOkEX22j93QzreUeB0vYxk8zII5QRVpoGhOcPg2/HldRy6hU/GNJZFNk7KO2aLNG
+	aLA==
+X-Received: by 2002:a05:693c:88c8:20b0:369:f2d6:4108 with SMTP id 5a478bee46e88-36a42401233mr9001958eec.10.1793484991459;
+        Sat, 31 Oct 2026 15:16:31 -0700 (PDT)
 Received: from localhost.localdomain ([98.148.34.5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a42a61a0csm24037242eec.22.2026.10.31.15.16.29
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a42a61a0csm24037242eec.22.2026.10.31.15.16.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Sat, 31 Oct 2026 15:16:30 -0700 (PDT)
 From: Hungyu Lin <dennylin0707@gmail.com>
@@ -84,9 +85,9 @@ Cc: zlang@kernel.org,
 	amir73il@gmail.com,
 	linux-unionfs@vger.kernel.org,
 	Hungyu Lin <dennylin0707@gmail.com>
-Subject: [PATCH v2 1/2] generic: test overlayfs casefold flag changes
-Date: Sat, 31 Oct 2026 22:16:17 +0000
-Message-ID: <20261031221618.153-2-dennylin0707@gmail.com>
+Subject: [PATCH v2 2/2] generic: test whiteouts on casefolded overlay layers
+Date: Sat, 31 Oct 2026 22:16:18 +0000
+Message-ID: <20261031221618.153-3-dennylin0707@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261031221618.153-1-dennylin0707@gmail.com>
 References: <20261031221618.153-1-dennylin0707@gmail.com>
@@ -101,47 +102,47 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Changing the casefold flag of an overlay directory can leave its upper
-and the mount with different casefold states and break lookups.
+Whiteout creation in casefolded directories can fail when removing
+names that exist in a lower layer.
 
-Check that chattr +F/-F requests which would change that state fail with
-EOPNOTSUPP, preserve the casefold flag and leave files accessible. Cover
-lower-only directories with and without contents and the overlay root,
-with both casefold-enabled and casefold-disabled layers. Keep no-change
-requests as successful controls.
+Exercise unlink and rmdir for lower-only names, a copied-up file and a
+merged directory, including lookups with different ASCII case. Also
+recursively remove a populated lower directory. Check that removed names
+stay hidden after recreation and a mount cycle, while the surviving file
+and the lower layer remain unchanged.
 
-This covers "ovl: do not let chattr change the casefold flag" from the
-casefold fixes series linked below.
+This covers "ovl: fix whiteout creation in casefolded directories" from
+the casefold fixes series linked below.
 
-The test also reads regular files on a casefolded overlay. This needs the
-separate "ovl: check the casefold flag of directories only" fix, included
-in the tested overlayfs ovl-fixes baseline at 1d27da7de3f7.
+Regular-file lookup and copy-up also need the separate "ovl: check the
+casefold flag of directories only" fix, included in the tested overlayfs
+ovl-fixes baseline at 1d27da7de3f7.
 
 Link: https://lore.kernel.org/linux-unionfs/20261030113201.2921633-1-amir73il@gmail.com/
 Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/generic/998     |  147 ++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/998.out |    3 +++
+ tests/generic/999     |  148 ++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/999.out |    2 ++
  2 files changed, 150 insertions(+)
 
-diff --git a/tests/generic/998 b/tests/generic/998
+diff --git a/tests/generic/999 b/tests/generic/999
 new file mode 100755
-index 0000000..26a4a19
+index 0000000..75e13b5
 --- /dev/null
-+++ b/tests/generic/998
-@@ -0,0 +1,147 @@
++++ b/tests/generic/999
+@@ -0,0 +1,148 @@
 +#! /bin/bash
 +# SPDX-License-Identifier: GPL-2.0
 +# Copyright (c) 2026 Hungyu Lin.  All Rights Reserved.
 +#
-+# FS QA Test 998
++# FS QA Test 999
 +#
-+# Check that rejected casefold changes leave overlay directory casefold
-+# flags unchanged and existing files accessible.
++# Check removal of files and directories from casefolded overlay layers,
++# including copied-up files, merged directories and recursive removal.
 +#
 +. ./common/preamble
-+_begin_fstest auto quick ioctl casefold
++_begin_fstest auto quick dir casefold
 +
 +_cleanup()
 +{
@@ -157,133 +158,133 @@ index 0000000..26a4a19
 +_require_extra_fs overlay
 +_require_scratch
 +_require_scratch_casefold
-+_fixed_by_kernel_commit xxxxxxxxxxxx "ovl: do not let chattr change the casefold flag"
++_fixed_by_kernel_commit xxxxxxxxxxxx "ovl: fix whiteout creation in casefolded directories"
 +_fixed_by_kernel_commit xxxxxxxxxxxx \
 +	"ovl: check the casefold flag of directories only"
 +
-+check_casefold()
++mount_overlay()
 +{
-+	local path=$1
-+	local expected=$2
-+	local expected_state=disabled
-+	local flags
-+	local actual=0
-+
-+	[ "$expected" -eq 1 ] && expected_state=enabled
-+	flags=$($LSATTR_PROG -d "$path" 2> $tmp.err) || {
-+		cat $tmp.err >> $seqres.full
-+		_fail "cannot read flags on $path"
-+	}
-+	flags=${flags%% *}
-+	echo "lsattr $path: $flags" >> $seqres.full
-+	[[ "$flags" == *F* ]] && actual=1
-+	[ "$actual" -eq "$expected" ] || \
-+		_fail "$path: expected casefold $expected_state, got flags $flags"
++	_mount -t overlay overlay "$merge" \
++		-o lowerdir="$lower",upperdir="$upper",workdir="$work"
 +}
 +
-+reject_casefold_change()
++check_absent()
 +{
-+	local change=$1
-+	local path=$2
++	local name=$1
 +	local ret
 +
-+	$CHATTR_PROG "$change" "$path" > $tmp.err 2>&1
++	stat "$merge/$name" > $tmp.stat 2>&1
 +	ret=$?
-+	echo "chattr $change $path: exit $ret" >> $seqres.full
-+	cat $tmp.err >> $seqres.full
-+	[ "$ret" -ne 0 ] || \
-+		_fail "chattr $change $path succeeded, expected EOPNOTSUPP"
-+	# Check the SETFLAGS error, rather than accepting any chattr failure.
-+	grep -Fq \
-+		-e "Operation not supported while setting flags on $path" \
-+		-e "Not supported while setting flags on $path" \
-+		$tmp.err || \
-+		_fail "chattr $change $path: expected EOPNOTSUPP, got exit $ret: $(cat $tmp.err)"
++	echo "stat $merge/$name: exit $ret" >> $seqres.full
++	cat $tmp.stat >> $seqres.full
++	[ "$ret" -ne 0 ] || _fail "$name: expected ENOENT, stat succeeded"
++	grep -q ': No such file or directory$' $tmp.stat || \
++		_fail "$name: expected ENOENT, got $(cat $tmp.stat)"
 +}
 +
-+test_casefold()
++check_view()
 +{
-+	local folded=$1
++	local phase=$1
++	local name
 +
-+	root=$SCRATCH_MNT/ovl-$folded
-+	lower=$root/lower
-+	upper=$root/upper
-+	work=$root/work
-+	merge=$root/merge
-+	mkdir "$root" || _fail "cannot create $root"
-+	if [ "$folded" -eq 1 ]; then
-+		_casefold_set_attr "$root" >> $seqres.full 2>&1 || \
-+			_notrun "cannot enable casefold on the scratch filesystem"
-+		change=-F
-+		same=+F
-+	else
-+		change=+F
-+		same=-F
-+	fi
-+	mkdir "$lower" "$upper" "$work" "$merge" || \
-+		_fail "cannot create overlay directories"
-+	mkdir "$lower/empty" "$lower/dir" || \
-+		_fail "cannot create lower directories"
-+	cp $tmp.data "$lower/dir/file" || _fail "cannot create lower file"
-+	cp $tmp.data "$lower/file" || _fail "cannot create lower file"
-+
-+	if [ "$folded" -eq 1 ]; then
-+		_mount -t overlay overlay "$merge" \
-+			-o lowerdir="$lower",upperdir="$upper",workdir="$work" \
-+			>> $seqres.full 2>&1 || \
-+			_notrun "overlayfs does not support casefold enabled layers"
-+	else
-+		_mount -t overlay overlay "$merge" \
-+			-o lowerdir="$lower",upperdir="$upper",workdir="$work" \
-+			>> $seqres.full 2>&1 || _fail "cannot mount overlay"
-+	fi
-+
-+	# A lower-only directory would be copied up as an empty upper directory,
-+	# even when its merged view contains files. The upper root is also empty.
-+	for path in "$merge/empty" "$merge/dir" "$merge"; do
-+		check_casefold "$path" "$folded"
-+		reject_casefold_change "$change" "$path"
-+		check_casefold "$path" "$folded"
-+		cmp $tmp.data "$merge/file" >> $seqres.full 2>&1 || \
-+			_fail "$merge/file: not readable with expected contents after chattr $change $path"
-+		cmp $tmp.data "$merge/dir/file" >> $seqres.full 2>&1 || \
-+			_fail "$merge/dir/file: not readable with expected contents after chattr $change $path"
++	echo "Checking merged view $phase" >> $seqres.full
++	for name in lowerfile anotherfile copyfile lowerdir mergeddir tree upperonly; do
++		check_absent "$name"
++		check_absent "$(printf '%s' "$name" | tr a-z A-Z)"
 +	done
-+
-+	# chattr still issues SETFLAGS for a no-change request.
-+	for path in "$merge/empty" "$merge/dir" "$merge"; do
-+		echo "chattr $same $path" >> $seqres.full
-+		$CHATTR_PROG "$same" "$path" >> $seqres.full 2>&1 || \
-+			_fail "chattr $same $path: expected success for unchanged casefold state, got exit $?"
-+		check_casefold "$path" "$folded"
-+	done
-+	_unmount "$merge" || _fail "cannot unmount overlay"
-+	merge=
-+	cmp $tmp.data "$lower/file" >> $seqres.full 2>&1 || \
-+		_fail "$lower/file: not readable with expected contents"
-+	cmp $tmp.data "$lower/dir/file" >> $seqres.full 2>&1 || \
-+		_fail "$lower/dir/file: not readable with expected contents"
++	cmp $tmp.data "$merge/keep" >> $seqres.full 2>&1 || \
++		_fail "$merge/keep: not readable with expected contents $phase"
++	ls -1 "$merge" > $tmp.names || _fail "cannot list $merge $phase"
++	printf 'keep\n' > $tmp.expected
++	diff -u $tmp.expected $tmp.names >> $seqres.full 2>&1 || \
++		_fail "$merge: expected only keep $phase (directory listing in $seqres.full)"
 +}
 +
 +_scratch_mkfs_casefold >> $seqres.full 2>&1 || \
 +	_fail "cannot format the casefold scratch filesystem"
 +_scratch_mount_casefold || _fail "cannot mount the casefold scratch filesystem"
-+printf 'sentinel\n' > $tmp.data
++root=$SCRATCH_MNT/ovl
++lower=$root/lower
++upper=$root/upper
++work=$root/work
++merge=$root/merge
++mkdir "$root" || _fail "cannot create $root"
++_casefold_set_attr "$root" >> $seqres.full 2>&1 || \
++	_notrun "cannot enable casefold on the scratch filesystem"
++mkdir "$lower" "$upper" "$work" "$merge" || \
++	_fail "cannot create overlay directories"
 +
-+# Try the enabled mount first so kernels without overlay casefold support
-+# skip before reaching the actual attribute-change checks.
-+echo "Casefold enabled" | tee -a $seqres.full
-+test_casefold 1
-+echo "Casefold disabled" | tee -a $seqres.full
-+test_casefold 0
++printf 'lower data\n' > $tmp.data
++printf 'upper data\n' > $tmp.upper
++for name in lowerfile anotherfile copyfile keep; do
++	cp $tmp.data "$lower/$name" || _fail "cannot create lower $name"
++done
++mkdir "$lower/lowerdir" "$lower/mergeddir" "$lower/tree" "$upper/mergeddir" || \
++	_fail "cannot prepare lower and merged directories"
++for name in one two; do
++	cp $tmp.data "$lower/tree/$name" || _fail "cannot create lower tree/$name"
++done
++cp $tmp.upper "$upper/upperonly" || _fail "cannot create upper-only file"
++mount_overlay >> $seqres.full 2>&1 || \
++	_notrun "overlayfs does not support casefold enabled layers"
 +
++# Copy up through the overlay, without changing the backing layers directly.
++cat $tmp.upper > "$merge/copyfile" || _fail "copy-up write failed"
++cmp $tmp.upper "$upper/copyfile" >> $seqres.full 2>&1 || \
++	_fail "copyfile was not copied up with the expected data"
++
++# The first removal is a control that does not need a lower whiteout.
++rm "$merge/upperonly" || \
++	_fail "cannot remove upper-only file"
++rm "$merge/lowerfile" || \
++	_fail "cannot remove lower-only file"
++rm "$merge/ANOTHERFILE" || \
++	_fail "cannot remove another lower-only file using different case"
++rm "$merge/COPYFILE" || \
++	_fail "cannot remove copied-up file using different case"
++rmdir "$merge/LOWERDIR" || \
++	_fail "cannot remove lower-only directory using different case"
++rmdir "$merge/mergeddir" || \
++	_fail "cannot remove merged directory"
++# Removing the children leaves whiteouts in the copied-up directory.
++rm -r "$merge/TREE" || _fail "cannot recursively remove lower directory"
++check_view "after removal"
++
++cat $tmp.upper > "$merge/LOWERFILE" || _fail "cannot recreate removed name"
++cmp $tmp.upper "$merge/lowerfile" >> $seqres.full 2>&1 || \
++	_fail "recreated name is not accessible with different case"
++rm "$merge/lowerfile" || \
++	_fail "cannot remove recreated name"
++check_view "after recreating and removing a name"
++
++_unmount "$merge" || _fail "cannot unmount overlay"
++mount_overlay >> $seqres.full 2>&1 || _fail "cannot remount overlay"
++check_view "after remount"
++_unmount "$merge" || _fail "cannot unmount overlay"
++merge=
++
++for name in lowerfile anotherfile copyfile keep; do
++	cmp $tmp.data "$lower/$name" >> $seqres.full 2>&1 || \
++		_fail "$lower/$name: not readable with expected contents"
++done
++for name in lowerdir mergeddir tree; do
++	[ -d "$lower/$name" ] || {
++		stat "$lower/$name" >> $seqres.full 2>&1
++		_fail "$lower/$name: expected the lower directory to remain"
++	}
++done
++for name in one two; do
++	cmp $tmp.data "$lower/tree/$name" >> $seqres.full 2>&1 || \
++		_fail "$lower/tree/$name: not readable with expected contents"
++done
++
++echo "Silence is golden"
 +_exit 0
-diff --git a/tests/generic/998.out b/tests/generic/998.out
+diff --git a/tests/generic/999.out b/tests/generic/999.out
 new file mode 100644
-index 0000000..9f5c8b0
+index 0000000..3b276ca
 --- /dev/null
-+++ b/tests/generic/998.out
-@@ -0,0 +1,3 @@
-+QA output created by 998
-+Casefold enabled
-+Casefold disabled
++++ b/tests/generic/999.out
+@@ -0,0 +1,2 @@
++QA output created by 999
++Silence is golden
