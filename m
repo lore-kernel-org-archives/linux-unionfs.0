@@ -1,94 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.5
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793438403;
-	b=4+Hfn0MmcFUsXB7xWIIqWPhrfiDuzyDVl0Fl8ny27rZAWN0AnfXEPMHRwRnxlBpBo93u
-	 aInbUQbPmhbM05MlcL2Rr3LHAnB2CTXwGQxMHz8b2mUcYx4cwAUPy+ZAUX2vszn1/POkR
-	 qy1oQwe8ZuH2yggbAtzeo3DZmFR+Yo4U+ejDH0Zv6aEzwrhCQAQoxw2Ya47OAo5A+FSeJ
-	 cvK8zzcxuBgMY8Ph88iYNZ7daTH0G97jhxhTWV9PIHxIn/VpQxkkfXFmgdTSTp8eR1gfX
-	 I7Q8xa1LHxZUtZ2yOA3XTVZjhzqYeeCWHw5xTf5dlkZFW0OmClXqrMq+CTjojpEwbtA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793438403;
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=74.125.231.200
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1793439523;
+	b=GCZ5rlIpKkwr6I8S0mkTQIU5N9PvbIZXGcXpJ8qqVw+0HyKhtPd8oqk11dYI1z6gLoAx
+	 YtZnr9UJ74bMCuXYyT5Il3bAh6ovWRir+rSD3Q3bKx9JYztpMjF8gCABJ/oT8Bc6GKUGl
+	 oWdHmLw5UqDVVHq7n1rS7NUT/28nnL6aI7URJHq+5cRKYYo30SuCbCr1aDmfKhuQ2TU4N
+	 m2quJufemnBgQGzh+Bpa/XLl9dGEUdNr0aOl/gWHvoxCB5AylhcIpd6vTrtfK6RyMKJPe
+	 IAe7WvtHgk1AY4JYIxByVcC/B19yG23iB2QPMJCpOV9OZHCfIxvkKZ+OOljSHKXtjsQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793439523;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=KSoziBNNM6XF3aPmL8wbAp4NVFuwfQI3B6uqYIN7o88=;
-	b=Y8jRGqzbIXWYxa47Jcz6v4b+nfXBDPcfDCKS4OuEy2woMcfAZW2M8rMKeYwmMRGTGRdv
-	 lGkGDyMKCjHGJjkJepOiRL8ip9FQPB3hU8CCtuYKASygnsPRkiIpBtxSaGYs+e3TTsFKD
-	 bNIgsmhDnF2LZeaLqNHgXE1Iy0EIYWxOgQizmXrrDY9SEPuR9y2fBXawkGJT95KCLyqnH
-	 dZLvsol47VEHRTS3A2IYPJGp9/EPe9sbzCmBRBwz1aC+NB1ynlJMEdFWGMJgsVbbqsqVo
-	 Y7K3YRZDB1T4CT5KcxHWVklwd5xnmnQLasG7Ydv0l6vQCeL+rXJAlXgEB6JnNL4dajA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
+	b=JD4QuiYZ3TbxudOZapAfpSX3CV3KmnvM/DVYkKPD1Aqw60JHBzXgjasBnx1R+KMZDkcy
+	 nlBnE4rK8KWfQ068KMwPWwvzEEFoJcL3f6FPTZrOi8Y9vMZZBb0IHfdFFYSqMdqgYqWBM
+	 lPlo3m4KGUDxfWKT3Tv5zqCzjMdH4Gx2h9PAm3bCab77fEYpTg4bF7Gys09Ab+RlXHq6L
+	 0GwL7L7TKnB6Xa0d/M2VYsdeJQIFmh7SSz5TBCvLsHbqGHn/iMsX8FMimSD2jOBZRatug
+	 U39qXB6kcPihJyDh0HOKL3bEKbRt7j2p73oNR8OReyUWanVJ8s9IXiVFstodu5+7fcA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=O+NakXby;
-	arc=none smtp.remote-ip=74.125.229.5
-Received: from mail-dy2-f5.google.com (mail-dy2-f5.google.com [74.125.229.5])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=z+ZroPjE;
+	arc=fail smtp.remote-ip=74.125.231.200
+Received: from mail-oi2-f8.google.com (mail-oi2-f8.google.com [74.125.231.200])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC47E606A320
-	for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 09:20:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BC47E606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF90606A31A
+	for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 09:38:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5FF90606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=O+NakXby
-Received: by mail-dy2-f5.google.com with SMTP id 5a478bee46e88-3535a54c09bso1378913eec.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 02:20:02 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=z+ZroPjE
+Received: by mail-oi2-f8.google.com with SMTP id 5614622812f47-539edfadfa9so686241b6e.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 02:38:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793439522; cv=none;
+        d=google.com; s=arc-20260327;
+        b=bBthK1SXpl/F/LNoiaFT0c3+57KKeHJ5c56kxwvrdQO2yfEqHJ46WpuwfBmMSMfUAz
+         UaOWFFk6tETc8Wmy+uLGANFJrr0FRgB4fOKWmEHOm9MP9DzkBX8Ol02rdsIZ77HtT3rB
+         ju1qDvegx6Zb8peZxAyziB2ww7ov5o85f5C+YU3iUVAwymOuaJxBLJDj6RLw4ObBeEE8
+         CzmQXktJYi/cMPCP6WgSzesJipcPZdq5TdKy1VjF1dQe9E++xPI4pRf+Fco0DwRZCVdC
+         lZf3JrHbPyfqLZfKFPM2oLW+OSa7HN+eHjmnBuZastHDDGSr8Aiq6KbULYZ/UxyIZuN+
+         UhCQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
+        fh=T1IyPSc3N6fKCmw+hYjrrk72+QB4Beu/4NIedtlAg10=;
+        b=klqm2Q1CtLsrH5RP9oW4r4Zk9Pc6tlZJvGzzTPRhPeHnQeZ2tPQQBb2sLJScnH5R6Y
+         sqGjFZvAhWi4WrL41LtvBq//AtiOFacUJbkck8PFSdBnScbGM5gRtD5aABJUl5eQBHYI
+         d4UQlS9liOoVFbqL4Qsng+fhsLNG5U6iE25AJdSxjHzfDq6BMCzrxcJ77TmPxDQFQ7jc
+         n5aIAqk46hgKnr+KiyNHo5lf9omppSWqTqlP7fjBDsjXDFw743+yN/NWRCz2O8WmDbSh
+         fAA9mfku/2tPqkqaFA4NwEOw+m55gphCMGZ8gQwNfd9I4KJQaOdCE3u4DNlwegpSJpBr
+         YuPA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793438402; x=1794043202; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=KSoziBNNM6XF3aPmL8wbAp4NVFuwfQI3B6uqYIN7o88=;
-        b=O+NakXbyy8I2zZ37daWqm6F4kA6uC207fionLtLVvRlA64BnBkL3tzkYwsexX+bvam
-         CLuZtA5lqCccaDVnwYAjkhvJkvxtu6MTMGEtyQXOl5BI13vZqcIsqqkfiunPyJaAv6nt
-         HiPVNGQAemvM745Z33l6YYrJGQmYbpRnDarz8LYk7oda4MoAV3F/JMi9/4S94B8t2fRP
-         gSNfOZBfT0qSsr/wan7zKp9GdiKORjJpv2TfeI/iUgJKxxixeYD8Qb6gF+SZ2K9q32mZ
-         moNS4b5j3LmRwIygmNUops4sqlI117aENmJbjwhqCRKmCij+9yWfdcfP60kzzT1+Ur9q
-         hPDw==
+        d=gmail.com; s=20260707; t=1793439522; x=1794044322; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
+        b=z+ZroPjEl0WIHHyNp/2mV+NdrASbrbEojkNmcD0pev+mSvG5dpobdz5jVABf/kXpzh
+         qcKagIaWRxcVlV5UnTxhzrwTPZFIX8LB8iLhsZZRMOc7knbJDvin9J8qo1RgqvMwbZaG
+         6Kd5H2Htnyoi+XuthFrx6PyNrF/lx53XIen07z20W8zjMtZ8tV0FW2qPxcltgcKvd1OG
+         F1vX29rS2ryolmTlna6BlvwtCtWkR5xKNbzYTmHhRlGPwe2sFMLXwkr2LpMCkosxrlyf
+         7nQ0m0INErtSIEFJ7zSKGFgyb89XIZxegwPqTkVZB53/iNvwOJweNyG7Rs98uRn54rZa
+         Fsmw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793438402; x=1794043202;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=KSoziBNNM6XF3aPmL8wbAp4NVFuwfQI3B6uqYIN7o88=;
-        b=whvYg40effF0nkh+bBLAFHMZ/rkiOfGdK3fMpS8joE+IDtLUx0ahcJYWF5qGZ7OieD
-         q+qgWpIYuq2VT13JIWTA58348pvPULcsMjG6/2pNPckB5qr0enirV3r1KdKzRcXSrq3a
-         jIcNxgm6M2mq5muUpZoN5cFJur9a7MENxgvUoj+Fzh6lHYijAiDo2a/Zqli9b5Z0f6z+
-         yHmchT8GlnhnlJy5PGUBqn/NIuhXeqNG6SDIS2u1vmekkGLdAtS5R6I+yjhU5w1R58MO
-         +gLgLhvPTM40b0TBjAYnDfpcTioFVTHXd/74ibfG3fxseqvbL+rBe7RMPr+lq9BG7eCD
-         7/JA==
-X-Forwarded-Encrypted: i=1; AKwUvBxOXLmoPbSHcYykR/+W/PsxiJm4eK5YabFwtFV1hUs/oSI9M8haiigSlyEomuVqV/qAoLJFXadNZtb9T21K@vger.kernel.org
-X-Gm-Message-State: AFq9FYKMaDb/pBMi9/WS4Vo9PW+HwTC3JEcIF+4XDo9XTodU5YFjg2/9
-	m25xF3OcblATHAiGCtkEgi8pb3HjsDrrPYy4yKuTASwdlGu33CTshWos
-X-Gm-Gg: AYBFou2s8zbtxV/mbL/2eYCsxjxvtNJ1/etcWj3RvlEV5BMVjRSdfcJiAlZqoqhYyY0
-	Z2hCc3497QH52AOzR9SVRS2wYGiaQY4MTmqMEON9ftpRf7DsfFpeCzZldrIGxpo4lfdlJazCKh5
-	D2O8Tf1G74/jq52xv1nwu0XIXiE103RXo6APVzaCbCL4rlXdNBeZhtOcHbW0o8hrvNw7GmJoUbZ
-	j5nvVNlbwss0L4StiYeOdk/kTiLRIk8Iyeu2PPgjxRr3gHWonaP6eaa5NFpqQ00zQrRJcBPCFCL
-	7qoDwxC7gBz1j9wB0SYLWaXHI+DWLUYyw7jjMLG81UaM5K8gmNAPFoW2UZItuKZAfnMXHIUMOL3
-	cAlE5rZ9C3iKBxwFNQIRhqG//qpVXlIu9xm66OAiAutI/CsRbs3XPAyYSTxX9DyynNziFmpRI27
-	sQ7kZtuUy+qXdPuWR/lUeevZqLA3tD3M/jwN3YYhlis2M4mvIrvDxIE4LGHwfuxFrUACCdXHytE
-	fwI5PuoFIz/aLNSh/NnHC/FfYQWMLYS+dsvNkT655/2wRvn9XOVh1hqhTf4WRWG1lp5lpq2bueG
-	P0zfCMZkknXSsuW7PcdLpU+C6AszZWI6oVtyoJRLaXshfpy1Szd95FSU
-X-Received: by 2002:a05:693c:835c:20b0:36a:30b:5dc0 with SMTP id 5a478bee46e88-36a423c338dmr6804353eec.24.1793438401775;
-        Sat, 31 Oct 2026 02:20:01 -0700 (PDT)
-Received: from localhost.localdomain ([98.148.34.5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a428ecb61sm13067963eec.10.2026.10.31.02.20.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 31 Oct 2026 02:20:01 -0700 (PDT)
-From: Hungyu Lin <dennylin0707@gmail.com>
-To: fstests@vger.kernel.org
-Cc: zlang@kernel.org,
-	amir73il@gmail.com,
-	linux-unionfs@vger.kernel.org
-Subject: [PATCH 2/2] generic: test whiteouts on casefolded overlay layers
-Date: Sat, 31 Oct 2026 09:19:48 +0000
-Message-ID: <20261031091948.18985-3-dennylin0707@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261031091948.18985-1-dennylin0707@gmail.com>
-References: <20261031091948.18985-1-dennylin0707@gmail.com>
+        d=1e100.net; s=20260707; t=1793439522; x=1794044322;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
+        b=esQAcHf46XvQV91s+TnaeADhVocVOMBYped6p/8gwanHlf32GKz+/p0VL3redvkYOJ
+         HvymxLo3GmDFf1LhEr0Uj3McBKoO/j2+HndStJmARjIhgQYJyuxBX0zFh74/21iCqy61
+         ma8U2HXP+xNWumd5pGsiOBms/hbKgnqlPDjlSF+wWcSlM+x1gzqsmAUNZfPM7ch/J0B+
+         LC7N5Gmuv7HZfb8t1hysn6OrXlRjZjwoXEu6b61QpKvVLwxVgwgT6Xpxu8Zb05/5I7zs
+         AisUuR7Q1tIKKj1aZ9d6LQB0NweDa2XSaE+eGX2B4f6I7tq2/Jb5M9A2hamjsROrEydC
+         +85Q==
+X-Forwarded-Encrypted: i=1; AKwUvBzaZtgB8ZcMoKlELhX5mqxV7KFHIyu9nJ4vbKWF+HjT70QTnVho/i4c3eQMWY0F5kYZ70X1yaw2DyvSIhXm@vger.kernel.org
+X-Gm-Message-State: AFq9FYIuYjzL6KL0U7PslaG8Y3TpLX/eLaP/hSWLGHQs6EoFChT4Ge1K
+	mz40ssGM3f+5ZFrzOPTZF0TtXdnCI6FPAiCGg54PR5xqt20qL/t/4JrHLL7aHpna3jgzlgWF1x7
+	Si6yBCsP8kR+RLXuZ/DlBDP3K/vbo+2PEyiDXoivzEhhA
+X-Gm-Gg: AYBFou1a6KYB78OXPRNl7h3NoA2okanTqEwKgg4MQ8zzkwt08gJi3VLeYj3HTjGPy/t
+	bXHUy368D9xFARi+a8wW7FFtjxgT54P1LPwmSoNC1Thy2qEYOz3woJcHwNAYvH351mSTv8Oi5A6
+	1+t/1Ta/pZVtAnKB3H3raO5NDjvvsGOuXj3Qci0DdBswJ5utUmzbmLeabhH/iRj2pzA/V6ZtgFQ
+	oid2uSMXmNLrbNkoxiG/MoupKP9UdsLSTeVFAj5mek9DwCTJmpZz3L5quUbgv04cwdbWWSPW5X7
+	Of6Zkj9rNSJEHPpkb54Qu5wg7lNalFz8YiKT5T7LOxhafYC3RpuWjeG9hHH+tU24Sv6XU75baBG
+	RTu8Rsdw1YGreLQoXZ/RFeXc7C+b9HfIRh0y8GHnaXl5rfSiZEcvemDe6IuVNNI53RNzzEds=
+X-Received: by 2002:a05:6808:2e44:b0:4f7:d324:bc36 with SMTP id
+ 5614622812f47-5640decbf43mr2997896b6e.43.1793439522296; Sat, 31 Oct 2026
+ 02:38:42 -0700 (PDT)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -98,190 +103,34 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261030113201.2921633-1-amir73il@gmail.com> <CAGEkeHekpqv5ncd8tFP2v-OAy-ujTf9_RBbed3dgmTTAQrsPzA@mail.gmail.com>
+In-Reply-To: <CAGEkeHekpqv5ncd8tFP2v-OAy-ujTf9_RBbed3dgmTTAQrsPzA@mail.gmail.com>
+From: Hungyu Lin <dennylin0707@gmail.com>
+Date: Sat, 31 Oct 2026 02:38:31 -0700
+X-Gm-Features: AclHuK-X6GKlHTisqtiHyK9eKC4cZ99r0QQanZe3vnYDJQb2Sgwxn-ctseguvNY
+Message-ID: <CAGEkeHeBcz2Atc7zz6u-Evd40+AOBtx9Ke+REthvTppxw-vpRQ@mail.gmail.com>
+Subject: Re: [PATCH 0/3] Overlayfs casefold fixes
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Chris Mason <mason@kernel.org>, Josef Bacik <josef@toxicpanda.com>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Whiteout creation in casefolded directories can fail when removing
-names that exist in a lower layer.
+Hi Amir,
 
-Exercise unlink and rmdir for lower-only names, a copied-up file and a
-merged directory, including lookups with different ASCII case. Also
-recursively remove a populated lower directory. Check that removed names
-stay hidden after recreation and a mount cycle, while the surviving file
-and the lower layer remain unchanged.
+I've posted two tests to fstests, with you Cc'd:
+https://lore.kernel.org/r/20261031091948.18985-1-dennylin0707@gmail.com
 
-This covers "ovl: fix whiteout creation in casefolded directories" from
-the casefold fixes series linked below.
+On arm64/QEMU with ext4 and tmpfs, both tests fail on ovl-fixes
+(1d27da7de3f7) and pass with the series applied.
 
-Regular-file lookup and copy-up also need the separate "ovl: check the
-casefold flag of directories only" fix, included in the tested overlayfs
-ovl-fixes baseline at 1d27da7de3f7.
+For patch 1, changing the empty upper root's casefold flag between
+layer setup and FSCONFIG_CMD_CREATE triggers the WARN on the
+baseline. With the series, CREATE fails with EINVAL without the
+WARN. I tested both directions on ext4 and tmpfs.
 
-Link: https://lore.kernel.org/linux-unionfs/20261030113201.2921633-1-amir73il@gmail.com/
-Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
----
- tests/generic/999     |  148 +++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/999.out |    2 +
- 2 files changed, 150 insertions(+)
+I haven't run the full quick group on overlayfs. Feedback on the
+test coverage and structure would be appreciated.
 
-diff --git a/tests/generic/999 b/tests/generic/999
-new file mode 100755
-index 0000000..75e13b5
---- /dev/null
-+++ b/tests/generic/999
-@@ -0,0 +1,148 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2026 Hungyu Lin.  All Rights Reserved.
-+#
-+# FS QA Test 999
-+#
-+# Check removal of files and directories from casefolded overlay layers,
-+# including copied-up files, merged directories and recursive removal.
-+#
-+. ./common/preamble
-+_begin_fstest auto quick dir casefold
-+
-+_cleanup()
-+{
-+	cd /
-+	[ -n "$merge" ] && _unmount "$merge" 2>/dev/null
-+	rm -f $tmp.*
-+}
-+
-+. ./common/filter
-+. ./common/casefold
-+
-+_exclude_fs overlay
-+_require_extra_fs overlay
-+_require_scratch
-+_require_scratch_casefold
-+_fixed_by_kernel_commit xxxxxxxxxxxx "ovl: fix whiteout creation in casefolded directories"
-+_fixed_by_kernel_commit xxxxxxxxxxxx \
-+	"ovl: check the casefold flag of directories only"
-+
-+mount_overlay()
-+{
-+	_mount -t overlay overlay "$merge" \
-+		-o lowerdir="$lower",upperdir="$upper",workdir="$work"
-+}
-+
-+check_absent()
-+{
-+	local name=$1
-+	local ret
-+
-+	stat "$merge/$name" > $tmp.stat 2>&1
-+	ret=$?
-+	echo "stat $merge/$name: exit $ret" >> $seqres.full
-+	cat $tmp.stat >> $seqres.full
-+	[ "$ret" -ne 0 ] || _fail "$name: expected ENOENT, stat succeeded"
-+	grep -q ': No such file or directory$' $tmp.stat || \
-+		_fail "$name: expected ENOENT, got $(cat $tmp.stat)"
-+}
-+
-+check_view()
-+{
-+	local phase=$1
-+	local name
-+
-+	echo "Checking merged view $phase" >> $seqres.full
-+	for name in lowerfile anotherfile copyfile lowerdir mergeddir tree upperonly; do
-+		check_absent "$name"
-+		check_absent "$(printf '%s' "$name" | tr a-z A-Z)"
-+	done
-+	cmp $tmp.data "$merge/keep" >> $seqres.full 2>&1 || \
-+		_fail "$merge/keep: not readable with expected contents $phase"
-+	ls -1 "$merge" > $tmp.names || _fail "cannot list $merge $phase"
-+	printf 'keep\n' > $tmp.expected
-+	diff -u $tmp.expected $tmp.names >> $seqres.full 2>&1 || \
-+		_fail "$merge: expected only keep $phase (directory listing in $seqres.full)"
-+}
-+
-+_scratch_mkfs_casefold >> $seqres.full 2>&1 || \
-+	_fail "cannot format the casefold scratch filesystem"
-+_scratch_mount_casefold || _fail "cannot mount the casefold scratch filesystem"
-+root=$SCRATCH_MNT/ovl
-+lower=$root/lower
-+upper=$root/upper
-+work=$root/work
-+merge=$root/merge
-+mkdir "$root" || _fail "cannot create $root"
-+_casefold_set_attr "$root" >> $seqres.full 2>&1 || \
-+	_notrun "cannot enable casefold on the scratch filesystem"
-+mkdir "$lower" "$upper" "$work" "$merge" || \
-+	_fail "cannot create overlay directories"
-+
-+printf 'lower data\n' > $tmp.data
-+printf 'upper data\n' > $tmp.upper
-+for name in lowerfile anotherfile copyfile keep; do
-+	cp $tmp.data "$lower/$name" || _fail "cannot create lower $name"
-+done
-+mkdir "$lower/lowerdir" "$lower/mergeddir" "$lower/tree" "$upper/mergeddir" || \
-+	_fail "cannot prepare lower and merged directories"
-+for name in one two; do
-+	cp $tmp.data "$lower/tree/$name" || _fail "cannot create lower tree/$name"
-+done
-+cp $tmp.upper "$upper/upperonly" || _fail "cannot create upper-only file"
-+mount_overlay >> $seqres.full 2>&1 || \
-+	_notrun "overlayfs does not support casefold enabled layers"
-+
-+# Copy up through the overlay, without changing the backing layers directly.
-+cat $tmp.upper > "$merge/copyfile" || _fail "copy-up write failed"
-+cmp $tmp.upper "$upper/copyfile" >> $seqres.full 2>&1 || \
-+	_fail "copyfile was not copied up with the expected data"
-+
-+# The first removal is a control that does not need a lower whiteout.
-+rm "$merge/upperonly" || \
-+	_fail "cannot remove upper-only file"
-+rm "$merge/lowerfile" || \
-+	_fail "cannot remove lower-only file"
-+rm "$merge/ANOTHERFILE" || \
-+	_fail "cannot remove another lower-only file using different case"
-+rm "$merge/COPYFILE" || \
-+	_fail "cannot remove copied-up file using different case"
-+rmdir "$merge/LOWERDIR" || \
-+	_fail "cannot remove lower-only directory using different case"
-+rmdir "$merge/mergeddir" || \
-+	_fail "cannot remove merged directory"
-+# Removing the children leaves whiteouts in the copied-up directory.
-+rm -r "$merge/TREE" || _fail "cannot recursively remove lower directory"
-+check_view "after removal"
-+
-+cat $tmp.upper > "$merge/LOWERFILE" || _fail "cannot recreate removed name"
-+cmp $tmp.upper "$merge/lowerfile" >> $seqres.full 2>&1 || \
-+	_fail "recreated name is not accessible with different case"
-+rm "$merge/lowerfile" || \
-+	_fail "cannot remove recreated name"
-+check_view "after recreating and removing a name"
-+
-+_unmount "$merge" || _fail "cannot unmount overlay"
-+mount_overlay >> $seqres.full 2>&1 || _fail "cannot remount overlay"
-+check_view "after remount"
-+_unmount "$merge" || _fail "cannot unmount overlay"
-+merge=
-+
-+for name in lowerfile anotherfile copyfile keep; do
-+	cmp $tmp.data "$lower/$name" >> $seqres.full 2>&1 || \
-+		_fail "$lower/$name: not readable with expected contents"
-+done
-+for name in lowerdir mergeddir tree; do
-+	[ -d "$lower/$name" ] || {
-+		stat "$lower/$name" >> $seqres.full 2>&1
-+		_fail "$lower/$name: expected the lower directory to remain"
-+	}
-+done
-+for name in one two; do
-+	cmp $tmp.data "$lower/tree/$name" >> $seqres.full 2>&1 || \
-+		_fail "$lower/tree/$name: not readable with expected contents"
-+done
-+
-+echo "Silence is golden"
-+_exit 0
-diff --git a/tests/generic/999.out b/tests/generic/999.out
-new file mode 100644
-index 0000000..3b276ca
---- /dev/null
-+++ b/tests/generic/999.out
-@@ -0,0 +1,2 @@
-+QA output created by 999
-+Silence is golden
+Thanks,
+Hungyu
