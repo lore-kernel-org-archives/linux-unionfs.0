@@ -1,99 +1,94 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=74.125.231.200
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
-	t=1793439523;
-	b=GCZ5rlIpKkwr6I8S0mkTQIU5N9PvbIZXGcXpJ8qqVw+0HyKhtPd8oqk11dYI1z6gLoAx
-	 YtZnr9UJ74bMCuXYyT5Il3bAh6ovWRir+rSD3Q3bKx9JYztpMjF8gCABJ/oT8Bc6GKUGl
-	 oWdHmLw5UqDVVHq7n1rS7NUT/28nnL6aI7URJHq+5cRKYYo30SuCbCr1aDmfKhuQ2TU4N
-	 m2quJufemnBgQGzh+Bpa/XLl9dGEUdNr0aOl/gWHvoxCB5AylhcIpd6vTrtfK6RyMKJPe
-	 IAe7WvtHgk1AY4JYIxByVcC/B19yG23iB2QPMJCpOV9OZHCfIxvkKZ+OOljSHKXtjsQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793439523;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.42
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793440639;
+	b=wSRycEk3HboS9uj504GiksT0KzbBOxXGdJDfpnN/WcnemUjhRWdlpkVbIc0KQx0arGw/
+	 d7ZvFA7pprXCqjuq8gtHLv3B9rIy5cvI449ksvhWo9CiuuKsYDDGk0AtZCgAikezDLllN
+	 l+L5+PA97aLmVY9GNUQbPHYiA5yinLRpOmqz1yCUj/8q0GnHRX/KsOStO8Bk9Nunc3LLV
+	 KqfnYk3x/rYzgpTOqkDsMkU4sPFceQpUV/aP5Yd7SAcCAfzK4RIqXeyA5kPgY1zfZu/j/
+	 3YFr7AQkZ7JELHet3m0nABc2xDa/ngSAjl9Ijjw+hF6HNk+AJDDvnooySotrM/IzJpg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793440639;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
-	b=JD4QuiYZ3TbxudOZapAfpSX3CV3KmnvM/DVYkKPD1Aqw60JHBzXgjasBnx1R+KMZDkcy
-	 nlBnE4rK8KWfQ068KMwPWwvzEEFoJcL3f6FPTZrOi8Y9vMZZBb0IHfdFFYSqMdqgYqWBM
-	 lPlo3m4KGUDxfWKT3Tv5zqCzjMdH4Gx2h9PAm3bCab77fEYpTg4bF7Gys09Ab+RlXHq6L
-	 0GwL7L7TKnB6Xa0d/M2VYsdeJQIFmh7SSz5TBCvLsHbqGHn/iMsX8FMimSD2jOBZRatug
-	 U39qXB6kcPihJyDh0HOKL3bEKbRt7j2p73oNR8OReyUWanVJ8s9IXiVFstodu5+7fcA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=OsyNUXVXYVasBHvigfoIW6Ne0ad3jx5r3liNsbVXCQA=;
+	b=Jp+TCc7VZ4oNNlp8c2710+FxxjF9bwj2/yENNN/SyAZdhT8PUWEsroa+c/SiYxsWTZEf
+	 Irsrk0VPgtUNHfybheLHymg8mcFJF1sLjSosKaXZ8isFiCKWzjRUazL+QMJAMn6fprP67
+	 Qp0n3CrHrOGsYE0TgaUoZhFTh6hFMVTW23VD6rTQASKwqwSubgEMmihPnXN052crLhxaa
+	 jUsC/A97OubtPrQg3m71mWs8OYON2yx8hsLGj0v7A7IJBXBoILP4JUkOjhFq6f1+Xf1kc
+	 rKZFfsPHI/EAJOh5Zz2bClUe+1XGfBT2c1KAknQXsom0UtIm7r+r1DGsX0YBwdDhfqg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=z+ZroPjE;
-	arc=fail smtp.remote-ip=74.125.231.200
-Received: from mail-oi2-f8.google.com (mail-oi2-f8.google.com [74.125.231.200])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XnTL5T+D;
+	arc=none smtp.remote-ip=209.85.218.42
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF90606A31A
-	for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 09:38:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5FF90606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905B7606A31D
+	for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 09:57:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 905B7606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=z+ZroPjE
-Received: by mail-oi2-f8.google.com with SMTP id 5614622812f47-539edfadfa9so686241b6e.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 02:38:43 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1793439522; cv=none;
-        d=google.com; s=arc-20260327;
-        b=bBthK1SXpl/F/LNoiaFT0c3+57KKeHJ5c56kxwvrdQO2yfEqHJ46WpuwfBmMSMfUAz
-         UaOWFFk6tETc8Wmy+uLGANFJrr0FRgB4fOKWmEHOm9MP9DzkBX8Ol02rdsIZ77HtT3rB
-         ju1qDvegx6Zb8peZxAyziB2ww7ov5o85f5C+YU3iUVAwymOuaJxBLJDj6RLw4ObBeEE8
-         CzmQXktJYi/cMPCP6WgSzesJipcPZdq5TdKy1VjF1dQe9E++xPI4pRf+Fco0DwRZCVdC
-         lZf3JrHbPyfqLZfKFPM2oLW+OSa7HN+eHjmnBuZastHDDGSr8Aiq6KbULYZ/UxyIZuN+
-         UhCQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
-        fh=T1IyPSc3N6fKCmw+hYjrrk72+QB4Beu/4NIedtlAg10=;
-        b=klqm2Q1CtLsrH5RP9oW4r4Zk9Pc6tlZJvGzzTPRhPeHnQeZ2tPQQBb2sLJScnH5R6Y
-         sqGjFZvAhWi4WrL41LtvBq//AtiOFacUJbkck8PFSdBnScbGM5gRtD5aABJUl5eQBHYI
-         d4UQlS9liOoVFbqL4Qsng+fhsLNG5U6iE25AJdSxjHzfDq6BMCzrxcJ77TmPxDQFQ7jc
-         n5aIAqk46hgKnr+KiyNHo5lf9omppSWqTqlP7fjBDsjXDFw743+yN/NWRCz2O8WmDbSh
-         fAA9mfku/2tPqkqaFA4NwEOw+m55gphCMGZ8gQwNfd9I4KJQaOdCE3u4DNlwegpSJpBr
-         YuPA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XnTL5T+D
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c40e30c26a4so526151366b.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 31 Oct 2026 02:57:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793439522; x=1794044322; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
-        b=z+ZroPjEl0WIHHyNp/2mV+NdrASbrbEojkNmcD0pev+mSvG5dpobdz5jVABf/kXpzh
-         qcKagIaWRxcVlV5UnTxhzrwTPZFIX8LB8iLhsZZRMOc7knbJDvin9J8qo1RgqvMwbZaG
-         6Kd5H2Htnyoi+XuthFrx6PyNrF/lx53XIen07z20W8zjMtZ8tV0FW2qPxcltgcKvd1OG
-         F1vX29rS2ryolmTlna6BlvwtCtWkR5xKNbzYTmHhRlGPwe2sFMLXwkr2LpMCkosxrlyf
-         7nQ0m0INErtSIEFJ7zSKGFgyb89XIZxegwPqTkVZB53/iNvwOJweNyG7Rs98uRn54rZa
-         Fsmw==
+        d=gmail.com; s=20260707; t=1793440638; x=1794045438; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=OsyNUXVXYVasBHvigfoIW6Ne0ad3jx5r3liNsbVXCQA=;
+        b=XnTL5T+DL2phlNXmbqkLLhvirOg7giMe+mzsT6jZ3P8q/gtVkvtsUMetvI3WeBSUvk
+         llwG/hhPLVMRmIyp8d5tgkbOZoBBQIuLCegr9vGom7SruDl1DB179AUZ/Yhhfxjzf7c7
+         CxwW9/z1nouoKL6XVjZYisWJa+bfFOXecphWR9/tI5EnH739xdz7+xgWS5H71GI5KCAd
+         nIdiHLJGUT8eLmrYRG9E2+VcvEy9Ru36X6uVFpmK7yOe6qdRHTjuMFHgVpM+Dy6CQgMv
+         SyHcR9mvXrE9s3dzRZVY4TJ9SDpnQTzTYsZRKuGZqj4rI1QiINkvSJasKRJ0GPmbEcEb
+         sXsw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793439522; x=1794044322;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=buIMJ5khhlxZO/tz01EgvSDikePfA4MPtrLPE3r2Xoo=;
-        b=esQAcHf46XvQV91s+TnaeADhVocVOMBYped6p/8gwanHlf32GKz+/p0VL3redvkYOJ
-         HvymxLo3GmDFf1LhEr0Uj3McBKoO/j2+HndStJmARjIhgQYJyuxBX0zFh74/21iCqy61
-         ma8U2HXP+xNWumd5pGsiOBms/hbKgnqlPDjlSF+wWcSlM+x1gzqsmAUNZfPM7ch/J0B+
-         LC7N5Gmuv7HZfb8t1hysn6OrXlRjZjwoXEu6b61QpKvVLwxVgwgT6Xpxu8Zb05/5I7zs
-         AisUuR7Q1tIKKj1aZ9d6LQB0NweDa2XSaE+eGX2B4f6I7tq2/Jb5M9A2hamjsROrEydC
-         +85Q==
-X-Forwarded-Encrypted: i=1; AKwUvBzaZtgB8ZcMoKlELhX5mqxV7KFHIyu9nJ4vbKWF+HjT70QTnVho/i4c3eQMWY0F5kYZ70X1yaw2DyvSIhXm@vger.kernel.org
-X-Gm-Message-State: AFq9FYIuYjzL6KL0U7PslaG8Y3TpLX/eLaP/hSWLGHQs6EoFChT4Ge1K
-	mz40ssGM3f+5ZFrzOPTZF0TtXdnCI6FPAiCGg54PR5xqt20qL/t/4JrHLL7aHpna3jgzlgWF1x7
-	Si6yBCsP8kR+RLXuZ/DlBDP3K/vbo+2PEyiDXoivzEhhA
-X-Gm-Gg: AYBFou1a6KYB78OXPRNl7h3NoA2okanTqEwKgg4MQ8zzkwt08gJi3VLeYj3HTjGPy/t
-	bXHUy368D9xFARi+a8wW7FFtjxgT54P1LPwmSoNC1Thy2qEYOz3woJcHwNAYvH351mSTv8Oi5A6
-	1+t/1Ta/pZVtAnKB3H3raO5NDjvvsGOuXj3Qci0DdBswJ5utUmzbmLeabhH/iRj2pzA/V6ZtgFQ
-	oid2uSMXmNLrbNkoxiG/MoupKP9UdsLSTeVFAj5mek9DwCTJmpZz3L5quUbgv04cwdbWWSPW5X7
-	Of6Zkj9rNSJEHPpkb54Qu5wg7lNalFz8YiKT5T7LOxhafYC3RpuWjeG9hHH+tU24Sv6XU75baBG
-	RTu8Rsdw1YGreLQoXZ/RFeXc7C+b9HfIRh0y8GHnaXl5rfSiZEcvemDe6IuVNNI53RNzzEds=
-X-Received: by 2002:a05:6808:2e44:b0:4f7:d324:bc36 with SMTP id
- 5614622812f47-5640decbf43mr2997896b6e.43.1793439522296; Sat, 31 Oct 2026
- 02:38:42 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1793440638; x=1794045438;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=OsyNUXVXYVasBHvigfoIW6Ne0ad3jx5r3liNsbVXCQA=;
+        b=uf5/txaW7DSepDQWC6EfKlrFG9zq+4PeT4fe26wia6afSqO9MK7DnLIL/wlv17fPMR
+         pVe6ojF7jPw4d5ZVAIPyluXBll6OnIswJwcEvBHrKVQCQfLwCwX0bmTmZcsCSBbksj3f
+         4m2NpaFzX1xJLzUbo/vu1vmasS/lTAlenizXrdxHoVSYaNKHyVIOQADqyiOcdtcg8R0C
+         dZYRp0Wof0aotdg2ruJA9aywrQ5FWGq5RT6ljHRgbw9n/V1jMqBtldVke2RIodwkBuM/
+         9WOaPNF2fxpSJyvFy49wDRWCOKcj9bC1nSY70Z+oTxf8mZzcl1NbyFoRSgUxEgF6ZJhd
+         yv1Q==
+X-Forwarded-Encrypted: i=1; AKwUvBzkocGpd9J5EpUBCCRUpwmhvdkQgv2TT/dGwfztbRU+ylXx8AuV+NZUHDWvtXxQ7OhGzCQT1jBvZnKIifCp@vger.kernel.org
+X-Gm-Message-State: AFq9FYK/AMBrP+lOX+EnS47IugP+XFpUk8wiTxTvH75ScrHNkdIxYT/v
+	0tKf5pW9X5HAzN5fnbEXbbXHCunrgZYSehXRj+Gnj20ZJrCHUVhoatCzT4Wtyg2G
+X-Gm-Gg: AYBFou2RJnMx6c1mM198x5uhAx2Dk8rx6DgKezSkXMyU1AswsyR9RSB9YfKC7YGEqcM
+	aolAXN0ShHgnexoPTLeEoEGagx4WSu232h+lXjR6TWhk1dX9KVYAmQSEBqTFgT3Gt2HUt8DdMq3
+	AnIRgsxCgByfs/vG+oAllcbIPBE5e7DrH6O/q61BW0EJxJrNN7i+rQigbP88PgLeDN97MVKJHqg
+	krWXxpqdAPWdWzht/8DMdnDUeMDxwvjg9koNJwyqzMjrYY2Fuz1T6V2otaqUcMPN43iyqDVshWJ
+	TYplSI03h08X8m49QR+A2qXiug7FwoWROtzDPgq+u4GOLKnr0Yktg3ax1dR5ANr3Pejyp3qgQkb
+	mpZIU4bvVBCba4hjY8YDYFe1FrCDhNNefEPYSEA3BrQkvwTWa11GTjeOpwc/rvsRlyGp1ZoF4rQ
+	pAvH96IKouBaW5+Rb0YjMVP6bNAP2DRsvkCw/Gd6Goc/bFUkKuKmMiJ9QCwy2+pmP6nhQH2Z5ns
+	vaTxO2Tf0dd00rMdsBCYruusgT4CfEM4N4yOPTuDoZTlHcLOqyqw4aabyyeC9LWxvArrf7AKH4s
+	oOzdgwq+BuvzHPMDlqym2pEUCHdND9H508H2d3U/QS6Jff/u9wSuLKphsOH10lw1WCJAhSdrqJg
+	9FK3EvMfp4LrwhpcpolBpm1yUV2PY4+cv0A==
+X-Received: by 2002:a17:907:940f:b0:c2e:1b6b:8b19 with SMTP id a640c23a62f3a-c49d142cb22mr731014066b.23.1793440637746;
+        Sat, 31 Oct 2026 02:57:17 -0700 (PDT)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4cabe1002asm162304466b.45.2026.10.31.02.57.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 31 Oct 2026 02:57:17 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs fixes for 7.3
+Date: Sat, 31 Oct 2026 10:57:16 +0100
+Message-ID: <20261031095716.3030288-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.55.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -103,34 +98,94 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261030113201.2921633-1-amir73il@gmail.com> <CAGEkeHekpqv5ncd8tFP2v-OAy-ujTf9_RBbed3dgmTTAQrsPzA@mail.gmail.com>
-In-Reply-To: <CAGEkeHekpqv5ncd8tFP2v-OAy-ujTf9_RBbed3dgmTTAQrsPzA@mail.gmail.com>
-From: Hungyu Lin <dennylin0707@gmail.com>
-Date: Sat, 31 Oct 2026 02:38:31 -0700
-X-Gm-Features: AclHuK-X6GKlHTisqtiHyK9eKC4cZ99r0QQanZe3vnYDJQb2Sgwxn-ctseguvNY
-Message-ID: <CAGEkeHeBcz2Atc7zz6u-Evd40+AOBtx9Ke+REthvTppxw-vpRQ@mail.gmail.com>
-Subject: Re: [PATCH 0/3] Overlayfs casefold fixes
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Chris Mason <mason@kernel.org>, Josef Bacik <josef@toxicpanda.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hi Amir,
+Hi Linus,
 
-I've posted two tests to fstests, with you Cc'd:
-https://lore.kernel.org/r/20261031091948.18985-1-dennylin0707@gmail.com
+Please pull overlayfs fixes for 7.3.
 
-On arm64/QEMU with ext4 and tmpfs, both tests fail on ovl-fixes
-(1d27da7de3f7) and pass with the series applied.
+- Was in linux-next overnight
 
-For patch 1, changing the empty upper root's casefold flag between
-layer setup and FSCONFIG_CMD_CREATE triggers the WARN on the
-baseline. With the series, CREATE fails with EINVAL without the
-WARN. I tested both directions on ext4 and tmpfs.
+- Gone through the usual overlayfs test routines
 
-I haven't run the full quick group on overlayfs. Feedback on the
-test coverage and structure would be appreciated.
+- Includes one change in vfs code, factor out helper
+  try_take_dentry_name_snapshot() with RVB from Christian
+
+- Merges cleanly with master branch of the moment
+
+Note that commit 8457ca071faba ("selftests/ovl: fix detached layer
+mountinfo expectations") was already merged via Christain's vfs.fixes
+PR from earlier today is duplicate and also on my branch.
+
+Standard maintainers race and miscommunication. No merge conflict.
+Let me know if you want me to drop this patch from my branch.
 
 Thanks,
-Hungyu
+Amir.
+
+----------------------------------------------------------------
+The following changes since commit 214897acc8c2e5d6b63189d23ccaed6fa2af45a9:
+
+  Revert "namei: don't reveal overmounted entries in refwalk" (2026-10-16 10:50:57 +0200)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-7.3
+
+for you to fetch changes up to 1d27da7de3f74405b1de85ad26c5ea90f826114b:
+
+  ovl: check the casefold flag of directories only (2026-10-29 13:40:31 +0100)
+
+----------------------------------------------------------------
+overlayfs fixes for 7.3
+
+- Fixes for bugs found by Chris Mason's AI review, several of them
+  reachable by unprivileged users: an info leak, use-after-free and NULL
+  deref bugs, an RCU walk stall with remote layers and data loss with
+  nfs_export
+
+- Fix copy up of files with an empty security.capability xattr, which
+  any user could set to block copy up
+
+- Fix a regression from v6.16 with the override_creds mount option
+
+- Two casefold fixes
+
+----------------------------------------------------------------
+Amir Goldstein (6):
+      ovl: fortify ovl_copy_xattr() against underlying layer modifications
+      ovl: add assertions in dir cache code
+      vfs: add try_take_dentry_name_snapshot()
+      ovl: skip copy up of empty security.capability
+      selftests/ovl: fix detached layer mountinfo expectations
+      ovl: fix mount setup failing when override_creds drops CAP_SYS_ADMIN
+
+Chris Mason (13):
+      ovl: do not copy up an xattr value that was never read
+      ovl: set OVL_WHITEOUTS before publishing the upper dir
+      ovl: check that the parents of volatile/dirty are dirs
+      ovl: take a snapshot of the name for copy up
+      ovl: do not take a name snapshot in RCU walk
+      ovl: use the pinned upper dir in ovl_fix_origin()
+      ovl: hold a reference on the parent in readdir
+      ovl: do not copy up a dentry that was removed
+      ovl: fix a torn path in ovl_get_redirect()
+      ovl: read the nlink xattr of every indexed non-dir
+      ovl: always encode the origin fh when index is enabled
+      ovl: set the revalidate flags after d_instantiate()
+      ovl: check the casefold flag of directories only
+
+Hungyu Lin (1):
+      ovl: reserve space for the casefolded name terminator
+
+ fs/dcache.c                                        |  29 +++++-
+ fs/overlayfs/copy_up.c                             | 110 +++++++++++++--------
+ fs/overlayfs/dir.c                                 |  22 ++++-
+ fs/overlayfs/inode.c                               |  16 ++-
+ fs/overlayfs/namei.c                               |  11 ++-
+ fs/overlayfs/overlayfs.h                           |   8 +-
+ fs/overlayfs/readdir.c                             |  65 +++++++++---
+ fs/overlayfs/super.c                               |  39 ++++++--
+ include/linux/dcache.h                             |   1 +
+ .../filesystems/overlayfs/set_layers_via_fds.c     |  18 ++--
+ 10 files changed, 233 insertions(+), 86 deletions(-)
