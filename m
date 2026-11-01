@@ -1,95 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793536483;
-	b=2CSTBhEB+2bVqkZFuKsQPRcM7gqrFibIMDpB9NmbWFE+4tXMajTChtWg9m+7+845cacb
-	 cLMf84HeJr6tfw+nrZ5XbbBrfQIAc1HNHxl8v3TKFGChnI/obNlX2tWhRncqxA+e3GMNp
-	 nrO4LpCpYcFUACJkq32cuX8+8+iTDwHQ3QpoBwH13kknAiRDTHQ5y/ottbAzI63FD4ZrW
-	 qalzXEiUG4V8YRtCjEzAV04hNH2ycGAfCf8uu5H1JTBxm/Prema/T4uJcRhHBrVZcFVPq
-	 PDLwvQDQ5Rt+V6Laa6ozOqK/SeC3QnT9C1vfWCylOjd4J7eJvn8V72h08KoWTL5U8gA==
+	t=1793553394;
+	b=qTLnOsQOeInxy8rXPMBLPoeebbCbLDC2ClDxYCeEwCS3WCmMuHCjDP7FTcw6TfPVMmkl
+	 esb0niQ9At9ED6vrqv8a06aTFB3Ltdt+BokAVFAihDUua0ym2uZ3mc0f2fGSIriXmKRR0
+	 MwAQDTbwXlJK8xXlWYy74Q11J47w8MD0vtj0+5owtKbNaYLtALqSgvwb7cMEBRmgIjWpw
+	 RqM3quFrvuHdzY1p61/cxIK45JlKFpHVsHwY2yQL9CZTWHkKAPE4MZhdz3HWQDiF8E7dQ
+	 pmRFjWWsYoIvd4Cs0mv6cMAY7qk1X3fJD/f6eWQ0jGeUS4TJm1AEMpm6f0zuQPQjfOw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793536483;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793553394;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=/D/A9T2EJRYZY/+rdAawlrNFx7uSdrcye6ffwoxRa54=;
-	b=Iup5JzIWAwG+orcKAffAxvp7Woni4+HdF2VjvOD0ErmXDiTjmC+QsN0njJWPtsd8ZsqV
-	 rBrVlUhcbVS0JwbqAAq5mff/aOwH+4LHf2pBKN3wOheKSfRL06DpCZ5MY+cYolsWkgSIo
-	 QRoHfBkCpzuinOHnrTn+uuAU1XMOurQbRbv0SX09J4N+aCA1eCWGwOcTIn+oK71EkzTZG
-	 RUgNYjTuhKnkdiN3tgcYD7EAQjHJ3vLrUb66rClX1JRKZhUf0Mtgpx+v+M/CvbaQnZlDU
-	 3saaIxS+cV8CdMg/9sN+vVhC7AD9wqxy1m5AQUONoGxftGHpovxcquvdaNWDHOUJOPA==
+	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=stfMBCCx0iYEkgEJ5sWasY787cUVg+XUdXtndqYjb9o=;
+	b=yR7K8COXLm11fSbxg+4VQRl3ozsMSKbHuCvFwkZcmvGisv01/WTm08VSTIMzghMyub+E
+	 uvMTRLA/y59Fjkt0lyR0I4T5zvdW0n55mP2sHkJ3FinAF61Bizm+e220JGGVa/fOzdMBu
+	 oRzVeLMjInj/p1SXKi9kTm3f+KCaDk2wZVoHeSJ/SevXCEkyTeQjRc9LN5+uiBbCqroHf
+	 rjDFJjaY6VJl5dOamRbULTq2BdsGD9TFv7kvMrvLdft1Ocv+vO1ixtZ25GPrmbExBzYkp
+	 A12BxsEZlA733w+6bhTtr2KzaXM/r5zo1oZ0WjA8/J0GItdeQPYWgb81O2HTJXowLcg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ea5BdI1n;
-	arc=none smtp.remote-ip=209.85.218.42
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+	dmarc=none header.from=linux-foundation.org;
+	spf=pass smtp.mailfrom=linuxfoundation.org;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=gNQ8Tpbv;
+	arc=none smtp.remote-ip=209.85.218.52
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9589C606A324
-	for <linux-unionfs@vger.kernel.org>; Sun,  1 Nov 2026 12:34:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9589C606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7965A606A324
+	for <linux-unionfs@vger.kernel.org>; Sun,  1 Nov 2026 17:16:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7965A606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ea5BdI1n
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c169ae1cb26so512528166b.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 01 Nov 2026 04:34:43 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=gNQ8Tpbv
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-c445c95d553so294638666b.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 01 Nov 2026 09:16:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793536482; x=1794141282; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=/D/A9T2EJRYZY/+rdAawlrNFx7uSdrcye6ffwoxRa54=;
-        b=ea5BdI1n3jMl3nTFIjg1OVwLozn1JI9ufbHSZXBBTwqcISfpOrOD/hWSMAK8goj+JV
-         ghJw6j73yFnthUnjFxDslLRT+4HB7LlKV30AQYBDStO7smzuBRVrv8FErRmKnTSoG+Hj
-         HGHO7IrLwKc0e5GRHgH76UfMvD0Kx9ImmbG7L6G4wlqp8coCHtDEUXPTDrPeq16C0EJk
-         B4SjJ2hc8+jSM00jQEiKvveoTypIWvKmLgpreALDqigMx4jHf5g6oCgmucBsLR6y2anN
-         cpWLspOjtXj3p1OjOQQA6moH5MO6dK1nAz8nb8lfgSH1fVyNMRdow7h2cIsuiO7KjvR6
-         4LxA==
+        d=linux-foundation.org; s=google; t=1793553392; x=1794158192; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=stfMBCCx0iYEkgEJ5sWasY787cUVg+XUdXtndqYjb9o=;
+        b=gNQ8Tpbv5/eK1NBNWCxtTgc16zPTW31++MtIDLWD3Q/1zm4lUx52ChF8Czkb/NMICb
+         UX4FF48fhvwXyObWcaMxmZPVQOL3xD6mt1ikX5AMH6MGeVlPBISjpeEWo1vrRNiyJr0+
+         GSQPwsqvDokOUf5Tz2oS1y1Ty72N6IRBibvNo=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793536482; x=1794141282;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=/D/A9T2EJRYZY/+rdAawlrNFx7uSdrcye6ffwoxRa54=;
-        b=ICx/8U7OtT3LPWCE5xCx3CveWNd3ZVTen9yqeI7AvyA4mMPYePQD8xdEPHcdXqzAEL
-         VkiEP1bnb/S5R2Sl2S6PKI0O0tHDgE6nIXvDsv9BC40Ub+yO5HVVrabnxGiZR7FgrM8E
-         32A9TiLK4Nr76qFuiYwBoEcKIjMNF9jJ2z6dYf/2UIb6Be3IXEQIUyp6tam1gZxnfxdO
-         DxpIfFSHM+aRnd1brK2KjYlc45c9CX5lfKqz/gCK5dn6GiDP1OuZHAaq9laSvpb3Hoz8
-         d+wXLN/fRNYPw+aNl0bhi9lTtygtHR2pvNXKUSKzn+MqRbJlmWd1kFwRvq1q36Fg6rK1
-         VbrQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwV0QstPHmp9lSuLHoDiRwLlmllXBjq0h6XDbZOr4LYyJEiAKfCxqcQlBQ8n7Hwzbsb9vtYxb9hrIqFzOql@vger.kernel.org
-X-Gm-Message-State: AFq9FYJM72WYyuLBnGlAFLWLztY3aFe90EEQ5kEYqWTIXUsFkW1+wEvV
-	eMWCtQOuZXhmtlJqrdLk+PMqsKqxm/o4SixlJyymFfPdUALKXw8Z+QGa
-X-Gm-Gg: AYBFou1vpJ0fh7RPbRhFudRxVwQ02N870Nyo508mMir5/5LTuvufkqrBUMeZ2/sruzB
-	yVWaS6vCMwpCelPvhQ6DhODMHRRV6DpulK8E6Y6h2OSc3+gsnAmVcDBDWsN9l6UkT0bfyi0GCBA
-	gyTYC2bDoNfBvR5rRaDI8C0Ik2UC/NV+MCElKcayOPUZjReOoDbjoUHMVUe4LkfQHqAGgxenMpD
-	nYmNUBBeE1/sWw3qkydCNttejMq5NJdeYoRdyO5rBQxYG3V+jnJYZDbXJnahtZVG7za9kXszhFe
-	5MYkufmROuy91bBhIwzfXrY3+/mVeVNiBBAduo4Ff1z5qDAP86u2B1vBln5KWddnRjG/1goRH9U
-	15uUubKi3qgsWJQYyo9kgUqoWA3yA+/+Q62EPU43TV3mAyBeS6Z+b9qy0wGQJot0uR3ffh1PFzJ
-	hYzMYr+YFlDxMVQhU5b89GKvrWvWEHyF5N7akb24fCCfzK58OZQG7j9awosFRwGWtzyiQFI5sag
-	Jb+AQJhCNy6GIxQbqFIJt3790tMbQMllk/jjWnhUqmuPytA1382eebHHOQzG9PjskCO4PLZs+M6
-	4wHRVyk2zu5/nqLYSoZj4i/MgATts8VRxEqGtsU8aYgrktd2TBf9LfHKNAo6+mV7bsMnG1t0ePh
-	ugdr1hYzmcZw=
-X-Received: by 2002:a17:907:3f9c:b0:c42:fc8b:6c6a with SMTP id a640c23a62f3a-c4ca7a9ef71mr660488666b.14.1793536481629;
-        Sun, 01 Nov 2026 04:34:41 -0800 (PST)
-Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4cabc18ec5sm275298666b.12.2026.11.01.04.34.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Nov 2026 04:34:41 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Christian Brauner <brauner@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-fsdevel@vger.kernel.org,
-	fuse-devel@lists.linux.dev,
-	linux-unionfs@vger.kernel.org,
-	Chris Mason <mason@kernel.org>,
-	stable@vger.kernel.org
-Subject: [PATCH] backing-file: pass RWF_NOAPPEND to synchronous writes
-Date: Sun,  1 Nov 2026 13:34:40 +0100
-Message-ID: <20261101123440.3184069-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.55.0
+        d=1e100.net; s=20260707; t=1793553392; x=1794158192;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=stfMBCCx0iYEkgEJ5sWasY787cUVg+XUdXtndqYjb9o=;
+        b=il1KnFC9e3Hn3+Z0A0l2poj+Domd1PydeDsBNWR4QwIY9d2OtrQvgOAQ6xm7OIK/Gp
+         w+mkETG7Wc58iYqbw5ILNuZ3vFUtR9MN0naOA9/iw1Vm9F2CMM16zqkFbMujwkwdfsJc
+         p2FwGCU15nltShkQVQw0fFUVFAThbniXdZchwMD/kikX27mDlYVJob/sP3/AWKb5g9B9
+         /gBvRYLu2XYSBIhUsxLIIk1XoVrgiPKPwYTDB/tzTJGNHSZx8nm/b97Xxg7Rbpmn8iiK
+         27Yax2EbUTWSsifwaGYaxFqSMELx1EFpnDlMKfKv/JRKbOvC4gw8u1PUEoms5JRZ423L
+         8nwQ==
+X-Forwarded-Encrypted: i=1; AKwUvBz19hz1jPSj1wKH4oKetO9WdMQn5+btsjJ8VgUJh06LVhwGmo0bPS5ERWAbpBd0V8sJ66xtKiCojFw07n/X@vger.kernel.org
+X-Gm-Message-State: AFq9FYLMHdDfHEgU1x+Y4i2F8/WUlWYL/5/1mPGRK0ddIHpWOYQNhiqB
+	Slz9plcWQe4XZbxuXETLZgGTrmM2daQcJo4R3KnUMLMx5aidXNdcAnS4Yb7zKnJ/mKwVovqgKgJ
+	T85F2Bsc=
+X-Gm-Gg: AYBFou2wo1QXHzQV4H3WJbfnLkSc5e4k7kBYfRXM1Gns3tqX835zKxKUdCQRweiNtza
+	iHwCR814q7hhcZ5uAzuokxulEBvSmsARj6vOtbbnAeFRjoAna5XbawGiJj8J7l0o6ZolqSMcZfc
+	sL58++PTOr5Ae03k5Y4S5OSUzAqsZiCGvWCIuH3Waw3paWhRW9aPC+6GxeLLscDXqkl9BoU4F0Q
+	5WD0noi2hqYnOiFJzabagdwvQio2TVpkwTEWCwptwx/Uu9eNbpo3E3rCRDEXKlhDLe1e9Lqs/fw
+	WKO+rwdcyadbbtycXw6JYzm2I/9/zpVuo0ljcH3Q3vV5Vs4Sr20nWrfZ+K7cv5Wcxmxw2tn/5QD
+	G0kuM75wCzFIcwSn+HN1Q7tAni0CKsgnhTr0jh7M6cK8MXP0yYaqg6db8DkV2MPsv87iSrXxXz4
+	lAcvlKo5qPD7S+PJbu+Y0qh92xibTVbhjCfBeE8fPaXjRwWcxoLbX0PsKn4HEvwFBIuXsa42l3n
+	OspXuinjXi/jFYMjHBIOSPQ6a/cLJYnYord9kFKwCEGxzG7aOe5mE3SVOTJXsktCA1JCqhtRKop
+	0cPw8vuAgqGJmPNML31hPg7uLO87CC1HoMVJrnnGgIBZPcVmd7EA1feiCXb70AwhA28LlG1CJ3P
+	eKQ==
+X-Received: by 2002:a17:907:9283:b0:c41:a5da:1511 with SMTP id a640c23a62f3a-c4ca7a88ad4mr600823466b.25.1793553391818;
+        Sun, 01 Nov 2026 09:16:31 -0800 (PST)
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com. [209.85.218.42])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4cabe10055sm294322566b.43.2026.11.01.09.16.30
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 01 Nov 2026 09:16:31 -0800 (PST)
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c445c95d553so294637366b.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 01 Nov 2026 09:16:30 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBxmpvJ4x/rmh/bIY2eNt18Ly02KQsaHPuDV2ag7xRRNxEgLrlq+HUKtM7sniPIHMPDCIRgKdePtqHvjUp0T@vger.kernel.org
+X-Received: by 2002:a17:907:9615:b0:c41:e75e:5889 with SMTP id
+ a640c23a62f3a-c4ca7ab6062mr670144466b.33.1793553390629; Sun, 01 Nov 2026
+ 09:16:30 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -99,86 +94,36 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261031095716.3030288-1-amir73il@gmail.com> <CAHk-=wiPhTLn1p0ZHx-7SMdk4_zazqDK1k7MMEn9scRfqeDgtw@mail.gmail.com>
+ <CAOQ4uxjNrdxZdZZipsqnUNq+TswCKqp+30iKRKCqh2WOQ-zKGA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjNrdxZdZZipsqnUNq+TswCKqp+30iKRKCqh2WOQ-zKGA@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 1 Nov 2026 09:16:13 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wiimdwWu0EVQdxGVjbVWdzNKGg0f6vZ1aR-GXxDvQa-Eg@mail.gmail.com>
+X-Gm-Features: AclHuK_uccpP1X2e8Vqp60tdiLbtX2zzsC2PsbIq8_vF14_xkvBHQNU7aw3Vaz8
+Message-ID: <CAHk-=wiimdwWu0EVQdxGVjbVWdzNKGg0f6vZ1aR-GXxDvQa-Eg@mail.gmail.com>
+Subject: Re: Return failure from take_dentry_name_snapshot() (Was: [GIT PULL]
+ overlayfs fixes for 7.3)
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
+	linux-kernel <linux-kernel@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Chris Mason <mason@kernel.org>
+On Sun, 1 Nov 2026 at 03:50, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Feel free to apply and/or wait for ACK from Al/Christian,
 
-pwritev2() with RWF_NOAPPEND ignores the offset and appends the data on
-an overlayfs or FUSE passthrough file that was opened with O_APPEND, and
-the call still returns success. The flag must make the write go to the
-given offset even though the file is in append mode. Any user who can
-write to the file is affected, with the default mount options.
+I'd like to see an ack from Al / Christian, but
 
-overlayfs and FUSE passthrough forward the reads and writes on their
-files to a backing file on an underlying filesystem, through the helpers
-in fs/backing-file.c.
+> or I can include it in my next ovl-fixes PR.
 
-The flag works for the file that the user opened: kiocb_set_rw_flags()
-clears IOCB_APPEND in the write's kiocb. It also copies RWF_NOAPPEND
-into ki_flags, as it does with every RWF_ flag.
+I think I'll also rewrite that function to use guards. I didn't do it
+originally because I just wanted to do minimal surgery, but when I
+look at that patch I go "it could be done more prettily with our
+modern infrastructure".
 
-overlayfs and FUSE passthrough then pass the write on to the backing
-file. They opened it with the open flags of the user's file, so it is in
-append mode too.
+Let me look at it in my copious spare time.
 
-For a synchronous write, do_backing_file_write_iter() calls
-vfs_iter_write(), which sets up a new kiocb for the backing file. That
-kiocb starts out with IOCB_APPEND set. vfs_iter_write() is only given
-the flags of the user's kiocb that are in BACKING_IOCB_MASK, and
-RWF_NOAPPEND is not one of them. So nothing clears IOCB_APPEND again,
-and the data goes to the end of the file while the call returns success.
-
-An asynchronous write reuses the flags of the user's kiocb and is not
-affected.
-
-Reproduced by calling pwritev2() with RWF_NOAPPEND at offset 0, on an
-overlayfs file and on a FUSE passthrough file opened with O_APPEND: the
-data was at the end of the file afterwards.
-
-Fix this by adding RWF_NOAPPEND to BACKING_IOCB_MASK.
-
-Fixes: 73fa7547c70b ("vfs: add RWF_NOAPPEND flag for pwritev2")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chris Mason <mason@kernel.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Christian,
-
-This is a followup to commit 19b18e01d0361 ("backing-file: enforce
-append-only and immutable backing inodes").
-
-It is NOT a security fix, but a correctness fix for both overlayfs and
-FUSE passthrough. It fixes RWF_NOAPPEND being ignored by sync writes.
-
-It had to go after "enforce append-only", otherwise sync writes could
-also overwrite append-only FUSE backing files, as async writes could.
-
-Thanks,
-Amir.
-
- fs/backing-file.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/fs/backing-file.c b/fs/backing-file.c
-index 5780f60662d07..c601b27f0fd35 100644
---- a/fs/backing-file.c
-+++ b/fs/backing-file.c
-@@ -115,8 +115,13 @@ struct backing_aio {
- 
- static struct kmem_cache *backing_aio_cachep;
- 
-+/*
-+ * RWF_NOAPPEND stays set in ki_flags.  Pass it on, because the backing file is
-+ * in append mode as well and a new kiocb for it starts with IOCB_APPEND.
-+ */
- #define BACKING_IOCB_MASK \
--	(IOCB_NOWAIT | IOCB_HIPRI | IOCB_DSYNC | IOCB_SYNC | IOCB_APPEND)
-+	(IOCB_NOWAIT | IOCB_HIPRI | IOCB_DSYNC | IOCB_SYNC | IOCB_APPEND | \
-+	 (__force int) RWF_NOAPPEND)
- 
- static rwf_t iocb_to_rw_flags(int flags)
- {
--- 
-2.55.0
-
+             Linus
