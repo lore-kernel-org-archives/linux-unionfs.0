@@ -1,109 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.205.69.214
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793656055;
-	b=1sGVTtvIqNfgn0j5y5m/8P04iI2lxyeCUlU/E6oZJAIkfL4u6yAwonCs6/Lol4cmoZEu
-	 XtE5Qmb/3rm/me+4aYZ2BSPwlQT9DdRGFC04jltTGELxgOOwnCpEwW/AKqXAKAQKzn1qx
-	 L8YwdNTLF1ZxUPwWWnLS/l6QpD2mKO97v4rTAPE3FhtRHxsjKRu8q3EkAgWrdpXpXA/wv
-	 TKvykg+FlIGuTHp6Eu6xY2622lmbjr2xURjCQqIPe/Pmc+H7+RJVMVEDjq6uzstF1TmGa
-	 iLRn9JvSADvBj/Ehv0bDcGFYx4PO8luMN0dpxl98znJIBhzI0HlkIgB87bBLy+5ZOHQ==
+	t=1793710891;
+	b=c4ksIQAOF3ReoYZx39PSDLS3fqUoev7iwcGOCMueLHEiH4jGucjVxaW0EWAf1opXetVk
+	 cfTQmgA2PVcV5ihHiKZ5zM2jKN9/7DgwE84OwzXWT9EjPW8K9QGhaix8J9nfu/T2OQjiM
+	 UaXXAePobXZjyqYAnPMpnB9/2yryV5yluzCshZPgFOPlD/6g90J69cHtcRcw5hAR12S0L
+	 MQdAIjFZVgZzaw/InrAlLDmHwR89w5NFTJBHyE+tYCNRpMMD+7nQMhKGybc4kx5TgBL7J
+	 X3rOPbhT5M7PFsNZts/8QBngq2+OGeVKZ717Egk/AxDYQYRGeYjHr9UpIA33ef4LcDA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793656055;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Flag:X-Spam-Level:X-Spamd-Result:X-Spam-Score;
-	bh=hCbkix+MgBxP+/kLDt/Acgd9mqyDghjjtXvpwwXpLGc=;
-	b=To5l68m0DUvQUriqJwDL0YKlZ3sBHU3Owt0Mv+m4H8LucTOdNCGTg5TM46px5Gy0Mw44
-	 8g8Nq49M6oBjEc2nq3CrcvP9A09NWJx0LcgfcuuScTsamXSfuvWUjynr0g7M/SGr36pL1
-	 XZ3+Y37gHLnj0M1CFOiXrgS33sMuP41WYKewiai6fyydZziuMpHliA/A/e4iNRaCiPKPb
-	 iL6KY9gweNiOGUoW3/kkTxQ7ThcuUnKp7QDRb+8x4nZnAJipnZFE4MPffgFNYZEXngzgx
-	 wNhiz+DGrYPy3tDE9YW0SRPr4Vp9F8J6RnSfrdEt0T7CUjGo4gWFaOXUN95I7IQXV0Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793710891;
+	h=DMARC-Filter:Received:DKIM-Signature:Date:From:To:Cc:Message-ID:
+	 In-Reply-To:References:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Feedback-ID;
+	bh=DzJkftSALHxewxovsf7uhxAhrTSplWGmkUOlhUCVnSY=;
+	b=KlYu+2M2uZsqapUp6j0kly9ZMuYaXTjjypQVTjPxczJy4vjpXblUzB2MehEpnEs26GQL
+	 +Xt096ZsAOs0ZxOILU7jbfD1EIgllp02+y22FXoMh/SwXk3R5xWarEfox+LcvRo+5X456
+	 6MCYBREvqfVRHF2S+9wO3Vu8ViGyi48tCxCo7I8cCQMyRutq/AYHwo69HRMsHMCUhkhV5
+	 BuSvLdt2QQaMwa2MU8UzDfPc8ej/aJMNBjitzV7iB/EFPkofuIQMeIsFUCZoY4k3mRRz1
+	 PigiGBpgISZ/caRLEOALGQpiJTTND9cfDC61vtw0+8c3gtw9Me6ql7lEO7xIEjrNwjQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=suse.cz;
-	spf=pass smtp.mailfrom=suse.cz;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=OqNPA2Mf;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=KuRnWpMs;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=OqNPA2Mf;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=KuRnWpMs;
-	arc=none smtp.remote-ip=195.135.223.131
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	dmarc=pass header.from=tuta.io;
+	spf=pass smtp.mailfrom=tuta.io;
+	dkim=pass header.d=tuta.io header.i=@tuta.io header.a=rsa-sha256 header.s=s1 header.b=eqf2TMyy;
+	arc=none smtp.remote-ip=185.205.69.214
+Received: from mail.w14.tutanota.de (mail.w14.tutanota.de [185.205.69.214])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF131606A324;
-	Mon,  2 Nov 2026 21:47:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AF131606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C24CE606A327
+	for <linux-unionfs@vger.kernel.org>; Tue,  3 Nov 2026 13:01:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C24CE606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=tuta.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tuta.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=OqNPA2Mf;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=KuRnWpMs;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=OqNPA2Mf;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=KuRnWpMs
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 07A271FB28;
-	Mon,  2 Nov 2026 21:47:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1793656053; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hCbkix+MgBxP+/kLDt/Acgd9mqyDghjjtXvpwwXpLGc=;
-	b=OqNPA2MffFEuEKEmemzAWkd/i/ej4RnVdAHF4xtsXC3jI84LkKeKwBm7YHQPGQUT2PdjtT
-	DXNxpLcDlSobLpej0UMebi6sS5STyQV9LtSqhArtaNjiS2VFvJd9b6g+iLPyB9oMtWLFy2
-	BGrgFm+X28cSn5zfktKFUlrW7SG6xTI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1793656053;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hCbkix+MgBxP+/kLDt/Acgd9mqyDghjjtXvpwwXpLGc=;
-	b=KuRnWpMs8HjXFXF8+o/STVcZYJ12b655KNhkMdxRmpnWlWlpV59KZdh9A6UglVG2rISPkS
-	7fEmOZ/YVCaNWJDw==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1793656053; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hCbkix+MgBxP+/kLDt/Acgd9mqyDghjjtXvpwwXpLGc=;
-	b=OqNPA2MffFEuEKEmemzAWkd/i/ej4RnVdAHF4xtsXC3jI84LkKeKwBm7YHQPGQUT2PdjtT
-	DXNxpLcDlSobLpej0UMebi6sS5STyQV9LtSqhArtaNjiS2VFvJd9b6g+iLPyB9oMtWLFy2
-	BGrgFm+X28cSn5zfktKFUlrW7SG6xTI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1793656053;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hCbkix+MgBxP+/kLDt/Acgd9mqyDghjjtXvpwwXpLGc=;
-	b=KuRnWpMs8HjXFXF8+o/STVcZYJ12b655KNhkMdxRmpnWlWlpV59KZdh9A6UglVG2rISPkS
-	7fEmOZ/YVCaNWJDw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D17C1134B3;
-	Mon,  2 Nov 2026 21:47:32 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id W/A4LfQE6Wq+AQAAD6G6ig
-	(envelope-from <jack@suse.cz>); Mon, 02 Nov 2026 21:47:32 +0000
-Received: by quack.suse.cz (Postfix, from userid 1000)
-	id 7BA9EB177; Mon, 02 Nov 2026 22:47:32 +0100 (CET)
-Date: Mon, 2 Nov 2026 22:47:32 +0100
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Chris Mason <mason@kernel.org>, 
-	Josef Bacik <josef@toxicpanda.com>, Amir Goldstein <amir73il@gmail.com>, 
-	Jens Axboe <axboe@kernel.dk>, linux-aio@kvack.org, linux-unionfs@vger.kernel.org, 
-	stable@vger.kernel.org
-Subject: Re: [PATCH 3/3] iov_iter: fix NULL deref in iov_iter_alignment()
-Message-ID: <jelcbro6vaef5rwiphn2btlbqam3uvvjgynewbpvxon6lu7ohf@b435g64ljdsb>
-References: <20261029-work-fs-ai-fixes-v1-0-88f22792f6f7@kernel.org>
- <20261029-work-fs-ai-fixes-v1-3-88f22792f6f7@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=tuta.io header.i=@tuta.io header.a=rsa-sha256 header.s=s1 header.b=eqf2TMyy
+Received: from tutadb.w10.tutanota.de (w10.api.tuta.com [IPv6:fd:ac::d:10])
+	by mail.w14.tutanota.de (Postfix) with ESMTP id 49FE11A1AF133
+	for <linux-unionfs@vger.kernel.org>; Tue,  3 Nov 2026 14:01:29 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1793710889;
+	s=s1; d=tuta.io;
+	h=From:From:To:To:Subject:Subject:Content-Description:Content-ID:Content-Type:Content-Type:Content-Transfer-Encoding:Content-Transfer-Encoding:Cc:Cc:Date:Date:In-Reply-To:In-Reply-To:MIME-Version:MIME-Version:Message-ID:Message-ID:Reply-To:References:References:Sender;
+	bh=DzJkftSALHxewxovsf7uhxAhrTSplWGmkUOlhUCVnSY=;
+	b=eqf2TMyy3+mkJV/+c2wc0t8K4Dsg3aTKCPu/QKrEb6Sy93dJzgwWGLKBKeRFNySQ
+	6jEO1djZau3Q+nVjseWdLD6m+huqxCExAndgKZv063DmmyYRsvMMqCcmpnHFaJiHL6Y
+	T4uhHO0xsa3rcstdpEuNw8acVLNvkVJYZPis6L9FqVv5aWyFCAMIW28bFR6ckZRrJpc
+	TFm3uDuwL/iIANsXgMujVaDL9eS6j1gDwdc+RTGPsxPTv+AGmw+7pv/rmVM/cUD1KY/
+	M+t7uJDMEEFhy/q5x1bIHBqxNRQLNB6AvaHsA85pkZuwHNfdZZmaVaXvvCpX3amAixq
+	h9RI8/NdJg==
+Date: Tue, 3 Nov 2026 14:01:29 +0100 (CET)
+From: Edvard Conrad <edvard@tuta.io>
+To: Amir Goldstein <amir73il@gmail.com>,
+	Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>,
+	Edvard Conrad <edvard@tuta.io>
+Message-ID: <P5WV0VL--F-9@tuta.io>
+In-Reply-To: <CAOQ4uxh67+vs0mr-Lxmwz9-N+F8m29WUNz+8qFLLDpOVYB7=vg@mail.gmail.com>
+References: <P58Wrer--F-9@tuta.io> <20261030-welpen-anbinden-nullen-b2432cee1d10@brauner> <CAOQ4uxjm=cGPnug18VuhKqiMvkWwLPNLO_TE3KxO8iLZG+veYQ@mail.gmail.com> <P5Qu3co--N-9@tuta.io> <CAOQ4uxh67+vs0mr-Lxmwz9-N+F8m29WUNz+8qFLLDpOVYB7=vg@mail.gmail.com>
+Subject: Re: [PATCH v3] fs: let backing files inherit FMODE_NONOTIFY from
+ the user file
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -113,93 +71,98 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261029-work-fs-ai-fixes-v1-3-88f22792f6f7@kernel.org>
-X-Spam-Flag: NO
-X-Spam-Level: 
-X-Spamd-Result: default: False [-12.80 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[11];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_COUNT_THREE(0.00)[3];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[vger.kernel.org,zeniv.linux.org.uk,suse.cz,kernel.org,toxicpanda.com,gmail.com,kernel.dk,kvack.org];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_TLS_LAST(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.cz:email,suse.com:email]
-X-Spam-Score: -12.80
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Feedback-ID: 0127f977f5e13e8051b46c6e7f57d0f95a0470d24b79d7c31d07fdf611cc427ab823e0f4692a810119c92d8768973a9281:TurnOnPrivacy!:tutamail
 
-On Thu 29-10-26 15:00:22, Christian Brauner wrote:
-> From: Chris Mason <mason@kernel.org>
-> 
-> Since commit 111a12b422a8 ("io_uring/rsrc: reject zero-length fixed
-> buffer import") io_import_fixed() hands out an empty ITER_BVEC for a
-> zero-length request. Its count is 0 and its bvec array is NULL.
-> 
-> iov_iter_alignment() only checks the count for ITER_UBUF. For ITER_BVEC
-> it calls iov_iter_alignment_bvec() and the do-while loop in there reads
-> bvec->bv_len before it looks at the count. So it dereferences NULL.
-> 
-> btrfs checks the alignment of a direct read with iov_iter_alignment()
-> before it looks at the count and f2fs does the same. So any user that
-> can open a file on btrfs can oops the kernel with a single zero-length
-> IORING_OP_READ_FIXED on an O_DIRECT file descriptor. With IOSQE_ASYNC
-> the oops happens in an io-wq worker. The dead worker stays on the worker
-> list and when the task that submitted the request exits io-wq writes to
-> the freed task_struct of the worker. That's just fallout from the oops
-> though.
-> 
-> Empty iterators with a NULL array aren't unusual. afs, tls and tipc
-> create them as well. So leave io_uring alone and make
-> iov_iter_alignment() return 0 for an empty iterator of any type.
-> 
-> Fixes: 111a12b422a8 ("io_uring/rsrc: reject zero-length fixed buffer import")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Chris Mason <mason@kernel.org>
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+On Mon, Nov 2, 2026 at 1:34 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> Good catch!
+> Please test the attached v2 patch and post the new test cases.
 
-Fair enough. Feel free to add:
+v2 fixes the merged directory. An impure directory still deadlocks the
+same way: ovl_iterate_real() reads it through ovl_cache_get_impure() and
+ovl_dir_read_impure(), which v2 leaves without the user file, so
+ovl_dir_read() opens the upper directory with plain ovl_path_open():
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+  fanotify_handle_event
+  fsnotify
+  fsnotify_open_perm_and_set_mode
+  do_dentry_open
+  vfs_open
+  dentry_open
+  ovl_iterate_real
+  ovl_iterate
+  iterate_dir
+  __x64_sys_getdents64
 
-								Honza
+That takes an upper-only directory that a lower file was renamed into,
+on layers that share a filesystem, so ovl_need_adjust_d_ino() sends it
+to ovl_iterate_real(). Passing the file down the same way v2 does for
+the merged case fixes it for me, on top of v2:
 
-> ---
->  lib/iov_iter.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/lib/iov_iter.c b/lib/iov_iter.c
-> index 2072c04e99d0..56c59a2b589d 100644
-> --- a/lib/iov_iter.c
-> +++ b/lib/iov_iter.c
-> @@ -848,6 +848,10 @@ unsigned long iov_iter_alignment(const struct iov_iter *i)
->  		return 0;
->  	}
->  
-> +	/* An empty iterator may have no segment array at all. */
-> +	if (!i->count)
-> +		return 0;
-> +
->  	/* iovec and kvec have identical layouts */
->  	if (likely(iter_is_iovec(i) || iov_iter_is_kvec(i)))
->  		return iov_iter_alignment_iovec(i);
-> 
-> -- 
-> 2.53.0
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -670,7 +670,7 @@ static bool ovl_fill_plain(struct dir_context *ctx, const char *name,
+ }
+ 
+ static int ovl_dir_read_impure(const struct path *path,  struct list_head *list,
+-			       struct rb_root *root)
++			       struct rb_root *root, const struct file *user_file)
+ {
+ 	int err;
+ 	struct path realpath;
+@@ -678,6 +678,7 @@ static int ovl_dir_read_impure(const struct path *path,  struct list_head *list,
+ 	struct ovl_readdir_data rdd = {
+ 		.ctx.actor = ovl_fill_plain,
+ 		.ctx.count = INT_MAX,
++		.user_file = user_file,
+ 		.list = list,
+ 		.root = root,
+ 	};
+@@ -714,9 +715,10 @@ static int ovl_dir_read_impure(const struct path *path,  struct list_head *list,
+ 	return 0;
+ }
+ 
+-static struct ovl_dir_cache *ovl_cache_get_impure(const struct path *path)
++static struct ovl_dir_cache *ovl_cache_get_impure(struct file *file)
+ {
+ 	int res;
++	const struct path *path = &file->f_path;
+ 	struct dentry *dentry = path->dentry;
+ 	struct inode *inode = d_inode(dentry);
+ 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+@@ -735,7 +737,7 @@ static struct ovl_dir_cache *ovl_cache_get_impure(const struct path *path)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	cache->is_refcounted = false;
+-	res = ovl_dir_read_impure(path, &cache->entries, &cache->root);
++	res = ovl_dir_read_impure(path, &cache->entries, &cache->root, file);
+ 	if (res) {
+ 		ovl_cache_free(&cache->entries);
+ 		kfree(cache);
+@@ -856,7 +858,7 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
+ 	dput(parent);
+ 
+ 	if (ovl_is_impure_dir(file)) {
+-		rdt.cache = ovl_cache_get_impure(&file->f_path);
++		rdt.cache = ovl_cache_get_impure(file);
+ 		if (IS_ERR(rdt.cache))
+ 			return PTR_ERR(rdt.cache);
+ 	}
+
+Results in a VM on 6b4b543fa18, each kernel run once and with -i 2,
+with the backing filesystem marked:
+
+                                file  dir   merged dir  impure dir
+                                            listed      listed
+  + c3d355f427ce                PASS  FAIL  FAIL        FAIL
+  + your v1                     PASS  PASS  FAIL        FAIL
+  + your v2                     PASS  PASS  PASS        FAIL
+  + v2 and the diff above       PASS  PASS  PASS        PASS
+
+The new cases are posted on top of the directory cases:
+  https://lore.kernel.org/ltp/P5WKBbq--F-9@tuta.io/
+
+Thanks,
+Edvard
