@@ -1,93 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793818382;
-	b=SFjSKm+7M592r2TsmRSqou3WzmJGs2WFihXPjIMHMPmvyuWpX1xcJr8YdMP+TXZImVC9
-	 yZgskdsfG6Zc1m8A2+DQMfo+POAhEDQleYW4R8eXMD/64wEdBoMDm+iBePOtZjgQsXm3d
-	 BuXbBlM255GrOrplRv/7kKltU580wzYFMw958b6Q7L+GpziWnj95Je8tMTglPSzdEhAsx
-	 8Vd+GpO4l268nDIQzHSMZHIizM+zZI2xlpbqmbZpmvQwsxQdpzq/fIbC73jPp45PFd5sj
-	 +Frvj/iKwWGz6CUlfnMLbdNtBcewQjZ2q+mFa9RyAl/TeaNLtSWijnmH0jhRQaBD8AA==
+	t=1793818439;
+	b=ksVgVAkgygHTY1b+FFESc51rGOKmmUEIcB6JOFY/iEb/7J9FO/mjwJXLo00chx6kBWf6
+	 04IjRBRnvf3SxLGt0FZt6R2lXnHTRfeWnmTznFS3bllQb7Rf4z3jt545YEC6cP+Czx7Bl
+	 OyXO5sqeKSDUSutNOi3HRvwEezjdF0EMtmWSEKP+uagaXcfCs/at8XREEyjGnr7rU1DAY
+	 Q8c7YprnQPaLZthclpEM5YVHZwQXZFQeApPtqPoehq31X97AOIkwg49eo8ipD58f+3AqK
+	 wiGJ/W5X1MzOcWe1BoipgiB98LWNPDI5DTHacbf/bwmeph9ifX5FuoH7+8Y5Tzzj5Tg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793818382;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793818439;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=OmaFlDn2sHp0SZU86PB8+jcQio5Xj+DXOedzLAfLnHo=;
-	b=cOYsYLWFfMo3VnKPHDUMSZO7V3Zth7FbwwBIwyGV3TNzjfFQ5NAnl3TFlOxuHU1sB+pg
-	 8aCq4KLOthM7Gmzzq5W6FuUnW/FmCRV4KOcPD5Xzfi/soHl4El1iX/yDPLuEKYswoA5ke
-	 5isrbKWD4EA0q13F8yWL3jS2zBZjQrfc17s8PHMPqeNxSeFz/n2lp4MstNJ1qbcoSksiq
-	 9/fH534DUHqdp1kgNGb3xrhpkg0TJnjVtxseCfp0IVssB5GoLRmjIVyOXzAXojweDHYn1
-	 lltiwoG13GBOL2fiDdJCDHnuSomaPXFWOIvUqmrBjJJPAMZ/drC+lePhKOLQTad5KNA==
+	bh=G5wbYNiPhAHIb+26anH3v3vEHstJg4FjlaenE/QZAko=;
+	b=VNAJkt3DVylbKlgw3v6kJbhRdVLRPmfH0IztnyEJhnTtDAYx4+ptHwfeILsH3q0FzxlY
+	 p0g6kdxaNigtzi9Nhjpt2O1UQZWxBq6UwYV7y1sG4MnrQHezXLHvbqWTSumK/m3yCJ0lv
+	 Vr7WhyUcqyoUuj+aD6JbAVi9iosDLjtSdJikMrFOUaNIm9iAYfF78JBh91rwYiqdPYqaX
+	 JShl/yY0db637RpUrtVGZbWO2+co93jXrW5IzRG4SRVU/R3/ThLMDtPsMdAX1lj1++qs/
+	 YzTN9VJY8krO/GPQXaCaSKDquoYQ0GjpadKWsfm6JtY7qXY26HkZqvt8+FHWowPALWQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Sjax4tUm;
-	arc=none smtp.remote-ip=209.85.221.43
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=w4gDAWve;
+	arc=none smtp.remote-ip=209.85.128.43
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB17606A33E
-	for <linux-unionfs@vger.kernel.org>; Wed,  4 Nov 2026 18:53:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9FB17606A33E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53417606EE9D
+	for <linux-unionfs@vger.kernel.org>; Wed,  4 Nov 2026 18:53:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 53417606EE9D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Sjax4tUm
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-48e6eb21a8fso515110f8f.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 04 Nov 2026 10:53:01 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=w4gDAWve
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a35a60499eso8508705e9.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 04 Nov 2026 10:53:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793818380; x=1794423180; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1793818438; x=1794423238; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=OmaFlDn2sHp0SZU86PB8+jcQio5Xj+DXOedzLAfLnHo=;
-        b=Sjax4tUmoiCFgJwc4obaEFuvYCQEL15OoDjnDXA3D3ky9A2oreEGuvZ3H6TiqDnvZ6
-         vn/m5INuhxVps+VpiJzK8oxQNHYH7A99lKYssfVXkojlUqocFQDK8XdQUMYFNUKHWlhg
-         oC8F354EODiJyBv4jMPmAmitBHznyZnDD712gnW6ssWh7noDOy8KQcghRhOUCsknsyp2
-         8fvOu2rPxbGICMjUhOwVnk+OY90jMwVuyCM28Dr632a3tPJd3hgnrKBUTMa5venkM1Ie
-         vCsrYIc5ck7VBW7nezM7moOZSgFug/SGK5K5IhdKoRVMBSrzmrpBqjiOwEAStszxRBK4
-         y5hg==
+        bh=G5wbYNiPhAHIb+26anH3v3vEHstJg4FjlaenE/QZAko=;
+        b=w4gDAWveJlfcdoihCDwXx9RBMOCcH2h36Pa3eLdnrl6Lr7QVTrk2MGx7+S3FCayk70
+         7WjWbLHkvBIBmS3ANQEjxQ2lu1mdA9B2+n0F4vfWLs6YZOazhKD/MPiQ4MUNEOD9kKjx
+         I/yYl6a8IBCaUqWOQihMxMlJj1mIUnyKMBuG5FrT02+OY5eULftm7IRmrfPUxNpOQh8+
+         QCfy1WorYWqAWla7SuKWP03Yl4waWffqS74izShxCKyJ7RLumPEMa74/CcIGYwpkdAJ6
+         vy1jLgELsrW6LDIHjuYqyLS1nPRXPGoOZz4yXDFq7GtzTPjVvxybRA9i8qKf8IIQiKDa
+         Yy3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793818380; x=1794423180;
+        d=1e100.net; s=20260707; t=1793818438; x=1794423238;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=OmaFlDn2sHp0SZU86PB8+jcQio5Xj+DXOedzLAfLnHo=;
-        b=yOI14iHcGLatxeFz1tYDsZwjSDrA9kXTJfnrcCwXOfSPS6u2nlY6K8IMMFeKpzc2eu
-         7gs4nUq6vBXQnLGnIB+wi/Keo+ZzfX5eekSsfyKQPN5UuQmQTRrFPuUJYi+esdglnd5n
-         EMgKvn3gvqJw4K+5JnhgSprmDGB1J2erIWAit0hoy9PYMjyVMCf4fu4owyy0QPKRrRov
-         c68eOGACobYtiZk9uHQgtuym/t0i5DXPsTVL14n6B86BUo2FQw13Ga2x/80wNHYPnE0V
-         SIfPEgkZt6Y5rGGkSMNRPhTdCt8BJNjNgwgyFeaaMhdsKBjBcx3Q6arG5zgg3bduf54y
-         RcIg==
-X-Forwarded-Encrypted: i=1; AKwUvBz1i0lbbOtLEZddzzRDxi/1J3cAH4ZbQJtWb4JjO9W9dEBOibtsvtd4eaG4QgXoFDrRwl+aYyOthbm0IAKk@vger.kernel.org
-X-Gm-Message-State: APuU4Z+aFLq4ElUsqK49lm1ElExlGVpQdqKUqNMvYhn6/QQUJK/WQG46
-	fp08mFZtvo1aiZRp5ZCqP8QpPGSEkfQnKbUzOtkNK1vdzHVcXAJcPSTtjB8d/kXC
-X-Gm-Gg: AYBFou23ZTUYMDehHjmUvBB9lhNZXQRQC/MurwgO8r+6wyWbTJlY39z3sVw3WGN8FgF
-	LAgM3l+2uFfItugPa3656375QuOI8EKNdDJ8AO4WGAG0z+rS7Y4JigRWseq60mx1z/x0ePbuxP6
-	G/Jj2avUE8VSbu0egbJd5vx6RJmZyKaqoNLicGOCJv6FX7f7KH4ep/7sLFvCE3O++QS3WluD4cC
-	CsOlktLMU1Tm17bBapxp6qMQBjnXXwCewssQXRGYVq00/LaVy/oB3tfc1ZmtgcW5/29V63GudoU
-	d4YfoKC2k10GBhCkH2I36WGt+pIEN5XgMHjddxOYXaeOO7kah2Y92huCs5E/6R+hu2iLmH+0YG/
-	ZXmjCFc3YF9l8negML5rGy4FVlQfN0533SRCMCtVAirr7RDobb9ACSM0MA4NJJNZBIsKe2J4E0m
-	h/NL2qXCOb6rsftRrrcc8rx8L9dchfDJwOl2xsPQqlCZZQ6TSCejEDQIkHi0azXLXfEkcsipssX
-	Wwv7OODJOTte/dupDrNHiwRtAT0ogWVQoyyga6HW8tSeOOB5i9/uZoSRfA0+6lgkPt0NCFBCnhH
-	XHsst/jQ5rYMQl8x/XGkNLFWz2o0hk/uOno/axs1YbZzjMR5iEn9gazO6r3ApoSWVMtXgZVExwK
-	OpBcLfeL4L3U=
-X-Received: by 2002:a05:6000:1887:b0:48e:d36:77 with SMTP id ffacd0b85a97d-48e6e2bc062mr43452882f8f.4.1793818380008;
-        Wed, 04 Nov 2026 10:53:00 -0800 (PST)
+        bh=G5wbYNiPhAHIb+26anH3v3vEHstJg4FjlaenE/QZAko=;
+        b=y/ZwOekltWbNaaBj0NnmwqoQfU1PGqVSylo6NePV5JhKRQlfNSxZzeXBQue6VHFe/w
+         kvt9uUkeiV1+QTsCPcrfxW9Mlymeu/X2meEFUmxJ2Hm0p+LYWeGO8QLf/3TPxMeIXIZ3
+         W4A6EMVFVEzR+dTbxRNcuZUt8ewQUSzevhx0HjgZhC4Q4QVpw8hCKW0ROcgWY+4Do19y
+         w4BJI8fDigcU+hODPqt+wzYOrX+Qrq/rt4CqKAJVOTFTXABO/aj4l5oUQUWJyr003h+o
+         ggEj8V5BbPMVrsqbuivZncIacUF57oHKHP/HoOeJZQ0a7ncCwPNImHOCfpa2g01BC0wi
+         AcWw==
+X-Forwarded-Encrypted: i=1; AKwUvBzigMasYqM/V2yM31mwcuJopyYyVNNHTqhulocYZZ7anZgqdrgNn+HJxHiGYPNac5iUthi/WTUc1Gs994uA@vger.kernel.org
+X-Gm-Message-State: APuU4Z+2b3mfTsUkdrHVN+QmqDJnJA+2Ybph4cksM0JHcPPfN/pE3YYa
+	HPNdlsiRLWo1EZ7ivQD9m5BgfrhSXBoV9QyWuJqoxUaZ8YeJw6elDT5GiBNTqSLJ
+X-Gm-Gg: AYBFou01VjIp1s3MyGSYrNc+GJdAHcyYhZINMB8C0YLJD434RVR6IQKbST/885bwYp0
+	GhphzUm3rXfefnpFm9NgC2pX5lfbJNUOa4O9eGwNVpGBH9VZctJP2NcX10tVbhJTeA1vySo/r4n
+	uuX9dUr+anRfYBJAn6IOk7o8DIf4fHFz35T25BZZAllfXUtHmRvb2/0lPWHHfWetm3sfW4Js6SE
+	zFriKRhx2dMXl5SnwLx5T35H+mI8jQXVBAV8U/Fldyvzvg5X4oMp5Rasl6VybyDlBOU/90IkGmh
+	2DH2zj0wAUm64ycd6SOh3ZjXaTnxsJ/VW3btVk+TXbpgPrayZXwP7BNLh2rjnJ3C3UyigucdUOP
+	lgNYMFo/jE4pAhIoIHZpss6+UmAS7uqmYxT8jF2BUEH10TVlXuHecRbn+Uu8J6Gfb5/h+KKfelP
+	i+0yP+spHAg/0bWdLYRkgncjtaHelrFm8nxSWRBzAdvHQs49x7p4IWB6enepeh2/4EKtclXQSPo
+	ozzYML8Ts6puRNBO1HiFisxIhRIvAKIfnt5LIvPwdbhKv6k3zRSXxmJ7JvYuT0j2zkRBujJzUJ5
+	wTgg2QrNeBEGEx6SbzR+6F5+O5pVYfW3QSmG8CBFV6JfO3SILR4HI51R4N+WkZWCWsm2MCFOmIH
+	rhlqas13B4Cs=
+X-Received: by 2002:a05:600c:8b04:b0:4a1:fb01:13 with SMTP id 5b1f17b1804b1-4ac17a3683bmr388138315e9.18.1793818437576;
+        Wed, 04 Nov 2026 10:53:57 -0800 (PST)
 Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fece99d67sm5366943f8f.24.2026.11.04.10.52.59
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b57317cb8esm3727555e9.13.2026.11.04.10.53.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 10:52:59 -0800 (PST)
+        Wed, 04 Nov 2026 10:53:57 -0800 (PST)
 From: Amir Goldstein <amir73il@gmail.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	stable@vger.kernel.org,
 	linux-unionfs@vger.kernel.org,
-	Disha Goel <disgoel@linux.ibm.com>,
-	"Christian Brauner (Amutable)" <brauner@kernel.org>
-Subject: [PATCH 6.18] ovl: fix mount setup failing when override_creds drops CAP_SYS_ADMIN
-Date: Wed,  4 Nov 2026 19:52:58 +0100
-Message-ID: <20261104185258.3630916-1-amir73il@gmail.com>
+	Fahad Alharbi <fahad@codepure.com>
+Subject: [PATCH 6.1 1/3] ovl: fortify ovl_copy_xattr() against underlying layer modifications
+Date: Wed,  4 Nov 2026 19:53:55 +0100
+Message-ID: <20261104185356.3631002-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.55.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -100,77 +99,162 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit 333ad304d4794d6384087ea7fc16e58ab642809b upstream.
+commit e6b9117076fb4c0ff4a670efa9c876d9a50d79ab upstream.
 
-When a process drops CAP_SYS_ADMIN and calls fsconfig(FSCONFIG_SET_FLAG,
-"override_creds"), overlayfs saves those restricted credentials in
-ofs->creator_cred. ovl_fill_super() then wraps the entire mount setup in
-with_ovl_creds(), switching to those restricted credentials for the
-duration.
+Adapt ovl_getxattr_value() to be used from ovl_copy_xattr(), by
+allowing to pass it a pre-allocated buffer, which can be resized
+and by handling the ENODATA/EOPNOTSUPP return codes in the caller.
 
-Mount setup calls clone_private_mount(), which checks CAP_SYS_ADMIN
-against current credentials. With restricted credentials active, this
-check fails with -EPERM even though the task issuing
-FSCONFIG_CMD_CREATE is fully privileged.
+This replaces the retry loop in ovl_copy_xattr() with a single retry
+after resizing the buffer. If the value changed again by then, the
+underlying layer was modified, so return -EIO instead of retrying.
 
-Use the mounter's real credentials only for cloning the private layer
-mounts. Keep all other backing filesystem operations during mount setup
-under the stashed credentials.
+As a side effect, ovl_copy_up_meta_inode_data() now returns -EIO instead
+of -ERANGE in this case of underlying xattr size changes.
 
-Reported-by: Disha Goel <disgoel@linux.ibm.com>
-Closes: https://lore.kernel.org/linux-unionfs/20260924112858.51392-1-disgoel@linux.ibm.com
-Fixes: c28f922c9dcee ("clone_private_mnt(): make sure that caller has CAP_SYS_ADMIN in the right userns")
+Reported-by: Fahad Alharbi <fahad@codepure.com>
+Tested-by: Fahad Alharbi <fahad@codepure.com>
+Suggested-by: Miklos Szeredi <miklos@szeredi.hu>
+Link: https://lore.kernel.org/linux-fsdevel/CAJfpegsVoUyqy0dYkTvBGRZvgdv_nmzmCw_uF+LP-Vq3EhEkSg@mail.gmail.com/
+Fixes: e4ad29fa0d22 ("ovl: use a minimal buffer in ovl_copy_xattr")
 Cc: stable@vger.kernel.org
-Reviewed-by: Christian Brauner (Amutable) <brauner@kernel.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[backport: 6.18 has no scoped_with_creds(), use scoped_class(override_creds)]
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+[ backport: context: ovl_must_copy_xattr() instead of ovl_copy_acl(), no
+  blank line before the retry: label and no OVL_VERIFIED_DIGEST;
+  depends on 755b5c5c9277 ("ovl: do not copy up an xattr value that was
+  never read") ]
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -498,6 +498,20 @@ static int ovl_report_in_use(struct ovl_
- 	}
+ fs/overlayfs/copy_up.c | 68 ++++++++++++++++++++----------------------
+ 1 file changed, 32 insertions(+), 36 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -44,6 +44,9 @@ static bool ovl_must_copy_xattr(const char *name)
+ 	       !strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN);
  }
  
-+/*
-+ * clone_private_mount() checks CAP_SYS_ADMIN in current->cred.
-+ * ovl_fill_super() runs under the stashed creator cred, which
-+ * override_creds may have dropped.
-+ * The task that issued FSCONFIG_CMD_CREATE is still current->real_cred, so
-+ * use that only for the clone. creator_cred stays in effect for every other
-+ * backing-fs operation.
-+ */
-+static struct vfsmount *ovl_clone_private_mount(const struct path *path)
-+{
-+	scoped_class(override_creds, cred, current_real_cred())
-+		return clone_private_mount(path);
-+}
++static ssize_t ovl_getxattr_value(const struct path *path, char *name,
++				  char **value, ssize_t *value_size);
 +
- static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 			 struct ovl_layer *upper_layer,
- 			 const struct path *upperpath)
-@@ -521,7 +535,7 @@ static int ovl_get_upper(struct super_bl
- 	if (err)
- 		goto out;
- 
--	upper_mnt = clone_private_mount(upperpath);
-+	upper_mnt = ovl_clone_private_mount(upperpath);
- 	err = PTR_ERR(upper_mnt);
- 	if (IS_ERR(upper_mnt)) {
- 		pr_err("failed to clone upperpath\n");
-@@ -1094,7 +1108,7 @@ static int ovl_get_layers(struct super_b
- 			}
+ int ovl_copy_xattr(struct super_block *sb, const struct path *oldpath, struct dentry *new)
+ {
+ 	struct dentry *old = oldpath->dentry;
+@@ -93,34 +96,12 @@ int ovl_copy_xattr(struct super_block *sb, const struct path *oldpath, struct de
+ 			error = 0;
+ 			continue; /* Discard */
+ 		}
+-retry:
+-		size = ovl_do_getxattr(oldpath, name, value, value_size);
+-		if (size == -ERANGE) {
+-			size = ovl_do_getxattr(oldpath, name, NULL, 0);
+-			/* Nothing was read into value, so it must not be used */
+-			if (size >= 0 && size <= value_size)
+-				size = -EIO;
+-		}
+-
++		size = ovl_getxattr_value(oldpath, name, &value, &value_size);
+ 		if (size < 0) {
+ 			error = size;
+ 			break;
  		}
  
--		mnt = clone_private_mount(&l->path);
-+		mnt = ovl_clone_private_mount(&l->path);
- 		err = PTR_ERR(mnt);
- 		if (IS_ERR(mnt)) {
- 			pr_err("failed to clone lowerpath\n");
+-		if (size > value_size) {
+-			void *new;
+-
+-			new = kvmalloc(size, GFP_KERNEL);
+-			if (!new) {
+-				error = -ENOMEM;
+-				break;
+-			}
+-			kvfree(value);
+-			value = new;
+-			value_size = size;
+-			goto retry;
+-		}
+-
+ 		error = ovl_do_setxattr(OVL_FS(sb), new, name, value, size, 0);
+ 		if (error) {
+ 			if (error != -EOPNOTSUPP || ovl_must_copy_xattr(name))
+@@ -896,26 +877,39 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+ 	return true;
+ }
+ 
+-static ssize_t ovl_getxattr_value(const struct path *path, char *name, char **value)
++static ssize_t ovl_getxattr_value(const struct path *path, char *name,
++				  char **value, ssize_t *value_size)
+ {
+ 	ssize_t res;
+ 	char *buf;
+ 
+-	res = ovl_do_getxattr(path, name, NULL, 0);
+-	if (res == -ENODATA || res == -EOPNOTSUPP)
+-		res = 0;
++	res = ovl_do_getxattr(path, name, *value, *value_size);
++	if (res == -ERANGE) {
++		res = ovl_do_getxattr(path, name, NULL, 0);
++		/* Xattr changed underneath us? */
++		if (res >= 0 && res <= *value_size)
++			return -EIO;
++	}
+ 
+-	if (res > 0) {
+-		buf = kzalloc(res, GFP_KERNEL);
++	if (res > *value_size) {
++		buf = kvmalloc(res, GFP_KERNEL);
+ 		if (!buf)
+ 			return -ENOMEM;
+ 
+ 		res = ovl_do_getxattr(path, name, buf, res);
+-		if (res < 0)
+-			kfree(buf);
+-		else
+-			*value = buf;
++		if (res < 0) {
++			kvfree(buf);
++			/* Xattr changed underneath us? */
++			if (res == -ERANGE)
++				return -EIO;
++			return res;
++		}
++
++		kvfree(*value);
++		*value = buf;
++		*value_size = res;
+ 	}
++
+ 	return res;
+ }
+ 
+@@ -926,7 +920,7 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+ 	struct path upperpath;
+ 	int err;
+ 	char *capability = NULL;
+-	ssize_t cap_size;
++	ssize_t cap_size = 0;
+ 
+ 	ovl_path_upper(c->dentry, &upperpath);
+ 	if (WARN_ON(upperpath.dentry == NULL))
+@@ -934,7 +928,9 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+ 
+ 	if (c->stat.size) {
+ 		err = cap_size = ovl_getxattr_value(&upperpath, XATTR_NAME_CAPS,
+-						    &capability);
++						    &capability, &cap_size);
++		if (cap_size == -ENODATA || cap_size == -EOPNOTSUPP)
++			cap_size = 0;
+ 		if (cap_size < 0)
+ 			goto out;
+ 	}
+@@ -961,7 +957,7 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+ 
+ 	ovl_set_upperdata(d_inode(c->dentry));
+ out_free:
+-	kfree(capability);
++	kvfree(capability);
+ out:
+ 	return err;
+ }
 -- 
 backport
-
