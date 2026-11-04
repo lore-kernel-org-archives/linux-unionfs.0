@@ -1,100 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793740770;
-	b=K0ncaIH+iCLWlxHjQtapUXwE5Zoi/C6/pGRa43WiZdikFIJ81TE0ZYjkhXP/vPyeZ5AR
-	 Aqo89bMlwtcFfLJRkQZGa3LUfzx/38UCj2ejaP7fVApycUPaHZnyuIFu83ymVux+FgFRx
-	 dRAp2qdGwQbjj2ieFfXnGt4IvuAemlamqs7y1JbXSEZRbhleaMKsdwA8rQ1uSKGBiNO7z
-	 4/c0m3j6lGekJIOtd1F3I5NpZDB+cymejLOOUoR/c4R2WeoufSwtkGypluaTHUuWkl6XS
-	 dAeRb2KdMMN9nQOV/tftOYOoI2fJEGTs/uZNNPyBELyJoqNPE80/jE2hHPVoandwxLg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793740770;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.44
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793780491;
+	b=YVA1dprxscvFBuIVQCCMXLM3u3VFG96UJxZz8YpvHlLl4OlFp7Eq77Dz//drzMnKOoxV
+	 T1npUj5xF3hceR/QG/iKZswzMXEEVSRe07R6LJiWghmCVGExSFpxDI1ec9y0lF/y7ZKxq
+	 L8mxZK1yXtoXgwPR84g8dao9QjUEUiT53RNvxr/C1Ys0qRrfWQnVIY8Ho77uu8xuePLvO
+	 kyDKohbUfyO9JlDenKqeJm5BGa77OSH7zf5T4gU/Wp5t2eAL6Q6ZC5ykEqYYWKcFcY8Ne
+	 yHXouvr0X0v7o0JVeKD/hf588QdeNBxatsherGNe2iwzBbMsTcV1lZjneatXQwKT1uw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793780491;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=E5djs837Oc0mgny3OGd4HuTw/22BWE5GoWMv7ehHmb0=;
-	b=KbWsiUoLK2ROMfYyukjRbBihn41pk+agF999WwuVg9sQEhPaMwKXy499YLYMZPU8Ubc0
-	 FWDtbCyPS9PM/7z0lxu5TGYKSLb24oneaDGlTTCOD70lrlpbR8C5jsaKtio3gbnLkOvqZ
-	 o1i7zn+IJXDsMD0yA3QlguhR0ne73ClwpPLTEcb1EjlWW7bKohVzlVdIaONxA/8Esrs3R
-	 JVWprgvuE1KiimC7tICigGtWFnXhUPqpCJpVDoQrYKK2l88rL2nWNaIElN2K0b/omyuhO
-	 /EvT+u5bcqhRRuREr5BBJMZ6Oi3O9gO+pR440Yx6dwKLfdU/WLpODCukfRM8d1OB7Hg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=2L8Phg4vAm8z6UFJHLXifD8svd0Kk4bbcZZ25kyGs7M=;
+	b=RwJ5q4P9nVKT8Z6QAFz1CNZ9cItBcFGuN7iacAjj0NFvSgXdMecXmAkcuDX87Tz08iQ/
+	 rZiHRFxD6cpgjmdQEx9sgrbVJPG/vQNbEf451fAOtB4b6PzJKpi9KoMQFKSGS/nLWP/mJ
+	 U7O4tQWPlomuMzHSOjdOYdweBqxB/rHUl5XEg1IDzi9z7JJo0eRkk7UTu82lSJiktDQiW
+	 MqTUgS2bhPtEu60Um45mme/TqxqRMqJMEUQSEi8lN/h0GznmeRns+0Rbfg5y1uANQF59N
+	 P5s318N08Tz58dty2MoBhFl7HeULT2STsLt9XSIPRlicAWWL3vk1HjIrW1tMGqRZoqw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BYxaItvH;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=d8lWT74G;
+	arc=none smtp.remote-ip=209.85.221.44
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85EA1606A324
-	for <linux-unionfs@vger.kernel.org>; Tue,  3 Nov 2026 21:19:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 85EA1606A324
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 578FF606A31B
+	for <linux-unionfs@vger.kernel.org>; Wed,  4 Nov 2026 08:21:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 578FF606A31B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BYxaItvH
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6acb9c018ffso1846573a12.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 03 Nov 2026 13:19:30 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793740769; cv=none;
-        d=google.com; s=arc-20260327;
-        b=kdOz9OaxrFCz1+Gz7BIG+3IaoTZBPIR82+BNbq+FdaPkr5yV6EqXJOvHVliVvR18BD
-         KXr3oDo8sL31eP6IvNaxjI+e5DS3wQmgj9sV2wyQEn7UwI7WTTOAhsLAQ4IJki+LmJF5
-         FLa3xRIa5fPPfi5Kdxx0+GGy7lF7u/l7QT5r3VxMhdp/ZMs2U5Gg0D+kFP/OzMC8J6z1
-         UIW/oHGE4Bg89j7OzZvtmOPSxjW+3dEgbjFLsbpW19fueflDjP3SF43GJOSYyEieSTmU
-         N8C1mwbplhE63S/UEd6ilkTk5JOEeUVUUe1GcO8CbP4tsy4xWvC6RqORJtxGvkyP7RI2
-         +i8w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=E5djs837Oc0mgny3OGd4HuTw/22BWE5GoWMv7ehHmb0=;
-        fh=jOTLZ5n0lxpCoOx8eLZxI6bVm+RdvGYsfjLxKXXBapk=;
-        b=FA1+cfYzSdOQBi9DuPQDaQOQD4xzPPl9wjyBkYL0b1tnKA/BjXtk0PEMAZIR3ZOX2S
-         3jA98dgDDTKzmIQkinLvAn4/4pd24v4mAdbc541liekYAZESUPrJJm1yL/mKAN0R6W9q
-         UfUNSug+DjX/4600k1uinVGfpSz9nEY5dGpsNG1yCUwbj1jNQDsDRaiXFB5+a3WifIva
-         bqcPROvntBww5SCv+Gue+m5MHb9Xr41GtfKhr4N4NNj5r1xvEnLQlFEntMJMIRaqV7cH
-         4tkIvO/iH13G/cm/XSEeSj6PJqjcykS7eQx/9C3yYhWehGMz9we8zKkSZYLgUe/GGIj7
-         XLxw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=d8lWT74G
+Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-48e0d885929so304555f8f.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 04 Nov 2026 00:21:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793740769; x=1794345569; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=E5djs837Oc0mgny3OGd4HuTw/22BWE5GoWMv7ehHmb0=;
-        b=BYxaItvHI1gZItrW86V+E4vAwKZEiV3Jru97UJtiI4qR5NfUaldAMAoMNUpyl9x173
-         F/5KhA9CmA0FEys3/Ton+U3I9Nhhm1REyRvR/CPLUyBs3EmMHj3Fu9M5MrMu2KNW76kU
-         s0d1grVHKHvqBrCwKSaR9976nLpJRnfNLNeMroF8QIRmdIux/v3iZja/lgLcQtI6w9VD
-         GQvyTBDtM6P8vqOjLXEpj1EuZV4PSdBe6i+Wulb4OkRdwH/oAcDEKEcJ/pxOwPf6yIJO
-         /awfigc03vNy39OxYWjcazcLCEruRJjEhV/rV2B4JCUIexFY+PZDtp+TxUwOdmX0s5o7
-         WCoA==
+        d=gmail.com; s=20260707; t=1793780490; x=1794385290; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=2L8Phg4vAm8z6UFJHLXifD8svd0Kk4bbcZZ25kyGs7M=;
+        b=d8lWT74G+yXWFlqGK8Bo4Tdcnvx0gGeCOXNOZ9hvAcn9Mnk6EPmrQ2cIwxDsCNRczn
+         B8MmhbTG1GF8PnLdup/yJuHZA+v673ZG7cqmCYKELm34vpU7ONvPW/4n9hfSl8n8C9Fx
+         24l1fernS6sYW8RQKkQiuEwgOWPgW4dwSkJsp2Xa61RvxLVVrO79WG0irFpzRmXVhAnP
+         BYYO+Xmx8yrSRqVMr0LBFCISWGGUmUb7RTfWAXv8gyV9592UIQHQPjFiAVvz9grh37U2
+         hokKw3BIWzPcJNNRWESawKpKIKF5nE6j2hzCQ6Kv4TG97G36A/ELCdjQw31mBQ6eRK2p
+         zkAg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793740769; x=1794345569;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=E5djs837Oc0mgny3OGd4HuTw/22BWE5GoWMv7ehHmb0=;
-        b=dupHBe0I4dXA3HOqmDRX4uQiiIEN7FM9paQp83MZtFcJMGa2H1rB+lGAA6jqqR1wfp
-         oQGFtAvQj4uRDCqM4ukphdE0DJPgTGu5Rh/o28U1UaQ+Svel5xgAkeCGRKXwo7qm9Whk
-         DcSpZ8O44iRHMtiY6DKmNKzNANy+bi0doWujanQZaHaVGl1Oabrl5xVRXR+olti+LBcS
-         +J6H6jRo/Nrk+vJnmcKm81qMrCDc1NvZKw3vG1FWDV92F840IJdxONsNhp9ZBfPwKZSl
-         HN8SyoMhqSTgAZRAusSqaoiuQRaV/l55bTFN6R1FUwipbg1D8jEPSaRE8HLrpn81Rw8c
-         LK6w==
-X-Forwarded-Encrypted: i=1; AKwUvBzkemGkyapQv6PtG72RwbW6UevkgS7m/LCredc3zX7Y26Een0nbPWheE/CWXPqXLZsNk+oUfl6zwL+D7uMf@vger.kernel.org
-X-Gm-Message-State: APuU4Z/XG/WaC5iJ9NNmCCHMgGduwcaJ2ww7bfzWFV7dUCAUWlDvfiSy
-	TIP9Pw4Bd5i3EjM/1uCqRuMnXAZJjWJg9N+fejoVBOptDGmgvt7vKgkF1QBKw+xs/LTF3KbEIn6
-	EmENUg0zXIiqevUmzE3dvchfToIRsVp0=
-X-Gm-Gg: AYBFou3x3hIKmGg+K7G2K7FUr62FYsi2bUb/gcpdKPIC33l7NN+NeeGseX1bqSD+QBC
-	QFMyVD/PEfLaceP9hIOhz4rDa8KgQn/IUKkNY4JpoE6q5Tv3etqOJlwxdrNcKaLejwVMWfGrEEB
-	fYB3RjW2oOg1Rk0RiEAMJKaX40vzL1OV1R2U1y7pXyKnUQt+fezI87eF31CVYsnmKBE5nmNv40u
-	5anSKKO7jHMiwT9U/pCaIDaFaK9GnKH+Y960X1a0h1exZNTfCUDk1pM0+w8TUDosEGvOFC0McTg
-	+PsIKMfhRefQ/m/+fAaf6mmpQYJQMzAwfBD2mRLAE3lttaGweJ8hlHUPdM33pCYI8SjKKrg0ZkJ
-	ldPW/+2qmzngHFrHRcxQZnJTTSeoenjbBvM6FvtfAeOnUBNVrDbO5jC6Q8sN6m8qL69dHGw==
-X-Received: by 2002:a05:6402:a6c1:20b0:6b4:1eed:b9f2 with SMTP id
- 4fb4d7f45d1cf-6b4d5255a99mr6904980a12.10.1793740768783; Tue, 03 Nov 2026
- 13:19:28 -0800 (PST)
+        d=1e100.net; s=20260707; t=1793780490; x=1794385290;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=2L8Phg4vAm8z6UFJHLXifD8svd0Kk4bbcZZ25kyGs7M=;
+        b=z0+RZTduk7zI4Um/S7+gq9LI64XKgwnWXwIt+Tk86mKOOokwy6CROy58vfMsyLPKVb
+         0PfWgpwGXJ1Pb10QUrhrIMPnjTqdzS3aQ14Al06rBxXQwBoszl20zir5osSilxYaW/Eu
+         YnuW2g3DkdhRM/CxY5mwIaMJNiWcD8NYBW/qOgriwcJDO/Cq4WGAC4IN87fJCBmtxl3t
+         wULVFk7HKw9htWCLkaEfyMn73zpzoeLU3d70LAequku9PklJgINLu2ULXZ/5Yz67Geed
+         JVmmlHgo4tdLQZWWHEnC/zOco4zZg+WZHAfck66+6q37zhYQ/Xxskrglr+NFKWYWkEzd
+         +BYA==
+X-Forwarded-Encrypted: i=1; AKwUvBw2ZOh+WVgMlyf2FdbydV2Tnti92IU+vw2HurB559hLhWxIYdliZRvUQqvf3ihQLmWwrz+qONuSeul8vqSS@vger.kernel.org
+X-Gm-Message-State: APuU4Z+pycr8MlTo9ZlUW6rCJrQEDDkRFjQ/L70x8Z7xUouyNEF7brdG
+	JlT0Y87ZRYZ7ASkzvQz4ct5NRT/Ufu+OdM9swd3xBk+aCNMOPssnfZk1SJyyzsOD
+X-Gm-Gg: AYBFou1OIX0ioTKi8I+3XZ1NSVQ/s33pFYbWYeptGPnezMw9AvHEPePDGRroH1euDBA
+	xOHDE+Uiq2gj/VM8W8xMw1S6kXTY9iifTa6qr5X3ZQZmg9ldzLWXTjbXKQGSmIpDsj572IwClKl
+	edt0VrEP8zslXGMZxjJ+MsiXBScFNTTK4c4zqhp8wGmOdhjNqjiHDDjtkUhTUtNuEArETvQTm9P
+	H7NSgJZsg8ORsWsh40hxe3SlZ1Guz+W2/XQ/rQixrwAlgznKHdnqp9BBC2vnvsUbGHW4LUJwtys
+	HKVvUxcgH4OPbbt6exv2h1XpCHRqf79/hu9aDE48qZijqBI52wgrX+QkHqp9ox0aeR2fL5B3HX0
+	XS5FQgvOerMZgBcBnXv3PMOMoxqTI2VvN2wZxIvZTR7gC0gxKqWG2FSZwS2qzuBHVHy0Fp6Fam4
+	/19SHE3itBOYUbBZKntaHJY/PDCDzPUXTIV4CFPxGvrU6avz3m7zVtC6oFifmvKvknFqdCtWfgJ
+	sG2RarDX7MbuNpJaviMgyIxp6BLG2gkjnWl1FLy16nFjWOQ6V2iiR860NnrecPj0Erp2L8at4kV
+	lIJfZpTwCZnFVM0QjMYLdkfII+HHwHrJhRNa+FOF3/rgCFVQRgWisux03nOYYojl67zI9/0zfQ3
+	YtchTvDoElKw=
+X-Received: by 2002:a05:600c:4f0f:b0:4b3:ad9d:e21 with SMTP id 5b1f17b1804b1-4b3ad9d0e48mr67987735e9.12.1793780489447;
+        Wed, 04 Nov 2026 00:21:29 -0800 (PST)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b43cff3fcdsm35490905e9.11.2026.11.04.00.21.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 00:21:28 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Paul Moore <paul@paul-moore.com>
+Cc: Christian Brauner <brauner@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Chris Mason <mason@kernel.org>,
+	Josef Bacik <josef@toxicpanda.com>,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] lsm: put the copy up creds when an LSM hook fails
+Date: Wed,  4 Nov 2026 09:21:28 +0100
+Message-ID: <20261104082128.3573690-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.55.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -104,37 +100,82 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261031095716.3030288-1-amir73il@gmail.com> <CAHk-=wiPhTLn1p0ZHx-7SMdk4_zazqDK1k7MMEn9scRfqeDgtw@mail.gmail.com>
- <CAOQ4uxjNrdxZdZZipsqnUNq+TswCKqp+30iKRKCqh2WOQ-zKGA@mail.gmail.com>
- <CAHk-=wiimdwWu0EVQdxGVjbVWdzNKGg0f6vZ1aR-GXxDvQa-Eg@mail.gmail.com> <CAHk-=wjz+Tg3iq_6uBqxm+egP_aRhodcz2Qu3pQaR8SQcvPt0A@mail.gmail.com>
-In-Reply-To: <CAHk-=wjz+Tg3iq_6uBqxm+egP_aRhodcz2Qu3pQaR8SQcvPt0A@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 3 Nov 2026 22:19:16 +0100
-X-Gm-Features: AclHuK9tonoGwvOBReDPDncd9ly3rSzJs7SEyhXaRkacdqBh5Cb5BYpyjNlp-9w
-Message-ID: <CAOQ4uxjL9a6c=8u=eqrtkU=K1Es5ZdekAb-v16xNeD0-87Sr4g@mail.gmail.com>
-Subject: Re: Return failure from take_dentry_name_snapshot() (Was: [GIT PULL]
- overlayfs fixes for 7.3)
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
-	linux-kernel <linux-kernel@vger.kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, 
-	Al Viro <viro@zeniv.linux.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 3, 2026 at 5:32=E2=80=AFPM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> On Sun, 1 Nov 2026 at 09:16, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > I'd like to see an ack from Al / Christian, but
-> > I think I'll also rewrite that function to use guards.
->
-> I didn't get any acks, but I obviously did do the guard rewrite (and
-> then some: I got a bit OCD about it).
->
-> I've committed the end result.
+From: Chris Mason <mason@kernel.org>
 
-Thanks for cleaning it up.
+security_inode_copy_up() leaks a struct cred when one LSM allocates new
+creds for an overlayfs copy up and a later LSM then denies the copy up.
+One such pair is SELinux and a BPF LSM program that denies
+inode_copy_up. Enabling both LSMs and loading the program requires
+root. After that, each denied copy up leaks one struct cred, no matter
+which user triggers it.
+
+The hook calls each enabled LSM in turn. SELinux or Smack allocates the
+creds and returns them through a pointer argument of the hook. A later
+LSM can still return an error, and the hook then returns that error with
+the creds still allocated. Its kernel-doc does not say that the caller
+owns them on error, and the only caller, overlayfs, does not put them.
+
+Reproduced with SELinux and such a BPF LSM program: 36000 failed opens
+and chmods by an unprivileged user on an overlayfs mount left 36000
+struct cred objects allocated, which kmemleak reported.
+
+Fix this by putting the creds in security_inode_copy_up() when the hook
+fails, so the caller gets either creds that it owns or none.
+
+Fixes: d8ad8b496184 ("security, overlayfs: provide copy up security hook for unioned files")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chris Mason <mason@kernel.org>
+[amir: put the creds in security_inode_copy_up() instead of in overlayfs]
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Hi Paul,
+
+I think this LSM hook was introduced with confusing contact for chained
+LSMs and this change makes the hook contract more sane in this case.
+
+Thanks,
 Amir.
+
+ security/security.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/security/security.c b/security/security.c
+index f6583d5073959..ad382afbff271 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -2314,18 +2314,26 @@ void security_inode_getlsmprop(struct inode *inode, struct lsm_prop *prop)
+ /**
+  * security_inode_copy_up() - Create new creds for an overlayfs copy-up op
+  * @src: union dentry of copy-up file
+- * @new: newly created creds
++ * @new: newly created creds, must point to NULL on entry
+  *
+  * A file is about to be copied up from lower layer to upper layer of overlay
+  * filesystem. Security module can prepare a set of new creds and modify as
+  * need be and return new creds. Caller will switch to new creds temporarily to
+  * create new file and release newly allocated creds.
+  *
+- * Return: Returns 0 on success or a negative error code on error.
++ * Return: Returns 0 on success or a negative error code on error, in which
++ *         case @new is left pointing to NULL.
+  */
+ int security_inode_copy_up(struct dentry *src, struct cred **new)
+ {
+-	return call_int_hook(inode_copy_up, src, new);
++	int rc = call_int_hook(inode_copy_up, src, new);
++
++	/* An earlier LSM may have prepared creds before a later one failed */
++	if (unlikely(rc < 0) && *new) {
++		put_cred(*new);
++		*new = NULL;
++	}
++	return rc;
+ }
+ EXPORT_SYMBOL(security_inode_copy_up);
+ 
+-- 
+2.55.0
+
