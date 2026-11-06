@@ -1,84 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793938293;
-	b=Hm0PobiUnMNu24X33VwYsXKY+GtjaPMK9kVuHGxFYcgBWVhJKL1ag/FEH2bwbTGnXkvB
-	 uwL9HtEzBvRY3VZwplrl/mHtLgIvhnJUAi5PBh5oYDC5JJSBn6InV+hYeF/xrN0QK/Yry
-	 aDo8a1hBTZhtZBniphLhRst40wDIkmGbVLdVxfmPfHRQIbryrzKCL6VSbo0PFmA3AmP4q
-	 MNvEjOaMhoBCT7mCTgt8AMaHh7Dkmu7cPD7ifpQYp6rHQZRWtFM5x4uDuDDE1K/UnfcPy
-	 bZThnsNOu9NM9GurQhSFmyA9BstP73Xu107drcwocUF86aDkyA8c5XhatvNu/DsWqmg==
+	t=1793938294;
+	b=Y9CHVTz8joo7NUgvHX9vWZECTecEQ6c00XGnzIv7fsMjmjtVMrSxMJqi4cxnNReyEdYa
+	 0qc/bziaZ0WV1O5Ve5JhByzel2sni6fffIww1pq3TTpgsEsVJVoLanwKwbFGgtBk28GpA
+	 t9OELG8v9ccN2457kPpaE8zr1dYUH94/xkEUxdSoFdUPQX0EKc4D82ZWG27IrR9EevaMu
+	 QcYPm8MSD5GFsPIYwBloICgTpcsf2EGzLPfNp619X3gcBkvyJqPMqwkp1xR6ccMm6Cwql
+	 GvGwzVa8CV05zHNNnIPortFO2+fajThvyzXmF/wLkg6jNAKsNeE9/aB6Cj58+rpolMg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793938293;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793938294;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=hRqDyoHEktqTbeAVhFKCkfdyebDYCapo3zaf99hygaE=;
-	b=Gc+kMwpLOTp7CAjic8oes/H0SL5UzsqrKVVwBjB4iE4QoNhYdBCOAMNxtgZKT+HAuRfO
-	 SptiZfcGWFEX7Uh969JZYAUy4fU5U8mEllFWXWid6SKfoUdYGSKjU4iM51nAkEg9Nj3xa
-	 C/Lr/GcAt8C22wl3vJKB0djkkYwH/HoW6xCN7xu+S0Uhjoccok8Nr+teOW3CJSPf6rL+c
-	 WrfTjxa7xIidoCTOmbghckiZgrai4IizkIKKwKrW8q4d7vSx+tOc46/Yupeumbdvxo2BI
-	 KPX+hNDw+JCM/nojefxOyAtf+h/vDPa+c7H4Q/rAv++s3XSLMdJ4eIb+Rt528i49aRg==
+	bh=UXv3DjTO2LLFBsmZPtGA7kNZEfxgdi2hpfVKVbn4VTA=;
+	b=B++FAxSjJM7bOHyHVHy3Oux8neg66o803Tw0OxZbz7P2I5m//LN9TGSFaOJbZTwAPqeC
+	 2sQuTG415GX3Ritrdx9Lgiaz42GiFaQcJ2Ag9YEyemuAblbUvx7BkqYnV5FRWpzRDcNVO
+	 IhCpkkDaTWDa7h9ZqrguRFEXZlhTa9a0xwhgxNgl4xI0K3rYVeP+xWou8Src59jhl7PJs
+	 +mrZ7euX+Jzpx8r2gMFjKlGDLYq2mKkA6040SZuzRvbe6zSs1N+UbtQ11E13r6Iu4KsDk
+	 4uSa15NReH7YouqfxLf6oae7HR6XwU6vel0lA34t2xDiKT+XWoqnmxE4bVW/bTpfTRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OXZuYWwf;
-	arc=none smtp.remote-ip=209.85.218.52
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=U82msg5P;
+	arc=none smtp.remote-ip=209.85.218.53
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A56A3606A326
-	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 04:11:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A56A3606A326
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3200B606A328
+	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 04:11:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3200B606A328
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OXZuYWwf
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-c450ab1483cso31790766b.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Nov 2026 20:11:32 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=U82msg5P
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c4d2b741ed9so28346866b.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 05 Nov 2026 20:11:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793938291; x=1794543091; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1793938292; x=1794543092; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=hRqDyoHEktqTbeAVhFKCkfdyebDYCapo3zaf99hygaE=;
-        b=OXZuYWwfTOPxLnSgIkf0JBcfVXToSswyq5KC98vzDZMOwgX0f9LfRSD4fI2Sm4Stnd
-         B0EZJRNpP/T83pz5PNZWHbbME24F40Q1chxZbhzeC0B0KCwiF5C3LETG5p2e3f+fZGtr
-         YACVZWqX+hqP7zrnIF+Okj0cCSEqH7XFxGKDbduhX8YYHB5JMzR3xiMVnfDWh8nFc4sf
-         zMA13gFh5uOj/ntOAdFkh5HE+ERYPUcBVD6jPMrc89wkWmarZIYehF7P8lDAmBK6OgQn
-         lxV8O6qJdnffGIogXiFy/wmJ/AFzBKDCwpNnlD26yuFAoWayzqU3jDHJ9KhajDL0jKB3
-         ot/w==
+        bh=UXv3DjTO2LLFBsmZPtGA7kNZEfxgdi2hpfVKVbn4VTA=;
+        b=U82msg5Pm2cIK6BCX02AARih2EMsbfY6XvYbPdOLHr0RSCSzrrnErekTZo+k4llKOy
+         bs4BiTkg4KeqCSKW2wSmwU6m0CCpIl4j182oSie3d3JjXqHyt33FskdHkPuhzkn5goHq
+         fms+w8jpyWzEQfDF3nGAITCWR4ixnR0kOUc2bVJX9hk+bcPn0Yxgdh+WOo//Rhe8PWc5
+         u4WZgPZ/7S4fS89QY++6FQd5hpYS3M/Y5OWBmaTI3CN+RYW/vbeKodIev1AZyrVv0ha3
+         V2YcLF7ttNFPtvZ2Ik3+cngYCcip9QYXE5g8Qb8TQbXeW9IOpbqDXdP16nng/yLvf4o+
+         HcFQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793938291; x=1794543091;
+        d=1e100.net; s=20260707; t=1793938292; x=1794543092;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hRqDyoHEktqTbeAVhFKCkfdyebDYCapo3zaf99hygaE=;
-        b=VMEZadlh/xPHxWcs6BIXj6uS4pW/jOBBvuTxfLUBJfJ1iDArOWe660NlNd5q0aXEfK
-         1h4JVOi9BCppsP01tX3f+4XTGGN7tsA4n2UjcetJKAWsT6tj2V0ZNWyUdsDS6yD0oKI5
-         zbrxKbSciYkFcYrrbmI6QQeevahkbohe23vC1LAxT19OxuE6JPAPbqW8sVCM+QARncpT
-         fxNUNUWmFvFiP9hMTcnTPo6LVz0mNwarjYrdW9BreILSxqWF+pc6SxQB32qR5D4wFSje
-         4YRG21PLegnG5Vfz5mYT2DRxs0/gsCFF7rwj7XTSs5WpHTypCpsixE1f9nvuvIKERa8D
-         5ciw==
-X-Forwarded-Encrypted: i=1; AKwUvBxRqd/jUx6iFblyHDF5GE5nIBgL7DGjC5cNajbCz3bQuZ+XsISw/Tma1dvzLDljPXiyyTC7ZwQd8kWxvF/I@vger.kernel.org
-X-Gm-Message-State: APuU4Z8MGwh1GVeffYb4pRBnpY0eFGR1M7W1HUTo+CMDVDM4GRTVU2az
-	u+7myFogBKo1aEjv+lIM5o8ugAlesjqYUBvKjlIbsOrBh8pAg5RjYmYk
-X-Gm-Gg: AYBFou3MbNe7Ovr1JUb4/S0f5h934yjF1GZhbH5CwSioVGVJ+JQk3/JGCctYyI/xKnw
-	Ig+ZQ5OZUKGLpjlO7uXhoiKy0IMxZ4cKVj5OU3OaMXw7Fp0L3sbawYhT4dS6rNsItsF7ueNotf9
-	v/0UC5DioultiQJmIxEXs4B7N+wVC4+6T4nWK7Ar/Li1EvX75Cdbv32T105wSU4GAeFOZibyCJk
-	YT36kMFBKChFqQY+mgtFCUoVbfZFrIRwRsHh0CBEzaPh6/RnRv9jpXsAMefXpSjMAuS3yTm944j
-	FDNYliBhJpYz1ASMfVjEttEGJ5NeI4kTkBK2rxtcQ4/3C4aP9qT6+/e/RUw/lCSWWfpF/SMI5K+
-	A3cKl5YYIrKT5a0dYEOZODa5j8kKELXBXcx7o5h4jexZkr2j/yof+6FC8pCXzQyYYyV4/9jeuj8
-	CQKPS4YSjnBOKz9Wxiq0cYRJEfbvLhVVdGCQ2H0Ln5YvaMaTB8NMcP/iFDmyFuitWrFcZCihm5P
-	rHLEFB0XsqNVHVPUiWrZ2FyJDXOdgB44cV/4vJ7w87CBWKznK9+VEtZoFOGADjgDW82ZQ2Z41+f
-	3I1N5AZz7fN8Sv761fq9/kfyhVxIayRjqtPs8NDVWqrYbYsiQoXWYSMxzAsrlviv/Yi6Uu84MvY
-	yaPXtr8qw+KXbmg==
-X-Received: by 2002:a17:907:c0b:b0:c41:731c:534 with SMTP id a640c23a62f3a-c4d352c83c7mr112719366b.24.1793938290939;
-        Thu, 05 Nov 2026 20:11:30 -0800 (PST)
+        bh=UXv3DjTO2LLFBsmZPtGA7kNZEfxgdi2hpfVKVbn4VTA=;
+        b=ufT+jKCJUcWxKt5sDC4gZHglYtGtWvSv7AxGvQgjvKkDQh1OgauH5QZ0qqnD25mJok
+         JpssZYq1X7ildqOc0SkuS6NRnwSNt8lEy0hxD0enii6AIHOGboBnHHrgf6HHRZiQmfNh
+         RqRG9P/ExVYFsc8QSqZPz+JlhovViB1PTBjSUZgs1Bs9fjPbBe2dehXBMNNauZe8fCdM
+         jWSFRegUDFz+/5FoN1ZURE3Fn6kAdx1dtR08sg7pV5dsI5F+LqB/l+/9Yufmb1al7nCK
+         /9wbTC95kbf6ilnN/MahxoYDeNtqdjIPRZuX9MW94J/WZHOMuFecvpUQ9Qg5HmKcOl+H
+         +qmQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxegs/uuru8WqjbbE6K5jB5hpSKDsQsKrSHRhnh/Iv9yvneHbTydMaqM0RKo01BeNjpAeI3ljLhsB++zLCG@vger.kernel.org
+X-Gm-Message-State: APuU4Z9asuTTJpxL5bSKJnk35T+fruH3DleIQpHfxOQ0igIydNvPDCF3
+	D9zrXuu9xu9RUv3b1IHfsSse2ZbFHiMg7Ct0qPjwPpDk8Dg5yYSb2gGe
+X-Gm-Gg: AYBFou2MJs57avkFQYVJPrRsLBHCoe+i7t0mNK8ZlFAfrp1lbL5PnKsMqbXSesPgnM7
+	81YPbMG65+F7nDBzNTEBpjrwzJcejyKHCF1UX1ocHPyM7mXsMRjNPpTvZC8rd0AUiXM0SvgjpDa
+	pGRPiy/k5ldZa7NnxgSIJJF0RcqB4ERrgfOWtNliywcl7GXYIuGl/IDz9UXyRtQb6bJblvSBpKZ
+	lEP41GAWn7Thsu1z9atiG4dtKv9YbPgTlQy9PvR9pnPRJUG38v9rDqjgk/UmumBMpwNnwQ86mcc
+	hWfXPoSsl3LBQLkFqppl7GKMEn4eHe0NoTXJZeR6A97uVuIQmT7FzwTBBBx8ULFsg+EBsut8I4j
+	WylbdCj0UKQSpEmZpSMcVj1B1qZp6Qj18KE1fRQFI9sxQGa5aXaXSHShsVpFPQfbDC+tnpZUwU+
+	lgomy3oogRglFBR8QpoG17YaHIlEpMThWeSbsdEPWUjbkOpDxNabQNBubN0aZM7N+rffbFhhI/H
+	s2h4j2qUTr9jsA8DE46MV4mZwh6xInyfYKWAae1X+TyzAYoi5JHprgyN2VlXCI04J0Zfvcm/mJ5
+	kP9WkpWKebdD8DKTh+rmUnoBhujZ1IxnEAz+azXtzgJNHPj0NW1RjzLLymMSR6WFZeIePnDhODH
+	K6/1Oy/QCl9/AojD86spGUDgV4KY0GwJy
+X-Received: by 2002:a17:906:9c89:b0:c46:ca3a:10d5 with SMTP id a640c23a62f3a-c4d35429e22mr109924866b.45.1793938292114;
+        Thu, 05 Nov 2026 20:11:32 -0800 (PST)
 Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4d3566f7fdsm43067166b.31.2026.11.05.20.11.30
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4d35673731sm41209566b.44.2026.11.05.20.11.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Nov 2026 20:11:30 -0800 (PST)
+        Thu, 05 Nov 2026 20:11:31 -0800 (PST)
 From: Amir Goldstein <amir73il@gmail.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Sasha Levin <sashal@kernel.org>,
@@ -87,9 +87,9 @@ Cc: Sasha Levin <sashal@kernel.org>,
 	linux-unionfs@vger.kernel.org,
 	Chris Mason <mason@kernel.org>,
 	Josef Bacik <josef@toxicpanda.com>
-Subject: [PATCH 6.1 2/3] ovl: hold a reference on the parent in readdir
-Date: Fri,  6 Nov 2026 05:11:21 +0100
-Message-ID: <20261106041128.3797453-2-amir73il@gmail.com>
+Subject: [PATCH 6.1 3/3] ovl: do not copy up a dentry that was removed
+Date: Fri,  6 Nov 2026 05:11:22 +0100
+Message-ID: <20261106041128.3797453-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261106041128.3797453-1-amir73il@gmail.com>
 References: <20261106041128.3797453-1-amir73il@gmail.com>
@@ -106,112 +106,58 @@ Content-Transfer-Encoding: 8bit
 
 From: Chris Mason <mason@kernel.org>
 
-commit 16d319e12328acafeafd3eecdf09c46d7fb43452 upstream.
+commit f635192ad223d2009ee640b63adf5ce3198aa338 upstream.
 
-Listing a directory on an overlay uses a freed dentry and crashes the
-kernel when a lookup moves the directory at the same time.
+A change to a removed file through an open descriptor replaces whatever
+has its old name in the upper layer.
 
-Code that can sleep may only use d_parent without a reference while
-something stops a move of the dentry. ovl_iterate_real(),
-ovl_need_adjust_d_ino() and ovl_cache_update() use the d_parent of the
-listed directory and hold only the lock of that directory. When a
-lookup finds the directory under another parent after a change to a
-layer, d_splice_alias() moves it without that lock and drops its
-reference on the old parent.
+Copy up must only create a name in the upper directory, never replace
+one. After an unlink, an rmdir or a rename over a lower dentry, a
+dentry that an open file keeps alive still has its old parent and name,
+but in the upper directory that name is now a whiteout or a new object.
+ovl_copy_up_workdir() renames the copy over it, which brings back the
+removed object and destroys whatever took its name.
 
-With a delay in ovl_iterate_real(), getdents64 on an overlay directory
-raced a rename in the lower layer and a lookup that moved its dentry,
-and after an rmdir of the old parent KASAN reported a use-after-free in
-security_inode_getattr().
+An unprivileged user opened a lower FIFO and unlinked it, root created
+a file at that name, and fchmod on the old descriptor replaced the file
+of root with the FIFO.
 
-Fix this by using dget_parent() in the three functions.
+Fix this by looking up the target name of the rename in
+ovl_copy_up_workdir() with LOOKUP_EXCL, so that copy up fails with
+-EEXIST if the name is taken, as copy up with O_TMPFILE already does
+when it links the copy to the name.
 
-Fixes: b5efccbe0a12 ("ovl: constant d_ino across copy up")
+Fixes: e9be9d5e76e3 ("overlay filesystem")
 Cc: stable@vger.kernel.org
 Signed-off-by: Chris Mason <mason@kernel.org>
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-[amir: fix comments in ovl_need_adjust_d_ino()]
+[amir: use LOOKUP_EXCL instead of relying on d_unhashed()]
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-[backport: no ovl_need_adjust_d_ino(), take the parent with dget_parent()
- in ovl_iterate() and test a local flag]
+[backport: no start_renaming_dentry() and LOOKUP_EXCL, fail with -EEXIST if
+ the target of ovl_lookup_upper() is positive]
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/readdir.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ fs/overlayfs/copy_up.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -474,8 +474,8 @@ static int ovl_cache_update(const struct path *path, struct ovl_cache_entry *p,
- 			goto get;
- 		}
- 		if (p->len == 2 && p->name[1] == '.') {
--			/* we shall not be moved */
--			this = dget(dir->d_parent);
-+			/* d_splice_alias() can move even a locked dir */
-+			this = dget_parent(dir);
- 			goto get;
- 		}
- 	}
-@@ -693,6 +693,7 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dir = file->f_path.dentry;
- 	const struct ovl_layer *lower_layer = ovl_layer_lower(dir);
-+	struct dentry *parent;
- 	struct ovl_readdir_translate rdt = {
- 		.ctx.actor = ovl_fill_real,
- 		.orig_ctx = ctx,
-@@ -703,18 +704,26 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 	if (rdt.xinobits && lower_layer)
- 		rdt.fsid = lower_layer->fsid;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -708,7 +708,14 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+ 		goto cleanup;
  
--	if (OVL_TYPE_MERGE(ovl_path_type(dir->d_parent))) {
-+	/*
-+	 * The lock on dir does not stop d_splice_alias() from moving it to
-+	 * another parent, which drops the reference dir holds on this one.
-+	 */
-+	parent = dget_parent(dir);
-+	if (OVL_TYPE_MERGE(ovl_path_type(parent))) {
- 		struct kstat stat;
- 		struct path statpath = file->f_path;
- 
--		statpath.dentry = dir->d_parent;
-+		statpath.dentry = parent;
- 		err = vfs_getattr(&statpath, &stat, STATX_INO, 0);
--		if (err)
-+		if (err) {
-+			dput(parent);
- 			return err;
-+		}
- 
- 		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
- 		rdt.parent_ino = stat.ino;
- 	}
-+	dput(parent);
- 
- 	if (ovl_is_impure_dir(file)) {
- 		rdt.cache = ovl_cache_get_impure(&file->f_path);
-@@ -741,16 +750,19 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 	if (!ctx->pos)
- 		ovl_dir_reset(file);
- 
- 	if (od->is_real) {
-+		struct dentry *parent = dget_parent(dentry);
-+		bool parent_merge = OVL_TYPE_MERGE(ovl_path_type(parent));
++	/* The name may have been taken since lookup, never replace it */
++	err = -EEXIST;
++	if (d_is_positive(upper)) {
++		dput(upper);
++		goto cleanup;
++	}
 +
-+		dput(parent);
- 		/*
- 		 * If parent is merge, then need to adjust d_ino for '..', if
- 		 * dir is impure then need to adjust d_ino for copied up
- 		 * entries.
- 		 */
- 		if (ovl_xino_bits(dentry->d_sb) ||
- 		    (ovl_same_fs(dentry->d_sb) &&
--		     (ovl_is_impure_dir(file) ||
--		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
-+		     (ovl_is_impure_dir(file) || parent_merge))) {
- 			err = ovl_iterate_real(file, ctx);
- 		} else {
- 			err = iterate_dir(od->realfile, ctx);
+ 	err = ovl_do_rename(ofs, wdir, temp, udir, upper, 0);
+ 	dput(upper);
+ 	if (err)
 -- 
 backport
+
