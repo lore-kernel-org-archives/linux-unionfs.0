@@ -1,116 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.12.124.156
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793972310;
-	b=uz8tgyCLgdwRroxVg5dY757qGDmc14Lf9DeJ8BZERgwFHUZPihng59m9E4Hw+lIsUvtq
-	 Kl3PwQal6Wbncscxme+5rgAsxVJ96zmbfWty9DqvQLqVQp9Vg3wtxWlTx879kJmtXfYal
-	 wPmCTECvcuQC/Av4jaR3sWsuJTALzKWmT3z4XZC5k2NNY18oS1yInMRCqD6Gjetid7Gqf
-	 FHgTSCQe1UVe/iH75Xk2+qcrT0IoBL4fS4c8puxghlOAjWNojItCb0RAqSp3da8aTLTW+
-	 1mf4ofGd5+4vpOU1QGsLQ9YSl1DPfApKVH4EKRTOqLA8tTKAP6qZffZszTj5z7kphCw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793972310;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
-	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
-	 X-ME-Sender:X-ME-Received:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:
-	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=MlkRELsEbU/rSkeDdz16dH6fead09d9RayrhAMM7m5k=;
-	b=p5/Srsug7YhZ6fy5oXUn2ovwKJCbD09r2s09sAshoU7r79ZXGYXTDwgLbg0an/pomZdO
-	 ygmKL9vmU3fT6Cq2Al31ALTuxYIU6sz7gkZ/+La+kCurT+eAQK2P8zju4W7nRBbDAF75V
-	 /ihoVdjR+xXFVudpN10LOgEx+Ffb+AHAFXfrG/3IYo/jmj6TsC2psq1qsVvur9s3a8v+z
-	 Y8SqqJVnqD0Tw4kX68iiuaEkwOJYDL05RrGPH9E4/H8Ejs71eX9pc7pO5jRihrn89uiw5
-	 QRBJiJhaP8crvutPqD+lzhhs7oWO6q+2/UWl6vLHqIcdes1DFcKMDIgB8H9swzcyDOQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=scrivano.org;
-	spf=pass smtp.mailfrom=scrivano.org;
-	dkim=pass header.d=scrivano.org header.i=@scrivano.org header.a=rsa-sha256 header.s=fm3 header.b=DlDCLUCu;
-	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=lZPQsP1l;
-	arc=none smtp.remote-ip=202.12.124.156
-Received: from fhigh-b5-smtp.messagingengine.com (fhigh-b5-smtp.messagingengine.com [202.12.124.156])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.218.53
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793976788;
+	b=t79GBs/tLgUEJCgpctMfVIxduu2K11ScdWudeyE7zBdi0eLBnYJSmoKj5tQhQkEOeKUw
+	 QJlJTtERsHnPSK71CcFNwsD5N8425Mru7RRjc4jyz5th4oiVJzgE1A3kpfGcCpRsl3BIr
+	 2cGFFeM1+cKce6NKTpnTUSITa2NywPHvG28T7Yr4U17Cvg1rMZR3xWmAEbnx7iTKWPJzF
+	 PMJzJPkDnrUKKbFwkre9iv2VAf1/IECxbrf2oopZfeImXWScMHjnhj8coCXvPMJOXP39S
+	 Oqsjx0WdKEUM3mXKrHGYpWYp3h1cCvFgSQ8KCCZl54jqwIX7Vf0oCeKDZKIvMaPhlvA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793976788;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=SQCsNflCEfdZeHEEsqBCeoqTAr5oDn7fTb0mHy/Ye6Q=;
+	b=vm+P60T/thmoEPj7jLt4+f01LLOS8uUjZ1lrf9tew18rlWYiWSDBIqXYb+FbQ/5RKZi3
+	 ZzR7YjNUi9RbAyZgHktPYCoDyGahGxDNwFby97eJCOEqaEw1YBakHW/QxXH5RJPuaV1Yt
+	 Dfv1yWBpRXtmi3DbK2+8WuRMDePuUmSu2xoXJMaVDIHSTDShWvOWR6rrjHdzkd4LMeX22
+	 1SgfL44PfmEzrKKI/5zixCGb4h+CZq0P7KumfRQphqyR999IqMYHoe7gaXR2fSXVAdT9L
+	 gt09hvzm/QuoKRN9Y4GQbxyIOpGEow9MTBd/g64Bz6Pi0U2psetEmUweSjpGCa7NLkQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LKEnndkh;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.218.53
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C54F606A326
-	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 13:38:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1C54F606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scrivano.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scrivano.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07562606A326
+	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 14:53:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 07562606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=scrivano.org header.i=@scrivano.org header.a=rsa-sha256 header.s=fm3 header.b=DlDCLUCu;
-	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=lZPQsP1l
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 4A1BF7A011B
-	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 08:38:29 -0500 (EST)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-02.internal (MEProxy); Fri, 06 Nov 2026 08:38:29 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=scrivano.org; h=
-	cc:cc:content-transfer-encoding:content-type:date:date:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to; s=fm3; t=1793972309; x=1794058709; bh=MlkRELsEbU/rSkeDdz16d
-	H6fead09d9RayrhAMM7m5k=; b=DlDCLUCuzS2veduVVTaLXz5SA03N1WdSDPbSX
-	afg8uy/tBoZpYFo7Mka721TRSpAATTiAxrriGWXbvhJw1KibwtRgi5MdaZuDIf/D
-	RC5tyAJihd71hZR31Sq00rXQLhwZgSS1ksrQiiBU7w9UeDEtKJG3dipWxDCPRnUi
-	5P3xrzJyFh/L+7gM6kGboumliD3Y8S9LrkSkZGYyu0Nu0TtJC0M+kkNzqhREsLbr
-	gDZWCd9i870EgpxlWIJ29pjSbMJDHyHb3BmcJ8RYrE1BjoxaE72VCm59UZd+Y1gK
-	wmacc1kc7KwENyqTcCMZcF3vS7QvZ1QYVi58qOM7ib0nlroVw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-	1793972309; x=1794058709; bh=MlkRELsEbU/rSkeDdz16dH6fead09d9Rayr
-	hAMM7m5k=; b=lZPQsP1lR/ItJ4cYB+5rS+IsYd6Gm+Kg37OmYVO7frrEQ7Mp6Zq
-	SKGtPdLXJkZ64u93NsvYlf6bwCOPQjADHbkfP1REOhTrIK4FfMbLro506XMhPpvV
-	o4qnoEFU1yPnl/b/m1XQ7em6JOwXayJqv+ECSFKyE13i8QDLmvJeUlSolg7X8npG
-	FXOvE1uAJRITYJHnJH2W2PVHYbIqbija6hcrnaualqwlc+jeaM0up7Q445vOxidB
-	Ux5w5DX1UUIiL/CJ8CcN0UWoNILp9KcI3AKrEib8EgnXZnEtwxfriZWU4mn27fmN
-	MydfGvfEjWXSAdBqAanzjcu/PzM7xUzivCQ==
-X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
-	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
-	action=sign d=scrivano.org a=rsa-sha256;
-DKIM2-Signature: i=1; m=1; t=1793972309; d=scrivano.org;
-	mf=PGdpdXNlcHBlQHNjcml2YW5vLm9yZz4=;
-	rt=PGxpbnV4LXVuaW9uZnNAdmdlci5rZXJuZWwub3JnPg==;
-	s=fm3:rsa-sha256:62NBlr4QdcBlsmKtUqtmF3PM8R8EqzwclyzRvTIgNKt92zq
-	A2KjX05yViOtoEGeF77lRIM0QC6U9lnQorjuaTdcc7WrXhvFr2VlSyL9rzf7QxqL
-	z+7FR9XlQNnsz8gIDsUETtd5GsTG7uZcPqw38DdFHHj7PU8Qe1tLotkaMCCu+/Ts
-	OxpiDqwrxayW5IVBYY+1DtzXbl8jw0z/GhATW+WruqwNIyiFA/lFIUdzZPowG4SB
-	4EIkX91zUqzaJdfjKJ21whBYdPYAB3Gsb9mWkJXvsNN74AhmYyx+oBwFasbLBXvr
-	BV0O2xP55yzRWVHVl7xvBIX8eIzDrb9FyJum5zg==;
-X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
-	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
-	action=mi-m=1; hc=9;
-	hn=cc,content-transfer-encoding,date,feedback-id,from,
-	message-id,mime-version,subject,to;
-Message-Instance: m=1; h=sha256:+8JfTIuoDKNakF3JELjYMoQSBUOG5vsYh3P775qF+/U=:cRID7yjUMn6p0PUwcj4J5K5P2b5onjsLQaW+llExTZY=;
-X-ME-Sender: <xms:Vdjtal9qTSizdF0czZgES5A6OZPuOjdRwRIOWoIMiREyEoL46gx4Qg>
-    <xme:VdjtahKc7dlPIH-XWNkzRXgo30hwZAE8DYuLLlWSIo32dUUnyH4EUcnSJQIok_1os
-    eIx9PXJ3wa3B0TxzPnBh6OV-Wg8CgQWIE3JiVoQK0RzahUwqiOq0Vf_>
-X-ME-Received: <xmr:VdjtagaoefXtOuEwRdCSbbnYrIiNfyOR1kSRTjd_KsVzjxAmgCECi0_-u_GehYHZ8-W2FtnnSQiywXCSqfw_HwLbndN_>
-X-ME-Proxy-Cause: dmFkZTEoKznHfAL0GvOpDfUqMYzvXpVD0EGBM641yg/Tz3jd0xpz42Y+2NC/40ILkYZWVw
-    sLXlqdrblGaYuqOsBh7lOpAx4VMR6NFT5GYX2Ws5l14Ba7Af0B16Em8A5FZxgM4qj/ejmE
-    MkyEgnZTf+OWTr8k2BuBNvEKhEiVdFhAURF3lGnALHhwZ3zqzbF282v+DvuKNDcveYrMeS
-    VKAbVDq5sBDpEJ9Xl0FB09IgdKXionVoxEYxga7qXWQHj62FdaddSizgdxWOx/rFJvIhjN
-    V8rsFvHEndEp5VL0xJj/ARUQNO9XKM5TJdzusRv7OL3F3grLm+3p1QVJgF8BXfABTIMpf7
-    Sy4io0lVbDEdwsvZP5w0HJe8XPondlkIp4qCYCwpQZ3+bSIEBkXBrv1q8fA+9lkOdV2TxL
-    kdN4XVa8CGlU0973tY9Qa6w0FvOJJWfzO3KoCHP2vCQGUQpiGSLytLaRpgmoO7lTgBJpfy
-    D2HqaETOQuYaONn3oynKVXYAQ3nmI7A9i7dJbVlS9145yTr1IQTtMSgcgnUdy4kzLfs6S9
-    j+zXGze90TYakGu31sO3y76OhMR/PqZboH56LTtmzMaSNsjPFm4axatbqxcyFeVLjkcIOh
-    sfZ4t/LZiOXVvhhSbk/bIDROfETrouycNVv4StgUBMY3wlGeFvjYd5E4vyrg
-X-ME-Proxy: <xmx:VdjtajJyFNReyPr93YVNqagn6skYEH3vs-_o8Ht574Pjr00OiH6yvw>
-    <xmx:VdjtauAGx7du8ImPTm7oKK0MkjfSPMf8Fyq8hA3-GiSHIGj9WobtVA>
-    <xmx:Vdjtaoqu_LDVuCn9Pgi5OwobI0gu0CJrho-2R1xrZM8176FINA_Wig>
-    <xmx:VdjtaphWcWGGOf8ZH6haq_yAiT03ggqxQo_Z-XHS_wzryHnvmY31Wg>
-    <xmx:VdjtatJQXjfzVmTh4qdzYORqFdhJOVCwT7-fP9QvCZbyEiippH4rNmCR>
-Feedback-ID: i8e6e4897:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 6 Nov 2026 08:38:28 -0500 (EST)
-From: Giuseppe Scrivano <giuseppe@scrivano.org>
-To: linux-unionfs@vger.kernel.org
-Cc: amir73il@gmail.com
-Subject: [PATCH] overlay: do not always clear absolute_redirect
-Date: Fri,  6 Nov 2026 14:38:18 +0100
-Message-ID: <20261106133823.1087531-1-giuseppe@scrivano.org>
-X-Mailer: git-send-email 2.56.0
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LKEnndkh
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c4c9abc1824so105650666b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 06 Nov 2026 06:53:07 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793976786; cv=none;
+        d=google.com; s=arc-20260327;
+        b=p2ZuS+ooHFm8C1v7bXLlc7Wp61m4U/R52safe23asmw7Z2IVy5aD0ksLKBneGltlnt
+         IWnHqJRkIz5f6ba72vGF1cdV0iiF+SngR8uUQ0DDxJTaT6hBehnrDfryaD+3twaeNZHM
+         iKtNs1b/bkQ/eMFKxkE1T8Qul1CgcK5+nMtEazDlE8+iXJPOFC90uMHOHor2laqOEBBP
+         XhFbxOJv+ZabCqXC2QYyutm9bdTvcMcFHMhu+kJITxevHvPOo4zDBzIRswHDCQpUs5tG
+         b/0kqE9xhcMSk1g45bcHklvM2E6tDVhUi5nawGGXaUCmml0yNPF8cm3spMfaYQNsizE6
+         gb+g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=SQCsNflCEfdZeHEEsqBCeoqTAr5oDn7fTb0mHy/Ye6Q=;
+        fh=DMkBQGJUXeMV9Z2em878L5ubb4Im8GYqatxUyUq0FdU=;
+        b=suFooWJ9RfzysX7LMoHSP4LM9+MyFa3g+cnri4UmeYtNy0N6lc5aAM7F9mnIt02Oq8
+         BiHjqycGX3X0FvdaI25aAOuDSvhaCuXo31HyNJWqJrO2MnGKpRNtmCEqfhsNJejZR9f1
+         Zs9CMvRPvojAhMXqns226AvN6O6eav+mM3uji32UPSZwE81VJBxSeYC1P7uNqMYdDV7V
+         BAZj6O9pT0749dwC5QxeUaj8k1kUMQ0JYjbwy5DwhFGlGpZN4wn76hRvJfTVfKnpn4+e
+         fT/72DBO+YXp42AROPq3R+zKGk0tQCkxkRTS+rauADitZT27YS+LPKKnguyp+D3Ik4oI
+         69IA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793976786; x=1794581586; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=SQCsNflCEfdZeHEEsqBCeoqTAr5oDn7fTb0mHy/Ye6Q=;
+        b=LKEnndkhpm/0YEDFx4qly4mwOKGjQPoz/AaFMUYsN7BgJCi+qF/7O4QTVLInGhf3Fk
+         p0iomBRLY5tG4YHNWPwJT3revg5jQhHs4CQy2IWbhfkFzUmI60IavohAOG2zoHPMrBy5
+         FJMohGOYocPI658EI1rZsZyBsf+M/TCdSQMeeWDKxeBq7qmRnAGtK+NK/SDt6aNtZvEv
+         UDbfcEwpcJ2L/a10z2DI8KCQ4k2n4V5s+apfYP6+IhrnH3rXQ/Cot4J16+oopNf36GdB
+         ZHLfnfZCs82fNCF8AyN1o98QpORuxplTyYiClXBjpCXGQ3Qr/49iUbRgMvwP+dEiNHx7
+         oRlw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793976786; x=1794581586;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=SQCsNflCEfdZeHEEsqBCeoqTAr5oDn7fTb0mHy/Ye6Q=;
+        b=ffRoYiIe6/mIT/rqLlvNLRziwzRZdIEihGE18jYdcun5itaXZjll0/ONFR/wiUIt37
+         J1Tux4ssl4y76GUiHrqpfJ3BKqnsq5SAiyGGl9tECKa3+RR/Wxdl4yYTxBbsnvVp1q1h
+         P2/qnvGQ44v3+uBApnWlXUog25NW4OEK5F04gkIlwb7nA574J38Y4YQ21vcOPVbdi7Ev
+         TYSaYzO71dXJ53Y6knfFX6Qtu/TS2nMMdEOV3VHNVaHf/uxkI+83ylqIaBG2Zs0+Abuy
+         eu9pl6+Wc2NWJQj2O4qFDGyYs1/Wm1dFgi1/FiSHFYzogCj490RDiWK8QSKvN18zzZ/z
+         Foew==
+X-Gm-Message-State: APuU4Z//PeWkW1S34PNtO1X+SvYLiim6RVGRkQWGQZJDGhNCXNjhAHIz
+	dp9zwxxtTSZBvb+GNkRxkTY+cn07SNSNB4qxykwY3DdsP2Zs5WQqCdLo6D90vHhPcW0Yv1Buulx
+	jQvl+wFWRG0r4F5fas9zAqYyQwicS8WNBH5VS
+X-Gm-Gg: AYBFou1qDZe3MPBOq29P2mhg0utrBKgNdX7Wi176jq8dyuOafjToG6/dEASDtsOrZr+
+	wBIy1CpELw+Q28OLekHIbgagKVUvY8Y21SSEiGSf0NFD94TPBg2N46MWF0e9fz+o0ttAgVzK0c2
+	Oo73FU/QYiVKiao8tLu/BhvGum501M7o+Hsq1CsZr9yIMMWpr1EBjfyRS2BijHIEq73O0iuULUk
+	soZyZTQgZzAGkorCc6aXFxEBi4tlgxs2uEVxtT/tm/6WS3Snd7yPw8+rlaZAb32ibljy79tlE0i
+	QJHdinHArm4zIaLPnvpnd9v/mjDg1/1maKclEmMOGrQwOq3Tkq2ZxpBbjz8c5GsP77I9ETEgb15
+	7+GD4o0YF4Wi6IVddPiqTpX+GqcvA6dxYhj9nfvV/hUMauu80Eokv/GLUZQofsXUhAAh2cswRFU
+	z6HjM4mCxeznwPj6pt
+X-Received: by 2002:a17:906:d553:b0:c41:f29:72b1 with SMTP id
+ a640c23a62f3a-c4d3543675bmr227137866b.47.1793976786038; Fri, 06 Nov 2026
+ 06:53:06 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -120,49 +104,42 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261105143138.484820-1-giuseppe@scrivano.org>
+ <CAOQ4uxhmh7OpoGnNacFedBPm+jUQfDzv1QD4H+jTvb2kAPK=4Q@mail.gmail.com>
+ <87tslumh6i.fsf@redhat.com> <CAOQ4uxijrkvG7=0M2nwEXW6BBm312Ra1jhq4n5rw_XkcmMattw@mail.gmail.com>
+ <87o6c2gk5k.fsf@redhat.com>
+In-Reply-To: <87o6c2gk5k.fsf@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 6 Nov 2026 15:52:54 +0100
+X-Gm-Features: AclHuK86ZhAgkyp_pc8IbFK0mKZTwu-emnJvEwC38us-8ThEVXmcStYShZR_Y04
+Message-ID: <CAOQ4uxjr-vO4uPtDsYq8LuO4W0hyi4vRRzsNUPYupVRHG3mckQ@mail.gmail.com>
+Subject: Re: [RFC][PATCH] overlay: always follow metacopy into data-only layers
+To: Giuseppe Scrivano <giuseppe@scrivano.org>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-ovl_check_redirect() clears d->absolute_redirect before it checks that
-the path element has a redirect xattr.  An element without one, such as
-an intermediate directory in a lower layer, then clears the flag set by
-the absolute redirect of a metacopy file found in a higher layer.  The
-lookup of the data in the data-only layers is not deferred any more and
-the lookup fails with -EIO:
+On Fri, Nov 6, 2026 at 2:32=E2=80=AFPM Giuseppe Scrivano <giuseppe@scrivano=
+.org> wrote:
+>
+> Amir Goldstein <amir73il@gmail.com> writes:
+>
+> > Giuseppe,
+> >
+> > FYI, Sashiko reported an existing bug in following redirects
+> > to data-only layers:
+> >
+> > https://sashiko.dev/#/bug/linux-2cc24e0b-fbdc-4cf1-aded-cfd19c2918ee
+> >
+> > I assigned it to you because I figured since you are touching this code
+> > anyway you may be able to reproduce and test the claim in the bug
+> > and fix it (?).
+>
+> the fix is simple enough and doesn't create conflicts with what I am
+> working on, so I will send it separately.
 
-  # l2/f: metacopy, redirect "/dir/file"; l1/dir/ exists, no "file"
-  mount -t overlay none -o metacopy=on,redirect_dir=on,\
-        lowerdir+=l2,lowerdir+=l1,datadir+=data m
-  cat m/f   # Input/output error
+Perfect thanks, but when writing a test for your changes,
+please try to also cover this case.
 
-Set d->absolute_redirect only when a redirect xattr was read.
-
-Fixes: 5436ab0a864e ("ovl: implement lookup in data-only layers")
-Link: https://sashiko.dev/#/bug/linux-2cc24e0b-fbdc-4cf1-aded-cfd19c2918ee
-Signed-off-by: Giuseppe Scrivano <giuseppe@scrivano.org>
----
- fs/overlayfs/namei.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index ca899fdfaafd..096e342f7e9f 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -39,13 +39,12 @@ static int ovl_check_redirect(const struct path *path, struct ovl_lookup_data *d
- 	char *buf;
- 	struct ovl_fs *ofs = OVL_FS(d->sb);
- 
--	d->absolute_redirect = false;
- 	buf = ovl_get_redirect_xattr(ofs, path, prelen + strlen(post));
- 	if (IS_ERR_OR_NULL(buf))
- 		return PTR_ERR(buf);
- 
--	if (buf[0] == '/') {
--		d->absolute_redirect = true;
-+	d->absolute_redirect = buf[0] == '/';
-+	if (d->absolute_redirect) {
- 		/*
- 		 * One of the ancestor path elements in an absolute path
- 		 * lookup in ovl_lookup_layer() could have been opaque and
--- 
-2.56.0
-
+Thanks,
+Amir.
