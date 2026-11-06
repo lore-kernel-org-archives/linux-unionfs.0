@@ -1,55 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.47
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793893933;
-	b=yyy/zXU8qEn1GnXH3TrV2qSDNjYHjxEqybpoYPp+6ZSUzeHgL7dOA2Yh4JZC4Xza26q2
-	 vGDgx7DB2EUpjH8E1HRI4gpSgK7aHr5x1F9Kgte3DO8BVGvSONUxrYKqmaZGrJg2kGLvh
-	 0s4JrdYqwmcZovvPx2V8J4d3kHNVX3fSwYCw/0mtr1ZX43DV9sIoxiWZVBzSOLk5UqjBh
-	 VTFk1L3sCfv6q7Rsbf+NzBCxz8+yC2pcWtMda2PjSAQIek3xrwAbpE/sXOshpyW0aR3tn
-	 FY3nzmch9eGzyhBT7yLVCT5rkm+C8Hn9d9V6G75JI0urcz6kGkBn1X6c6xoc0bB7vEw==
+	t=1793938292;
+	b=mBMr7QK2hu2Si7sLsaR+/iNMBtFXO7irkTAlOKyJFK8fKBculjRMAx3kbG6zGA4hs+YY
+	 5Q6VO1BI/nn3npIs0gDllwtiNg6P3ZGe2TouF5GSW+Z3t+ey24Egr0/uUjCiURMZv12e8
+	 VM9v44BOfl2Ik5k6yghicNRUgjLRy+shnAot3oQh3CQ082lv+QYWl4KkOYlKqeFUC1k9U
+	 psg0KqSkdNbq0oVlcSdb1lTGwor56tbeT5wRd0nmHkEHiYlA1n8MUFluRFcVGiUHvOes4
+	 UqwQXun6sQyoK8msOreT+bwiHks3dGdkS/0j5E6tyg9eOELg0D5YPvjjMcSvHTgfGCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793893933;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=9LFv/OFFTK3AEfsD2Od8SCPfw+oFgWojWxuAfHczJkA=;
-	b=AyNePBvXjC6ruMUT1RaGalec/TwTi+2+xkTUqFqVfITNLBYGYIIxoM4lHqnyPrNlZAlE
-	 1zlfgRuddx746O3K2hP3Wnue95YeYH7D30NVaataYzemNZ4ykPP4txzgLOuZC86cgu90C
-	 JvNHYklTPnpZA5Nga9j/z9NfAqD8wJg1TC6qVtOHVDp9BtFJ170d94a34jUKcAnYeURKk
-	 3uigkUkQ5l4Qd58aI3maM2xW42huj+M3TQr95l+dBSjTOrTnMNr25tOfD8zLxq1mxKw9n
-	 hgYcY5JbfdyKFSVv+9C1upKoJKcrph3BU9FJsNGhveYTocsl1RMDEnNXxN8BfJo1buQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793938292;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=Z92dFtGsD7f/QDD5XfJXZq8nkBYV8QMmfDZuVo5drRg=;
+	b=kvH71/zJ3Ja/nk2XGf0GSpl1ca9N3yQuCWIXpc4WmscCaUog/YpDm2bs2i/uJdlySbjx
+	 Dvok/j/PRfjAMq96fIvEDpAlANZIGC31ZOtS16TjjZduJcWm9EnHUnBZO9jzmW356jelA
+	 3EI4cOT7iBMFZQ53Sfnm9v+4zIFedBE3P+QFp0yFHRdyw64gH+ufDaNMl5xPSR8YbbhsC
+	 yAANd/Rc74ozs0UaoORgnYmblnrf9x81rZfyZNBH1+nsysArOk1sd1ohOKT/beQiaKjI5
+	 Gn5X/A/kAgl1vQwJWhV661KjYZlWI45AmdwGZUd+Bj0goqGKq0tDnP92Iamw/3xoMDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ozt6UcUw;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=H2gKWQjv;
+	arc=none smtp.remote-ip=209.85.208.47
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2504D606A333;
-	Thu,  5 Nov 2026 15:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3DCF606A31B
+	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 04:11:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A3DCF606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ozt6UcUw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 430D11F00919;
-	Thu,  5 Nov 2026 15:52:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793893932;
-	bh=9LFv/OFFTK3AEfsD2Od8SCPfw+oFgWojWxuAfHczJkA=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=Ozt6UcUw/ITRIVWsW4MxepetR0U8OFsEX117XJB4ae0BGcCn+Qc1kfFEdDPQc2+rw
-	 kJrw5sh8ko9l/r/IqZ5nzVgjfOwl2vGf2F64FUNWDyEfZwYAN5iDS4OdQxxzKh2IyP
-	 +lcN4T3r2bmyDLD5iN9Sb0mwnO51xpefaF3I/FEe66q2aiSHjSlZ7XhNDbjClHvbFe
-	 Rj8FJxDnxeXiUYVj9b7iHOzG0DHvgYLB0ok7VvmP34BEnCntudCJqOhGbP2Oe3284e
-	 P4r+XqZKWEA5W+oK6CVvU2Q4PKpLdvVk1tEdq20xZvpBoIHiFQOIZYrEgn/4IpHZti
-	 EmZ04hjBb27Fw==
-From: Christian Brauner <brauner@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
-Cc: linux-fsdevel@vger.kernel.org, fuse-devel@lists.linux.dev, 
- linux-unionfs@vger.kernel.org, Chris Mason <mason@kernel.org>, 
- stable@vger.kernel.org
-In-Reply-To: <20261101123440.3184069-1-amir73il@gmail.com>
-References: <20261101123440.3184069-1-amir73il@gmail.com>
-Subject: Re: [PATCH] backing-file: pass RWF_NOAPPEND to synchronous writes
-Message-Id: <20261105-clever-vorkam-selten-176682867893@brauner>
-Date: Thu, 05 Nov 2026 16:52:09 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=H2gKWQjv
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6b47c1a3c74so213170a12.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 05 Nov 2026 20:11:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793938290; x=1794543090; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Z92dFtGsD7f/QDD5XfJXZq8nkBYV8QMmfDZuVo5drRg=;
+        b=H2gKWQjvKa0FHrPs7frV8FiyVDSOYWusKMVgtbEnOYuAIDxQZlFxdeWRvtfDUp+mHQ
+         iVnIpElA/XQDTsllJFBiuA5Y8qc6Xv7pK8Px8T3vzmsavqY2VrQGfrAzGzpOL9ntsBaG
+         wRcwzwKL7A38PqQ0zKwVUYPv0qnQNsfoFQi3whiKZ2It4Cm5S+ZakPMilzHHZUqqgCuM
+         QC4gHGwADFYhVTJGZqS6t87321lCFnFJklGhh0vfxHs5H6LJrlN/mQekMwzpIrrSWKBN
+         WKvucCASwiyhKTqAvQnpdr3UeQ3TUsMd/C8nbHSjUTG6T+P689SnmZTK8nglqa71DdVQ
+         xvdQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793938290; x=1794543090;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Z92dFtGsD7f/QDD5XfJXZq8nkBYV8QMmfDZuVo5drRg=;
+        b=ZcuS6WbdV3r3CjyC+e1M5ZEcBNL7xzsCMyrSF5WArwIEeveiM1F4Tws9h6vymOx1Q5
+         K02pjhbXZ5TPH/CoCwKoCE+iwEMOBg+HhQaNw3e1bHSDJFrxGVxbrPhRaMQGYcN32U/G
+         a6ZFc74ycsMJWdlJNanmoJfZi1BdDCBsUtVYT3QaIUGsj/n7V/z1Gsvzz5/rWPOgEB22
+         LjzDz7rrOFLHi3HbVkJFAoic9icTngJA48u1hJY03hF5INpFnTYXXkUsceqnOq757zkb
+         RF0G8DvQOV+KT+t35p/iqOTJLaKIPOhlsZSUsNMKb8jSttjSfGpRG0EH45agCODIMRML
+         CsGQ==
+X-Forwarded-Encrypted: i=1; AKwUvByMU92mv5sTKi/BGG3z14FiG3Xh4o0gfEKioCQ/8BcPAFqfXV2NZMhMX6BxcDTMN06jbLE08EutL1jXk2Xg@vger.kernel.org
+X-Gm-Message-State: APuU4Z8LaYgnJjLn7HKSTPCyy4g6Z02RccRri6GoiJxLH0DqTyAQfZYy
+	uSqV41x3R9awqHS8ERYA6Ex6JxCKtUzSpd17KqZ8pdFdGktE2DIltoCLpr+5LF4N
+X-Gm-Gg: AYBFou1ydJR1UgKOsEQDwQ+UmxMqSEhmsGM52eBulmmS38/4CyQF+tVa3XADL1tz0R1
+	3RkG8ZcP76OJiZ7sd7i9uqFjjSFwVHt9oVvPCgq1ShP9b66+XO1pxCCs/fHOtvyDxoE8b7Tq6nb
+	1Tbk4XFbgyZfFxrNHfPze/5VpUFhI6Juav151IXKIfIB4+fQosQeb8KIUjbSx79/tqvCkc8pfiT
+	MkpEZq336Wp/XFzrkEEpUrKNp/f/OpzFXHFym6cJk7ANv8805kVqUJu/JvPvp2nAUc9vTZL4Uvd
+	8OWTqpXRnepjSXGSsom0OUVmgmKuyhB4GDXmeY0yRrjXDqXf3GJ8KdHSbLXJLfuapYbmWlei5FB
+	g2z2vXH2h2zv2/T4Xo9OZH903AIVIpIc/hvt8DW2LXeV+rsby4P4B0NsBHtoath1GNpslAFTBq2
+	pr9xm1yi4bAZ/AqnCHCVY7p+5PgU3d/1kXvvgoIOC7t4kGmmNuNw4JUxDtF4cOyMJ2+0KJhgTH3
+	ZOZQs5CWeYnfU22D3Rvpa56C3s3TRtKmnTs8w9zSMGgROp1f46VednTfTeZL3EAGlRnkYP3IWRt
+	JujIuplNE2ma0+5xcMiRfQxV0mdL0J+Woi5uYWmNIDvZHBnsEAeAWj0qwLSAz5kh+YM5engwQdP
+	nCsDkfzFaJgZp
+X-Received: by 2002:a05:6402:3808:b0:6b4:5d8c:95e2 with SMTP id 4fb4d7f45d1cf-6b597553644mr863309a12.4.1793938289842;
+        Thu, 05 Nov 2026 20:11:29 -0800 (PST)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b664ae54edsm251088a12.15.2026.11.05.20.11.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Nov 2026 20:11:29 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sasha Levin <sashal@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	stable@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	Chris Mason <mason@kernel.org>,
+	Josef Bacik <josef@toxicpanda.com>
+Subject: [PATCH 6.1 1/3] ovl: check that the parents of volatile/dirty are dirs
+Date: Fri,  6 Nov 2026 05:11:20 +0100
+Message-ID: <20261106041128.3797453-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.55.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -59,38 +99,82 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.17-dev-ce4c1
+Content-Transfer-Encoding: 8bit
 
-On Sun, 01 Nov 2026 13:34:40 +0100, Amir Goldstein wrote:
-> pwritev2() with RWF_NOAPPEND ignores the offset and appends the data on
-> an overlayfs or FUSE passthrough file that was opened with O_APPEND, and
-> the call still returns success. The flag must make the write go to the
-> given offset even though the file is in append mode. Any user who can
-> write to the file is affected, with the default mount options.
-> 
-> overlayfs and FUSE passthrough forward the reads and writes on their
-> files to a backing file on an underlying filesystem, through the helpers
-> in fs/backing-file.c.
-> 
-> [...]
+From: Chris Mason <mason@kernel.org>
 
-Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+commit e34d2ef818e4c7676d8d8e1bf43e6a1ed39efb2a upstream.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+An unprivileged user crashes the kernel by mounting overlayfs with the
+volatile option.
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+A dentry that serves as the parent of a lookup must be a directory.
+ovl_create_volatile_dirty() walks work/incompat/volatile/dirty by name,
+and ovl_lookup_or_create() returns an existing entry whatever its type.
+A file or a symlink that another task creates during the mount becomes
+the parent of the next lookup, which calls a NULL ->lookup.
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
+An unprivileged user mounted overlayfs with "volatile" in a user
+namespace while a second process created a symlink named work/incompat,
+and the mount task oopsed on a NULL ->lookup call.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
+Fix this by returning -ENOTDIR from ovl_lookup_or_create() when the
+caller asked for a directory and the existing entry is a non-dir.
 
-[1/1] backing-file: pass RWF_NOAPPEND to synchronous writes
-      https://git.kernel.org/vfs/vfs/c/104d2190e0b4
+Fixes: c86243b090bc ("ovl: provide a mount option "volatile"")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chris Mason <mason@kernel.org>
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+[backport: no ovl_start_creating_upper(), check the child of
+ ovl_lookup_upper() in ovl_lookup_or_create() instead]
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/super.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1331,18 +1331,25 @@
+ 	return err;
+ }
+ 
+ static struct dentry *ovl_lookup_or_create(struct ovl_fs *ofs,
+ 					   struct dentry *parent,
+-					   const char *name, umode_t mode)
++					   const char *name, bool is_dir)
+ {
+ 	size_t len = strlen(name);
+ 	struct dentry *child;
+ 
+ 	inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
+ 	child = ovl_lookup_upper(ofs, name, parent, len);
+-	if (!IS_ERR(child) && !child->d_inode)
+-		child = ovl_create_real(ofs, parent->d_inode, child,
+-					OVL_CATTR(mode));
++	if (!IS_ERR(child)) {
++		if (!child->d_inode) {
++			child = ovl_create_real(ofs, parent->d_inode, child,
++						OVL_CATTR(is_dir ? S_IFDIR :
++								   S_IFREG));
++		} else if (is_dir && !d_can_lookup(child)) {
++			dput(child);
++			child = ERR_PTR(-ENOTDIR);
++		}
++	}
+ 	inode_unlock(parent->d_inode);
+ 	dput(parent);
+ 
+@@ -1363,7 +1370,7 @@
+ 	const char *const *name = volatile_path;
+ 
+ 	for (ctr = ARRAY_SIZE(volatile_path); ctr; ctr--, name++) {
+-		d = ovl_lookup_or_create(ofs, d, *name, ctr > 1 ? S_IFDIR : S_IFREG);
++		d = ovl_lookup_or_create(ofs, d, *name, ctr > 1);
+ 		if (IS_ERR(d))
+ 			return PTR_ERR(d);
+ 	}
+-- 
+backport
 
