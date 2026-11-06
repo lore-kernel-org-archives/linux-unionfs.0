@@ -1,95 +1,123 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.46
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=103.168.172.152
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793947622;
-	b=qRJIIKExtOieYw2Egm08KhxB0ugzI4H5N0rKt0H3S+Fx87DOzbKe3XlxiT8Qi+HXSQuZ
-	 z8Tmxrx5KyGdTNYmRxWdYfUbD9m1517dQrASBCf7vDySe9u9blvrwvURUI943AcALXN0K
-	 CA1lRU+fpdNDMixh4zoHhWAAXJ0Zrq54VuLPC2fxDDXs76djWOpJHrIiIQkyII+QIXD0w
-	 RtprO3s1Iqh9b+3/oM9kvFvX9J08G48j7ywwvQHL3LYcGHDhoXAuk/2n26f7fpxqgKVnl
-	 zq1HDargbwNwip5IUkroYDc/T1Iz/OB1+rRGz4UpLUIUlvatUKe9lfh5mG//cu269UA==
+	t=1793958026;
+	b=fj0RXJqWXtgxx+e26qpScHdusMF4N3JBiKEg7UGiYkn9oaRO+EPM3j9xz3EdQleHwH6X
+	 KpgJYa2tsQXFvDMD87y2ARK3zT6BaqAhpQiiLdZ4yKSa9ovctfLJt6LzhKPNQn8K5SGWc
+	 FvVD8ElFwhcBHtsyuemADY69yuBM+EQ0s0oS/Yrhi0A3A5Gk8+WwbfMwEz9bdKtht0DF8
+	 YUGVSdnU1/i4vTrCtepCIvikat+cIvL33UyFJczwVoLOIwvoJfCzqMNtDoJm2+Xm4xCS9
+	 S4MdJ8iz+NvWWLwkAaa0HvMHmSZiCArggOP0llhZ6bvLBrrHfwzwpMecnkItQr4K1SQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793947622;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=hIiJTHVvnRcW94BgAfPLzMPiYxMM33qks5DkmeQr+Ak=;
-	b=vPJTwtZVFIM2ENbm8PQdiBWoof3r+MQsrlsvsX31u89bQCCsKoRrkzyAOurl7M4jtciP
-	 zcMUzXFJiC3EhIPA0qU+ZNy1pA2ynLtMJjAjtFC+JglW7wnw629eEcwVhHqLzF3vzddjb
-	 vdg+1C0BKT865aSKAM+xk6WlYjffhIAcmLWDvs6rug79lVmeGjARYJIt0+OWUN393j3rw
-	 xhp8XPO6yRHIQgNwAt6CUfSWwbRsSBAyoE7C2MOKriak/moc2XSuqTveoh3meUQeQPA28
-	 yd0pB94tq/Q4gcJWOiUmF7WcQN8lLcSZA5Yoibvsoj24CYNlCHDdjTRoUeZwxRb7xpA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793958026;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
+	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
+	 X-ME-Sender:X-ME-Received:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:
+	 Received:From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 User-Agent:MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=IGwnMIps3aVHzaeShL2fgzkV216wL9LaoEnMk4sdS8M=;
+	b=CrTsEWKNzu3f+CsEi/BSaR2WNQLg2ogNmu4qpHY2AL2AwX3q3fkC1zGfUmfOwaAkMpRz
+	 qCailnY3C/h+HeJr0a5Dy9533sExPPMI1NajgfIFAppEqiFhd4mMRqAykI+0thLAfzSDc
+	 8sScHEeFkX50J3eF31jtVQs0J9mSIQEukhy7uzhMoRXqkkJdavZxjochv/SxtGBcSpHIC
+	 UxnrexZAUtIAPdcYXM0woBCFH3D+pYMLuT6yGxIbCQ2m+psFQ2mZjW4nvQ0pLMsIng768
+	 WehHYOUa45sZnIyPfaxoUqpZA63a1lf1vWSGwS0DMMa9ZJybjcOpf0C4gBEfeL+7LxA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="g6DnxrD/";
-	arc=none smtp.remote-ip=209.85.218.46
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=scrivano.org;
+	spf=pass smtp.mailfrom=scrivano.org;
+	dkim=pass header.d=scrivano.org header.i=@scrivano.org header.a=rsa-sha256 header.s=fm3 header.b=snLcgHsQ;
+	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=F8jmiAzz;
+	arc=none smtp.remote-ip=103.168.172.152
+Received: from fhigh-a1-smtp.messagingengine.com (fhigh-a1-smtp.messagingengine.com [103.168.172.152])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 034CC606A328
-	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 06:47:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 034CC606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A63606A93F
+	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 09:40:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46A63606A93F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scrivano.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scrivano.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=g6DnxrD/
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c4cb6834eaaso37826766b.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Nov 2026 22:47:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793947620; x=1794552420; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hIiJTHVvnRcW94BgAfPLzMPiYxMM33qks5DkmeQr+Ak=;
-        b=g6DnxrD/K96AYO1B7tiDT6BfiOA4apqHQiYNM04gubZiCRYnStB+SjpfQuoxjfi4fJ
-         a0WpnVMLWTWH281kH6Uv80/8Xbbd2/utITQ7T5H/2hmayMLGKJUwPZza7WKopmyX2yqM
-         mmQaiHm0yAa1UqVBf/WI+YZYGianrILUH2+IA/EegHVDEgY9ujbbkrf4LmEy4Jw67Br8
-         54g/wGGUtM2o7f2dzLXbGoZI4B9h0Cld1c3VdqnCIsDbuZWVEwQa9ybgUh6LE01l2fhh
-         83B6WuqKrPbh+PP7AacD3BsZmRFGvbEmz+8AXqna49n7my/LggaBbQ2RMJW7/gjEBjQG
-         t3sw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793947620; x=1794552420;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=hIiJTHVvnRcW94BgAfPLzMPiYxMM33qks5DkmeQr+Ak=;
-        b=LxxS04mRdErTzzcu9Tp4uO8gFuOTOpy66isKxny9gUMmPJueT9uWrGNj+7vUs0kbCj
-         j5b5jO+NzpgG9lZjAyNdijCySG5rSxW34v3HGozXq5Tu4Yb4NiLb2Mn6gibrFSM4b3kl
-         XBtC12a1D97FHCulhGGhIBYZPPKLeIoUvKpccx7YOSMkKEXFnX1mZBcc3DiepAZMu8LL
-         mcexeybrqV/IZfLGhfH/WMH5BBzhFZIWFzEukza51jzPBobbXu1objvniSuXNu0EuAog
-         4ZbraZF7pjtpJdmKJ8N7nAJiKbu9Fhmdjq3GWtyxXJRFD4AKtg/JL2uRXho7OQ33ZVG8
-         VpFQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwm7G6Zg8p/CdfLPy+rPF76GvOx/9fB3Qo8NB1RfqUcP4RvC9YUoC0sXEmpjvgh58AxiqCRpMvZoe3Apq+t@vger.kernel.org
-X-Gm-Message-State: APuU4Z+GcXXvM9o3kID3+fYkLm04vR2cYfqxZwkFTe+wC48eTFqrj+M9
-	WMGy+hhKFrRpFaLJRBnFKlte3QQIj75WxhF5dSBJ3PMjlrfeW5g4PybH
-X-Gm-Gg: AYBFou06uGn4BJ6MFvps2GeyyVoIibwV3dMd2e5b4VVhXqDqMKQg36L0Uax9eKN9UyT
-	iYrQZjUIJDZfoXrwzW6VA5/XJ2jU1dO40/7EkiWqd8ay1LGKi794xR8k9OiR9C28wHx8LkI8qZt
-	O77BoRgd7IZc6c6mCqYMFPr22BRzY2rGjkEuHfH7zVLoOwbLekzBoE0UINuzQt4le4u/RLmc4Bw
-	WmiPcvkxcNcBHQzyxKi7Mc5WZoHJvU6w1W8E6sD4+rjC0KMvqZhuO7Drs4M+6BClP/z8DB6pjaX
-	X3Of/1mw6ugTLt2rQNaMdM7Uw1/OVhomQo23+Yxj4zH5X10dsST3q12P+pLo2MaOEcSvJrC9rWT
-	YTgNY0MRRMKvjXE+Qtg1+VD/htcPj3hNz6VI7qf9QGbKCycJhZnaSomSkRvQKP8JOc43w/0ks3Z
-	CzeuYnoHlVbhYhpHzeogysS0VIDikYQVpGRPHDorJr2oojSM27dSQSQ1jBOGPyVEpE3VOkzMB4N
-	KJ6Bw2lWbYow0Ru2FFCHIvOjJ3QXBx27or7jmPN4hIPj/SI/mCA4JESo5gNsB4Bn3ePOLsW7Y5o
-	C+hqqsQhulAqhYccbshrB6GKzggGAA5HnkFMbKj5BPuiJIXGpzRNmoCEaqfQAhYyy9ID1s6tUz/
-	AF9E2nQpV54AO
-X-Received: by 2002:a17:907:9496:b0:c46:8909:963b with SMTP id a640c23a62f3a-c4d35485cf9mr140787466b.9.1793947620154;
-        Thu, 05 Nov 2026 22:47:00 -0800 (PST)
-Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4d356c6025sm51097866b.73.2026.11.05.22.46.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Nov 2026 22:46:59 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs fixes for 7.4-rc2
-Date: Fri,  6 Nov 2026 07:46:59 +0100
-Message-ID: <20261106064659.3809691-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key, unprotected) header.d=scrivano.org header.i=@scrivano.org header.a=rsa-sha256 header.s=fm3 header.b=snLcgHsQ;
+	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=F8jmiAzz
+Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 8140C14000ED
+	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 04:40:24 -0500 (EST)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-01.internal (MEProxy); Fri, 06 Nov 2026 04:40:24 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=scrivano.org; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm3; t=1793958024;
+	 x=1794044424; bh=IGwnMIps3aVHzaeShL2fgzkV216wL9LaoEnMk4sdS8M=; b=
+	snLcgHsQAdVbagsmAvlo0vWU3Q6C8QFbxgXND4CsHHdp4+WoKStixENWW3PxNUdS
+	7N0w1C96Ch7lvl7ABtYInIUkssy2FfMWf0NhyvvxKfDxjBAo1AelOgPj9yB+5/mT
+	hKhQJZW6L+QB2NVLDsGnTDP1uTDMtGiFZv74LkA4oOq3aoYkJcsMIIwE/alSGKHe
+	+NkPbVwKOpuf8F8PH0jWdkGBjjIlXRJOF3xuQfb6D3DpdEB/DUPeM7chxR7Dl+sY
+	xQQ6G4wgR8hXCpeKeQBK8mAIHeecF3G8WnIuZwHw6Vyi8dlgzaaoOL1PSN8yrslw
+	3+myPDPMx1gLaa88WfNqeQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1793958024; x=
+	1794044424; bh=IGwnMIps3aVHzaeShL2fgzkV216wL9LaoEnMk4sdS8M=; b=F
+	8jmiAzzcfMQSF600oU9hUe+ik+zlqAqngrtT+7evvvkuwGF2/vwBz+c90IyYc9Y8
+	KQ8HH5VmNadApcdVMSZEyTGCNsX3zfn6Te0mvRZGE2FfZSu0s0rtrws02dpv8YgV
+	J0bGGR/Lr7kSVuybveQMSaB+r9UFBZeV+f50G7csDNP0UEz3rEk3l73LcPp8C1r4
+	g3UN6r6VvhDYyAJWp12wdG0MgLL+4Zp7BVDZxIhCycFGAcrcIBTBzTE0CyExy0nE
+	equwPYK7vBjmPdZ3JvaZS0RYAWiAZszKrPaAD9u6RJcJ3r2U9lycO6J9YZbnzKEz
+	EOkvGixNx1sJHp3uEgylA==
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=sign d=scrivano.org a=rsa-sha256;
+DKIM2-Signature: i=1; m=1; t=1793958024; d=scrivano.org;
+	mf=PGdpdXNlcHBlQHNjcml2YW5vLm9yZz4=;
+	rt=PGxpbnV4LXVuaW9uZnNAdmdlci5rZXJuZWwub3JnPg==;
+	s=fm3:rsa-sha256:xefYfISaF8M49wqmeFKh4t/TqJpwFT7E5JvitplubMA9GBW
+	SOPSxQ4P63VVaR/Li7nmovrhouZmRUbG2pYVzUHrvjdLeBY9htOSacWzvsbmnOfW
+	2Eridbsz2YAsLCdmrlrIQ9aIqhydoG6WpR9lL2bF6doHpe+oLavgYFeVoV134FYv
+	jMyVzJ3wDj1w9wcPtMDzpF+CHzA0g2bqkeLv1tLpC9TNrcK6A7q7z+Wt2NjtG+vm
+	K1sMcfwztFAchu04thNNE8rz8APLIUThAd6k9jKil7te/z4v1fdfGEWrZG+ZGIsv
+	YawscM2mAzWwe+F4s5sG4BEqCgzxmGlWsAzEFCw==;
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=mi-m=1; hc=13;
+	hn=cc,content-transfer-encoding,content-type,date,feedback-id,
+	from,in-reply-to,message-id,mime-version,references,subject,to,
+	user-agent;
+Message-Instance: m=1; h=sha256:SSsYshYfFr6bW4hCvqwgtD37KsTeXlCCGAGak7zC0iw=:TbIl05Yy5zCpSX2qGw2AVeBRs5K2m1dlYWCTqJkoCsA=;
+X-ME-Sender: <xms:iKDtamFm7QMhkC1tto8aPZ1GzsVMeNHdbEcuLJB4RYsoDyINDk9iog>
+    <xme:iKDtauy0TSdjpq-J0fKBIE8LLRwX8ywmL5Iwj9HMCysTZC1QA5uh64ij0jXz5l3nL
+    6K1_SGo24nB_PjOO6nq8SDoRT6CHSyZVj-1p1A9lLBnZQm_6usk-iVi>
+X-ME-Received: <xmr:iKDtatgYsDJm7n2T81nu6VGTu7kuViCuNPgkmeE6LZo2030fxJUBQr2gH1jMNxdWY5f1rVwIZhq_PI9JLtpMqGHds2TW>
+X-ME-Proxy-Cause: dmFkZTFRI0clY9VQ7fRlNRQ/T4TACKqlkihzjANpLp8KcrdJLOU6YbC3cyaEJd81gvH5Tf
+    XVgfo0IF9sc8NUgGqwkjkGMh+nJ9ehFTC3qXm8mr1oUH8u0cxMsKtp3MnIsBz67fq9EtAb
+    Kqf0677wybNyAw6AlXfVbb+VkgcpA7qO4Y7GkZO1FgHGIP69IE35gEQWO1uHUUYrwRAUkm
+    KpxaiXsdGSQg6rNhgNQ1uSXuXqixVcQAIj6HTPRsilLk3v9Pwr9fEJtqXkm7V5LuSdp7yD
+    u/VwAghJ5rmx3QDrezWnY+RPb3SSdtl+08D5jI4o3rgv0dabVc01GgxsTUGuAmGDnMzYjx
+    k0GEdWpttdn266u3SwqkOdmLa1vYmwm1FSYR77mwEk/SdScGAfP4VA4rBimNU1SyBEp4s4
+    taHcXSxmbNOylApMQxU1mfV31W3nF0t3WXHXfrdiIdoqhrPqW89JgX5mjuKA0MhZCiogvf
+    1mFMmrpgvpm7Slck4WIjjXRUA7YTmJVMKH/VsvIv0bnP63dZcKWTBr4NLnEvcXkIo3Cu49
+    xhLTxity2qHxBT85cJlaElyvK8QRi0wMiyxynP3sIFtAxRaDjbvq9kyXuLPJ85pC4LHbqk
+    MF1rhrMrls4WmPN+FeXShsG4aVB2CrrfstkrztTJAyylYXcLR6hqSZpUWNbA
+X-ME-Proxy: <xmx:iKDtapwnN-uDDSmOL7A72S-gGqbc_ZjRJBut_kR0cAEdexPUqCYOSQ>
+    <xmx:iKDtagKBQ-rZaLngh5Jxd8Y6ZjCLxihC2Tkd3voh6V7PcKKiC2xdog>
+    <xmx:iKDtagQ7DxmunPscaGG6fcAvaWS3PWHLhEXGAk-t3j-HJ-kxJBfbvA>
+    <xmx:iKDtaorCBKjezPcV_vi-CGLzGLgxuDuXciu54X7dB3akcaukawtDIA>
+    <xmx:iKDtaiw-at-tQYxaKpDpmQEDiRRDetOHRSM6HS_SKzSMNY0FHO7lgQLp>
+Feedback-ID: i8e6e4897:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
+ 6 Nov 2026 04:40:23 -0500 (EST)
+From: Giuseppe Scrivano <giuseppe@scrivano.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org
+Subject: Re: [RFC][PATCH] overlay: always follow metacopy into data-only layers
+In-Reply-To: <CAOQ4uxhmh7OpoGnNacFedBPm+jUQfDzv1QD4H+jTvb2kAPK=4Q@mail.gmail.com>
+	(Amir Goldstein's message of "Fri, 6 Nov 2026 07:21:23 +0100")
+References: <20261105143138.484820-1-giuseppe@scrivano.org>
+	<CAOQ4uxhmh7OpoGnNacFedBPm+jUQfDzv1QD4H+jTvb2kAPK=4Q@mail.gmail.com>
+Date: Fri, 06 Nov 2026 10:40:21 +0100
+Message-ID: <87tslumh6i.fsf@redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -99,74 +127,141 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi Linus,
+Hi Amir,
 
-Please pull overlayfs fixes for 7.4-rc2.
+Amir Goldstein <amir73il@gmail.com> writes:
 
-- Was in linux-next overnight
+> On Thu, Nov 5, 2026 at 3:37=E2=80=AFPM Giuseppe Scrivano <giuseppe@scriva=
+no.org> wrote:
+>>
+>> A metacopy file with an absolute redirect to a data-only layer is follow=
+ed
+>> without metacopy=3Don and redirect_dir=3Don only when it is in the last =
+lower
+>> layer.  In any other lower layer, the next iteration of the loop in
+>> ovl_lookup_layers() calls ovl_check_follow_redirect() with d->metacopy s=
+et
+>> and fails with -EPERM.
+>>
+>> A mount with userxattr cannot have metacopy=3Don and redirect_dir=3Don, =
+so a
+>> user namespace mount that stacks several metadata-only layers over a
+>> data-only layer can use the metacopy files of the last lower layer only:
+>>
+>>   mount -t overlay none -o userxattr,lowerdir+=3Dl3,lowerdir+=3Dl2,\
+>>         lowerdir+=3Dl1,datadir+=3Ddata,upperdir=3Du,workdir=3Dw m
+>>   cat m/low   # metacopy file in l1: works
+>>   cat m/mid   # metacopy file in l2: Operation not permitted
+>>
+>> Skip the check inside the loop for a metacopy file of a lower layer with=
+ an
+>> absolute redirect, on a mount that has data-only layers.  The lookup of =
+the
+>> data stays lazy and happens only in the data-only layers.  A metacopy fi=
+le
+>> or a redirect in the upper layer is still refused.  With metacopy=3Don a=
+nd
+>> redirect_dir=3Don the loop already continues after such a file, so only
+>> mounts that failed with -EPERM are affected.
+>>
+>> Signed-off-by: Giuseppe Scrivano <giuseppe@scrivano.org>
+>> ---
+>>  fs/overlayfs/namei.c | 13 +++++++++++--
+>>  1 file changed, 11 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+>> index ca899fdfaafd..02c64a5652a0 100644
+>> --- a/fs/overlayfs/namei.c
+>> +++ b/fs/overlayfs/namei.c
+>> @@ -1087,6 +1087,14 @@ struct ovl_lookup_ctx {
+>>         unsigned int ctr;
+>>  };
+>>
+>> +/* A metacopy file of a lower layer whose lowerdata is in a data-only l=
+ayer */
+>> +static bool ovl_is_datalayer_redirect(struct ovl_lookup_ctx *ctx,
+>> +                                     struct ovl_lookup_data *d)
+>> +{
+>> +       return d->metacopy && ctx->ctr && OVL_FS(d->sb)->numdatalayer &&
+>> +              d->absolute_redirect;
+>
+> To further reduce risk, assuming that in the intended use case the data
+> references always carry a digest, can we reinforce this to
+> d->metacopy > OVL_METACOPY_MIN_SIZE?
 
-- Gone through the usual overlayfs test routines
+I am not planning to use it only with fsverity.  I'd like to use this
+also on file systems where fs-verity is not supported, or if an user
+decides to opt-out for any reason.
 
-- Merges cleanly with master branch of the moment
+>
+>> +}
+>> +
+>>  static int ovl_lookup_layers(struct ovl_lookup_ctx *ctx, struct ovl_loo=
+kup_data *d)
+>>  {
+>>         struct dentry *dentry =3D ctx->dentry;
+>> @@ -1154,7 +1162,8 @@ static int ovl_lookup_layers(struct ovl_lookup_ctx=
+ *ctx, struct ovl_lookup_data
+>>         for (i =3D 0; !d->stop && i < ovl_numlower(poe); i++) {
+>>                 struct ovl_path lower =3D ovl_lowerstack(poe)[i];
+>>
+>> -               if (!ovl_check_follow_redirect(d)) {
+>> +               if (!ovl_is_datalayer_redirect(ctx, d) &&
+>> +                   !ovl_check_follow_redirect(d)) {
+>>                         err =3D -EPERM;
+>>                         return err;
+>>                 }
+>
+> That's too promiscuous IMO to continue to loop as if nothing.
+> You subject says "always follow metacopy into data-only layers"
+> but this allows also following metacopy from l2 to l1 if there is a
+> datalower and that makes no sense.
+>
+> What you would need to do is taint the lookup ctx in case we decided to
+> follow against the follow_redirect/metacopy config in such a way
+> that finding anything in the lower layers, even a whiteout or opaque
+> object, will fail the lookup, because then we are not really allowing
+> the intended follow into data-only layers.
+>
+> But I prefer to do it differently, see below
+>
+>> @@ -1238,7 +1247,7 @@ static int ovl_lookup_layers(struct ovl_lookup_ctx=
+ *ctx, struct ovl_lookup_data
+>>          * Defer lookup of lowerdata in data-only layers to first access.
+>>          * Don't require redirect=3Dfollow and metacopy=3Don in this cas=
+e.
+>>          */
+>> -       if (d->metacopy && ctx->ctr && ofs->numdatalayer && d->absolute_=
+redirect) {
+>> +       if (ovl_is_datalayer_redirect(ctx, d)) {
+>>                 d->metacopy =3D 0;
+>>                 ctx->ctr++;
+>>         } else if (!ovl_check_follow_redirect(d)) {
+>> --
+>> 2.56.0
+>>
+>>
+>
+> If the tooling can be changed we could introduce a special data-only
+> follow marker and in this case we could just break out of the layers
+> loop when it is encountered.
+>
+> Another option is to implement opt-in to redirect_dir=3Dfollowdata
+> which only allows following absolute redirects to the data-only layers
+> which will stop the layers loop on first found redirect and requires
+> a data-only layer of course.
+>
+> I prefer this option if it meets the user case's needs,
+> because verifying that the redirect doesn't redirect to a lower layer
+> just complicates the code for a corner case and runs unneeded
+> cycles for no good reason.
 
-VFS NOTE: added export of symbol dentry_open_nonotify() that was added
-by commit ebe559609d78 ("fs: get rid of __FMODE_NONOTIFY kludge").
-Note that before removing the __FMODE_NONOTIFY kludge, overlayfs and other
-modules could open a FMODE_NONOTIFY file with dentry_open().
+from an initial test, this seems to work for me.  If I don't encounter
+other issues, I'll send another version later.
 
-Thanks,
-Amir.
+Thanks for your help!
 
-----------------------------------------------------------------
-The following changes since commit 51628610f9187c1c1cfe499d92e066bc22ad9693:
-
-  vfs: fix take_dentry_name_snapshot() semantics (2026-11-03 08:28:20 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-7.4-rc2
-
-for you to fetch changes up to db1c5da238dc80a61ab429a7b71b0e2835766c45:
-
-  selftests/fscontext_ns: expect EINVAL for overlay descendant userns create (2026-11-04 21:47:48 +0100)
-
-----------------------------------------------------------------
-overlayfs fixes for 7.4-rc2
-
-- Fix a self deadlock of a fanotify permission event listener that also
-  watches the layers, when it reads an overlay directory
-
-- Three casefold fixes, found by Chris Mason's AI review
-
-- Fix a decode of a modified file handle with nfs_export=on, which could
-  read the stale lower data of a copied up file, also found by Chris
-  Mason's AI review
-
-- Fix an overlay selftest after an errno change
-
-----------------------------------------------------------------
-Amir Goldstein (3):
-      ovl: inherit FMODE_NONOTIFY when opening directory realfiles
-      ovl: inherit FMODE_NONOTIFY when reading directory layers
-      selftests/fscontext_ns: expect EINVAL for overlay descendant userns create
-
-Chris Mason (4):
-      ovl: fail the mount if the casefold flag has changed
-      ovl: do not let chattr change the casefold flag
-      ovl: fix whiteout creation in casefolded directories
-      ovl: look up the index by the decoded origin
-
- Documentation/filesystems/overlayfs.rst            |  3 +-
- fs/open.c                                          |  1 +
- fs/overlayfs/dir.c                                 | 46 ++++++++++++----------
- fs/overlayfs/export.c                              |  4 +-
- fs/overlayfs/inode.c                               |  8 ++++
- fs/overlayfs/namei.c                               | 13 ++++--
- fs/overlayfs/overlayfs.h                           | 21 +++++-----
- fs/overlayfs/readdir.c                             | 35 +++++++++-------
- fs/overlayfs/super.c                               | 12 +++++-
- fs/overlayfs/util.c                                | 13 +++++-
- .../filesystems/fscontext_ns/fscontext_ns_test.c   |  2 +-
- 11 files changed, 102 insertions(+), 56 deletions(-)
+Giuseppe
