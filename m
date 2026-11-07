@@ -1,101 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.41
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.48
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794052741;
-	b=oZArMgCGTYrg7NyRstL70rX9KzHb4CHCgj7OtGh6/8J/Qu/mlukygW2C6ndKJpsIe3SO
-	 H9no3VYI5LmSrTB2y6bGA8NUlGD8jEVpojwO863sDsk6oYWNjz0YxvMV+GmVU4LBhXOAN
-	 z8Gi00oudn7TQsGIraWKJgzW9yBVM3//VmLziY6/BlSOE5UKsnaJpHsQnWHcZAnDzeiJ/
-	 g8bP2jDf51xgGOonCqPmfZbSK9hJXjL0PGIpeCBW4PnVErPYbTTajfTYZlVbhYFsHiIxt
-	 W9wIHtm/JG8xpJ4LS829MULxlmN2gpzBv7u3l9D5za43uzztQ7zXjTQteJ0Q7Dxf7BA==
+	t=1794053222;
+	b=2bwPdDTWR2zjSEDy2Ap5NiRJI84ad6eanqxCqV9EXOJagsCgkOefSCRaNuwpSeEn71D3
+	 flzlLCubgNZudm1eU7f1wEuIYN1PDXIDlfHNnepufpgCZq1Bp1ZMgDPwYrXUMaSjQBfBk
+	 8p94om6LVHLT2WqrjO2LT6XE6FQQ4Qxg1fA+ndoUxwnodCf6tZC4e5KaJd/lgBVU4a0JA
+	 9W6rgyQUmmDUCZOs/Q7eh5XWXQnC1WOsibFfyWsfEpQn8hIhmknjzFqGDBEkwl4qtPrgj
+	 TU7PbcIrzqpiQj0zxc2dsivExETizXZTngbMcd/9IQApHINSLQuX6y60VwSRVAi2rAw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794052741;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794053222;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=q13f0r4fzicCIGzxwWvYYPPU13RbKTYFwpHpZwEJdRE=;
-	b=bhvQPi5jH9Dd7+yj2JCzunXxwqrmwlb1omHGGJ7HuL8gJFEzt6ekA2K+GVXBoWKRaiqu
-	 xKhu0Mepi0Qul7ug72qQ8y8XGcOREAepJX/TJtaVuWqzxsZ7pWtmAhd/NjJCTYep178Yo
-	 IjwrCTOPziavCF+ekFN58HC4/+uC9IEtf6Lau9Y7w2gQrGwSgXtomPbgnJbu7N0V8A/e5
-	 QYAw6UKQuOAPU/y51Tt7cL6R9zbWd9lhXD1S+kROIi8jI0WWx1UWpKJS57fZZG4hLN3/e
-	 5dMXOOVLTPJJ6CV6RyI5O/WOnGMsR/WS8uQeWFxjXmKzU2uyqs8U5jWoEPAbZ6L6F2Q==
+	bh=6IFdt2+h74ES2iAllmb1tkzxE7Urdoz0rZFKQi7Jkp0=;
+	b=GDwKT8JChubcMBV4L2hUHC7Y+6BL07h+Fo0HT0d4GiUUIaharCvnPNGzXW7Zp7lE+qk/
+	 xw6T+hOwYTFCDlS+WWXDG+h0ABXQwqZxFY6MsO+h+G6NRZtz86hUnf1pxughwf1ImbuUm
+	 ooOIImwyLUNN3vcFj7hZFMPMG4S4WBLcJgx/uLN61dwgiBwDQq6xksiw6t95JTxnZRwWO
+	 isJ2LKTWmmPmJKHC0AQWvK0xpviceXrsPBuaDJRdZdyTQCmtU1lv4KLE/5pzJd4gz25hI
+	 0EeUUyoM4N4DBa7JufR/3TwadzbfU2J0A4ZpFAg4VQNLuplL0Nh47oWxbnWA+pxp9hQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="nW6/vjQB";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.41
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZxMtAa2K;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.48
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F17D4606A32C
-	for <linux-unionfs@vger.kernel.org>; Sat,  7 Nov 2026 11:59:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F17D4606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CC1B606A326
+	for <linux-unionfs@vger.kernel.org>; Sat,  7 Nov 2026 12:07:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6CC1B606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=nW6/vjQB
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6b596afb4c5so1473316a12.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 07 Nov 2026 03:59:00 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794052739; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZxMtAa2K
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-6b6e7a05225so1800329a12.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 07 Nov 2026 04:07:02 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794053221; cv=none;
         d=google.com; s=arc-20260327;
-        b=LH1azdMNgWjA7KCrWCesCgCjx2lpFK00XWP14IfBTNOHYGbWsOr1ejc+bs29sXLBV6
-         /TfCKoFu1Zop3Ll+nm6lzwx08Ux1Pqt9Es+dOGd9j55KkKPk/Lgc/s7zgiWkut/RmXo9
-         z6g0BSJM0VTzmfOp9FrKIkkKplydlY+x01IElZOn0sjZWyLZRCU4SQj3ibKt/hCRY4Uv
-         8EsQfJLCBujy9gTEtvosageKX9+UOmcEuWLkUCKtNJA1q+2GQN57vwWI5lKnSFYv9qL1
-         wFHHsy6bleFIbwKhGUWOg/8OsDzMr7DUSfmkBsyGupr6aMP7aXJbJu1mT43iMIBcvH/h
-         VK6Q==
+        b=bcSc1fXTPY+HxiLoK/v7brhqzHqgoNT0qOAE3G+f8JGsnc4+PTFAWgiSSnpzj/RW6Q
+         4UzGEk4WSQJCfiXutJewpLQ39Y6aqI3+mL8oEZRssdsNQRN8Y+h0HrS75gfIabcYq94X
+         Q00h5qHKl1t2t/tW/7Dr2SEHbzKZdNomY3qNlimNzSvyNzyPz0ixhis4YWexI8R3OMTR
+         uphVsvvxjfYy1x9vX/PrTG/SFS4qV63v8tZTkWJhM0kB+yBMTuxyKThnc3Uo6nwYCcJi
+         U1/gZwjFHazsnR5+EgbXwn9tBikjlwip7vPNvRy5Hwa3YjisqQ+pPN7N6tP1i5+ZorG2
+         yHyg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=q13f0r4fzicCIGzxwWvYYPPU13RbKTYFwpHpZwEJdRE=;
-        fh=TumQk9dmd37jWHnXALHFYo7KES0wg8WZ2ZaSx/NQjBQ=;
-        b=LeCSjgeMp7GAoOJ0xt3vG1fu3rcuePshHQNEAsr+0yzOB7TRedCXD1vhrfOhtB6i3s
-         4UbDUUJPDoWoW0WNEnE5G2l1+LQZPn3CY8GxqeCj4GotWqA06RYk2RPFXeFFhr1ZIyoJ
-         0MG6pXNa6mqXNeMrwwvB/+nwWbZfL5B3Lme3OFfxYsWuYIya/ad1KB5QOuiKyOYbx3IG
-         pQWaexeQgTkNKHiQw1Vr4uVKHAJ5q25bi2yyka0swypInzrEeFQsD+n09G89l9XhHloo
-         Njekh9oubh2+l9L9D4CCUJlJNG/5jIxk/vBuuEa1y0/jbBWz/Mx/PWHRgbGvBWfd5Jmi
-         GJYA==;
+        bh=6IFdt2+h74ES2iAllmb1tkzxE7Urdoz0rZFKQi7Jkp0=;
+        fh=3koIVqJmmVw2+M8ncCFegFljpMAoau78ihj75j9JJ+E=;
+        b=jl0m3/Xtgl9Kax1iJ2ur1lPfxALFsuLhdJNE2hmh2722Z83vDuxz6b9y/A7UB/zT5+
+         4qu4TEqI8Qtg8HaSPJvLhJOPt82PCxy+IsveuAwDw2oCxeriTSaHQjxCj1TS4PkGwHI2
+         8MblX3tuzI6FfV+wcY6Odh1Y7jgyn2iaS2LfHYmH1w+d6FwCyB1FjXek20xLP3mrQEiz
+         6tgvUI2IYaQAXRIZOdqB52/t7DKPjZBqVAS/A71/3VNORx5o5en9QQ0d7ZhhcrMYh+Ue
+         qwXbn0aeIDCybir5W666qC5I5Zre2KrdcVOLHwC3Mw44QVoji5Spt1mlC6QEse2oRv0l
+         tKWg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794052739; x=1794657539; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794053221; x=1794658021; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=q13f0r4fzicCIGzxwWvYYPPU13RbKTYFwpHpZwEJdRE=;
-        b=nW6/vjQBB+3SCTsMwM6f3lXrIGj9GbNoTfNwqUldGZt3wWYXx/4nsng6JvKWnDZuCq
-         QIB8qN+Ik3NP04AmVcutbWcJgjsgCauHuVNbu1J2qurxmFZx4lFetsf8GomVnl9j6Uob
-         jitZf+AN42+8/twWPAl0JrSU8TMLJ/p+arUfjt0vcuLGLqdTwrlHlJCSNn+/h/FYYSp+
-         if9Sut1Ei9wbVQB8zMAu5mxE+dzusmigGxMvcBQwO+DK9YNfbWsT9hZBGmQGPVHUQkAA
-         d3Jd7xFdHRkLben49Frr1piozEr5BvItS4O/XMJzMf5Fm4fvcaMexpOALHRADjV8uKDd
-         WwVA==
+        bh=6IFdt2+h74ES2iAllmb1tkzxE7Urdoz0rZFKQi7Jkp0=;
+        b=ZxMtAa2KkWNrppQDWh3IfTYIwwiW/ieO4PWtX9we6FTH7ecUhd5I083WUCO6I9rMx+
+         OUos32+riVXy9j69OmgcrTU7oMq0OkD6pAitint68mzZf+mDIWwZI5jdkIO19f8517SV
+         9HcOaXn7yfrx3UxGf2Lv8FvLAqbnUSEJxPfIXTqu6Op8EUZ+OhBk5aUiPHxKVxi3W2jG
+         IewD+zAkjaPRKKWLhP/lN8smmw1QCGj6zsKpqY9tzkIo+ZMbfvnLccwKcLQysd24m+rj
+         cEeGwzQZUrB0cPRY0uEgIEY43i7w9PLFHV1TRCHmfYCx0kPZ02nKMDSKboZPksxfd41+
+         X6yA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794052739; x=1794657539;
+        d=1e100.net; s=20260707; t=1794053221; x=1794658021;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=q13f0r4fzicCIGzxwWvYYPPU13RbKTYFwpHpZwEJdRE=;
-        b=pPKJkMyZuPuir07utp8y8jgsAYZa/F+LUbBj3Z5Z07YINFasPq2Laeift2+JifSjTJ
-         dD7++MGQqUuBYtdwKKDjTxWcWQm7qMHJBHF4T4GoNK/NuVj3t7PtKm1Y/2lSqBkMyZCM
-         tAHEe1Z5ewdE8exDfbwrTwPKE7j0BlP0HunjHrm8FkkUha1JsIJM9399G/staEYoOd/3
-         kpmviG7BNe2lDeNGPgdjLafloWQ9asCZ40TiAtKYcsodGq09n0ngLASJUQfzcA/avn2S
-         hHRRdDn+LPl6Jof1crRiJHbaWsTVO9IkCqFGrpsby96N2u9qzx5I1Pk/sJxf4PeqWEek
-         eIhw==
-X-Forwarded-Encrypted: i=1; AL+hErFnpBYJZnhYjGmnsiPq+g/wyAdAAV1Ad85j6USrmWL6NrlHcjh4ga+pnE3ec4baGRwhQ6tbbtUfQJfKbm/g@vger.kernel.org
-X-Gm-Message-State: APuU4Z/M12vXzDRu41npLhGCvp0YhDvFtqYf0tlwYMfduVlZ1yU7Kekd
-	4KuqNYQo9nMl/Xvx43OKjLf9jh0///HvWVYMaz5Lr3V5WJok8O+TPP6gSrISG751qWsT6kadDpX
-	yNGyx8Fdod1n+nVgRY+bjFEh9HS0dsxY=
-X-Gm-Gg: AYBFou2jeDFGTnhVlptDOUoGa3MA33HJAEmoi9W0h3wDZZ/+ZSYUQ7r6Izh3YYnw8/q
-	fz/BvxIPYDPGowYgIl+a13vEBicjWh0R2iPyZTRRlx6YaPIZD8UiNGzbi7vlzt5i6VSmkf4WEWf
-	KR8FdEHiiWQHGYa56camO/sRTsbfriJSOaXTelDeFMpB9g/R2bepP9tTYvKVrQ90eEvknC0oRrL
-	4XVwtz5wK8OIr2A4fA/RAlIE+ldpWVoXpI9NG9eLSAbFrz3Y13Wjw4bB6ZykmbQkx84wlctMN3w
-	jFsNR2lZ3vvpHqx1K/Zs7NuiSUpGyxB3ytLVQ683JWJ7NF/zIgRBVVFQrWEpeq3bRNg5O2ouuyb
-	VdPj9jLaHXXeP3IF/aHtzEZnBJjwKyqi3GtLI6KbgO7POQaIgf4C/VxTgfqI/oc6NGqACsu0AWy
-	/HxJUYMXoAnZigew5N
-X-Received: by 2002:a05:6402:158c:b0:6b5:6ba3:5860 with SMTP id
- 4fb4d7f45d1cf-6b5977f129emr3451363a12.17.1794052739133; Sat, 07 Nov 2026
- 03:58:59 -0800 (PST)
+        bh=6IFdt2+h74ES2iAllmb1tkzxE7Urdoz0rZFKQi7Jkp0=;
+        b=u9hs6NBWLr1PLnJGVMZ0Cs+DhqcVnY/Yje9vj9D3ZGGdSDFjYVQQvQQWN1MhbchJND
+         9BDWTPpaQPMcwljKt8xb/tUHVK+KbOH+pwk9w8fymU2bHx5giXK4H11WHbl0+/8dWzkw
+         Qi1bwI16Odx3KVYKd+dXMslJHGUmudUGWpUtForbdCudoeJzzco3kh2sVKamGVsRMQR0
+         pKx0OmDUD1k4Z8c1wKKW4XG7Zeeoo2G8W4+AP+3LMYFi5GRuiZw0xsQgJrnq1CSmi4nq
+         BHZQXOUMFEqlfOTrWAw5uQP18lLAvUbtXfPK6hRhvLZxh4U/epxS2zN1jKKCWuOcvwlG
+         i7Aw==
+X-Forwarded-Encrypted: i=1; AL+hErHstBWsnX+HEMgXBHE4m3NRjUJrM94zQGkjG+OLMYGy681d1Rz2ONEZ/QFMeXuh3l3HQDyGnNGrs/6gltCc@vger.kernel.org
+X-Gm-Message-State: APuU4Z9Hmr/gZwMAVmShe+JHBkzRNORDb44f9R80gAkkx77znCOvPjek
+	9dZeNhNAM/TFEkEHnL9Wt2VrfaRMeohhuNvN+hmfKVJ9M39umq2lCl9dsQ8W4fEwht1vxt6S132
+	seNlI9y2pxbEki0lKf394I5CYneBAhkQ=
+X-Gm-Gg: AYBFou0NFTcVTjFQoTc3j6mfj3s6GCUDDj3whZv4l1OMrrbT2pk9kk3lc/1dxKA2KY7
+	sCF+HRW3P1UYwFyf1VJwTDA7MaW3+fu3TCzdICkeMs8eeSQsAOg4TjIzFJbtnDS2mMkOedCLckY
+	yKT1M3PpxKvWbR3XhatLD71b0rtSoYFYSdO5vV/sEeJeRrxGUhXpDxf6t5vztPEfo+GYCJ6uiky
+	UFf0ihFUV5HP6UqhNX9QQHEIby5vV9MSESYT4F+ZMPmb0X0EoLadXcejeqC6zANfNHiADUmvWhI
+	QxV2R5x1eWLpGIWbyG3IgOL4r8kkLgijUF/ZfRpbyh7+BT6ogqb3hcAPaDSYiDuqth7R2nz1D12
+	2qt/oLodUhCBoNrtogizjxyVUcBgQrBeCLrl4w9h0qvBsQ0lhefLoq/PnPrOmWSis/qfhSQ==
+X-Received: by 2002:a05:6402:312a:b0:6b5:965f:98b2 with SMTP id
+ 4fb4d7f45d1cf-6b59780666bmr2775370a12.36.1794053220545; Sat, 07 Nov 2026
+ 04:07:00 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -108,9 +107,9 @@ MIME-Version: 1.0
 References: <773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com> <946b46fbf1c555a47a8a9304f2ee31af.josef@toxicpanda.com>
 In-Reply-To: <946b46fbf1c555a47a8a9304f2ee31af.josef@toxicpanda.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 7 Nov 2026 12:58:47 +0100
-X-Gm-Features: AclHuK_HxGgSBDeYi4hnUu0Wi124NC2EkW8RKHxAPKX0yEMcnxsiWq0XD1MH14E
-Message-ID: <CAOQ4uxikdcS-uPh57F8vPLNBo88pjbjtn_kws0z2=gOvOLKGCA@mail.gmail.com>
+Date: Sat, 7 Nov 2026 13:06:48 +0100
+X-Gm-Features: AclHuK-zVATIg6Gk8mVw-rQ_hLYsZPX-NTgQvvXAu66wGyyrF04T-5x1OrXMqDw
+Message-ID: <CAOQ4uxgRcHWg2TAeCbUNL-Af6Or=Q=z10kEGLjd56pW645dseQ@mail.gmail.com>
 Subject: Re: [PATCH fstests v2] overlay: test that syncfs and unmount persist
  all changes
 To: Josef Bacik <josef@toxicpanda.com>
@@ -174,17 +173,6 @@ de0b7dd8a@toxicpanda.com
 > index 00000000..f9c98eff
 > --- /dev/null
 > +++ b/tests/overlay/118
-
-Nice! Thanks.
-
-What's the deal with Claude's number allocations?
-There is an unused test number range 090..099.
-
-In tests/overlay it's just because I started the unionmount
-tests in offset 100, but I think that in fstests we often reallocate
-numbers for tests that were deleted.
-
-
 > @@ -0,0 +1,182 @@
 > +#! /bin/bash
 > +# SPDX-License-Identifier: GPL-2.0
@@ -225,24 +213,6 @@ othing
 > +_require_mknod
 > +# These never sync
 > +_exclude_scratch_mount_option "volatile" "fsync=3Doff"
-
-This seems wrong.
-When one specified default mount options for the entire ./run
-they are not expected to affect tests that set those options explicitly
-I think the right thing to do is that this test always explicitly
-requests fsync=3D and where you did not provide fsync=3D provide
-fsync=3Dauto instead.
-
-Also, please add:
-_require_scratch_overlay_features fsync
-
-But it doesn't work without my fix:
-https://lore.kernel.org/fstests/20261106155832.3867017-1-amir73il@gmail.com=
-/
-
-Yes this test could technically run on older kernels and skip the
-unsupported options but I don't think it's important that it would.
-
 > +
 > +lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
 > +
@@ -294,6 +264,11 @@ s.full
 > +       $XFS_IO_PROG -c "mmap -rw 0 256k" -c "mwrite -S 0x66 0 64k" \
 > +               -c "syncfs" -c "mwrite -S 0x67 64k 64k" $m/mmap >> $seqre=
 s.full
+
+Sashiko is right to note that this syncfs add an explicit fsync that could =
+hide
+unmount non-persist bugs?
+
 > +
 > +       # The other ways to write data
 > +       $XFS_IO_PROG -f -c "sendfile -i $m/link 0 256k" $m/sendfile \
@@ -326,6 +301,10 @@ y
 > +       $XFS_IO_PROG -f -c "pwrite -S 0x68 0 1m" $m/evicted >> $seqres.fu=
 ll
 > +       echo 2 > /proc/sys/vm/drop_caches
+
+Sashiko is right to claim that this drop caches is meaningless with the
+snapshot() that follows?
+
 > +}
 > +
 > +# No inode numbers, no timestamps, and no sizes and link counts of direc=
@@ -358,11 +337,6 @@ f")"
 > +       local label=3D"$how${*:+ $*}"
 > +
 > +       echo "=3D=3D=3D $label" >> $seqres.full
-
-Please echo label also to stdout and include it in golden output
-so if something fails it is easier to see right away in the diff which
-mode had failed.
-
 > +
 > +       create_lower
 > +       if [ $# -eq 0 ]; then
@@ -397,20 +371,24 @@ mode had failed.
 > +
 > +for how in syncfs umount; do
 > +       do_test $how
-
-I think adding auto to modes instead is sufficient
-and avoids the default fsync=3Doff issue
-
 > +       for mode in relaxed on strict; do
 > +               do_test $how -o fsync=3D$mode
 > +       done
 > +       do_test $how -o redirect_dir=3Don,metacopy=3Don
-
-This makes for odd test coverage.
-No coverage for metacopy=3Don,fsync=3Drelaxed (assuming default is off)
-No coverage for redirect_dir=3Doff,fsync=3Drelaxed (assuming default is on)
-I guess there is no escape from another X2 dimension of meta in on off
-and do_test $how -o fsync=3D$mode,redirect_dir=3D$meta,metacopy=3D$meta
-
-Thanks,
-Amir.
+> +done
+> +
+> +# success, all done
+> +echo "Silence is golden"
+> +status=3D0
+> +exit
+> diff --git a/tests/overlay/118.out b/tests/overlay/118.out
+> new file mode 100644
+> index 00000000..3daed864
+> --- /dev/null
+> +++ b/tests/overlay/118.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 118
+> +Silence is golden
+> --
+> 2.55.0
+>
