@@ -1,92 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793988904;
-	b=gDtze9fZwcD2qD5shLfmFBvnwyy73rEQVI73CemQmVgaOMTLJHsdq/0gm+kcUpSA1mgD
-	 KNeYmdH1IiEcODPrciswNaoH70ujQRNw1ZIqVPqq1WswFRE6NriRHtE2PKYc2HMPJbZwy
-	 FJz5kFAamakrZHiaVSBeiE4+mvd8pRuPLVoDi/gT6uZjistPneGch3m/imQdRmF5vVRrg
-	 hBHNFGPzwx4Uoy2L0nRGc8g6WAG8sWb4K+et1vaDo2191pO/kZ5Jj3cinJ6kLIqi6ShsC
-	 SjtAovvj1cHmvhz5xurVTt/FHWhgVjTnmvo+dcSdsMQC7dbJ5iWdQRfgLyy/e0T0QMg==
+	t=1794011504;
+	b=brkxHIiTim1VkbsFLS82OEA5YAmQaw5ZkqnF2hHhnf0EwCCNRX027MydC5AeoNYyt95I
+	 cnlnrk8aQlybNVW927x94/mQNUGRBtobqUYunTTEHtOk8DgDTVbuOkA8+T/lg40YQGOFt
+	 BUvCMSgHe/IEMek+EAUozoZE2GhGBySyBZqYJ4wvIByd3j0yiMiTHkebXreWi4ei7fyqv
+	 /sGHGu5DHuMOKVi78Nn3oMDEa/xsYIx5j3YdDDQTczcZx5mzw400LyDmSczSzesh6lVSw
+	 AcUhAU2AxIkpB464SKNJPinqGTejWmPZnwB2r38il7QgFJ68ZAap36yx8kipteL+8+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793988904;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794011504;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=DfnthQGT530XBD4xK8fouGBMfFf3/AWAiNhXHcUmwcA=;
-	b=SnrDtdTzb1alhracFmDT6zvSYlzzeiNaKjrh7Q3r7d6Bou+chklpzQcs380I+S1jN5bz
-	 9dR/s3cFHKDIBWJ+QplBHenmYavEKWrQpn55xkXUZ8UawKGy8D0hlEiajzjJBIswFO8rI
-	 PTLKCfOCubhPN1SsVOhHZ0AfBnZddC8WT9MmVTAYbrZDDESPIDpePIi+QRui9cL1bjzp9
-	 2yD9YqnjTg/MOjfRj2kwynI1/i+H7XUkJciGNrHligKQJPorwKy1Jkw/ZLv7F9yvxCEPw
-	 tkJ5neFvtu9FQu91H4P4PUuxZhTVDGckU4NfMOGctT2bs/cru4E+cudqJGHyjsBtUKA==
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:Message-ID:In-Reply-To:References:From:Subject:To:Cc:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=LDguwGrSBxdmZQBN3HIv1p+8YUY4bhTPUTj+F2Sw6mA=;
+	b=Lv8utkvyNgGseG9Nol6SJWQAbS9wdLlO+OzD2P7lakrKMyqnB0cGK3nyf5kVCNBOin5f
+	 R7pdOzaeSgzM6JJK2L9c2HXVI4RbSYeI7jqWZXWjE/cI0Yn40tWvlo9KHhTgkLPwF0FaB
+	 yfR2zIVbJz49nhttOPgGnJYUEslJqhJULt+Lg/rqLwD85ijtqAOqC09kuX/oHZAQJ4AbK
+	 Kq/TcS2Z5HkrflAqUVa0h0UP5DgrPO/0jpwAPSbKgadH2wz4EVwV05gu+4fV7TyU2ejt8
+	 Wpn7t4sO/C6idRY209J0lewRzsqYstrPJlHa/eaR0aWUxrRnrUxkbBRgUGWQEBnKA4A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=openvz.org;
-	spf=pass smtp.mailfrom=openvz.org;
-	dkim=pass header.d=openvz.org header.i=@openvz.org header.a=rsa-sha256 header.s=google header.b=NyWNLTh2;
-	arc=none smtp.remote-ip=209.85.128.43
-Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	dmarc=none header.from=toxicpanda.com;
+	spf=pass smtp.mailfrom=toxicpanda.com;
+	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=roP2jb5z;
+	arc=none smtp.remote-ip=209.85.219.43
+Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AA73606A32F
-	for <linux-unionfs@vger.kernel.org>; Fri,  6 Nov 2026 18:15:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5AA73606A32F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=openvz.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=openvz.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BADF606A32C
+	for <linux-unionfs@vger.kernel.org>; Sat,  7 Nov 2026 00:31:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1BADF606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=openvz.org header.i=@openvz.org header.a=rsa-sha256 header.s=google header.b=NyWNLTh2
-Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a5720b0a57so12648235e9.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 06 Nov 2026 10:15:04 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=roP2jb5z
+Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-91ccfb88e4dso13834096d6.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 06 Nov 2026 16:31:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=openvz.org; s=google; t=1793988903; x=1794593703; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DfnthQGT530XBD4xK8fouGBMfFf3/AWAiNhXHcUmwcA=;
-        b=NyWNLTh2KuNktgWrvexNqLWSKsigmjEJFnz7uOMCFLGNIU8KwqCL4Vs0HKShgn+vx1
-         Qn/KQI28LgJV3lJidR1yF3kS3zjnNKU+wlyTyLPWHjTISQicY3Su0KmVTKEeAcv5EBzK
-         m4Lf1Nmhep8RUC9dt/LN2OtJfKDeULe/8l300kQingBcSuRG2Xmrk7bMvR03g/CIijt3
-         xD8uZRYYuTtlzP2b1x/BetuusQ10jCDMf/dZHjTWSaGXNG1GxyrszAfB1IWVf8xd5qJS
-         lQiEhZtjWRuUY6Cy6uF2ucgk0Zhq0b/1aUz28uitWx0NAL4TYgkK8hiGRfK4dRu5QZVK
-         x5BQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793988903; x=1794593703;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=toxicpanda.com; s=google; t=1794011503; x=1794616303; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:cc:to:subject
+         :from:references:in-reply-to:message-id:date:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=DfnthQGT530XBD4xK8fouGBMfFf3/AWAiNhXHcUmwcA=;
-        b=OBIZEes2bFIaLjyK08zaNALub3bVhwUYCXgFHMjUcxjypCZg/9VCzbNkd3NasQEOp1
-         EodkhUcROy8gkHUBofK5YM2QNWHQAWN3BN7xk6ezcw2YdRr0yKTQmz1XP9JBF61OOSbS
-         1v7GnGnZSJHmQXm94GM41Di4+DUAvaSmuwm39xf/N5LrJLKJcKJvIIx9zdlXMlwbWZ+t
-         A7k+stAIfUBFnNK291QusL4NMiN1G5V0dwsHMB3gOB95ykLTQc2b3xkodPJ7UYPfQq/q
-         RsSKMQsVUWdgHvtvMop1sWm0+miX2oL37zY3VY8ZhtfkW+ll+Op5sRogBYAS3+iZZ2+K
-         TQRg==
-X-Gm-Message-State: APuU4Z/w/YF4QZPGbZc+fSCoSe+/Rj30SGCgiezS/Mpt2fJRLDN4RNIO
-	9ENjXIzyLgJ9mYeTsWD5/ws83X5HGh/LbdUUfo9aXTWDqMaOzB+6zCRVhhg4ZsGBF+CCyJq/tGe
-	wdzeI
-X-Gm-Gg: AYBFou00nf6Er/3bhhWaq7rWzNewmQh1LbUWYXhXPujuMkuDOcHGKJWNnRVuUbRF8UK
-	J5pVBypHdgHH8YCTsP5j4rHHh82AFf9+aCrcQG2L+KefHUSctBlEhXogdHNsXaE7m9nhjx5tg10
-	8P5l8xR0D4XX0jZAuV2qVIgMw0GWJc/DATMsrD3MM/LIXU39k6+O5IZPBSBmcrDZon5MNCVFwU3
-	pi7mdNfl3NZ4GT0rLiX4Ft3RpitvA/U/UMNqlei+EyFVs9G5wmFpNsbqAsOZ/wxJ8vVh10G9t2A
-	VXAW4OWwH4+FoPQlzPFnrig1NIP4cIpwA3zqTToE5LjoGsdqJNphBpJA/U4RpGmdKYhx2VKD5rP
-	FxXLZ3TUZ7FBvwgvc5mRCDpEA4uX7av+CTnK79RtpgqbeC7baizND0ZludEcm0XUswcg1/oril7
-	l9jhgvhU0N1xJ5wzPz8jE4/srwwOMpcLIgQXZBpf0zR2JMd8IcxsGgkr9Sw5ufsmLrWiIevb6iN
-	TAvQlKjxLqtOV/OwysdBIJrWgdv2Xu2YnUI516UXEp3q1tz34CyCESJq4BD2OLbX3JWdJZnbYGE
-	ODcCwQko2oU8t1Fjkw==
-X-Received: by 2002:a05:600c:8b05:b0:4a1:efbe:529c with SMTP id 5b1f17b1804b1-4b6dff855a6mr64101605e9.12.1793988902485;
-        Fri, 06 Nov 2026 10:15:02 -0800 (PST)
-Received: from athena ([2a06:5b06:b600:300:1983:68c3:80e8:4ae2])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b6ed5b8159sm71788845e9.2.2026.11.06.10.15.01
+        bh=LDguwGrSBxdmZQBN3HIv1p+8YUY4bhTPUTj+F2Sw6mA=;
+        b=roP2jb5zXZx4Z/cevpFgeuWFOm0sxH7qfgbxJeR6FAur2B8cbtwDwXTuiCzm4QwqPA
+         ZEu8cP0oeV8areKQCinpcBpB/CAWVcnbpS34JpBvYPLmO9Oacrk32wYxbqh5VmCK7mQi
+         wOr2LlLETeqqQleSzSf101J0F+wTCMwYR6KSyDN10ACm4bFVQMaNPjP5zI/IkMmB+SA4
+         Keyt9706FafjyAtQmSo+RecWasLWtLKm9RnvX8RdfE4unizK/H2ixvZtW5JZDXZef8cR
+         TAYL711FeVGsz0FZEbAD7ib01AhWp9pLLgkOWwoWxJBZjbk4mAvn44q74CSJWOFZN8DN
+         qSng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794011503; x=1794616303;
+        h=content-transfer-encoding:content-type:mime-version:cc:to:subject
+         :from:references:in-reply-to:message-id:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=LDguwGrSBxdmZQBN3HIv1p+8YUY4bhTPUTj+F2Sw6mA=;
+        b=2tGuiGqgdOcgSr5+f4c2rZAwuyuHLQS0kmGPQ1rCf533gpcHjoaVWpEUgnkT3aa6y6
+         Op+Vd+8Pc5ZY5AQq1JUoZ35369xNV4gVm6y83x/I9xtCkrYFr6Ebk+RLWCcq/0GvnAvx
+         R5+n5ik8Ga+tNvhOgLOUT5WIFXmnMmGl/EByaorfKmjgmrjZqQ+lLosADChuzXlZp1Po
+         U9xo8qBMaOi6OIFfdTWyHlmw1DA6BE5YD4vbw6IBOTE8O53uCLkhk3zqg8Dq5LJXPZS0
+         WwEwF24he+EcgpitIkhwwPQxc1GTQVQtl0p+DL8vm/2kbL0PL/tIPJdJ51Xe3JxsSE92
+         UYaw==
+X-Forwarded-Encrypted: i=1; AKwUvBwvubBCrOcgM2ZIK0BYvtsaUtP/pYJDp4c1hKbarKVU1+i2Y5nyd/QZlGUdA0Y2h8crSwQL4FugXdXQXqb3@vger.kernel.org
+X-Gm-Message-State: APuU4Z/RmnHD+8OOsLjpNI2EefoKlpHrYvH8U4jReZZueG8I3pvh98KC
+	SMbjWNfHMk7s+/zA5NlXaGhL5M/KYCzxAZP2VLYQUN121Mn2B3zIGLU4kF5WN1KhIL8=
+X-Gm-Gg: AYBFou1Y6oUjiSUYl8p9CK8Pg/zTmLvHfKn51kPt6C5N3cekG/sG75XEeFhMmExjApd
+	6mFKbBzjWnSVIopJWUTgrtmdHt2dLP8UAdPimrq8tSlxtKWPU8O3O8UW1I2AHPIGE4zbfT4kYZu
+	t82X8W7ZVDHGlCCQFyAwln+mI10ytO+gmYVOVWmja2RydyZIMKoOPMYQ7up6IYOHlxKgC8m+Yoc
+	ac3s160FXexVZIS25gCLQS6eSLTWv1wVybK/lA4j5WWMIW4fVOKGmHZeBK+6NZGztVTtlnMmF0G
+	1lr1sU2VvX5f23Zq/oC0W+JL2TqC2yBw7bMzEL+UQXuAUbY5GDmOTi3sl75NSGDK55R8NnelyLa
+	eLt4vXwVKag/WwcM7S1Q4lLMppw/NsQ3Gmfyd4MTgW1iWLhMRIHg8Ig4Ys47XY5heLYBa1wrqMV
+	Q45HCTUmnGq2xeLmw06eG6sKIR37zTpYVfNhODolH4pbYMFLDBJt+gVHEQ6Orl9NP8yTdgmX8iP
+	pk6PFAIZRkHTHdVUBRsCMCp6B5A17+ox5Aj9Dap1wdaMZgucrJq7tzIueMI46kQ82OxMtkXJvQz
+	kpAH/V2ZI1TNG61relrE1gpmTXgff9Cxeh5mFBd8lTD2+A==
+X-Received: by 2002:a05:622a:2485:b0:53f:a444:dc7c with SMTP id d75a77b69052e-54e156631cemr63284951cf.56.1794011502798;
+        Fri, 06 Nov 2026 16:31:42 -0800 (PST)
+Received: from toxicpanda.com ([153.61.196.247])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-54e26835bf8sm32811911cf.19.2026.11.06.16.31.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Nov 2026 10:15:01 -0800 (PST)
-From: "Denis V. Lunev" <den@openvz.org>
-To: miklos@szeredi.hu,
-	amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Denis V. Lunev" <den@openvz.org>,
-	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Subject: [PATCH] ovl: release the upperdir/workdir in-use locks before the umount sync
-Date: Fri,  6 Nov 2026 19:14:59 +0100
-Message-ID: <20261106181459.4166343-1-den@openvz.org>
-X-Mailer: git-send-email 2.53.0
+        Fri, 06 Nov 2026 16:31:42 -0800 (PST)
+Date: Sat, 07 Nov 2026 00:31:41 +0000
+Message-ID: <946b46fbf1c555a47a8a9304f2ee31af.josef@toxicpanda.com>
+In-Reply-To: <773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com>
+References: <773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com>
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: [PATCH fstests v2] overlay: test that syncfs and unmount persist all
+ changes
+To: fstests@vger.kernel.org
+Cc: Zorro Lang <zlang@kernel.org>,
+    Amir Goldstein <amir73il@gmail.com>,
+    Christian Brauner <brauner@kernel.org>,
+    linux-unionfs@vger.kernel.org
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -96,138 +100,243 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-From: Denis V. Lunev <den@openvz.org>
+overlayfs is about to stop syncing the whole upper filesystem on syncfs(2)
+and unmount.  With fsync=relaxed it only writes the upper inodes that were
+modified through the overlay, so it has to know about all of them.
 
-The in-use locks on upperdir and workdir are released by ovl_free_fs()
-from ->put_super(). generic_shutdown_super() calls sync_filesystem()
-before that, and ovl_sync_fs() syncs the whole upper filesystem, so the
-locks stay held across a journal commit and a cache flush of the upper
-fs after the overlay is gone. With index=on a new overlay that uses the
-same upperdir, or uses it as a lowerdir, fails to mount in that window:
+Modify an overlay in many ways: new files and directories, data and
+metadata copy up, stores through a shared mapping, sendfile, copy_range,
+an O_TMPFILE, a short and a long symlink, hard links, renames, whiteouts,
+a file written before the inode caches are dropped.  Then sync or unmount
+the overlay, shut down the base filesystem without flushing its log, cycle
+the mounts and check that nothing has changed.
 
-  overlayfs: upperdir is in-use as upperdir/workdir of another mount,
-  mount with '-o index=off' to override exclusive upperdir protection.
+Do that with the default mount options, with every fsync mode that syncs
+and with redirect_dir=on,metacopy=on.  Options that the kernel does not
+know are skipped.
 
-Userspace hits this when the last reference is not dropped by umount(2)
-itself. Docker with the containerd snapshotter mounts a snapshot on a
-thread with a private mount namespace for docker cp and for buildkit,
-and the superblock dies when that thread exits, after the reply to the
-client has gone out. The next request then gets EBUSY. The window grows
-with the flush latency of the upper fs and is there even if nothing was
-written through the overlay, as the mount itself dirties the upper.
-
-->kill_sb() is called once s_active drops to zero, with no mount and no
-open file left. Release the locks there, before generic_shutdown_super()
-runs. What the dying superblock still does to the upper fs, the sync and
-dropping its references to upper dentries and inodes, does not touch the
-contents of upperdir or workdir. ovl_free_fs() still releases the locks
-for a failed mount, so clear the *_locked flags to keep it from
-unlocking a second time and dropping the lock of a newer mount.
-
-This takes the sync out of the window but does not close it: the final
-mntput of a dying mount namespace runs from task_work, after the exiting
-thread may have reported completion. Userspace that needs the
-directories free should umount(2) before saying the job is done.
-
-Fixes: 2cac0c00a6cd ("ovl: get exclusive ownership on upper/work dirs")
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Signed-off-by: Denis V. Lunev <den@openvz.org>
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 ---
-Tested on a 6.12-based distribution kernel, where this code is the
-same, with a reproducer built on unshare(1) and with docker cp and
-docker build in a container. Built and checked on master.
+v1: https://lore.kernel.org/r/773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com
 
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/params.c    |  5 +----
- fs/overlayfs/super.c     | 12 +++++++++++-
- fs/overlayfs/util.c      | 12 ++++++++++++
- 4 files changed, 25 insertions(+), 5 deletions(-)
+v1->v2:
+- Added a symlink that's too long to be stored in the inode. (Christian)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 901335026a20..85e167a060f4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -583,6 +583,7 @@ static inline int ovl_set_impure_dir(struct dentry *dentry)
- bool ovl_inuse_trylock(struct dentry *dentry);
- void ovl_inuse_unlock(struct dentry *dentry);
- bool ovl_is_inuse(struct dentry *dentry);
-+void ovl_inuse_unlock_all(struct ovl_fs *ofs);
- bool ovl_need_index(struct dentry *dentry);
- int ovl_nlink_start(struct dentry *dentry);
- void ovl_nlink_end(struct dentry *dentry);
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 5a15e5478a6b..82e270711dbc 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -849,11 +849,8 @@ void ovl_free_fs(struct ovl_fs *ofs)
- 	iput(ofs->workdir_trap);
- 	dput(ofs->whiteout);
- 	dput(ofs->workdir);
--	if (ofs->workdir_locked)
--		ovl_inuse_unlock(ofs->workbasedir);
-+	ovl_inuse_unlock_all(ofs);
- 	dput(ofs->workbasedir);
--	if (ofs->upperdir_locked)
--		ovl_inuse_unlock(ovl_upper_mnt(ofs)->mnt_root);
- 
- 	/* Reuse ofs->config.lowerdirs as a vfsmount array before freeing it */
- 	mounts = (struct vfsmount **) ofs->config.lowerdirs;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index d9174eaccce2..c7018dde1228 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1609,13 +1609,23 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
- 	return err;
- }
- 
-+static void ovl_kill_sb(struct super_block *sb)
-+{
-+	struct ovl_fs *ofs = OVL_FS(sb);
+This is for "ovl: only sync what was written through the overlay" [1], Amir
+suggested a test like this in his review.
+
+It passes without the series on ext4 and xfs, there it skips fsync=relaxed
+and fsync=on, and it passes with the series. With the series and the
+function that marks the overlay inode dirty turned into a no-op it fails in
+the default, fsync=relaxed and metacopy rounds, the file data is gone.
+
+[1] https://lore.kernel.org/r/20261106-b4-ovl-containerized-sync-v4-0-6ddde0b7dd8a@toxicpanda.com
+
+ tests/overlay/118     | 182 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/118.out |   2 +
+ 2 files changed, 184 insertions(+)
+ create mode 100755 tests/overlay/118
+ create mode 100644 tests/overlay/118.out
+
+diff --git a/tests/overlay/118 b/tests/overlay/118
+new file mode 100755
+index 00000000..f9c98eff
+--- /dev/null
++++ b/tests/overlay/118
+@@ -0,0 +1,182 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (c) 2026 Josef Bacik.  All Rights Reserved.
++#
++# FS QA Test 118
++#
++# Test that syncfs(2) on an overlay, and unmounting one, persist everything
++# that was modified through it.
++#
++# overlayfs used to sync the whole upper filesystem for that.  With
++# fsync=relaxed it only writes the upper inodes that were modified through this
++# overlay, so it has to know about all of them.
++#
++# Modify the overlay in every way we can think of, sync it, shut down the base
++# filesystem without flushing its log, cycle the mounts and check that nothing
++# has changed.
++#
++. ./common/preamble
++_begin_fstest auto quick shutdown copyup whiteout mmap redirect metacopy
 +
-+	/* Nothing can modify them now, do not hold them across the sync */
-+	if (ofs)
-+		ovl_inuse_unlock_all(ofs);
-+	kill_anon_super(sb);
++. ./common/attr
++
++_require_scratch
++_require_scratch_shutdown
++_require_metadata_journaling $SCRATCH_DEV
++_require_xfs_io_command "syncfs"
++_require_xfs_io_command "sendfile"
++_require_xfs_io_command "copy_range"
++_require_xfs_io_command "-T"
++_require_xfs_io_command "flink"
++_require_attrs
++_require_chown
++_require_mknod
++# These never sync
++_exclude_scratch_mount_option "volatile" "fsync=off"
++
++lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++
++create_lower()
++{
++	local f
++
++	# This leaves the base filesystem mounted
++	_scratch_mkfs >> $seqres.full 2>&1
++
++	mkdir -p $lowerdir/dir $lowerdir/rmdir $lowerdir/mvdir
++	for f in append truncate mmap chmod chown chown_append xattr link \
++		 rename remove dir/append rmdir/file mvdir/file; do
++		$XFS_IO_PROG -f -c "pwrite -S 0x6c 0 256k" $lowerdir/$f \
++			>> $seqres.full
++	done
++
++	# These were not written through the overlay, so it does not have to
++	# sync them.
++	$XFS_IO_PROG -c "syncfs" $OVL_BASE_SCRATCH_MNT
 +}
 +
- struct file_system_type ovl_fs_type = {
- 	.owner			= THIS_MODULE,
- 	.name			= "overlay",
- 	.init_fs_context	= ovl_init_fs_context,
- 	.parameters		= ovl_parameter_spec,
- 	.fs_flags		= FS_USERNS_MOUNT | FS_ALLOW_IDMAP,
--	.kill_sb		= kill_anon_super,
-+	.kill_sb		= ovl_kill_sb,
- };
- MODULE_ALIAS_FS("overlay");
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 521717209b2e..517d503fc557 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1050,6 +1050,18 @@ bool ovl_is_inuse(struct dentry *dentry)
- 	return inuse;
- }
- 
-+void ovl_inuse_unlock_all(struct ovl_fs *ofs)
++modify()
 +{
-+	if (ofs->workdir_locked) {
-+		ovl_inuse_unlock(ofs->workbasedir);
-+		ofs->workdir_locked = false;
-+	}
-+	if (ofs->upperdir_locked) {
-+		ovl_inuse_unlock(ovl_upper_mnt(ofs)->mnt_root);
-+		ofs->upperdir_locked = false;
-+	}
++	local m=$SCRATCH_MNT
++
++	# New files and directories
++	$XFS_IO_PROG -f -c "pwrite -S 0x61 0 1m" $m/new >> $seqres.full
++	mkdir $m/newdir
++	$XFS_IO_PROG -f -c "pwrite -S 0x62 0 64k" $m/newdir/new >> $seqres.full
++	$XFS_IO_PROG -f -c "pwrite -S 0x63 0 64k" $m/dir/new >> $seqres.full
++	ln -s new $m/symlink
++	# Too long to be stored in the inode
++	ln -s $(printf 'a%.0s' $(seq 1000)) $m/longsymlink
++	mkfifo $m/fifo
++
++	# Copy up, then change the data
++	$XFS_IO_PROG -c "pwrite -S 0x64 256k 64k" $m/append >> $seqres.full
++	$XFS_IO_PROG -c "pwrite -S 0x65 256k 64k" $m/dir/append >> $seqres.full
++	$XFS_IO_PROG -c "truncate 4k" $m/truncate
++
++	# Stores through a shared mapping, also after a syncfs, no msync
++	$XFS_IO_PROG -c "mmap -rw 0 256k" -c "mwrite -S 0x66 0 64k" \
++		-c "syncfs" -c "mwrite -S 0x67 64k 64k" $m/mmap >> $seqres.full
++
++	# The other ways to write data
++	$XFS_IO_PROG -f -c "sendfile -i $m/link 0 256k" $m/sendfile \
++		>> $seqres.full
++	$XFS_IO_PROG -f -c "copy_range -l 256k $m/link" $m/copy_range
++	$XFS_IO_PROG -T -c "pwrite -S 0x69 0 64k" -c "flink $m/tmpfile" $m \
++		>> $seqres.full
++
++	# Copy up, then change the metadata
++	chmod 640 $m/chmod
++	chown 1234:1234 $m/chown
++	$SETFATTR_PROG -n user.test -v value $m/xattr
++
++	# With metacopy=on the first one only copies up the metadata
++	chown 1234:1234 $m/chown_append
++	$XFS_IO_PROG -c "pwrite -S 0x6a 256k 64k" $m/chown_append \
++		>> $seqres.full
++
++	# Names
++	ln $m/link $m/link2
++	mv $m/rename $m/renamed
++	# Without redirect_dir=on mv gets EXDEV and copies the directory
++	mv $m/mvdir $m/mvdir2
++	rm $m/remove
++	rm -r $m/rmdir
++
++	# An overlay inode that nobody holds on to
++	$XFS_IO_PROG -f -c "pwrite -S 0x68 0 1m" $m/evicted >> $seqres.full
++	echo 2 > /proc/sys/vm/drop_caches
 +}
 +
- /*
-  * Does this overlay dentry need to be indexed on copy up?
-  */
++# No inode numbers, no timestamps, and no sizes and link counts of directories
++snapshot()
++{
++	local f
++
++	cd $SCRATCH_MNT
++	find . | LC_ALL=C sort | while read -r f; do
++		if [ -L "$f" ]; then
++			echo "$f $(stat -c '%F %u:%g' "$f") $(readlink "$f")"
++		elif [ -f "$f" ]; then
++			echo "$f $(stat -c '%F %a %u:%g %h %s' "$f")" \
++			     "$(md5sum < "$f")"
++		else
++			echo "$f $(stat -c '%F %a %u:%g' "$f")"
++		fi
++	done
++	_getfattr --absolute-names -n user.test xattr 2>&1
++	cd - > /dev/null
++}
++
++# <syncfs|umount> [mount options]
++do_test()
++{
++	local how=$1
++	shift
++	local label="$how${*:+ $*}"
++
++	echo "=== $label" >> $seqres.full
++
++	create_lower
++	if [ $# -eq 0 ]; then
++		_scratch_mount
++	elif ! _try_scratch_mount $* >> $seqres.full 2>&1; then
++		# Not every kernel knows every option
++		echo "cannot mount" >> $seqres.full
++		_unmount $OVL_BASE_SCRATCH_MNT
++		return
++	fi
++
++	modify
++	snapshot > $tmp.before
++
++	if [ $how = syncfs ]; then
++		$XFS_IO_PROG -c "syncfs" $SCRATCH_MNT
++		_scratch_shutdown | tee -a $seqres.full
++		_scratch_unmount
++	else
++		# Only the overlay, the base filesystem stays mounted
++		_unmount $SCRATCH_MNT
++		_scratch_shutdown | tee -a $seqres.full
++		_unmount $OVL_BASE_SCRATCH_MNT
++	fi
++
++	_scratch_mount $*
++	snapshot > $tmp.after
++	cat $tmp.after >> $seqres.full
++	diff -u $tmp.before $tmp.after | sed -e "s/^/$label: /"
++	_scratch_unmount
++}
++
++for how in syncfs umount; do
++	do_test $how
++	for mode in relaxed on strict; do
++		do_test $how -o fsync=$mode
++	done
++	do_test $how -o redirect_dir=on,metacopy=on
++done
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/118.out b/tests/overlay/118.out
+new file mode 100644
+index 00000000..3daed864
+--- /dev/null
++++ b/tests/overlay/118.out
+@@ -0,0 +1,2 @@
++QA output created by 118
++Silence is golden
 -- 
-2.53.0
+2.55.0
 
