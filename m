@@ -1,101 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794225009;
-	b=d2/oZaOkYX+GSMssGvqFKJU3WA/cZZct86w4BsCivWJVPqcoF7UoF+tkeyMt5uuHGsHF
-	 6b0CUDvJYTVvFlmNN151NufMx3i7wQ4ZwPtHhJOcyQ7Ph+ImbR9sov0KYkndL50B9ERmN
-	 sVq5zsqUUze77F+hNbHAknOJyMxDXWivGx7/G+PjIlBhyx7RA8X2YlTlscvemmjFIkh5+
-	 QGqhJJYeMAiVF4A+861Yqp3xTFLRyD4Il9aDdK/dqVVm7tsQcgsPe9mSRKL0+1ZO6Uz+n
-	 SLtgBTZujcyh3d/9GzPD5JjpgQ2Q39GiAuS1HA96+0sKSJh6AMA/6W/UJH1BUmL+gFQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794225009;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.54
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794225057;
+	b=44yAsJJFdXjQPEESB3BftJT04uoHI1nDuK0NMR2g71t2+4wKn8pwz/ZD/2Ge+HaGXciA
+	 W7xczjajJgYymwxZVP3TB3dIGISaIoiUBDX9PdbjJYz24f66qFIksIPS1+ztqeVJ27c/C
+	 LnzdUg9FqQxfSI4moVr6iRcR84O0n+N3eh4RvDDocCVzPVMEJDcrd2kcxc9VOxXJyPSfz
+	 82Pp5/FZsibpuhZH8X7PrpSbiAcswZa3yW2CsUzNuctpmqiY8OSZWyJdoWtm4bRCj+maQ
+	 BR/gLbaKUOBNw/XaJDHHtMWFyvvaiImibmvS25eQ7iH+r7W5x+RjFAEa9A1+VR/vOiQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794225057;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
-	b=gkO6HC3WGc6+Z2kur7TW6py/XnB30Ony2t6rSsxYt/6K4ZNzbXOvhecVG09ehKw2WitR
-	 JNBckRXzXAIBq/ND9eFUoCJBHh+2cu5qb4nFNcf4f84z2i76kqc3tA9V75DafyOJuti8n
-	 kfBfi6/T1+sQolR/fI4DgJj/x1DwfuJq50Zf1Ym0w135uOAexICT0VMfYifXDbgm6kXvh
-	 NhBWDWJ+yHdvAxqfjd1ggmtfeXp7xDa/8XwaOg5mUOkw9pD9Df+NexDOJBfXMPMPwVLMR
-	 mbYhtMqtLlN9Yd1zaFGcgRvENzr3o4glU1bJn+WIrPKQQQ3LO/eeIMUg1Jt0JzIKNEA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=Z6bscx+xVoDHG6nk05Y2GvjGVXrUF0HJS/uHEwq9jUk=;
+	b=4PYoIKqmsGtpOO22QDO96M3AhSkEKQbHRfgfgr0q9xB1L4crngQtlh3I30KHAXBXJcZd
+	 4UcqMOtqlR0jJT3O8SZ62N9ywJQ9jeHAPOHVMD2VQwK3Tdb5GbTJw9eecpRvUzip+uF7x
+	 BOEXo08+QZBJvDogw2nDb9t9+Y92jnYLxfAKkMon35p45a6KIlKyMSzQFLuG8qPhhdV1z
+	 rYwSlKCkzKnvYXLaNdChqv8lzie6l2HKgRB6F9F47B26vC/FKeiHc8Us7rs4fZ8sO8Obd
+	 acUsfOrCgtfqebt5tFxdhqkm662JA3IaQy8J3Zq1yq2UKk6+jkqRi+c3+mG4qI2OjTA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Ly7TFV1W;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=S87JFWNJ;
+	arc=none smtp.remote-ip=209.85.218.54
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3207606D802
-	for <linux-unionfs@vger.kernel.org>; Mon,  9 Nov 2026 11:50:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B3207606D802
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A40606A322
+	for <linux-unionfs@vger.kernel.org>; Mon,  9 Nov 2026 11:50:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 05A40606A322
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Ly7TFV1W
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b70d5b07faso904263a12.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 09 Nov 2026 03:50:08 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794225007; cv=none;
-        d=google.com; s=arc-20260327;
-        b=dkYQJcwbyZ9FlUuy9lOsrhAxWRH0p/Yy5oQF4wiwpz+cgvUukMOUklkXCSW6KBkqUx
-         5Zv1P7vnbmifTSnXJyYclke5y2ugZSkO5WpE3FOmEk1NRWl4Vt0v5/8Oahg5co+d5Ysr
-         i2JGUFFY+YaNNx5A9UbLEV3d6bKR+OMrOUM9skKaIvCffj8T0uXQPPByL1+vr6pCpTSx
-         wFcpa+nzjtRZ+ijQwybCvO/luKM7qCqNTFlKlVXALFp/8WZYmgFlopwcfSnUzdDyxQRP
-         YtM80P+EOBegle51dLFff92Eeb6XESEeoqAtOwI0OUwsIUTzBdDd6RtxUX954zjypif/
-         0R7A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
-        fh=QVr/U1tBm3a5QFN5Tk3rVm3mkvJCTewC8rqJhqBDRw4=;
-        b=m09qKlDG/T/SowvyHTaMi5lMS/XXgY+uhcW2I+hhwvBus44A06ZqvCGm4SJbnxreGT
-         0ctC0PytK0hsn28yQ39b4vpmYvSMka/FsREmKuL6aZAXyNaVZOjyfSQoYV8ez5hQr6c2
-         uDOyTzt2Q7fGgp2+D2a8el2qzX+I+2wRmNsPMUlL/buhUZrkSlj/bi2FQMuLDC8OmJKX
-         7AIYv+/LDy7dVMrTqd+8S06O5bhhFP9jqXg7s2ClCo4bZcGp6TRtr/3JTP4emdaq9uyI
-         /Ggwu88RGScFdYsAbUY/ejyx6CivTArLnBKiyT5LFLkOg2NRpcKql2OoArvgISo2JOFA
-         zjHg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=S87JFWNJ
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c4d21051042so110172966b.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 09 Nov 2026 03:50:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794225007; x=1794829807; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
-        b=Ly7TFV1WCO4oStUtHoBcWLJYrwr5cwsv6OZDWPQ/yHoZ4m69aYMO/Ue2yamef+l68v
-         JTsFpIVVmYYC+Ii7s1+Qc/97yINgfv4wMSKE8zDOyZwQDzWgNGunn1+AaWq7w1xs0Tac
-         nSGEr1sf6Um8WPwFX6yUref5SYpO/2hRI9sDuVZ7ryZAWqxwPfElBoVrDtUD671eOlwE
-         Ov0NXQE7FH/jghjZwrG0y2WoHz1vtj7KESXRMOuuoax7lo6zN1fSpzxFFuZLUQbOUBLh
-         Ie//IsDMhfsi+Fr8jKdo2DKW5ljuV2J2fzzl4WiNsBlL1DmHBa3rbfzV2X/QNQIKC9Kg
-         /HhA==
+        d=gmail.com; s=20260707; t=1794225055; x=1794829855; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Z6bscx+xVoDHG6nk05Y2GvjGVXrUF0HJS/uHEwq9jUk=;
+        b=S87JFWNJydoMxIV7mKMHe7x/pGXcmHCujJzMCyS8AHDCJy2Wp88bNO75387DA8g0j0
+         jo07ecG0bZ7l17c1PgxWnOXUU9299sIPuQxkA2eCs2vE50tulaL+Y53DllCL7hvP0QSW
+         LvrmjST5KtjYrh6qk5wXNwnSSO5REcGgKauM49JhCcrJC8i2XPnPtIucLBTv4HfKvLxG
+         lPUx5SQB3KolAP2gsHDHAQm4SVcx20ceEsECKfrQ+826XTCuGQTFrog2nYR53V31w1Dc
+         nPQlAw5hLesIB6RBmyp5rP1oN0269RlmSx5+RqokZvZ2vtL6l1SMMkQ1Z2X2wDlDxkHQ
+         g/tQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794225007; x=1794829807;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
-        b=FODB3HoTNZRDrQpgYEzEyt3gl6F+hYQPIZ1XTNR7EsOQLkK6SARBoMonrYsWmCl18q
-         JxJZx9rPFD0TO/O4s0iEIOqooBxdCjW8j2rX40EwmQ2f+fQalAT559z25cw6xF+uuyE/
-         daVUO6wR8ZYKBzfXU6qGqfEJQDXkTm3STNMz/IWdC6bxWMgRUDSb7/0FZ1O+emOBgFwI
-         LsgW59oIyodL006jh84cAqizks9VlUzOmahA3GFp7zpbG7mlDoBe1w+1L/KhS/Aat+08
-         30UimNFjPQVMBin4udidnoLHaqurECWaZNRmfrNk3SJQ90z2rlrlXzOyMeRaBW6tnoXx
-         8yLA==
-X-Forwarded-Encrypted: i=1; AL+hErHWszY8DzAoAaje3y66AN4+/4cI9f0BPS3SmYcrrY7ZJ1LH4Unx4ZI7ilFBuC5kyQzsOL8q/6WZ2fOvSxpg@vger.kernel.org
-X-Gm-Message-State: APuU4Z9J8oaaXCyopKR8tpQIYlaPsIn0JYBgYEZW6KS7hGV3dpMxrHQN
-	+1CmKHAt0CMPAdt/BNNFNbiNUWZVpOmfiA+oxXkatJ80yQ1tHnZmwnvA9FLWFhtkg6C6korf4Pp
-	VQSVqLACiXRuWmulWwQpl5dO+vGcGbOM=
-X-Gm-Gg: AYBFou15YbKBABazBNEr+p0jVQ3eYuad1F7JV+VK5AdIleffnWp0jlDI/FY00/jez3X
-	HoGVTT90gB/l7wmPEFk2sRBoNI+lF2yNBPN3Gi0Dz9w0aLlbiIOa/zwqpX/OEQL77geWoDRxlS+
-	haSQM5paObGNhnLlmQsBs17coG2boAsO42zej0OpBUJmmxTgzZGWpp5OWIT0QeNGAlERR9Qqf8B
-	5ft3CobmiBECwmN41LM0+Do4l7UhUDSQepHThg8g5/A4Sb7vFXxSVrU/GpVvR9ApkZ6R9lesm9V
-	TanKbzkhCd8mePJy8NNwh1eYdfU0h+QnN9WMmcEf1vAWQp/WxDg20jw0W2RECg3cLPscHEGvYmZ
-	KhkyTW2Ho4y3J1wcEZbiDrLrz4IqMpgSdTLSptyiCkgIpMzc+3XRioJ7jqJ/SLTrmEdsn2/S5r+
-	DLbr9v2IipP6MbYDo=
-X-Received: by 2002:a05:6402:2116:b0:6b5:911a:f4be with SMTP id
- 4fb4d7f45d1cf-6b7223f91e1mr2252630a12.13.1794225006497; Mon, 09 Nov 2026
- 03:50:06 -0800 (PST)
+        d=1e100.net; s=20260707; t=1794225055; x=1794829855;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Z6bscx+xVoDHG6nk05Y2GvjGVXrUF0HJS/uHEwq9jUk=;
+        b=Al6JYwTr4hAH+TYLY5wbZE4IBcXSEbgXMf0KpFtCZjwh4yfObw3tHn4SB0G6tHDhrO
+         2EvphXdEJOqLLL2ldsFr4UflNuSqNDLk8QXgV3dx1eYX0YjaarLO1RUB7g7dobymAUv0
+         M0EVnbqWCqNg5fHjzp7wUktQgZ6wLS9JnPSheYiE7Jv2hhYzEbumMLF4vh0N93PVepjt
+         Ki7FTxoU7vRxLYyW/P6wPTPT5lO87692nL9eWGw+PPy/TvCIoisbARI2eyE3WFXMJBko
+         4vAMsGb0ulL4mC87VZllWXCPj9oHqlRgTx8JJv6zO4qQa4YRaLVcPkJDWtMgJmiNoGPL
+         aazQ==
+X-Forwarded-Encrypted: i=1; AL+hErEh3yiwY2vi6mBnMfUWYbD+CTAvlaVigHuwQ0OrYUlpFmGHyXfEH0mxUMXC/f2/npnaUXEyyQc9cW0G+gfx@vger.kernel.org
+X-Gm-Message-State: APuU4Z9VN9L7dH1azNBAzxrqrFN8xh06DPtYEiUE+daVzGfiBl7RqYuJ
+	OpM0JOI+e+U2MfbPElW9arjGI0YkXgsJjCdXHMvHLHecr/3JvkLXTqEA7lIO/nk2
+X-Gm-Gg: AYBFou3G0aIz3Cdv7IFYK8UHYYLQTvZVXe0qpqS1pKBus9wIP7yhN4ikDPScUZEXW8W
+	B3D8nOpM7OEL6ATsUQJbm+r7YrkG79sj7qI9AairTz4lBSGUlmTDwmeKa3CEWZEl14xp6O8gv8H
+	KXDFpT7qLw3wwByLRIOccQ318FHCHf4kIeBUM61pe4zyoTtzBoMKM4qdP59S1OPiqwriZ6XoTv0
+	EGNzGovrCfedlWfaAkuMP3GG73RjAUoUoruGxCFxU+Jf5IwX3arjglQCxBv9l+JHkjNgCy9GTZB
+	wlIrj0hn3tbU/nNoiNvcNR2aK/T5r92MpRxNzjE+Q7PNbezQAXQL7Rxuk5h6Uyd4Kh3527zQlCE
+	sZMc4uLdH0yXxr8KiBTy/OcANcgw8nUbY1MNsJbkp2p8KlpxP1/+oRJM94ql9cQKPcOSEXnuEVg
+	Qk7IV51s5n8baChUBRo+rD62WUazMxVJlv9qX0d91dnNS3GMI+0gBpXgl48HVIJedxXscD8Lehb
+	lXOi3vmldBGerK/mViUK6xLGXQn/gHDKPGhXRBUnD8+BBBR7FVy2fZmZha4ufA2c8ly6My1jFIR
+	YQTBc4ji4zRKGi3LHs5pfJROmS9QAv+1Pux1kFNbZxUB74HsJWOY7MMojSOj+TyT163vyVk4paB
+	NnI43RZ8cVbXZkWl9o1rcRaGxzR8VuBrq
+X-Received: by 2002:a17:907:c5ce:b0:c2e:856:2a08 with SMTP id a640c23a62f3a-c4d6d15a580mr277220066b.1.1794225055037;
+        Mon, 09 Nov 2026 03:50:55 -0800 (PST)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4d68d52cf9sm153627266b.2.2026.11.09.03.50.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Nov 2026 03:50:54 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Giuseppe Scrivano <giuseppe@scrivano.org>,
+	linux-unionfs@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] ovl: do not allow nfs_export with data-only layers
+Date: Mon,  9 Nov 2026 12:50:54 +0100
+Message-ID: <20261109115054.4031784-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -105,262 +96,48 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261107213943.1765902-1-giuseppe@scrivano.org>
-In-Reply-To: <20261107213943.1765902-1-giuseppe@scrivano.org>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 9 Nov 2026 12:49:54 +0100
-X-Gm-Features: AclHuK_-gij5Sey83fEjiKFLIVqziqeoiL41T17fc3I4PhkdpIK24T1LXyLPRTU
-Message-ID: <CAOQ4uxicSe4Fk2twHoQUKQNz5BNGiDDnz-b-kVBON__M7rwUMw@mail.gmail.com>
-Subject: Re: [PATCH fstests] overlay: add a test for redirect_dir=followdata
-To: Giuseppe Scrivano <giuseppe@scrivano.org>
-Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sat, Nov 7, 2026 at 10:39=E2=80=AFPM Giuseppe Scrivano <giuseppe@scrivan=
-o.org> wrote:
->
-> Test that data-only layers select redirect_dir=3Dfollowdata, which follow=
-s
-> redirects from lower to lowerdata from any lower layer, with userxattr
-> and trusted xattrs, and that redirect_dir=3Dnofollow is refused with
-> data-only layers.
->
-> Also test following an absolute redirect past a lower layer that has the
-> parent directory of the target, which failed with EIO before the fix
-> "ovl: do not always clear absolute_redirect".
->
-> Signed-off-by: Giuseppe Scrivano <giuseppe@scrivano.org>
+Since data-only layers no longer require metacopy=on, which conflicts
+with nfs_export=on, an overlay with data-only layers can be mounted
+with nfs_export=on.
 
-Very nice!
+Decoding a file handle of a lower metacopy file whose data is in a
+data-only layer builds the inode only from the decoded lower dentry,
+without the lazy lowerdata redirect, so the data of the file would be
+read from the metacopy file in the lower layer.
 
-Apart from some nits below feel free to add
+Fail the mount with explicit nfs_export=on and data-only layers and
+otherwise disable nfs_export with data-only layers.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Fixes: 5ef7bcdeecc9 ("ovl: relax redirect/metacopy requirements for lower -> data redirect")
+Cc: stable@vger.kernel.org
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/params.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-> ---
->  common/overlay        |  15 ++++
->  tests/overlay/090     | 158 ++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/090.out |  49 +++++++++++++
->  3 files changed, 222 insertions(+)
->  create mode 100755 tests/overlay/090
->  create mode 100644 tests/overlay/090.out
->
-> diff --git a/common/overlay b/common/overlay
-> index 8e89d6e4..382960c3 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -286,6 +286,21 @@ _require_scratch_overlay_datadir_without_metacopy()
->
->  }
->
-> +# Check kernel support for the "redirect_dir=3Dfollowdata" mount option
-> +_require_scratch_overlay_redirect_followdata()
-> +{
-> +       local lowerdir=3D"$OVL_BASE_SCRATCH_MNT/$OVL_UPPER"
-> +       local datadir=3D"$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
-> +
-> +       _scratch_mkfs > /dev/null 2>&1
-> +       _overlay_scratch_mount_opts \
-> +               -o"lowerdir+=3D$lowerdir,datadir+=3D$datadir" \
-> +               -o"userxattr,redirect_dir=3Dfollowdata" > /dev/null 2>&1 =
-|| \
-> +               _notrun "overlay redirect_dir=3Dfollowdata not supported =
-on ${SCRATCH_DEV}"
-> +
-> +       _scratch_unmount
-> +}
-> +
->
->  # Helper function to check underlying dirs of overlay filesystem
->  _overlay_fsck_dirs()
-> diff --git a/tests/overlay/090 b/tests/overlay/090
-> new file mode 100755
-> index 00000000..18e3d1f5
-> --- /dev/null
-> +++ b/tests/overlay/090
-> @@ -0,0 +1,158 @@
-> +#! /bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (c) 2026 Giuseppe Scrivano.  All Rights Reserved.
-> +#
-> +# FS QA Test 090
-> +#
-> +# Test the redirect_dir=3Dfollowdata mount option.
-> +#
-> +# Data-only layers select redirect_dir=3Dfollowdata, which follows redir=
-ects
-> +# from any lower layer to a data-only layer, and cannot be used with
-> +# redirect_dir=3Dnofollow.
-> +#
-> +# Also test following an absolute redirect past a lower layer that has t=
-he
-> +# parent directory of the redirect target, with metacopy=3Don.
-> +#
-> +. ./common/preamble
-> +_begin_fstest auto quick metacopy redirect verity attr
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index ad7f30177ef4c..7a4e1be5225fa 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -931,6 +931,16 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 		}
+ 	}
+ 
++	/* Resolve nfs_export -> !data-only layers dependency */
++	if (config->nfs_export && ctx->nr_data) {
++		if (set.nfs_export) {
++			pr_err("NFS export is not supported with data-only layers\n");
++			return -EINVAL;
++		}
++		pr_info("disabling nfs_export due to data-only layers\n");
++		config->nfs_export = false;
++	}
++
+ 	/* Resolve nfs_export -> index dependency */
+ 	if (config->nfs_export && !config->index) {
+ 		if (!config->upperdir &&
+-- 
+2.56.0
 
-pls remove verity
-
-> +
-> +# Import common functions.
-> +. ./common/filter
-> +. ./common/attr
-> +. ./common/verity
-
-pls remove verity
-
-> +
-> +# We use non-default scratch underlying overlay dirs, we need to check
-> +# them explicitly after test.
-> +_require_scratch_nocheck
-> +_require_attrs user
-> +_require_attrs trusted
-> +_require_scratch_overlay_redirect_followdata
-> +_require_scratch_overlay_verity
-
-Please remove verity requirement and the single verity test case
-It is not worth the test coverage lost by not running on most base fs
-and the followdata code changes are mostly orthogonal to verity anyway.
-
-> +_require_scratch_overlay_features redirect_dir metacopy
-> +_require_scratch_overlay_lowerdata_layers
-> +
-> +data=3D$OVL_BASE_SCRATCH_MNT/data
-> +l1=3D$OVL_BASE_SCRATCH_MNT/lower1
-> +l2=3D$OVL_BASE_SCRATCH_MNT/lower2
-> +l3=3D$OVL_BASE_SCRATCH_MNT/lower3
-> +upper=3D$OVL_BASE_SCRATCH_MNT/upper
-> +work=3D$OVL_BASE_SCRATCH_MNT/work
-> +layers=3D"$l3:$l2:$l1::$data"
-> +
-> +# Make a metacopy file <file> with the redirect <redirect> and the optio=
-nal
-> +# metacopy xattr value <metacopy> (default: no fs-verity digest), for bo=
-th
-> +# userxattr and trusted xattr mounts
-> +make_stub()
-> +{
-> +       local file=3D$1 redirect=3D$2 metacopy=3D$3 x
-> +
-> +       touch $file
-> +       for x in user.overlay. ${OVL_XATTR_METACOPY%metacopy}; do
-> +               $SETFATTR_PROG -n ${x}metacopy ${metacopy:+-v $metacopy} =
-$file
-> +               $SETFATTR_PROG -n ${x}redirect -v $redirect $file
-> +       done
-> +       truncate -s 4 $file
-> +}
-> +
-> +# Mount the layers $layers with the options <opts>, print redirect_dir=
-=3Dfollowdata
-> +# if the mount shows it and <opts> has userxattr or redirect_dir (otherw=
-ise it
-> +# depends on the kernel config), and the content of each of the followin=
-g files,
-> +# or the error reading it
-> +check()
-> +{
-> +       local opts=3D$1 f
-> +
-> +       shift
-> +       echo "=3D=3D $opts"
-> +       _overlay_scratch_mount_dirs "$layers" $upper $work -o $opts
-> +       case $opts in
-> +       *userxattr*|*redirect_dir=3D*)
-> +               _fs_options $OVL_BASE_SCRATCH_MNT | grep -o redirect_dir=
-=3Dfollowdata
-> +               ;;
-> +       esac
-> +       for f; do
-> +               echo "$f: $(cat $SCRATCH_MNT/$f 2>&1 | sed 's/^cat: .*: /=
-/')"
-> +       done
-> +       _unmount $SCRATCH_MNT
-> +}
-> +
-> +# Mounting the layers $layers with the options <opts> must fail
-> +check_fail()
-> +{
-> +       local opts=3D$1
-> +
-> +       echo "=3D=3D $opts"
-> +       _overlay_scratch_mount_dirs "$layers" $upper $work -o $opts \
-> +               >> $seqres.full 2>&1 && echo "mount succeeded" && \
-> +               _unmount $SCRATCH_MNT
-> +}
-> +
-> +_scratch_mkfs
-> +mkdir -p $data/base $l1/base $l2/base $l3 $upper $work
-> +echo -n "data" > $data/base/file
-> +_fsv_enable $data/base/file
-> +digest=3D$(_fsv_measure $data/base/file)
-
-pls remove verity
-
-> +
-> +make_stub $l1/s1 /base/file
-> +make_stub $l2/s2 /base/file
-> +make_stub $l3/s3 /base/file
-> +# The redirect target in a lower layer below s3, which is not looked up
-> +echo -n "lowr" > $l2/base/file
-> +# Redirects that are not followed: relative, directory, upper
-> +echo -n "lowr" > $l2/reltarget
-> +make_stub $l3/rel reltarget
-> +mkdir $l3/dir
-> +$SETFATTR_PROG -n user.overlay.redirect -v /base $l3/dir
-> +$SETFATTR_PROG -n $OVL_XATTR_REDIRECT -v /base $l3/dir
-> +make_stub $upper/up /base/file
-> +# fs-verity digest of a metacopy file in a middle layer: right and wrong
-> +make_stub $l2/vok /base/file 0x00240001${digest#sha256:}
-> +make_stub $l2/vbad /base/file "0x00240001$(printf '%064d' 0)"
-
-pls remove verity
-
-> +
-> +# followdata is selected by default with userxattr and a data-only layer
-> +check userxattr s1 s2 s3
-> +check userxattr,redirect_dir=3Dfollowdata s1 s2 s3 rel dir up
-> +# a data-only layer cannot be used without following redirects
-> +check_fail userxattr,redirect_dir=3Dnofollow
-> +check_fail userxattr,redirect_dir=3Doff
-> +echo "(no data-only layer)"
-
-Suggest echo -n "no data-only layer "
-will make the expected output more clear as part of the test case title
-
-> +layers=3D"$l3:$l2:$l1" check userxattr
-> +check userxattr,redirect_dir=3Dfollowdata,verity=3Drequire vok vbad
-
-pls remove verity
-
-> +
-> +check metacopy=3Doff s1 s2 s3
-> +check redirect_dir=3Dfollowdata s1 s2 s3 rel dir up
-> +check redirect_dir=3Dfollow,metacopy=3Doff s1 s2 s3
-> +check redirect_dir=3Don,metacopy=3Doff s1 s2 s3
-> +check_fail redirect_dir=3Dnofollow
-> +echo "(no data-only layer)"
-
-Suggest echo -n "no data-only layer "
-
-> +layers=3D"$l3:$l2:$l1" check redirect_dir=3Dnofollow
-> +
-> +# An explicit option requires a data-only layer and conflicts with metac=
-opy=3Don
-> +_overlay_scratch_mount_dirs "$l3:$l2:$l1" $upper $work \
-> +       -o userxattr,redirect_dir=3Dfollowdata >> $seqres.full 2>&1 && \
-> +       echo "mount without a data-only layer succeeded"
-
-"mount redirect_dir=3Dfollowdata without a data-only layer succeeded"
-
-> +_overlay_scratch_mount_dirs "$layers" $upper $work \
-> +       -o redirect_dir=3Dfollowdata,metacopy=3Don >> $seqres.full 2>&1 &=
-& \
-> +       echo "mount with metacopy=3Don succeeded"
-> +
-
-"mount with edirect_dir=3Dfollowdata,metacopy=3Don succeeded"
-
-Thanks!
-Amir.
