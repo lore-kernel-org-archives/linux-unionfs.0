@@ -1,99 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794224450;
-	b=4BWjPUOb6bZVN1rFyX7omKu1ff9GYH8Fzgdzz/roRcUZpcv3iVDp1o0sH7IwKYHsaIgQ
-	 d/c8kt5xasPTI+XODDfIegNQu8RgkHNVdIlutxbO7SKY/YwIY7hs9NE4AGalH9vzeyIyP
-	 /0xb4D/c8YjO+CK4YXFnUxi6RVYjFBd7hpdh9DCNyazy1y5F4oP+OtIfNp1uncp2t7xKI
-	 RDz7mW2fTzTPkqUP7ibdDUKGK6jWicO4PLl18NmrOLH34ejSYMLdrQA1GxLNsCT3YDyTA
-	 tSa0BrWEeZK3sB+ey8PmwPlBAffSVN/2MVF3qqClwUAwIvYnv5lPiGcHNMWDDAXyHBA==
+	t=1794225009;
+	b=d2/oZaOkYX+GSMssGvqFKJU3WA/cZZct86w4BsCivWJVPqcoF7UoF+tkeyMt5uuHGsHF
+	 6b0CUDvJYTVvFlmNN151NufMx3i7wQ4ZwPtHhJOcyQ7Ph+ImbR9sov0KYkndL50B9ERmN
+	 sVq5zsqUUze77F+hNbHAknOJyMxDXWivGx7/G+PjIlBhyx7RA8X2YlTlscvemmjFIkh5+
+	 QGqhJJYeMAiVF4A+861Yqp3xTFLRyD4Il9aDdK/dqVVm7tsQcgsPe9mSRKL0+1ZO6Uz+n
+	 SLtgBTZujcyh3d/9GzPD5JjpgQ2Q39GiAuS1HA96+0sKSJh6AMA/6W/UJH1BUmL+gFQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794224450;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794225009;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type;
-	bh=6JqRxaeIzzt+8Onl3MXJiGJCPA1HU26IuIhXoRLNvF4=;
-	b=2uIn2VU3gLNJxs73xAXA4i1hSztwEbClg+5poO7iHEIh3j/Z6LtCtiJ6If7JZFvvNzLw
-	 5+km6Ul9vGgq/X/U4ssScPbJiixT9f9nC9le+SoW0g0KCu0qBa9AtvffmjxFJtCSg54H2
-	 TcMibye1SnkHq2jeN011Fo00UHW8HF1huE123C8yyWq5KFfwGQIuZS+mNqqBxB6571kk0
-	 /8BU4/yRoR1vWlwpDaXRalTOIBhmASOlZEZqYM53d37L0wfjPtDZDB9k6sw/wSvJfwrxU
-	 xL0UYro2+wrDUHjoga309i/Fk6oFN0CnAZPjSgQersJvI9/BRhIPcZtCa27RB0KZTug==
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
+	b=gkO6HC3WGc6+Z2kur7TW6py/XnB30Ony2t6rSsxYt/6K4ZNzbXOvhecVG09ehKw2WitR
+	 JNBckRXzXAIBq/ND9eFUoCJBHh+2cu5qb4nFNcf4f84z2i76kqc3tA9V75DafyOJuti8n
+	 kfBfi6/T1+sQolR/fI4DgJj/x1DwfuJq50Zf1Ym0w135uOAexICT0VMfYifXDbgm6kXvh
+	 NhBWDWJ+yHdvAxqfjd1ggmtfeXp7xDa/8XwaOg5mUOkw9pD9Df+NexDOJBfXMPMPwVLMR
+	 mbYhtMqtLlN9Yd1zaFGcgRvENzr3o4glU1bJn+WIrPKQQQ3LO/eeIMUg1Jt0JzIKNEA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=rgOwfHoq;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.50
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Ly7TFV1W;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41357606A31C
-	for <linux-unionfs@vger.kernel.org>; Mon,  9 Nov 2026 11:40:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41357606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3207606D802
+	for <linux-unionfs@vger.kernel.org>; Mon,  9 Nov 2026 11:50:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B3207606D802
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=rgOwfHoq
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-6b70192ebceso1291569a12.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 09 Nov 2026 03:40:49 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794224448; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Ly7TFV1W
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b70d5b07faso904263a12.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 09 Nov 2026 03:50:08 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794225007; cv=none;
         d=google.com; s=arc-20260327;
-        b=ME5cjYoK++o04wZasinNzU9r9NGhi12LHHUjBon2QeC97Dgy5wiNXC0ZrKeYCMqet+
-         b0fLZUUW7TwKeGcHTPJy/un8mCefCbZwYebNjYhdUxr2PyRtgt1qexe3772fMK/ZdvuL
-         yuBLsp675dTi6JxK+QZXsyyVFDpeScBitiQZJBZnVv+TOxCWeZDj1n+cjRx3eshcCIOK
-         PdbGm0NgDS3V/jOko2Wc4ny+ZOSYdsZdtzBRQ8p4RlUZ6Lqwu9ZuvKgxoRkbCkv1tvel
-         s94z31L0tfndIfsHR8h2ajBlf5wrFx2QDGHcM+rhBd1ptVhrlvoavMezAcpphq40KViC
-         2Uvw==
+        b=dkYQJcwbyZ9FlUuy9lOsrhAxWRH0p/Yy5oQF4wiwpz+cgvUukMOUklkXCSW6KBkqUx
+         5Zv1P7vnbmifTSnXJyYclke5y2ugZSkO5WpE3FOmEk1NRWl4Vt0v5/8Oahg5co+d5Ysr
+         i2JGUFFY+YaNNx5A9UbLEV3d6bKR+OMrOUM9skKaIvCffj8T0uXQPPByL1+vr6pCpTSx
+         wFcpa+nzjtRZ+ijQwybCvO/luKM7qCqNTFlKlVXALFp/8WZYmgFlopwcfSnUzdDyxQRP
+         YtM80P+EOBegle51dLFff92Eeb6XESEeoqAtOwI0OUwsIUTzBdDd6RtxUX954zjypif/
+         0R7A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=6JqRxaeIzzt+8Onl3MXJiGJCPA1HU26IuIhXoRLNvF4=;
-        fh=MFGww5WWwMbVBAGzYlobFNpyX4w0AV158eWpczIR550=;
-        b=O7iqjQmUXyMvEDQbVAsDJwC+SplQwBN7skjzoqrk4MupCyXx0ZIZICK6P+GJFJwGzO
-         TfknPgHmQFZCk8Yo7TXfRxdEa8TTnq3IlIlWe+R+jvrvzZIEEgnmxisMlTZbyWRPCwe1
-         aWAcjoBbCLUeSa02DaPejPvVfICzc7EUEa8dQu6+YsTHBKR7cMPtbs+hOGeUn/hgc0hd
-         N6KuKHNII4yWANmDiuuxux+TPvXTN+Fe/LSeiPJEasgkGiQVZOsLBoEDDs2Z9Hi3ISN8
-         OmZMQ1TOOMbOxrwg4OiiQJjFqlpq1mC33SE9BPAeDSOID+DWroJypXSPDTsmRcbzNTk1
-         U4ow==;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
+        fh=QVr/U1tBm3a5QFN5Tk3rVm3mkvJCTewC8rqJhqBDRw4=;
+        b=m09qKlDG/T/SowvyHTaMi5lMS/XXgY+uhcW2I+hhwvBus44A06ZqvCGm4SJbnxreGT
+         0ctC0PytK0hsn28yQ39b4vpmYvSMka/FsREmKuL6aZAXyNaVZOjyfSQoYV8ez5hQr6c2
+         uDOyTzt2Q7fGgp2+D2a8el2qzX+I+2wRmNsPMUlL/buhUZrkSlj/bi2FQMuLDC8OmJKX
+         7AIYv+/LDy7dVMrTqd+8S06O5bhhFP9jqXg7s2ClCo4bZcGp6TRtr/3JTP4emdaq9uyI
+         /Ggwu88RGScFdYsAbUY/ejyx6CivTArLnBKiyT5LFLkOg2NRpcKql2OoArvgISo2JOFA
+         zjHg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794224448; x=1794829248; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=6JqRxaeIzzt+8Onl3MXJiGJCPA1HU26IuIhXoRLNvF4=;
-        b=rgOwfHoqfUHL9nvwIuzi1OkueMT+KTKwMOuUy3+YjkDFvZ9FD5y7yj5TkCYnRSUQyp
-         NIwqK+TUvETXS7M1DtxkqzQw/QHKDjPcr08+OE/vczoC2Go+COJ2fv2rbgfCvG4S2Y/X
-         In3k2cUg7cXBTX3Jvg7AlcnOUwC6okFkgxV7pZSE+MzGZlcsSrtqrwt6++5xT6z2zZIt
-         KAPiZiSccLmE+ArPO2mQqCHOpUKZ7XjxQCtN3efTpfKskkZVOubpzBxrJGJ+I9rRyuuF
-         TRirHiNOggTNDb7D6Z62+Mr+W7Ll32FKgOrnWLSdcLv0mypRpAZTYVC79koE8Yma4Zzb
-         qSmg==
+        d=gmail.com; s=20260707; t=1794225007; x=1794829807; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
+        b=Ly7TFV1WCO4oStUtHoBcWLJYrwr5cwsv6OZDWPQ/yHoZ4m69aYMO/Ue2yamef+l68v
+         JTsFpIVVmYYC+Ii7s1+Qc/97yINgfv4wMSKE8zDOyZwQDzWgNGunn1+AaWq7w1xs0Tac
+         nSGEr1sf6Um8WPwFX6yUref5SYpO/2hRI9sDuVZ7ryZAWqxwPfElBoVrDtUD671eOlwE
+         Ov0NXQE7FH/jghjZwrG0y2WoHz1vtj7KESXRMOuuoax7lo6zN1fSpzxFFuZLUQbOUBLh
+         Ie//IsDMhfsi+Fr8jKdo2DKW5ljuV2J2fzzl4WiNsBlL1DmHBa3rbfzV2X/QNQIKC9Kg
+         /HhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794224448; x=1794829248;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=6JqRxaeIzzt+8Onl3MXJiGJCPA1HU26IuIhXoRLNvF4=;
-        b=Yc2Gr//Q6MiQ/ol9iTRss3D90GtaO1IYVxGwV3CBuPuiBa3EQ7KwH8LJ+Dw/6UtApy
-         gfcUITtheYGGckL7dlZf+dClzxVnGFDTMcSVkxzA0ubYGLB6e0NuYY0UZ4w2CazyCqYV
-         IcIgPyCB70IHwFjYrstBElNMSrwFdgAGiBjbqS/aLEl8hbAb4MeWGpLDgKq1+rYXExRh
-         gBG0Ffi6SvGY9NvOxwLgvTmTUw/ezolZTrmueXLjXNbpfJ/aOAqlnT095fDv+EaZsstC
-         k5oAuFbmL08mYzMWVQSutiea4zNum8YXKrifxuX/IFIzZndtdrfEe6x+vmJOXxn+TTU/
-         aR+g==
-X-Gm-Message-State: APuU4Z+TKEeB1MXMTv0DMgeJoe4/vU/wIVRghnO07keLgs/amjyL50hl
-	K9wVEpCszvk4uo0d1qmLKwY54UByCF0+p6BBqivXePXQLKpn95gPpYtJ/diqzAKmGFEAoCxPfYw
-	+MDDqPdaSHrXY75xfM7uHlgaD7Ikg1SbvJ7rY7Ho=
-X-Gm-Gg: AYBFou0UMIzj3B2KhXR9XiCFHDdIjlwj/jC69V7nawvknj6HREgw7aqNBizs4ghcVFn
-	FG96Jsl/42nLB3E2/MwtUhNgV4lBo1ebNyAFxSWPm0SQvxT+hECUGZxJVlnCMYREOpqhvbA3SSw
-	T8OazjSozO3bLJ9nggnO8vcR000MVavIngXtS6BgHv75U22dy1KPF3Ya7IEvzRe5m+f1r2Lp5W/
-	V7+VqQFcIFsYSqDwy+eVRFoh5RwhsEEq1+rTBZejIaKgxshU1PZ7MTCQKJeKHCO7vyN2zH+u1f5
-	jYWrhNGEhFHcuHKDiWxCXzZVxDGMYARLWeS18FDs4Hf/O5rDlEqxYTs99tnu4HcFdu0tPORLFDk
-	CRIX9d2UT5y2w7vnLC34M8yhfamwIILTuU3d6Ve8/DplAG37SNGYVajw4aJ1XNQi0gQZ8VzoBxU
-	gf
-X-Received: by 2002:aa7:da0f:0:b0:6b4:8d5c:f8b with SMTP id
- 4fb4d7f45d1cf-6b6fb976d73mr3042710a12.15.1794224448406; Mon, 09 Nov 2026
- 03:40:48 -0800 (PST)
+        d=1e100.net; s=20260707; t=1794225007; x=1794829807;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=dUXJbPkbPQbxqnKJ8y0qnmrfPGLpFP/HxY2nsE4CeoY=;
+        b=FODB3HoTNZRDrQpgYEzEyt3gl6F+hYQPIZ1XTNR7EsOQLkK6SARBoMonrYsWmCl18q
+         JxJZx9rPFD0TO/O4s0iEIOqooBxdCjW8j2rX40EwmQ2f+fQalAT559z25cw6xF+uuyE/
+         daVUO6wR8ZYKBzfXU6qGqfEJQDXkTm3STNMz/IWdC6bxWMgRUDSb7/0FZ1O+emOBgFwI
+         LsgW59oIyodL006jh84cAqizks9VlUzOmahA3GFp7zpbG7mlDoBe1w+1L/KhS/Aat+08
+         30UimNFjPQVMBin4udidnoLHaqurECWaZNRmfrNk3SJQ90z2rlrlXzOyMeRaBW6tnoXx
+         8yLA==
+X-Forwarded-Encrypted: i=1; AL+hErHWszY8DzAoAaje3y66AN4+/4cI9f0BPS3SmYcrrY7ZJ1LH4Unx4ZI7ilFBuC5kyQzsOL8q/6WZ2fOvSxpg@vger.kernel.org
+X-Gm-Message-State: APuU4Z9J8oaaXCyopKR8tpQIYlaPsIn0JYBgYEZW6KS7hGV3dpMxrHQN
+	+1CmKHAt0CMPAdt/BNNFNbiNUWZVpOmfiA+oxXkatJ80yQ1tHnZmwnvA9FLWFhtkg6C6korf4Pp
+	VQSVqLACiXRuWmulWwQpl5dO+vGcGbOM=
+X-Gm-Gg: AYBFou15YbKBABazBNEr+p0jVQ3eYuad1F7JV+VK5AdIleffnWp0jlDI/FY00/jez3X
+	HoGVTT90gB/l7wmPEFk2sRBoNI+lF2yNBPN3Gi0Dz9w0aLlbiIOa/zwqpX/OEQL77geWoDRxlS+
+	haSQM5paObGNhnLlmQsBs17coG2boAsO42zej0OpBUJmmxTgzZGWpp5OWIT0QeNGAlERR9Qqf8B
+	5ft3CobmiBECwmN41LM0+Do4l7UhUDSQepHThg8g5/A4Sb7vFXxSVrU/GpVvR9ApkZ6R9lesm9V
+	TanKbzkhCd8mePJy8NNwh1eYdfU0h+QnN9WMmcEf1vAWQp/WxDg20jw0W2RECg3cLPscHEGvYmZ
+	KhkyTW2Ho4y3J1wcEZbiDrLrz4IqMpgSdTLSptyiCkgIpMzc+3XRioJ7jqJ/SLTrmEdsn2/S5r+
+	DLbr9v2IipP6MbYDo=
+X-Received: by 2002:a05:6402:2116:b0:6b5:911a:f4be with SMTP id
+ 4fb4d7f45d1cf-6b7223f91e1mr2252630a12.13.1794225006497; Mon, 09 Nov 2026
+ 03:50:06 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -103,521 +105,262 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261107203427.1739067-1-giuseppe@scrivano.org>
-In-Reply-To: <20261107203427.1739067-1-giuseppe@scrivano.org>
+References: <20261107213943.1765902-1-giuseppe@scrivano.org>
+In-Reply-To: <20261107213943.1765902-1-giuseppe@scrivano.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 9 Nov 2026 12:40:36 +0100
-X-Gm-Features: AclHuK-7iu2C-6TfY8dKd63VP6CNneRl0rKhOnnDtEeZSuzYZI7Lv9CfabbBUXs
-Message-ID: <CAOQ4uxj2VO1RhLvzjteEbogKnyLN2gNtiH-z=XYg6a_+51nHkw@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: follow lower to lowerdata redirects from any
- lower layer
+Date: Mon, 9 Nov 2026 12:49:54 +0100
+X-Gm-Features: AclHuK_-gij5Sey83fEjiKFLIVqziqeoiL41T17fc3I4PhkdpIK24T1LXyLPRTU
+Message-ID: <CAOQ4uxicSe4Fk2twHoQUKQNz5BNGiDDnz-b-kVBON__M7rwUMw@mail.gmail.com>
+Subject: Re: [PATCH fstests] overlay: add a test for redirect_dir=followdata
 To: Giuseppe Scrivano <giuseppe@scrivano.org>
-Cc: linux-unionfs@vger.kernel.org
-Content-Type: multipart/mixed; boundary="000000000000e53af4065fd66efa"
-
---000000000000e53af4065fd66efa
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 7, 2026 at 9:34=E2=80=AFPM Giuseppe Scrivano <giuseppe@scrivano=
-.org> wrote:
+On Sat, Nov 7, 2026 at 10:39=E2=80=AFPM Giuseppe Scrivano <giuseppe@scrivan=
+o.org> wrote:
 >
-> Without metacopy=3Don, a metacopy file with an absolute redirect into a
-> data-only layer is followed only from the lowest lower layer.  From any
-> other lower layer, the lookup fails with EPERM.  This is always the
-> case with userxattr, which cannot be used with metacopy=3Don, and with
-> redirect_dir=3Dnofollow.
+> Test that data-only layers select redirect_dir=3Dfollowdata, which follow=
+s
+> redirects from lower to lowerdata from any lower layer, with userxattr
+> and trusted xattrs, and that redirect_dir=3Dnofollow is refused with
+> data-only layers.
 >
-> Add redirect_dir=3Dfollowdata, which follows only redirects from lower to
-> lowerdata, and select it when there are data-only layers, unless
-> redirect_dir=3Dfollow or redirect_dir=3Don is in effect.  Without
-> metacopy=3Don, the absolute redirect of a lower metacopy file stops the
-> lookup in the lower layers and the data is looked up in the data-only
-> layers.  Data-only layers cannot be used without following redirects,
-> so reject redirect_dir=3Dnofollow with data-only layers.
+> Also test following an absolute redirect past a lower layer that has the
+> parent directory of the target, which failed with EIO before the fix
+> "ovl: do not always clear absolute_redirect".
 >
-> Fixes: 5ef7bcdeecc9 ("ovl: relax redirect/metacopy requirements for lower=
- -> data redirect")
 > Signed-off-by: Giuseppe Scrivano <giuseppe@scrivano.org>
+
+Very nice!
+
+Apart from some nits below feel free to add
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
 > ---
-> v1: https://lore.kernel.org/linux-unionfs/CAOQ4uxhVD=3DOjY7ro4rpbYu7aRC_e=
-LybG+crLAQBFgMyHdw2Fgg@mail.gmail.com/T/#t
+>  common/overlay        |  15 ++++
+>  tests/overlay/090     | 158 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/090.out |  49 +++++++++++++
+>  3 files changed, 222 insertions(+)
+>  create mode 100755 tests/overlay/090
+>  create mode 100644 tests/overlay/090.out
 >
-
-Hi Giuseppe,
-
-Generally this looks good, but I found a few more redirect related bugs
-during review and I applied them as separate fixes to ovl-fixes banch
-so I also rebased your patch over these fixes and resolved conflicts.
-
-I also fixes some semantic nits as below...
-
-> Documentation/filesystems/overlayfs.rst | 16 ++++++++------
->  fs/overlayfs/namei.c                    | 28 ++++++++++++++++++++++---
->  fs/overlayfs/overlayfs.h                |  6 ++++++
->  fs/overlayfs/params.c                   | 25 ++++++++++++++++++++--
->  fs/overlayfs/super.c                    | 16 +++++++++-----
->  5 files changed, 75 insertions(+), 16 deletions(-)
+> diff --git a/common/overlay b/common/overlay
+> index 8e89d6e4..382960c3 100644
+> --- a/common/overlay
+> +++ b/common/overlay
+> @@ -286,6 +286,21 @@ _require_scratch_overlay_datadir_without_metacopy()
 >
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
-systems/overlayfs.rst
-> index 16c35b491dad..5d947eda09e5 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -239,6 +239,9 @@ Mount options:
->      Redirects are enabled.
->  - "redirect_dir=3Dfollow":
->      Redirects are not created, but followed.
-> +- "redirect_dir=3Dfollowdata":
-> +    Redirects are not created.
-> +    Only redirects from lower to lowerdata are followed.
->  - "redirect_dir=3Dnofollow":
->      Redirects are not created and not followed.
->  - "redirect_dir=3Doff":
-> @@ -418,8 +421,8 @@ pointed by REDIRECT. This should not be possible on l=
-ocal system as setting
->  "trusted." xattrs will require CAP_SYS_ADMIN. But it should be possible
->  for untrusted layers like from a pen drive.
->
-> -Note: redirect_dir=3D{off|nofollow|follow[*]} and nfs_export=3Don mount =
-options
-> -conflict with metacopy=3Don, and will result in an error.
-> +Note: redirect_dir=3D{off|nofollow|follow[*]|followdata} and nfs_export=
-=3Don
-> +mount options conflict with metacopy=3Don, and will result in an error.
->
->  [*] redirect_dir=3Dfollow only conflicts with metacopy=3Don if upperdir=
-=3D... is
->  given.
-> @@ -460,10 +463,11 @@ to the absolute path of the "lower data" file in th=
-e "data-only" lower layer.
->
->  Instead of explicitly enabling "metacopy=3Don" it is sufficient to speci=
-fy at
->  least one data-only layer to enable redirection of data to a data-only l=
-ayer.
-> -In this case other forms of metacopy are rejected.  Note: this way, data=
--only
-> -layers may be used together with "userxattr", in which case careful atte=
-ntion
-> -must be given to privileges needed to change the "user.overlay.redirect"=
- xattr
-> -to prevent misuse.
-> +In this case other forms of metacopy are rejected.  A data-only layer se=
-lects
-> +"redirect_dir=3Dfollowdata", unless "redirect_dir=3Dfollow" or "redirect=
-_dir=3Don" is
-> +in effect.  Note: this way, data-only layers may be used together with
-> +"userxattr", in which case careful attention must be given to privileges=
- needed
-> +to change the "user.overlay.redirect" xattr to prevent misuse.
->
->  Since kernel version v6.8, "data-only" lower layers can also be added us=
-ing
->  the "datadir+" mount options and the fsconfig syscall from new mount api=
-.
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index ca899fdfaafd..b354d8f4b1fd 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -1069,7 +1069,12 @@ static bool ovl_check_follow_redirect(struct ovl_l=
-ookup_data *d)
->                 pr_warn_ratelimited("refusing to follow metacopy origin f=
-or (%pd2)\n", d->dentry);
->                 return false;
->         }
-> -       if ((d->redirect || d->upperredirect) && !ovl_redirect_follow(ofs=
-)) {
-> +       /*
-> +        * redirect_dir=3Dfollowdata follows only the lower to lowerdata
-> +        * redirects, which are not checked here.
-> +        */
-> +       if ((d->redirect || d->upperredirect) &&
-> +           (!ovl_redirect_follow(ofs) || ovl_redirect_followdata(ofs))) =
-{
-
-I still don't like this due, I turned this into:
-
-/* Check follow to lower layer, redirects to lowerdata are not checked here=
- */
-if ((d->redirect || d->upperredirect) && !ovl_redirect_follow_lower(ofs)) {
-
-...
-
-/* Are redirects followed into lower layers? */
-static inline bool ovl_redirect_follow_lower(struct ovl_fs *ofs)
-{
-        return ofs->config.redirect_mode =3D=3D OVL_REDIRECT_FOLLOW ||
-               ofs->config.redirect_mode =3D=3D OVL_REDIRECT_ON;
-}
-
-/* Are redirects followed into lower or lowerdata layers? */
-static inline bool ovl_redirect_follow(struct ovl_fs *ofs)
-{
-        return ofs->config.redirect_mode !=3D OVL_REDIRECT_NOFOLLOW;
-}
-
-/* Are redirects created in upper dir? */
-static inline bool ovl_redirect_dir(struct ovl_fs *ofs)
-{
-        return ofs->config.redirect_mode =3D=3D OVL_REDIRECT_ON;
-}
-
-
->                 pr_warn_ratelimited("refusing to follow redirect for (%pd=
-2)\n", d->dentry);
->                 return false;
->         }
-> @@ -1087,13 +1092,26 @@ struct ovl_lookup_ctx {
->         unsigned int ctr;
->  };
->
-> +/*
-> + * Without metacopy=3Don, the absolute redirect of a lower metacopy file=
- is
-> + * followed only into the data-only layers.
-> + */
-> +static bool ovl_is_lowerdata_redirect(struct ovl_lookup_ctx *ctx,
-> +                                     struct ovl_lookup_data *d)
-> +{
-> +       struct ovl_fs *ofs =3D OVL_FS(d->sb);
-> +
-> +       return ofs->numdatalayer && !ofs->config.metacopy && ctx->ctr &&
-> +              d->metacopy && d->absolute_redirect;
-> +}
-> +
->  static int ovl_lookup_layers(struct ovl_lookup_ctx *ctx, struct ovl_look=
-up_data *d)
->  {
->         struct dentry *dentry =3D ctx->dentry;
->         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct ovl_entry *poe =3D OVL_E(dentry->d_parent);
->         struct ovl_entry *roe =3D OVL_E(dentry->d_sb->s_root);
-> -       bool check_redirect =3D (ovl_redirect_follow(ofs) || ofs->numdata=
-layer);
-> +       bool check_redirect =3D ovl_redirect_follow(ofs);
->         struct dentry *upperdir;
->         struct dentry *this;
->         struct dentry *origin =3D NULL;
-> @@ -1224,6 +1242,10 @@ static int ovl_lookup_layers(struct ovl_lookup_ctx=
- *ctx, struct ovl_lookup_data
->                         ctx->ctr++;
->                 }
->
-> +               /* Lookup of lowerdata in the data-only layers only */
-> +               if (ovl_is_lowerdata_redirect(ctx, d))
-> +                       d->stop =3D true;
-> +
->                 if (d->stop)
->                         break;
->
-> @@ -1384,7 +1406,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
- dentry *dentry,
->  {
->         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct ovl_entry *poe =3D OVL_E(dentry->d_parent);
-> -       bool check_redirect =3D (ovl_redirect_follow(ofs) || ofs->numdata=
-layer);
-> +       bool check_redirect =3D ovl_redirect_follow(ofs);
->         int err;
->         struct ovl_lookup_ctx ctx =3D {
->                 .dentry =3D dentry,
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 92da556598da..411690ea3ae3 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -78,6 +78,7 @@ enum ovl_entry_flag {
->  enum {
->         OVL_REDIRECT_OFF,       /* "off" mode is never used. In effect  *=
-/
->         OVL_REDIRECT_FOLLOW,    /* ...it translates to either "follow"  *=
-/
-> +       OVL_REDIRECT_FOLLOWDATA,
->         OVL_REDIRECT_NOFOLLOW,  /* ...or "nofollow".                    *=
-/
->         OVL_REDIRECT_ON,
->  };
-> @@ -632,6 +633,11 @@ static inline bool ovl_redirect_follow(struct ovl_fs=
- *ofs)
->         return ofs->config.redirect_mode !=3D OVL_REDIRECT_NOFOLLOW;
 >  }
 >
-> +static inline bool ovl_redirect_followdata(struct ovl_fs *ofs)
+> +# Check kernel support for the "redirect_dir=3Dfollowdata" mount option
+> +_require_scratch_overlay_redirect_followdata()
 > +{
-> +       return ofs->config.redirect_mode =3D=3D OVL_REDIRECT_FOLLOWDATA;
+> +       local lowerdir=3D"$OVL_BASE_SCRATCH_MNT/$OVL_UPPER"
+> +       local datadir=3D"$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
+> +
+> +       _scratch_mkfs > /dev/null 2>&1
+> +       _overlay_scratch_mount_opts \
+> +               -o"lowerdir+=3D$lowerdir,datadir+=3D$datadir" \
+> +               -o"userxattr,redirect_dir=3Dfollowdata" > /dev/null 2>&1 =
+|| \
+> +               _notrun "overlay redirect_dir=3Dfollowdata not supported =
+on ${SCRATCH_DEV}"
+> +
+> +       _scratch_unmount
 > +}
 > +
->  static inline bool ovl_redirect_dir(struct ovl_fs *ofs)
->  {
->         return ofs->config.redirect_mode =3D=3D OVL_REDIRECT_ON;
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 5a15e5478a6b..2dd965121a68 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -107,6 +107,7 @@ static int ovl_xino_def(void)
->  const struct constant_table ovl_parameter_redirect_dir[] =3D {
->         { "off",        OVL_REDIRECT_OFF      },
->         { "follow",     OVL_REDIRECT_FOLLOW   },
-> +       { "followdata", OVL_REDIRECT_FOLLOWDATA },
->         { "nofollow",   OVL_REDIRECT_NOFOLLOW },
->         { "on",         OVL_REDIRECT_ON       },
->         {}
-> @@ -991,7 +992,8 @@ int ovl_fs_params_verify(const struct ovl_fs_context =
-*ctx,
->         /* Resolve userxattr -> !redirect && !metacopy dependency */
->         if (config->userxattr) {
->                 if (set.redirect &&
-> -                   config->redirect_mode !=3D OVL_REDIRECT_NOFOLLOW) {
-> +                   config->redirect_mode !=3D OVL_REDIRECT_NOFOLLOW &&
-> +                   config->redirect_mode !=3D OVL_REDIRECT_FOLLOWDATA) {
->                         pr_err("conflicting options: userxattr,redirect_d=
-ir=3D%s\n",
->                                ovl_redirect_mode(config));
->                         return -EINVAL;
-> @@ -1006,10 +1008,29 @@ int ovl_fs_params_verify(const struct ovl_fs_cont=
-ext *ctx,
->                  * options must be explicitly enabled if used together wi=
+>
+>  # Helper function to check underlying dirs of overlay filesystem
+>  _overlay_fsck_dirs()
+> diff --git a/tests/overlay/090 b/tests/overlay/090
+> new file mode 100755
+> index 00000000..18e3d1f5
+> --- /dev/null
+> +++ b/tests/overlay/090
+> @@ -0,0 +1,158 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (c) 2026 Giuseppe Scrivano.  All Rights Reserved.
+> +#
+> +# FS QA Test 090
+> +#
+> +# Test the redirect_dir=3Dfollowdata mount option.
+> +#
+> +# Data-only layers select redirect_dir=3Dfollowdata, which follows redir=
+ects
+> +# from any lower layer to a data-only layer, and cannot be used with
+> +# redirect_dir=3Dnofollow.
+> +#
+> +# Also test following an absolute redirect past a lower layer that has t=
+he
+> +# parent directory of the redirect target, with metacopy=3Don.
+> +#
+> +. ./common/preamble
+> +_begin_fstest auto quick metacopy redirect verity attr
+
+pls remove verity
+
+> +
+> +# Import common functions.
+> +. ./common/filter
+> +. ./common/attr
+> +. ./common/verity
+
+pls remove verity
+
+> +
+> +# We use non-default scratch underlying overlay dirs, we need to check
+> +# them explicitly after test.
+> +_require_scratch_nocheck
+> +_require_attrs user
+> +_require_attrs trusted
+> +_require_scratch_overlay_redirect_followdata
+> +_require_scratch_overlay_verity
+
+Please remove verity requirement and the single verity test case
+It is not worth the test coverage lost by not running on most base fs
+and the followdata code changes are mostly orthogonal to verity anyway.
+
+> +_require_scratch_overlay_features redirect_dir metacopy
+> +_require_scratch_overlay_lowerdata_layers
+> +
+> +data=3D$OVL_BASE_SCRATCH_MNT/data
+> +l1=3D$OVL_BASE_SCRATCH_MNT/lower1
+> +l2=3D$OVL_BASE_SCRATCH_MNT/lower2
+> +l3=3D$OVL_BASE_SCRATCH_MNT/lower3
+> +upper=3D$OVL_BASE_SCRATCH_MNT/upper
+> +work=3D$OVL_BASE_SCRATCH_MNT/work
+> +layers=3D"$l3:$l2:$l1::$data"
+> +
+> +# Make a metacopy file <file> with the redirect <redirect> and the optio=
+nal
+> +# metacopy xattr value <metacopy> (default: no fs-verity digest), for bo=
 th
->                  * userxattr.
->                  */
-> -               config->redirect_mode =3D OVL_REDIRECT_NOFOLLOW;
-> +               if (!set.redirect)
-> +                       config->redirect_mode =3D OVL_REDIRECT_NOFOLLOW;
->                 config->metacopy =3D false;
->         }
->
-> +       /*
-> +        * Data-only layers are reached through redirects, so they cannot=
- be
-> +        * used with redirect_dir=3Dnofollow: use followdata instead, or =
-fail
-> +        * if nofollow was requested explicitly.
-> +        */
-> +       if (ctx->nr_data && config->redirect_mode =3D=3D OVL_REDIRECT_NOF=
-OLLOW) {
-> +               if (set.redirect) {
-> +                       pr_err("conflicting options: data-only layers,red=
-irect_dir=3D%s\n",
-> +                              ovl_redirect_mode(config));
-> +                       return -EINVAL;
-> +               }
-> +               config->redirect_mode =3D OVL_REDIRECT_FOLLOWDATA;
-
-I've made some changes so that the combination nofollow,daradir is only
-reachable from explicit user options, so this is simplified.
-
-> +       }
-> +       if (!ctx->nr_data && config->redirect_mode =3D=3D OVL_REDIRECT_FO=
-LLOWDATA) {
-> +               pr_err("redirect_dir=3Dfollowdata requires data-only laye=
-rs\n");
-> +               return -EINVAL;
-> +       }
+> +# userxattr and trusted xattr mounts
+> +make_stub()
+> +{
+> +       local file=3D$1 redirect=3D$2 metacopy=3D$3 x
 > +
->         /*
->          * Fail if we don't have trusted xattr capability and a feature w=
-as
->          * explicitly requested that requires them.
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 19b6d54c4500..d5352a95f7f6 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -680,7 +680,7 @@ static int ovl_create_volatile_dirty(struct ovl_fs *o=
-fs)
->  }
->
->  static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
-> -                           const struct path *workpath)
-> +                           const struct path *workpath, size_t nr_data)
->  {
->         struct vfsmount *mnt =3D ovl_upper_mnt(ofs);
->         struct dentry *workdir;
-> @@ -744,7 +744,12 @@ static int ovl_make_workdir(struct super_block *sb, =
-struct ovl_fs *ofs,
->         if (err) {
->                 pr_warn("failed to set xattr on upper\n");
->                 ofs->noxattr =3D true;
-> -               if (ovl_redirect_follow(ofs)) {
-> +               /* Data-only layers require at least redirect_dir=3Dfollo=
-wdata */
-> +               if (nr_data && ovl_redirect_follow(ofs) &&
-> +                   !ovl_redirect_followdata(ofs)) {
-> +                       ofs->config.redirect_mode =3D OVL_REDIRECT_FOLLOW=
-DATA;
-> +                       pr_warn("...falling back to redirect_dir=3Dfollow=
-data.\n");
+> +       touch $file
+> +       for x in user.overlay. ${OVL_XATTR_METACOPY%metacopy}; do
+> +               $SETFATTR_PROG -n ${x}metacopy ${metacopy:+-v $metacopy} =
+$file
+> +               $SETFATTR_PROG -n ${x}redirect -v $redirect $file
+> +       done
+> +       truncate -s 4 $file
+> +}
+> +
+> +# Mount the layers $layers with the options <opts>, print redirect_dir=
+=3Dfollowdata
+> +# if the mount shows it and <opts> has userxattr or redirect_dir (otherw=
+ise it
+> +# depends on the kernel config), and the content of each of the followin=
+g files,
+> +# or the error reading it
+> +check()
+> +{
+> +       local opts=3D$1 f
+> +
+> +       shift
+> +       echo "=3D=3D $opts"
+> +       _overlay_scratch_mount_dirs "$layers" $upper $work -o $opts
+> +       case $opts in
+> +       *userxattr*|*redirect_dir=3D*)
+> +               _fs_options $OVL_BASE_SCRATCH_MNT | grep -o redirect_dir=
+=3Dfollowdata
+> +               ;;
+> +       esac
+> +       for f; do
+> +               echo "$f: $(cat $SCRATCH_MNT/$f 2>&1 | sed 's/^cat: .*: /=
+/')"
+> +       done
+> +       _unmount $SCRATCH_MNT
+> +}
+> +
+> +# Mounting the layers $layers with the options <opts> must fail
+> +check_fail()
+> +{
+> +       local opts=3D$1
+> +
+> +       echo "=3D=3D $opts"
+> +       _overlay_scratch_mount_dirs "$layers" $upper $work -o $opts \
+> +               >> $seqres.full 2>&1 && echo "mount succeeded" && \
+> +               _unmount $SCRATCH_MNT
+> +}
+> +
+> +_scratch_mkfs
+> +mkdir -p $data/base $l1/base $l2/base $l3 $upper $work
+> +echo -n "data" > $data/base/file
+> +_fsv_enable $data/base/file
+> +digest=3D$(_fsv_measure $data/base/file)
 
-This becomes:
+pls remove verity
 
-                if (ovl_redirect_follow_lower(ofs)) {
-                        ofs->config.redirect_mode =3D
-ovl_redirect_nofollow_mode(nr_data);
-                        pr_warn("...falling back to redirect_dir=3D%s.\n",
-                                ovl_redirect_mode(&ofs->config));
-...
+> +
+> +make_stub $l1/s1 /base/file
+> +make_stub $l2/s2 /base/file
+> +make_stub $l3/s3 /base/file
+> +# The redirect target in a lower layer below s3, which is not looked up
+> +echo -n "lowr" > $l2/base/file
+> +# Redirects that are not followed: relative, directory, upper
+> +echo -n "lowr" > $l2/reltarget
+> +make_stub $l3/rel reltarget
+> +mkdir $l3/dir
+> +$SETFATTR_PROG -n user.overlay.redirect -v /base $l3/dir
+> +$SETFATTR_PROG -n $OVL_XATTR_REDIRECT -v /base $l3/dir
+> +make_stub $upper/up /base/file
+> +# fs-verity digest of a metacopy file in a middle layer: right and wrong
+> +make_stub $l2/vok /base/file 0x00240001${digest#sha256:}
+> +make_stub $l2/vbad /base/file "0x00240001$(printf '%064d' 0)"
 
-/* Data-only layers cannot be used without following redirects to them */
-static inline int ovl_redirect_nofollow_mode(size_t nr_data)
-{
-        return nr_data ? OVL_REDIRECT_FOLLOWDATA : OVL_REDIRECT_NOFOLLOW;
-}
+pls remove verity
 
+> +
+> +# followdata is selected by default with userxattr and a data-only layer
+> +check userxattr s1 s2 s3
+> +check userxattr,redirect_dir=3Dfollowdata s1 s2 s3 rel dir up
+> +# a data-only layer cannot be used without following redirects
+> +check_fail userxattr,redirect_dir=3Dnofollow
+> +check_fail userxattr,redirect_dir=3Doff
+> +echo "(no data-only layer)"
 
-Attached full cosmetic patch (after the rebase).
-Tested with your fstest.
+Suggest echo -n "no data-only layer "
+will make the expected output more clear as part of the test case title
 
-Thanks,
+> +layers=3D"$l3:$l2:$l1" check userxattr
+> +check userxattr,redirect_dir=3Dfollowdata,verity=3Drequire vok vbad
+
+pls remove verity
+
+> +
+> +check metacopy=3Doff s1 s2 s3
+> +check redirect_dir=3Dfollowdata s1 s2 s3 rel dir up
+> +check redirect_dir=3Dfollow,metacopy=3Doff s1 s2 s3
+> +check redirect_dir=3Don,metacopy=3Doff s1 s2 s3
+> +check_fail redirect_dir=3Dnofollow
+> +echo "(no data-only layer)"
+
+Suggest echo -n "no data-only layer "
+
+> +layers=3D"$l3:$l2:$l1" check redirect_dir=3Dnofollow
+> +
+> +# An explicit option requires a data-only layer and conflicts with metac=
+opy=3Don
+> +_overlay_scratch_mount_dirs "$l3:$l2:$l1" $upper $work \
+> +       -o userxattr,redirect_dir=3Dfollowdata >> $seqres.full 2>&1 && \
+> +       echo "mount without a data-only layer succeeded"
+
+"mount redirect_dir=3Dfollowdata without a data-only layer succeeded"
+
+> +_overlay_scratch_mount_dirs "$layers" $upper $work \
+> +       -o redirect_dir=3Dfollowdata,metacopy=3Don >> $seqres.full 2>&1 &=
+& \
+> +       echo "mount with metacopy=3Don succeeded"
+> +
+
+"mount with edirect_dir=3Dfollowdata,metacopy=3Don succeeded"
+
+Thanks!
 Amir.
-
---000000000000e53af4065fd66efa
-Content-Type: text/x-patch; charset="US-ASCII"; name="0001-ovl-fixes-for-followdata.patch"
-Content-Disposition: attachment; 
-	filename="0001-ovl-fixes-for-followdata.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_mw94rpih0>
-X-Attachment-Id: f_mw94rpih0
-
-RnJvbSBlMzY4NGExOTQ4NTA3MGI3ZTgyYWRjODI3ZWQzZjcwMGVhYmUwNGIxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBTdW4sIDggTm92IDIwMjYgMTY6NDE6MjAgKzAxMDAKU3ViamVjdDogW1BBVENIXSBvdmw6
-IGZpeGVzIGZvciBmb2xsb3dkYXRhCgotLS0KIERvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3Zl
-cmxheWZzLnJzdCB8ICAyICstCiBmcy9vdmVybGF5ZnMvbmFtZWkuYyAgICAgICAgICAgICAgICAg
-ICAgfCAgOCArKy0tLS0KIGZzL292ZXJsYXlmcy9vdmVybGF5ZnMuaCAgICAgICAgICAgICAgICB8
-IDE4ICsrKysrKysrKystLS0KIGZzL292ZXJsYXlmcy9wYXJhbXMuYyAgICAgICAgICAgICAgICAg
-ICB8IDM0ICsrKysrKysrKysrKy0tLS0tLS0tLS0tLS0KIGZzL292ZXJsYXlmcy9wYXJhbXMuaCAg
-ICAgICAgICAgICAgICAgICB8ICAxICsKIGZzL292ZXJsYXlmcy9zdXBlci5jICAgICAgICAgICAg
-ICAgICAgICB8IDEyICsrKy0tLS0tLQogNiBmaWxlcyBjaGFuZ2VkLCAzOCBpbnNlcnRpb25zKCsp
-LCAzNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1z
-L292ZXJsYXlmcy5yc3QgYi9Eb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1zL292ZXJsYXlmcy5yc3QK
-aW5kZXggY2Y4ZjYxNTkxNTc1Yy4uYjQ5OGM4ZTU2YzVhZCAxMDA2NDQKLS0tIGEvRG9jdW1lbnRh
-dGlvbi9maWxlc3lzdGVtcy9vdmVybGF5ZnMucnN0CisrKyBiL0RvY3VtZW50YXRpb24vZmlsZXN5
-c3RlbXMvb3ZlcmxheWZzLnJzdApAQCAtNDIxLDcgKzQyMSw3IEBAIHBvaW50ZWQgYnkgUkVESVJF
-Q1QuIFRoaXMgc2hvdWxkIG5vdCBiZSBwb3NzaWJsZSBvbiBsb2NhbCBzeXN0ZW0gYXMgc2V0dGlu
-ZwogInRydXN0ZWQuIiB4YXR0cnMgd2lsbCByZXF1aXJlIENBUF9TWVNfQURNSU4uIEJ1dCBpdCBz
-aG91bGQgYmUgcG9zc2libGUKIGZvciB1bnRydXN0ZWQgbGF5ZXJzIGxpa2UgZnJvbSBhIHBlbiBk
-cml2ZS4KIAotTm90ZTogcmVkaXJlY3RfZGlyPXtvZmZ8bm9mb2xsb3d8Zm9sbG93WypdfGZvbGxv
-d2RhdGF9IGFuZCBuZnNfZXhwb3J0PW9uCitOb3RlOiByZWRpcmVjdF9kaXI9e29mZnxub2ZvbGxv
-d3xmb2xsb3dkYXRhfGZvbGxvd1sqXX0gYW5kIG5mc19leHBvcnQ9b24KIG1vdW50IG9wdGlvbnMg
-Y29uZmxpY3Qgd2l0aCBtZXRhY29weT1vbiwgYW5kIHdpbGwgcmVzdWx0IGluIGFuIGVycm9yLgog
-CiBbKl0gcmVkaXJlY3RfZGlyPWZvbGxvdyBvbmx5IGNvbmZsaWN0cyB3aXRoIG1ldGFjb3B5PW9u
-IGlmIHVwcGVyZGlyPS4uLiBpcwpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL25hbWVpLmMgYi9m
-cy9vdmVybGF5ZnMvbmFtZWkuYwppbmRleCAwN2YzMjI5OTA3NTJjLi5kODQ2YzhkMTViMWNjIDEw
-MDY0NAotLS0gYS9mcy9vdmVybGF5ZnMvbmFtZWkuYworKysgYi9mcy9vdmVybGF5ZnMvbmFtZWku
-YwpAQCAtMTA3OSwxMiArMTA3OSw4IEBAIHN0YXRpYyBib29sIG92bF9jaGVja19mb2xsb3dfcmVk
-aXJlY3Qoc3RydWN0IG92bF9sb29rdXBfZGF0YSAqZCkKIAkJcHJfd2Fybl9yYXRlbGltaXRlZCgi
-cmVmdXNpbmcgdG8gZm9sbG93IG1ldGFjb3B5IG9yaWdpbiBmb3IgKCVwZDIpXG4iLCBkLT5kZW50
-cnkpOwogCQlyZXR1cm4gZmFsc2U7CiAJfQotCS8qCi0JICogcmVkaXJlY3RfZGlyPWZvbGxvd2Rh
-dGEgZm9sbG93cyBvbmx5IHRoZSBsb3dlciB0byBsb3dlcmRhdGEKLQkgKiByZWRpcmVjdHMsIHdo
-aWNoIGFyZSBub3QgY2hlY2tlZCBoZXJlLgotCSAqLwotCWlmICgoZC0+cmVkaXJlY3QgfHwgZC0+
-dXBwZXJyZWRpcmVjdCkgJiYKLQkgICAgKCFvdmxfcmVkaXJlY3RfZm9sbG93KG9mcykgfHwgb3Zs
-X3JlZGlyZWN0X2ZvbGxvd2RhdGEob2ZzKSkpIHsKKwkvKiBDaGVjayBmb2xsb3cgdG8gbG93ZXIg
-bGF5ZXIsIHJlZGlyZWN0cyB0byBsb3dlcmRhdGEgYXJlIG5vdCBjaGVja2VkIGhlcmUgKi8KKwlp
-ZiAoKGQtPnJlZGlyZWN0IHx8IGQtPnVwcGVycmVkaXJlY3QpICYmICFvdmxfcmVkaXJlY3RfZm9s
-bG93X2xvd2VyKG9mcykpIHsKIAkJcHJfd2Fybl9yYXRlbGltaXRlZCgicmVmdXNpbmcgdG8gZm9s
-bG93IHJlZGlyZWN0IGZvciAoJXBkMilcbiIsIGQtPmRlbnRyeSk7CiAJCXJldHVybiBmYWxzZTsK
-IAl9CmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvb3ZlcmxheWZzLmggYi9mcy9vdmVybGF5ZnMv
-b3ZlcmxheWZzLmgKaW5kZXggMWVkNjUzMTczNmVkMi4uOWY4YzI1ZmRmZmVkYSAxMDA2NDQKLS0t
-IGEvZnMvb3ZlcmxheWZzL292ZXJsYXlmcy5oCisrKyBiL2ZzL292ZXJsYXlmcy9vdmVybGF5ZnMu
-aApAQCAtNjM5LDE2ICs2MzksMjYgQEAgc3RhdGljIGlubGluZSBjaGFyIG92bF9nZXRfb3BhcXVl
-ZGlyX3ZhbChzdHJ1Y3Qgb3ZsX2ZzICpvZnMsCiAJcmV0dXJuIG92bF9nZXRfZGlyX3hhdHRyX3Zh
-bChvZnMsIHBhdGgsIE9WTF9YQVRUUl9PUEFRVUUpOwogfQogCi1zdGF0aWMgaW5saW5lIGJvb2wg
-b3ZsX3JlZGlyZWN0X2ZvbGxvdyhzdHJ1Y3Qgb3ZsX2ZzICpvZnMpCisvKiBEYXRhLW9ubHkgbGF5
-ZXJzIGNhbm5vdCBiZSB1c2VkIHdpdGhvdXQgZm9sbG93aW5nIHJlZGlyZWN0cyB0byB0aGVtICov
-CitzdGF0aWMgaW5saW5lIGludCBvdmxfcmVkaXJlY3Rfbm9mb2xsb3dfbW9kZShzaXplX3QgbnJf
-ZGF0YSkKIHsKLQlyZXR1cm4gb2ZzLT5jb25maWcucmVkaXJlY3RfbW9kZSAhPSBPVkxfUkVESVJF
-Q1RfTk9GT0xMT1c7CisJcmV0dXJuIG5yX2RhdGEgPyBPVkxfUkVESVJFQ1RfRk9MTE9XREFUQSA6
-IE9WTF9SRURJUkVDVF9OT0ZPTExPVzsKIH0KIAotc3RhdGljIGlubGluZSBib29sIG92bF9yZWRp
-cmVjdF9mb2xsb3dkYXRhKHN0cnVjdCBvdmxfZnMgKm9mcykKKy8qIEFyZSByZWRpcmVjdHMgZm9s
-bG93ZWQgaW50byBsb3dlciBsYXllcnM/ICovCitzdGF0aWMgaW5saW5lIGJvb2wgb3ZsX3JlZGly
-ZWN0X2ZvbGxvd19sb3dlcihzdHJ1Y3Qgb3ZsX2ZzICpvZnMpCiB7Ci0JcmV0dXJuIG9mcy0+Y29u
-ZmlnLnJlZGlyZWN0X21vZGUgPT0gT1ZMX1JFRElSRUNUX0ZPTExPV0RBVEE7CisJcmV0dXJuIG9m
-cy0+Y29uZmlnLnJlZGlyZWN0X21vZGUgPT0gT1ZMX1JFRElSRUNUX0ZPTExPVyB8fAorCSAgICAg
-ICBvZnMtPmNvbmZpZy5yZWRpcmVjdF9tb2RlID09IE9WTF9SRURJUkVDVF9PTjsKK30KKworLyog
-QXJlIHJlZGlyZWN0cyBmb2xsb3dlZCBpbnRvIGxvd2VyIG9yIGxvd2VyZGF0YSBsYXllcnM/ICov
-CitzdGF0aWMgaW5saW5lIGJvb2wgb3ZsX3JlZGlyZWN0X2ZvbGxvdyhzdHJ1Y3Qgb3ZsX2ZzICpv
-ZnMpCit7CisJcmV0dXJuIG9mcy0+Y29uZmlnLnJlZGlyZWN0X21vZGUgIT0gT1ZMX1JFRElSRUNU
-X05PRk9MTE9XOwogfQogCisvKiBBcmUgcmVkaXJlY3RzIGNyZWF0ZWQgaW4gdXBwZXIgZGlyPyAq
-Lwogc3RhdGljIGlubGluZSBib29sIG92bF9yZWRpcmVjdF9kaXIoc3RydWN0IG92bF9mcyAqb2Zz
-KQogewogCXJldHVybiBvZnMtPmNvbmZpZy5yZWRpcmVjdF9tb2RlID09IE9WTF9SRURJUkVDVF9P
-TjsKZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9wYXJhbXMuYyBiL2ZzL292ZXJsYXlmcy9wYXJh
-bXMuYwppbmRleCAwOWY1ZTEyYjZkMGMxLi43MjVjNWFmY2FiODc4IDEwMDY0NAotLS0gYS9mcy9v
-dmVybGF5ZnMvcGFyYW1zLmMKKysrIGIvZnMvb3ZlcmxheWZzL3BhcmFtcy5jCkBAIC0xMTgsMjEg
-KzExOCwyNiBAQCBzdGF0aWMgY29uc3QgY2hhciAqb3ZsX3JlZGlyZWN0X21vZGVfbmFtZShpbnQg
-cmVkaXJlY3RfbW9kZSkKIAlyZXR1cm4gb3ZsX3BhcmFtZXRlcl9yZWRpcmVjdF9kaXJbcmVkaXJl
-Y3RfbW9kZV0ubmFtZTsKIH0KIAotc3RhdGljIGNvbnN0IGNoYXIgKm92bF9yZWRpcmVjdF9tb2Rl
-KHN0cnVjdCBvdmxfY29uZmlnICpjb25maWcpCitjb25zdCBjaGFyICpvdmxfcmVkaXJlY3RfbW9k
-ZShzdHJ1Y3Qgb3ZsX2NvbmZpZyAqY29uZmlnKQogewogCXJldHVybiBvdmxfcmVkaXJlY3RfbW9k
-ZV9uYW1lKGNvbmZpZy0+cmVkaXJlY3RfbW9kZSk7CiB9CiAKLXN0YXRpYyBpbnQgb3ZsX3JlZGly
-ZWN0X2ZvbGxvd19tb2RlKHZvaWQpCitzdGF0aWMgaW50IG92bF9yZWRpcmVjdF9mb2xsb3dfbW9k
-ZShzaXplX3QgbnJfZGF0YSkKIHsKIAlyZXR1cm4gb3ZsX3JlZGlyZWN0X2Fsd2F5c19mb2xsb3cg
-PyBPVkxfUkVESVJFQ1RfRk9MTE9XIDoKLQkJCQkJICAgIE9WTF9SRURJUkVDVF9OT0ZPTExPVzsK
-KwkJCQkJICAgIG92bF9yZWRpcmVjdF9ub2ZvbGxvd19tb2RlKG5yX2RhdGEpOwogfQogCisvKgor
-ICogVGhlIGRlZmF1bHQgZm9yIHNob3dfb3B0aW9ucygpIGlzIHJlc29sdmVkIGFzIGlmIHRoZXJl
-IGFyZSBubyBkYXRhLW9ubHkgbGF5ZXJzLAorICogc28gdGhhdCByZWRpcmVjdF9kaXI9Zm9sbG93
-ZGF0YSwgd2hpY2ggaXMgYXV0byBzZWxlY3RlZCB3aXRoIGRhdGEtb25seSBsYXllcnMsCisgKiBp
-cyBkaXNwbGF5ZWQgaW4gbW91bnQgb3B0aW9ucy4KKyAqLwogc3RhdGljIGludCBvdmxfcmVkaXJl
-Y3RfbW9kZV9kZWYodm9pZCkKIHsKIAlyZXR1cm4gb3ZsX3JlZGlyZWN0X2Rpcl9kZWYgPyBPVkxf
-UkVESVJFQ1RfT04gOgotCQkJCSAgICAgIG92bF9yZWRpcmVjdF9mb2xsb3dfbW9kZSgpOworCQkJ
-CSAgICAgIG92bF9yZWRpcmVjdF9mb2xsb3dfbW9kZSgwKTsKIH0KIAogc3RhdGljIGNvbnN0IHN0
-cnVjdCBjb25zdGFudF90YWJsZSBvdmxfcGFyYW1ldGVyX3Zlcml0eVtdID0gewpAQCAtODMwLDcg
-KzgzNSw4IEBAIGludCBvdmxfaW5pdF9mc19jb250ZXh0KHN0cnVjdCBmc19jb250ZXh0ICpmYykK
-IAkgKiB1cHBlciBkaXIuICBJZiB0aGV5IGFyZSBub3QsIHRoZSByZWRpcmVjdCBmb2xsb3cgbW9k
-ZSB3aWxsIGJlCiAJICogZGV0ZXJtaW5lZCBsYXRlci4KIAkgKi8KLQlvZnMtPmNvbmZpZy5yZWRp
-cmVjdF9tb2RlCT0gb3ZsX3JlZGlyZWN0X21vZGVfZGVmKCk7CisJb2ZzLT5jb25maWcucmVkaXJl
-Y3RfbW9kZQk9IG92bF9yZWRpcmVjdF9kaXJfZGVmID8KKwkJCQkJICBPVkxfUkVESVJFQ1RfT04g
-OiBPVkxfUkVESVJFQ1RfT0ZGOwogCW9mcy0+Y29uZmlnLmluZGV4CQk9IG92bF9pbmRleF9kZWY7
-CiAJb2ZzLT5jb25maWcudXVpZAkJPSBvdmxfdXVpZF9kZWYoKTsKIAlvZnMtPmNvbmZpZy5uZnNf
-ZXhwb3J0CQk9IG92bF9uZnNfZXhwb3J0X2RlZjsKQEAgLTkxOCw3ICs5MjQsNyBAQCBpbnQgb3Zs
-X2ZzX3BhcmFtc192ZXJpZnkoY29uc3Qgc3RydWN0IG92bF9mc19jb250ZXh0ICpjdHgsCiAKIAkv
-KiBSZXNvbHZlIHJlZGlyZWN0X2Rpcj1vZmYgdG8gdGhlIGRlZmF1bHQgcmVkaXJlY3QgZm9sbG93
-IG1vZGUgKi8KIAlpZiAoY29uZmlnLT5yZWRpcmVjdF9tb2RlID09IE9WTF9SRURJUkVDVF9PRkYp
-Ci0JCWNvbmZpZy0+cmVkaXJlY3RfbW9kZSA9IG92bF9yZWRpcmVjdF9mb2xsb3dfbW9kZSgpOwor
-CQljb25maWctPnJlZGlyZWN0X21vZGUgPSBvdmxfcmVkaXJlY3RfZm9sbG93X21vZGUoY3R4LT5u
-cl9kYXRhKTsKIAogCS8qCiAJICogVGhpcyBpcyB0byBtYWtlIHRoZSBsb2dpYyBiZWxvdyBzaW1w
-bGVyLiAgSXQgZG9lc24ndCBtYWtlIGFueSBvdGhlcgpAQCAtMTAzMiwyMiArMTAzOCwxNCBAQCBp
-bnQgb3ZsX2ZzX3BhcmFtc192ZXJpZnkoY29uc3Qgc3RydWN0IG92bF9mc19jb250ZXh0ICpjdHgs
-CiAJCSAqIHVzZXJ4YXR0ci4KIAkJICovCiAJCWlmICghc2V0LnJlZGlyZWN0KQotCQkJY29uZmln
-LT5yZWRpcmVjdF9tb2RlID0gT1ZMX1JFRElSRUNUX05PRk9MTE9XOworCQkJY29uZmlnLT5yZWRp
-cmVjdF9tb2RlID0gb3ZsX3JlZGlyZWN0X25vZm9sbG93X21vZGUoY3R4LT5ucl9kYXRhKTsKIAkJ
-Y29uZmlnLT5tZXRhY29weSA9IGZhbHNlOwogCX0KIAotCS8qCi0JICogRGF0YS1vbmx5IGxheWVy
-cyBhcmUgcmVhY2hlZCB0aHJvdWdoIHJlZGlyZWN0cywgc28gdGhleSBjYW5ub3QgYmUKLQkgKiB1
-c2VkIHdpdGggcmVkaXJlY3RfZGlyPW5vZm9sbG93OiB1c2UgZm9sbG93ZGF0YSBpbnN0ZWFkLCBv
-ciBmYWlsCi0JICogaWYgbm9mb2xsb3cgd2FzIHJlcXVlc3RlZCBleHBsaWNpdGx5LgotCSAqLwor
-CS8qIERhdGEtb25seSBsYXllcnMgYXJlIHJlYWNoZWQgdGhyb3VnaCByZWRpcmVjdHMgKi8KIAlp
-ZiAoY3R4LT5ucl9kYXRhICYmIGNvbmZpZy0+cmVkaXJlY3RfbW9kZSA9PSBPVkxfUkVESVJFQ1Rf
-Tk9GT0xMT1cpIHsKLQkJaWYgKHNldC5yZWRpcmVjdCkgewotCQkJcHJfZXJyKCJjb25mbGljdGlu
-ZyBvcHRpb25zOiBkYXRhLW9ubHkgbGF5ZXJzLHJlZGlyZWN0X2Rpcj0lc1xuIiwKLQkJCSAgICAg
-ICBvdmxfcmVkaXJlY3RfbW9kZV9uYW1lKHJlZGlyZWN0X29wdCkpOwotCQkJcmV0dXJuIC1FSU5W
-QUw7Ci0JCX0KLQkJY29uZmlnLT5yZWRpcmVjdF9tb2RlID0gT1ZMX1JFRElSRUNUX0ZPTExPV0RB
-VEE7CisJCXByX2VycigicmVkaXJlY3RfZGlyPW5vZm9sbG93IGlzIG5vdCBzdXBwb3J0ZWQgd2l0
-aCBkYXRhLW9ubHkgbGF5ZXJzXG4iKTsKKwkJcmV0dXJuIC1FSU5WQUw7CiAJfQogCWlmICghY3R4
-LT5ucl9kYXRhICYmIGNvbmZpZy0+cmVkaXJlY3RfbW9kZSA9PSBPVkxfUkVESVJFQ1RfRk9MTE9X
-REFUQSkgewogCQlwcl9lcnIoInJlZGlyZWN0X2Rpcj1mb2xsb3dkYXRhIHJlcXVpcmVzIGRhdGEt
-b25seSBsYXllcnNcbiIpOwpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL3BhcmFtcy5oIGIvZnMv
-b3ZlcmxheWZzL3BhcmFtcy5oCmluZGV4IGZmZDUzY2RkODQ4MjcuLjMxNjFhYTFlZTlkZGMgMTAw
-NjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9wYXJhbXMuaAorKysgYi9mcy9vdmVybGF5ZnMvcGFyYW1z
-LmgKQEAgLTQyLDMgKzQyLDQgQEAgaW50IG92bF9mc19wYXJhbXNfdmVyaWZ5KGNvbnN0IHN0cnVj
-dCBvdmxfZnNfY29udGV4dCAqY3R4LAogCQkJIHN0cnVjdCBvdmxfY29uZmlnICpjb25maWcpOwog
-aW50IG92bF9zaG93X29wdGlvbnMoc3RydWN0IHNlcV9maWxlICptLCBzdHJ1Y3QgZGVudHJ5ICpk
-ZW50cnkpOwogY29uc3QgY2hhciAqb3ZsX3hpbm9fbW9kZShzdHJ1Y3Qgb3ZsX2NvbmZpZyAqY29u
-ZmlnKTsKK2NvbnN0IGNoYXIgKm92bF9yZWRpcmVjdF9tb2RlKHN0cnVjdCBvdmxfY29uZmlnICpj
-b25maWcpOwpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL3N1cGVyLmMgYi9mcy9vdmVybGF5ZnMv
-c3VwZXIuYwppbmRleCA1YjViNjJhOWQ3MTQ2Li41OGYyOTk0YTZiZWNlIDEwMDY0NAotLS0gYS9m
-cy9vdmVybGF5ZnMvc3VwZXIuYworKysgYi9mcy9vdmVybGF5ZnMvc3VwZXIuYwpAQCAtNzY1LDE0
-ICs3NjUsMTAgQEAgc3RhdGljIGludCBvdmxfbWFrZV93b3JrZGlyKHN0cnVjdCBzdXBlcl9ibG9j
-ayAqc2IsIHN0cnVjdCBvdmxfZnMgKm9mcywKIAlpZiAoZXJyKSB7CiAJCXByX3dhcm4oImZhaWxl
-ZCB0byBzZXQgeGF0dHIgb24gdXBwZXJcbiIpOwogCQlvZnMtPm5veGF0dHIgPSB0cnVlOwotCQkv
-KiBEYXRhLW9ubHkgbGF5ZXJzIHJlcXVpcmUgYXQgbGVhc3QgcmVkaXJlY3RfZGlyPWZvbGxvd2Rh
-dGEgKi8KLQkJaWYgKG5yX2RhdGEgJiYgb3ZsX3JlZGlyZWN0X2ZvbGxvdyhvZnMpICYmCi0JCSAg
-ICAhb3ZsX3JlZGlyZWN0X2ZvbGxvd2RhdGEob2ZzKSkgewotCQkJb2ZzLT5jb25maWcucmVkaXJl
-Y3RfbW9kZSA9IE9WTF9SRURJUkVDVF9GT0xMT1dEQVRBOwotCQkJcHJfd2FybigiLi4uZmFsbGlu
-ZyBiYWNrIHRvIHJlZGlyZWN0X2Rpcj1mb2xsb3dkYXRhLlxuIik7Ci0JCX0gZWxzZSBpZiAoIW5y
-X2RhdGEgJiYgb3ZsX3JlZGlyZWN0X2ZvbGxvdyhvZnMpKSB7Ci0JCQlvZnMtPmNvbmZpZy5yZWRp
-cmVjdF9tb2RlID0gT1ZMX1JFRElSRUNUX05PRk9MTE9XOwotCQkJcHJfd2FybigiLi4uZmFsbGlu
-ZyBiYWNrIHRvIHJlZGlyZWN0X2Rpcj1ub2ZvbGxvdy5cbiIpOworCQlpZiAob3ZsX3JlZGlyZWN0
-X2ZvbGxvd19sb3dlcihvZnMpKSB7CisJCQlvZnMtPmNvbmZpZy5yZWRpcmVjdF9tb2RlID0gb3Zs
-X3JlZGlyZWN0X25vZm9sbG93X21vZGUobnJfZGF0YSk7CisJCQlwcl93YXJuKCIuLi5mYWxsaW5n
-IGJhY2sgdG8gcmVkaXJlY3RfZGlyPSVzLlxuIiwKKwkJCQlvdmxfcmVkaXJlY3RfbW9kZSgmb2Zz
-LT5jb25maWcpKTsKIAkJfQogCQlpZiAob2ZzLT5jb25maWcubWV0YWNvcHkpIHsKIAkJCW9mcy0+
-Y29uZmlnLm1ldGFjb3B5ID0gZmFsc2U7Ci0tIAoyLjU2LjAKCg==
---000000000000e53af4065fd66efa--
