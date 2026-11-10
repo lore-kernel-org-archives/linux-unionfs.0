@@ -1,79 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794297898;
-	b=mBL2wI4RGjGWTosFI8dIk+opyYzwQHiLY/GxE73zAM+QnK/PhzX7m44wbDDH8TvcCOf3
-	 N1YbmI2cl3dIi8Zjy2N0XvjcPNoQsn9AsxgeNvj1NQyfKits+A+UewaWU3xvE0S2FJAWu
-	 /dp0+42slMFTA0nOBNtf276sVPjETdf9Q6G2quhS/+6vmByPek0q74+iWLBhXSQ1FqWSn
-	 3OCNDojkyFybC1q18giRn51RaqEMmSLGcgGSKn2C59YN6MfA6X6tb1rDn3FhGyTH9PYOn
-	 kybn1UayVDsaEJOFBd+FHsufoy8KFpGJrCXXkT94Iep5Nxu6jDlhYSM4N5j2BDqw5Sw==
+	t=1794307391;
+	b=KVNrOTDiPiyAhyHsj2ZQHJPjXDUel93bpZ7kRhklMizvgU0bm2nf+lcgQBqZBLECQ3nd
+	 dNrhGcZbNXJiLWBhOXTtbNYvGQMxcRlNQ0+92esgPK0BZX6HoqLU9GUIVc2ik2wdEbD+Q
+	 uPU7rw1lX6db0MdfLkh+BY6CFRqny1RWI2xxbkgEcbSkF1kQ5t3YK18C0HnVnAFQA1Ix1
+	 dsMZcfYqMLhH9oOcD8EoU/UVSlb2A58LcxbHLnB7Wv677rrlkFJdYfb/gMprgRl/lNPIy
+	 HpNIScf/kyQ0WIUxC70heG0qcZH0bGAJUJ54N8TbUwEjsbQXcPeIBaCI+dnCuXVxAoQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794297898;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:X-B4-Tracking:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=RaFRATRdJGKGjvX3uJXY0s/OhS2GhKkGePwOtrSiyv8=;
-	b=s5+054DxMXyTm5B1nenJj1YbFXwtBm/mmS2MrUMT76REzm9q47Gj+xNKyjICwh5TznJf
-	 CcP/90L5J4h9jBHxFaA9/jP1IujTIw2Ca2zTYsNeZPOaKGshs8E6YQfwObwtDHMEJHDZM
-	 BFL3BUPZ9utiTj+eOt3ilOcZL9SUYvYyK8wiwjiMQGaDQdZt6zWBcwx3ZwoELPOjMBEEX
-	 v6iS+Y7XeCaiSjeoDOqPQyrbERK4Bdp6+9kGbh5DTHyZJepWD1M2HSN0d9GprMuEfZ1EM
-	 VS0KJA19fAJMccPVd2J7BCIQanmeb4sptFTYSQ9hcadf0Kqdx0G8POv9XK0iy4T3heQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794307391;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=JsXSzGM4ezYqcoxi44l1Ddz5hqSKR6Ud8nVac2rGrQc=;
+	b=VysAqJ2nyH0t8Y2SiDYV+X/h/Oe2GyKCbgIYU09Yc611B8pdLq18qSQf9YXtqbAXgsfC
+	 BcHRMhz/eDgPBLDFuOiKlIHIoHdlHSWfqkB8p0KiSzl9jaLngEfrJrChxDWZxS15Wiybv
+	 jTvGxepf5LrD7UXLqVZrc6MqcOc8JxmpY/m0TC58NRlCt0BYjDzKpNL3W4DvYsyavaMHm
+	 yVrtnT/v0YUrgyMAi6trvi62X27xGZEDF8YJ8dxseUhOFKlVqHSK2dxdJnRLl9XN7tJcf
+	 WJ0dgbMTQIibjtYDala9jTFwccRv7BBxwSuoGN83ukBJ7K+dfS/5PXCNy9mCOMSl39Q==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=L1Rea5A+;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97997606A325;
-	Tue, 10 Nov 2026 08:04:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=L1Rea5A+
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1794297897;
-	b=F+J6igNpsoz7gbLn8ibk14oDGm2WAdnqGxcgcBwfhuNcGwt736JNZgZ0/kVaCkEbHLkM
-	 NttWCqOl+oNUzMmY8MNmEf3bXrfha+nBMdprC9+vgGa/M3B8fxUlu1AcvLCCkG1WpIe+V
-	 av/EWsv4CSjPOB2hHUX5EQMHiw6cq9CkSqpyPOotBFkrQZATkglk/ys+eaHDaAH2CZpKg
-	 WUnegPqZ2+8UzGJMh/u/AkddNQVE5MxGbsFxLSxK/Wf6z9WZMrjXUg1DXScAduWvlZwVK
-	 3NHqFWbivqdjj7kwmxZeGXseVNu4S4SC6Ecnb9sCDyzwQN5rf4oNbRrzBfhgS0Ni8ww==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1794297897;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:X-B4-Tracking:To:Cc:X-Mailer:X-Developer-Signature:
-	 X-Developer-Key:X-Endpoint-Received:X-Original-From:Reply-To:
-	 Content-Transfer-Encoding;
-	bh=RaFRATRdJGKGjvX3uJXY0s/OhS2GhKkGePwOtrSiyv8=;
-	b=z2l8ys/m3MkLaCGw0x9V5UzyGNN2gElQUDd1aZCw13hzlv/AXwFCV63H4BuiHa7ixkna
-	 XBDm6RCyMImJr83ijkXntd4E4DOrrRIQDNxgHAN6R54r2wizOsMaO4vs9eKn7p7nYHqg2
-	 +rdWIaEgw4gfBsskcZN50UdBYWycZ78BrKO0tivF/me+4mMUV5dxZnFfMw2o1LTCmUJHh
-	 Mkz9r7Wpk1sdR184KDly5CF00zI3dr9qj8DAGT5AyfWID0jKdLCeR4wOCCpDzJlpMr66c
-	 OOc2EyaWxg7rdkuqBI58O8MGkENX47hDfDzFvZj/gMfw6qF9w8IG1t6Ub3DDsuo+yTQ==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ue05gr7h;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 2775D1F0089F;
-	Tue, 10 Nov 2026 08:04:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794297897;
-	bh=RaFRATRdJGKGjvX3uJXY0s/OhS2GhKkGePwOtrSiyv8=;
-	h=From:Date:Subject:To:Cc:Reply-To;
-	b=L1Rea5A+1BSKC8w7W8vl4Ocsbfd36RaUDTdXBxjecH6eLLG/8jApF7XnDyLYnd8YF
-	 ooLgZJo2RuMHOC+BdnxFGd0mPk1r68/ga55GP2EF9XCcMkUH6HA4A+52c9XpLuwmHp
-	 x2+k3/F20/oCKcg8yMUFLqLTfNNBdgfPdTN8Bf9L3VsnjLM4gSeHYOTQrc8TAgv2qY
-	 mkgkn5Cc41QiOC3705TffXizSa+B4UYqHHgusrB0FY4/4WL0J0SiKeAJXLTAHmV7hb
-	 zFjQul2EZdcJff2QhdYtUZ2dug2hbvYnp6ZiW0iPFeivmxFGso1CgZw7Zde2bxHdfk
-	 H3SpV5u4/txlw==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 92B7848A2F;
-	Tue, 10 Nov 2026 08:04:55 +0000 (UTC)
-From: Daejun Park via B4 Relay <devnull+daejun7.park.samsung.com@kernel.org>
-Date: Tue, 10 Nov 2026 17:04:56 +0900
-Subject: [PATCH] overlay/077: check a stale entry in an impure dir on any
- hash seed
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 763E7606A32A
+	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 10:43:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 763E7606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ue05gr7h
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b70192ebceso3297430a12.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 02:43:10 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794307389; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ADN+lemFKMCh/znSL3nU1yteTYCbeq2X2aydWkR/8CMJL5ujDCBOma7K0F/WbRveEv
+         HggZHBT9GVTuNxS0o37p4XggbG5Hla0FXPdOWUADigoCPkyw2k3Vd9N6fIQUxljMYsvj
+         usE5abYr/jeE6A1mpIIny0ow24Ddt9tOIlHLHpc3jyZfayy/XcunZfhp6XyescMDT6Uq
+         kBrobEjqzd1d5gF68Fr3NWB8zx5Uv4OhQaa10+GvX4idE052MoQSoxIVH3N7+IoKvjG/
+         9HIBc+vHd2DCOPg7+bC89flH2S5GZhqjhIJADXdUmgunhzMgcZ8hM32xo0XbsJMDLcRi
+         E5xQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=JsXSzGM4ezYqcoxi44l1Ddz5hqSKR6Ud8nVac2rGrQc=;
+        fh=m2EFfo4xJYTv/lx2CGDigsqNYG4nHHuiHbcrypQEirg=;
+        b=s4CY17ub3UQztl8C6j7CJF/mmc+c3RTZSkwmTbvxLGuz+cXZ9DdA0bgBSY5bQV2mMk
+         XOcis04jlPCkhr8TcQ0ow42BFOqZ6iQPEbbACsTeCTG/ssfMfsRUozwN6P52T7YGnP0x
+         TPCtFvCJEcEs55zmsPtfTIt59JULpiyGAO9tzJmfQ41ooZrD83R+H6Ex5XSalzDMRM7Z
+         VZcozQBlRlIc1GeKbRzRvyiluU3jjD/KBXb0FHurr9fIbAabdyZsBlyEnXxtKU0j2njt
+         0Upko2T2T6tw9P51NTinAFrkhpn5pQKarlTyeV55YXoAuloFJe/y/CgS9UoEuiQjqISk
+         Y2Fg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794307389; x=1794912189; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=JsXSzGM4ezYqcoxi44l1Ddz5hqSKR6Ud8nVac2rGrQc=;
+        b=ue05gr7hkq0LMlQyIx3GcR+I9IKM6HARTjfFpYeNzp6dZb8eukCIrVKVmXr+gr9MuK
+         uRIiRGyqhPVijll0vNK/7cPIWAumEdylVj60lmg7WQLI/FlDr/BsyKfGw4+p4SQMAmZW
+         qHgkOAU9fd1mgl2W4tCEbBwKdB/Fy9L9q8tdK5IUI3yELM1dcYOfC4GArqNXyihFCqoc
+         iVSat2NB9LU0dDsxl3YwIjHnPT52kDNcOXSbZQ4mXyThNO7vafgIXQyqi+fIalUVzKWm
+         rS+keYApigUTvcfTKPImzUGsybC+wVLt4fyvgWnDlJTVWdsy29ZEDCYPPop07QWrrhOW
+         pZhA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794307389; x=1794912189;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=JsXSzGM4ezYqcoxi44l1Ddz5hqSKR6Ud8nVac2rGrQc=;
+        b=GC+pnSqmltI+y0ctGrNsN6UBi8W32hpcchtP4lA2W9Dpobg9sN+jxBUdWLJf/xn8Rv
+         IN2V1u+dKNCiqbJ+WeTRtRSMPxXW4sEQuk0EsrxU80NNiByVbFB+GNbhagj+n/iFHa79
+         nkRuD04fv2FTnKDZFhnL6+rVVqv3dE0+p5D6hGEN3Nm/MDpJv0AujbMyTXpwEEDQwA3S
+         MDq5b7PGgoA8raNoSsHM8BadL4LTsaRZ5Tu9o/6ID0PTHuJ79grgPNTXKsV/m6kVx2AV
+         8hFre7V2wVFSR1iXSHhIIl6ucZu8sAFI5LZ1AXHVnzTBG6tPBkpAZEk8Y91O8aB5LtDc
+         J0cg==
+X-Forwarded-Encrypted: i=1; AL+hErHw1rr9tC+tqQur0LTOmelmTHHNuTzD7e2NopMYqU/vlHAwztoK6NZhHHOSwUfyA1DhRRXzJgG25hBV/xQj@vger.kernel.org
+X-Gm-Message-State: APuU4Z+JjDxoBS2jqtxNXhqW149fmwQYXFVeaAgCgRcxVotCH9Ou70sW
+	QV02hExtOF3LaDC3dItq+DHZIwIC1XHt2lHgAiAPvgH+nPGyCSJa/+lDYrPdrcEw5aQafQHoNMZ
+	mKY/ZZAFZEXjSGH22dT3YPvksRKkC6qmrq6PISxM=
+X-Gm-Gg: AYBFou2DVMxGDzbAFBTVbZEIkRDCEFLJqPvKV1z9B8Bu9c8xhKaBhAWZWL3an4Enev1
+	sx01ChGM5HiBfI0OVdtr37LWLw+uML75XFQTVnj1fb3Yb3iUyAR/jiOCexv+bDl601wTZ9sbcbK
+	x8Bk9vL5A+7SV3kdvJ6f9rClp+KcZlL+PtJ7jf8803psfCOQw0jvwVSrlUQEm3L7cqBekhnfQ/j
+	UCal58aTns4t4NAy8wuOKiUZlsTLAQ9LntoODd0/Z9w2K34f8X9MGxxCpXRlXXbJXZWafGFXVvK
+	czefhMlpESz1S8mDtkWyUZ+PJs7ChBHXt7liL1Jqt1MvDZKbrLOqbK9VhQnSW4En49QwI8mWHj2
+	jVoRFC1ccpilPGOTNwUtYqil5GCySSzUlBMy+taQ2VYDnwZsKaQySz6c60vNHuXaAoV03yw==
+X-Received: by 2002:aa7:da1a:0:b0:6b5:8c7c:d540 with SMTP id
+ 4fb4d7f45d1cf-6b7572120b4mr1034301a12.13.1794307388306; Tue, 10 Nov 2026
+ 02:43:08 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -83,339 +104,411 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261110-ovl077-stale-next-v1-1-948a5a434ae2@samsung.com>
-X-B4-Tracking: v=1; b=H4sIACfQ8moC/x3MQQqAIBBA0avErBtwgrK6SrSQGmsgLFREkO6et
- HyL/wsE9sIB5qaA5yRBbldBbQPbadzBKHs1dKobiEjhnS6lNYZoLkbHOaKxZKZxY009Qe0ez1b
- y/1zW9/0A4eMTKmMAAAA=
-To: fstests@vger.kernel.org
-Cc: Zorro Lang <zlang@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
- Miklos Szeredi <miklos@szeredi.hu>, Hungyu Lin <dennylin0707@gmail.com>, 
- linux-unionfs@vger.kernel.org, Daejun Park <daejun7.park@samsung.com>
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794297895; l=11091;
- i=daejun7.park@samsung.com; s=20261006; h=from:subject:message-id;
- bh=OLCueKykNIIjER7cHa0BSvlgWhhRdwwf3tOaDlx9BaE=;
- b=97oPpS9XEj9T1lXCGWs92ZVwYdHxAAaWF+D7Otu9J99sSYSxKQfzvSmeOt1WOQiQ8txzPN1Tb
- xYDvPkzlkC4AuVSm/bVxoSvV2o0QD4DcTLnb4ArAupbEDk890hssBu2
-X-Developer-Key: i=daejun7.park@samsung.com; a=ed25519;
- pk=4yUfDqGRZTIj0Ik43z1GoMZRWCNm/rgX6uJuM9dtNIg=
-X-Endpoint-Received: by B4 Relay for daejun7.park@samsung.com/20261006 with
- auth_id=1122
-X-Original-From: Daejun Park <daejun7.park@samsung.com>
-Reply-To: daejun7.park@samsung.com
-Content-Transfer-Encoding: 7bit
+References: <773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com>
+ <946b46fbf1c555a47a8a9304f2ee31af.josef@toxicpanda.com> <94833333cf2c5dd487022cb290174393.josef@toxicpanda.com>
+In-Reply-To: <94833333cf2c5dd487022cb290174393.josef@toxicpanda.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 10 Nov 2026 11:42:57 +0100
+X-Gm-Features: AclHuK9mWhcDtue243tQ4Mj46I6cdgJnb0dkdjX_eWuab2zVh5UpLwcHCmk3ZRY
+Message-ID: <CAOQ4uxjM_-yFt5is2k0Vrk_5LrLBoPqgmepTzSrmJf561_uRnQ@mail.gmail.com>
+Subject: Re: [PATCH fstests v3] overlay: test that syncfs and unmount persist
+ all changes
+To: Josef Bacik <josef@toxicpanda.com>
+Cc: fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Daejun Park <daejun7.park@samsung.com>
+On Mon, Nov 9, 2026 at 11:52=E2=80=AFPM Josef Bacik <josef@toxicpanda.com> =
+wrote:
+>
+> overlayfs is about to stop syncing the whole upper filesystem on syncfs(2=
+)
+> and unmount.  With fsync=3Drelaxed it only writes the upper inodes that w=
+ere
+> modified through the overlay, so it has to know about all of them.
+>
+> Modify an overlay in many ways: new files and directories, data and
+> metadata copy up, stores through a shared mapping, sendfile, copy_range,
+> an O_TMPFILE, a short and a long symlink, hard links, renames, whiteouts.
+> Do the same to files that were synced before, so that nothing but the
+> modification itself tells overlayfs about them.  Then drop the caches, sy=
+nc
+> or unmount the overlay, shut down the base filesystem without flushing it=
+s
+> log, cycle the mounts and check that nothing has changed.
+>
+> Do that with every fsync mode that syncs, with and without redirect_dir a=
+nd
+> metacopy.
+>
+> The base filesystem has to have a journal, so what gets lost if overlayfs
+> misses a modification is data in the page cache.  Changes of metadata are
+> in the log, which overlayfs commits in any case.
+>
+> Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+> ---
+> v1: https://lore.kernel.org/r/773faf2a275e0a51bd38cf68f492856c.josef@toxi=
+cpanda.com
+> v2: https://lore.kernel.org/r/946b46fbf1c555a47a8a9304f2ee31af.josef@toxi=
+cpanda.com
+>
+> v2->v3:
+> - It's overlay/090 now. (Amir)
 
-overlay/077 already fails on a stale entry in an impure upper dir, but
-only when the dir hash order puts the removed file where ext4 keeps it
-between getdents calls. ext4 returns the entry that did not fit in the
-previous buffer first in the next call, even after it was removed.
+Sorry to nag. Zorro renumbers test conflicts anyway before merge,
+but I have a staged 090 test for bugfix already staged on ovl-fixes:
+https://lore.kernel.org/linux-unionfs/20261109134006.2555438-1-giuseppe@scr=
+ivano.org/
+so please take 091 to ease my own workflow (apply and test your patch).
 
-Add a bare "-" and a bare "=" argument to t_dir_offset2. They remove or
-recreate the entry the next getdents call returns first. The old fd may
-list a recreated name with the st_ino of the old or the new file.
+> - Every round passes fsync=3D, with fsync=3Dauto in place of the default,=
+ and
+>   _exclude_scratch_mount_option is gone. (Amir)
+> - Added _require_scratch_overlay_features fsync redirect_dir metacopy. Th=
+at
+>   needs [2], and the test doesn't run on older kernels any more. (Amir)
+> - The rounds are in the golden output. (Amir)
+> - Every fsync mode runs with redirect_dir and metacopy off and on, that's=
+ 16
+>   rounds. It takes 70s here, so it's not in quick any more. (Amir)
 
-Use both on a new impure dir that only has entries with origin. The
-existing impure dir also has o0, which has no origin. If the next entry
-is o0, its d_ino is the same whether it is stale or not, and the case
-is not checked.
+Damn, this sucks. This is a simple test is should by all means be quick.
+Some suggestion (pick any):
+1. Test only relaxed and on, which your patch set add
+    auto is always one of them and strict is not related to syncfs/umount a=
+t all
+2. md5sum all the file at one invocation
+3. find . -printf '%p %y %m %U:%G %n %s %l\n' in place of many stat invocat=
+ions
 
-With an ext4 upper, overlay/077 now fails on every hash seed until the
-kernel fix "ovl: skip stale entries in impure dir iteration" is applied.
+2 and 3 are quick suggestions from Opus 5.5 based on guess work
+I am sure that your models with access to the test run can do much better
+no need to overdo and no need to pay penalty for test readability
+but 70 seconds is way off the mark for a test like this
 
-Link: https://lore.kernel.org/linux-unionfs/CAGEkeHcg06kHshHQ=9U6Yrs_wm8W9H28o9bcC2Qh3fw3tANbWA@mail.gmail.com/
-Signed-off-by: Daejun Park <daejun7.park@samsung.com>
----
-Please hold this patch until the kernel fix is accepted. With this
-change, overlay/077 fails on every ext4 run of a kernel without it.
-The fix is "ovl: skip stale entries in impure dir iteration":
-https://lore.kernel.org/linux-unionfs/20261110-ovl-impure-stale-v1-1-1a4c2039e89d@samsung.com/
----
- src/t_dir_offset2.c | 126 +++++++++++++++++++++++++++++++++++++++++++++++++---
- tests/overlay/077   |  25 ++++++++++-
- 2 files changed, 143 insertions(+), 8 deletions(-)
+> - The mmap step with the syncfs in it comes first, it used to write
+>   everything that came before it. (Sashiko, Amir)
+> - The caches are dropped after the snapshot, for all files. (Sashiko, Ami=
+r)
+> - The overlay is mounted with noatime. The snapshot reads every file, the
+>   atime update marks the overlay inode dirty, and that hid any modificati=
+on
+>   that overlayfs had missed.
+> - Added files that are synced before they are modified. Creating a file a=
+nd
+>   copying it up mark the overlay inode dirty, and that hid any later
+>   modification that overlayfs had missed.
+> - Added fallocate, and a copy_range that isn't aligned so xfs can't refli=
+nk
+>   it.
 
-diff --git a/src/t_dir_offset2.c b/src/t_dir_offset2.c
-index 026bc8f3..621255e6 100644
---- a/src/t_dir_offset2.c
-+++ b/src/t_dir_offset2.c
-@@ -10,6 +10,7 @@
- 
- #include <errno.h>
- #include <fcntl.h>
-+#include <limits.h>
- #include <stdio.h>
- #include <unistd.h>
- #include <stdint.h>
-@@ -31,13 +32,63 @@ struct linux_dirent64 {
- 
- static uint64_t d_off_history[HISTORY_LEN];
- static uint64_t d_ino_history[HISTORY_LEN];
-+static char next_name[NAME_MAX + 1];
- 
- void usage()
- {
- 	fprintf(stderr, "usage: t_dir_offset2: <dir> [[bufsize] [-|+]<filename> [-v]]\n");
-+	fprintf(stderr, "       t_dir_offset2: <dir> bufsize -|= [-v]\n");
-+	fprintf(stderr, "  a bare - removes, a bare = recreates, the entry\n"
-+			"  the next getdents returns\n");
- 	exit(EXIT_FAILURE);
- }
- 
-+/*
-+ * Find the entry that the next getdents call on fd returns first: read one
-+ * entry from a second fd at the same offset. ext4 with a hashed dir keeps
-+ * the entry that did not fit in the previous buffer and returns it in the
-+ * next call even after it was removed, so removing or recreating this
-+ * entry gets a stale entry on any hash seed.
-+ */
-+static int find_next_entry(const char *dir, int fd)
-+{
-+	char buf[BUF_SIZE];
-+	struct linux_dirent64 *d;
-+	off_t off = lseek(fd, 0, SEEK_CUR);
-+	int fd3, nread, bpos;
-+
-+	if (off == -1) {
-+		perror("lseek");
-+		return -1;
-+	}
-+	fd3 = open(dir, O_RDONLY | O_DIRECTORY);
-+	if (fd3 < 0) {
-+		perror("open");
-+		return -1;
-+	}
-+	if (lseek(fd3, off, SEEK_SET) != off) {
-+		perror("lseek");
-+		close(fd3);
-+		return -1;
-+	}
-+	while ((nread = syscall(SYS_getdents64, fd3, buf, sizeof(buf))) > 0) {
-+		for (bpos = 0; bpos < nread; bpos += d->d_reclen) {
-+			d = (struct linux_dirent64 *) (buf + bpos);
-+			if (!strcmp(d->d_name, ".") || !strcmp(d->d_name, ".."))
-+				continue;
-+			snprintf(next_name, sizeof(next_name), "%s", d->d_name);
-+			close(fd3);
-+			return 0;
-+		}
-+	}
-+	if (nread < 0)
-+		perror("getdents");
-+	else
-+		fprintf(stderr, "no entry after the first getdents\n");
-+	close(fd3);
-+	return -1;
-+}
-+
- int main(int argc, char *argv[])
- {
- 	int fd, fd2 = -1;
-@@ -50,7 +101,8 @@ int main(int argc, char *argv[])
- 	int retval = EXIT_SUCCESS;
- 	const char *filename = NULL;
- 	int exists = 0, found = 0;
--	int modify = 0, verbose = 0;
-+	int modify = 0, verbose = 0, next = 0, recreate = 0;
-+	uint64_t old_ino = 0;
- 
- 	if (argc > 2) {
- 		bufsize = atoi(argv[2]);
-@@ -61,13 +113,21 @@ int main(int argc, char *argv[])
- 
- 		if (argc > 3) {
- 			filename = argv[3];
--			/* +<filename> creates, -<filename> removes */
-+			/*
-+			 * +<filename> creates, -<filename> removes, a bare -
-+			 * removes and a bare = recreates the entry that the
-+			 * next getdents returns
-+			 */
- 			if (filename[0] == '+')
- 				modify = 1;
- 			else if (filename[0] == '-')
- 				modify = -1;
-+			else if (!strcmp(filename, "="))
-+				modify = recreate = 1;
- 			if (modify)
- 				filename++;
-+			if ((modify < 0 || recreate) && !filename[0])
-+				next = 1;
- 			if (argc > 4 && !strcmp(argv[4], "-v"))
- 				verbose = 1;
- 		}
-@@ -81,7 +141,7 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
--	if (filename) {
-+	if (filename && !next) {
- 		exists = !fstatat(fd, filename, &st, AT_SYMLINK_NOFOLLOW);
- 		if (!exists && errno != ENOENT) {
- 			perror("fstatat");
-@@ -100,8 +160,52 @@ int main(int argc, char *argv[])
- 		if (modify && fd2 < 0 && total == 0) {
- 			printf("getdents at offset 0 returned %d bytes\n", nread);
- 
--			/* create/unlink entry after first getdents */
--			if (modify > 0) {
-+			if (next) {
-+				if (find_next_entry(argv[1], fd))
-+					exit(EXIT_FAILURE);
-+				filename = next_name;
-+			}
-+
-+			/* create/unlink/recreate entry after first getdents */
-+			if (recreate) {
-+				/*
-+				 * Keep the old inode open so that the new file
-+				 * cannot get its inode number. The old fd may
-+				 * still list the old file with its old st_ino.
-+				 */
-+				int flags = O_PATH | O_NOFOLLOW;
-+				int ofd = openat(fd, filename, flags);
-+				struct stat ost;
-+				int nfd;
-+
-+				if (ofd < 0) {
-+					perror("openat");
-+					exit(EXIT_FAILURE);
-+				}
-+				if (fstat(ofd, &ost) < 0) {
-+					perror("fstat");
-+					exit(EXIT_FAILURE);
-+				}
-+				old_ino = ost.st_ino;
-+				if (unlinkat(fd, filename, 0) < 0) {
-+					perror("unlinkat");
-+					exit(EXIT_FAILURE);
-+				}
-+				nfd = openat(fd, filename, O_CREAT | O_EXCL,
-+					     0600);
-+				if (nfd < 0) {
-+					perror("openat");
-+					exit(EXIT_FAILURE);
-+				}
-+				if (fstat(nfd, &st) < 0) {
-+					perror("fstat");
-+					exit(EXIT_FAILURE);
-+				}
-+				close(nfd);
-+				close(ofd);
-+				exists = 1;
-+				printf("recreated entry %s\n", filename);
-+			} else if (modify > 0) {
- 				if (openat(fd, filename, O_CREAT, 0600) < 0) {
- 					perror("openat");
- 					exit(EXIT_FAILURE);
-@@ -109,6 +213,11 @@ int main(int argc, char *argv[])
- 				exists = 1;
- 				printf("created entry %s\n", filename);
- 			} else if (modify < 0) {
-+				if (next && fstatat(fd, filename, &st,
-+						    AT_SYMLINK_NOFOLLOW)) {
-+					perror("fstatat");
-+					exit(EXIT_FAILURE);
-+				}
- 				if (unlinkat(fd, filename, 0) < 0) {
- 					perror("unlinkat");
- 					exit(EXIT_FAILURE);
-@@ -164,8 +273,13 @@ int main(int argc, char *argv[])
- 					       i, d->d_name, (long long int)d->d_ino,
- 					       (long long int)d->d_off);
- 				if (!strcmp(filename, d->d_name)) {
-+					/* the old fd may list it stale */
-+					int stale = fd != fd2 && old_ino &&
-+						    d->d_ino == old_ino;
-+
- 					found = 1;
--					if (st.st_ino && d->d_ino != st.st_ino) {
-+					if (!stale && st.st_ino &&
-+					    d->d_ino != st.st_ino) {
- 						fprintf(stderr, "entry %s has inconsistent d_ino (%lld != %lld)\n",
- 								filename,
- 								(long long int)d->d_ino,
-diff --git a/tests/overlay/077 b/tests/overlay/077
-index 00de0825..6426bc26 100755
---- a/tests/overlay/077
-+++ b/tests/overlay/077
-@@ -9,6 +9,7 @@
- # This is a regression test for kernel commits:
- # 65cd913ec9d9 ("ovl: invalidate readdir cache on changes to dir with origin")
- # 9011c2791e63 ("ovl: skip stale entries in merge dir cache iteration")
-+# xxxxxxxxxxxx ("ovl: skip stale entries in impure dir iteration")
- #
- . ./common/preamble
- _begin_fstest auto quick dir
-@@ -20,6 +21,8 @@ _fixed_by_kernel_commit 65cd913ec9d9 \
- 	"ovl: invalidate readdir cache on changes to dir with origin"
- _fixed_by_kernel_commit 9011c2791e63 \
- 	"ovl: skip stale entries in merge dir cache iteration"
-+_fixed_by_kernel_commit xxxxxxxxxxxx \
-+	"ovl: skip stale entries in impure dir iteration"
- 
- _require_scratch_nocheck
- 
-@@ -40,16 +43,20 @@ create_files() {
- _scratch_mkfs
- 
- # Create test area with a merge dir, a "former" merge dir,
--# a pure upper dir and impure upper dir. For each case, overlayfs
-+# a pure upper dir and two impure upper dirs. For each case, overlayfs
- # readdir cache is used a bit differently.
- lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
- upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
- 
--mkdir -p $lowerdir/merge $lowerdir/former $upperdir/pure $upperdir/impure
-+mkdir -p $lowerdir/merge $lowerdir/former $upperdir/pure $upperdir/impure \
-+	$upperdir/impure2
- # Lower files in merge dir are listed first
- create_files $lowerdir/merge m
- # Files to be moved into impure upper dir
- create_files $lowerdir o
-+# Files to be moved into another impure upper dir, which only has entries
-+# with origin
-+create_files $lowerdir n
- # File to be moved into former merge dir to make it impure
- touch $lowerdir/f100
- 
-@@ -61,6 +68,7 @@ create_files $SCRATCH_MNT/former f
- touch $SCRATCH_MNT/merge/m100
- # Move copied up files so readdir will need to lookup origin d_ino
- mv $SCRATCH_MNT/o* $SCRATCH_MNT/impure/
-+mv $SCRATCH_MNT/n* $SCRATCH_MNT/impure2/
- mv $SCRATCH_MNT/f100 $SCRATCH_MNT/former/
- 
- # Remove the lower directory and mount overlay again to create
-@@ -84,6 +92,19 @@ $here/src/t_dir_offset2 $SCRATCH_MNT/impure $bufsize "+o0" 2>&1 >> $seqres.full
- echo -e "\nRemove file in impure upper dir:" >> $seqres.full
- $here/src/t_dir_offset2 $SCRATCH_MNT/impure $bufsize  "-o100" 2>&1 >> $seqres.full || \
- 	echo "Found unlinked file in impure upper dir (see $seqres.full for details)"
-+# Remove the entry that the next getdents call returns first. An ext4 upper
-+# with a hashed dir returns it even after it was removed, so this checks the
-+# stale entry case on every hash seed, not only when ext4 happens to keep the
-+# removed file.
-+echo -e "\nRemove next file in impure upper dir:" >> $seqres.full
-+$here/src/t_dir_offset2 $SCRATCH_MNT/impure2 $bufsize "-" 2>&1 >> $seqres.full || \
-+	echo "Found unlinked next file in impure upper dir (see $seqres.full for details)"
-+# Recreate the entry that the next getdents call returns first. A new fd
-+# must list the name with the d_ino of the new file. The old fd may list it,
-+# with the d_ino of the old or the new file.
-+echo -e "\nRecreate next file in impure upper dir:" >> $seqres.full
-+$here/src/t_dir_offset2 $SCRATCH_MNT/impure2 $bufsize "=" 2>&1 >> $seqres.full || \
-+	echo "Missing recreated next file in impure upper dir (see $seqres.full for details)"
- 
- # Check readdir cache invalidate on merge dir
- echo -e "\nCreate file in merge dir:" >> $seqres.full
+Oh my, so many "hid modification that missed"
+I guess I need to trust the AI test/review process which found them ;)
 
----
-base-commit: d07dca72d2455f4ba8c660ad4c008541ccccb707
-change-id: 20261110-ovl077-stale-next-af1a98ce7151
+Thanks,
+Amir.
 
-Best regards,
--- 
-Daejun Park <daejun7.park@samsung.com>
-
-
+>
+> This is for "ovl: only sync what was written through the overlay" [1].
+>
+> It passes on ext4 and xfs with the series, and with only the first patch =
+of
+> it, which adds the mount options and still syncs the whole upper file
+> system.
+>
+> I ran it on four kernels that I broke on purpose. All of them fail, only =
+in
+> the fsync=3Dauto and fsync=3Drelaxed rounds:
+>
+> - The function that marks the overlay inode dirty does nothing: the file
+>   data is gone.
+> - Only ovl_copyattr() doesn't mark the inode: the pwrite, the sendfile an=
+d
+>   the copy_range to the files that were synced before are gone. v2 passes=
+ on
+>   this one.
+> - A dirty overlay inode isn't kept after the last iput(): the file data i=
+s
+>   gone. v2 only notices in its unmount rounds.
+> - Nothing is written at unmount: the unmount rounds lose the file data.
+>
+> [1] https://lore.kernel.org/r/20261107-b4-ovl-containerized-sync-v5-0-d34=
+b4ae57fdf@toxicpanda.com
+> [2] https://lore.kernel.org/r/20261106155832.3867017-1-amir73il@gmail.com
+>
+>  tests/overlay/090     | 214 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/090.out |  17 ++++
+>  2 files changed, 231 insertions(+)
+>  create mode 100755 tests/overlay/090
+>  create mode 100644 tests/overlay/090.out
+>
+> diff --git a/tests/overlay/090 b/tests/overlay/090
+> new file mode 100755
+> index 00000000..7f6e58f4
+> --- /dev/null
+> +++ b/tests/overlay/090
+> @@ -0,0 +1,214 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (c) 2026 Josef Bacik.  All Rights Reserved.
+> +#
+> +# FS QA Test 090
+> +#
+> +# Test that syncfs(2) on an overlay, and unmounting one, persist everyth=
+ing
+> +# that was modified through it.
+> +#
+> +# overlayfs used to sync the whole upper filesystem for that.  With
+> +# fsync=3Drelaxed it only writes the upper inodes that were modified thr=
+ough this
+> +# overlay, so it has to know about all of them.
+> +#
+> +# Modify the overlay in every way we can think of, sync it, shut down th=
+e base
+> +# filesystem without flushing its log, cycle the mounts and check that n=
+othing
+> +# has changed.
+> +#
+> +. ./common/preamble
+> +_begin_fstest auto shutdown copyup whiteout mmap redirect metacopy
+> +
+> +. ./common/attr
+> +
+> +_require_scratch
+> +_require_scratch_shutdown
+> +_require_metadata_journaling $SCRATCH_DEV
+> +_require_scratch_overlay_features fsync redirect_dir metacopy
+> +_require_xfs_io_command "syncfs"
+> +_require_xfs_io_command "sendfile"
+> +_require_xfs_io_command "copy_range"
+> +_require_xfs_io_command "falloc"
+> +_require_xfs_io_command "-T"
+> +_require_xfs_io_command "flink"
+> +_require_attrs
+> +_require_chown
+> +_require_mknod
+> +
+> +lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +
+> +create_lower()
+> +{
+> +       local f
+> +
+> +       # This leaves the base filesystem mounted
+> +       _scratch_mkfs >> $seqres.full 2>&1
+> +
+> +       mkdir -p $lowerdir/dir $lowerdir/rmdir $lowerdir/mvdir
+> +       for f in append truncate mmap chmod chown chown_append xattr link=
+ \
+> +                rename remove dir/append rmdir/file mvdir/file; do
+> +               $XFS_IO_PROG -f -c "pwrite -S 0x6c 0 256k" $lowerdir/$f \
+> +                       >> $seqres.full
+> +       done
+> +
+> +       # These were not written through the overlay, so it does not have=
+ to
+> +       # sync them.
+> +       $XFS_IO_PROG -c "syncfs" $OVL_BASE_SCRATCH_MNT
+> +}
+> +
+> +# Creating a file and copying it up are modifications.  overlayfs rememb=
+ers them
+> +# until the file is synced, and a later modification that it misses does=
+ not
+> +# show.  So make files that are in the upper layer and have been synced.
+> +prepare()
+> +{
+> +       local m=3D$SCRATCH_MNT
+> +       local f
+> +
+> +       mkdir $m/clean
+> +       for f in pwrite truncate fallocate mmap sendfile copy_range chmod=
+ \
+> +                chown xattr link rename remove; do
+> +               $XFS_IO_PROG -f -c "pwrite -S 0x70 0 256k" $m/clean/$f \
+> +                       >> $seqres.full
+> +       done
+> +       $XFS_IO_PROG -c "syncfs" $m
+> +}
+> +
+> +modify()
+> +{
+> +       local m=3D$SCRATCH_MNT
+> +
+> +       # Stores through a shared mapping, also after a syncfs, no msync.=
+  This
+> +       # has to be the first one, the syncfs must not write anything els=
+e.
+> +       $XFS_IO_PROG -c "mmap -rw 0 256k" -c "mwrite -S 0x66 0 64k" \
+> +               -c "syncfs" -c "mwrite -S 0x67 64k 64k" $m/mmap >> $seqre=
+s.full
+> +
+> +       # The files that overlayfs has nothing to remember about
+> +       $XFS_IO_PROG -c "pwrite -S 0x71 64k 64k" $m/clean/pwrite >> $seqr=
+es.full
+> +       $XFS_IO_PROG -c "truncate 4k" $m/clean/truncate
+> +       $XFS_IO_PROG -c "falloc 256k 64k" $m/clean/fallocate
+> +       $XFS_IO_PROG -c "mmap -rw 0 256k" -c "mwrite -S 0x72 64k 64k" \
+> +               $m/clean/mmap >> $seqres.full
+> +       $XFS_IO_PROG -c "sendfile -i $m/link 0 64k" $m/clean/sendfile \
+> +               >> $seqres.full
+> +       # Not aligned, so that the data is copied and not shared
+> +       $XFS_IO_PROG -c "copy_range -s 1 -d 1 -l 64k $m/link" \
+> +               $m/clean/copy_range
+> +       chmod 640 $m/clean/chmod
+> +       chown 1234:1234 $m/clean/chown
+> +       $SETFATTR_PROG -n user.test -v value $m/clean/xattr
+> +       ln $m/clean/link $m/clean/link2
+> +       mv $m/clean/rename $m/clean/renamed
+> +       rm $m/clean/remove
+> +
+> +       # New files and directories
+> +       $XFS_IO_PROG -f -c "pwrite -S 0x61 0 1m" $m/new >> $seqres.full
+> +       mkdir $m/newdir
+> +       $XFS_IO_PROG -f -c "pwrite -S 0x62 0 64k" $m/newdir/new >> $seqre=
+s.full
+> +       $XFS_IO_PROG -f -c "pwrite -S 0x63 0 64k" $m/dir/new >> $seqres.f=
+ull
+> +       ln -s new $m/symlink
+> +       # Too long to be stored in the inode
+> +       ln -s $(printf 'a%.0s' $(seq 1000)) $m/longsymlink
+> +       mkfifo $m/fifo
+> +
+> +       # Copy up, then change the data
+> +       $XFS_IO_PROG -c "pwrite -S 0x64 256k 64k" $m/append >> $seqres.fu=
+ll
+> +       $XFS_IO_PROG -c "pwrite -S 0x65 256k 64k" $m/dir/append >> $seqre=
+s.full
+> +       $XFS_IO_PROG -c "truncate 4k" $m/truncate
+> +
+> +       # The other ways to write data
+> +       $XFS_IO_PROG -f -c "sendfile -i $m/link 0 256k" $m/sendfile \
+> +               >> $seqres.full
+> +       $XFS_IO_PROG -f -c "copy_range -l 256k $m/link" $m/copy_range
+> +       $XFS_IO_PROG -T -c "pwrite -S 0x69 0 64k" -c "flink $m/tmpfile" $=
+m \
+> +               >> $seqres.full
+> +
+> +       # Copy up, then change the metadata
+> +       chmod 640 $m/chmod
+> +       chown 1234:1234 $m/chown
+> +       $SETFATTR_PROG -n user.test -v value $m/xattr
+> +
+> +       # With metacopy=3Don the first one only copies up the metadata
+> +       chown 1234:1234 $m/chown_append
+> +       $XFS_IO_PROG -c "pwrite -S 0x6a 256k 64k" $m/chown_append \
+> +               >> $seqres.full
+> +
+> +       # Names
+> +       ln $m/link $m/link2
+> +       mv $m/rename $m/renamed
+> +       # Without redirect_dir=3Don mv gets EXDEV and copies the director=
+y
+> +       mv $m/mvdir $m/mvdir2
+> +       rm $m/remove
+> +       rm -r $m/rmdir
+> +}
+> +
+> +# No inode numbers, no timestamps, and no sizes and link counts of direc=
+tories
+> +snapshot()
+> +{
+> +       local f
+> +
+> +       cd $SCRATCH_MNT
+> +       find . | LC_ALL=3DC sort | while read -r f; do
+> +               if [ -L "$f" ]; then
+> +                       echo "$f $(stat -c '%F %u:%g' "$f") $(readlink "$=
+f")"
+> +               elif [ -f "$f" ]; then
+> +                       echo "$f $(stat -c '%F %a %u:%g %h %s' "$f")" \
+> +                            "$(md5sum < "$f")"
+> +               else
+> +                       echo "$f $(stat -c '%F %a %u:%g' "$f")"
+> +               fi
+> +       done
+> +       _getfattr --absolute-names -n user.test xattr clean/xattr 2>&1
+> +       cd - > /dev/null
+> +}
+> +
+> +# <syncfs|umount> <mount options>
+> +do_test()
+> +{
+> +       local how=3D$1
+> +       local opts=3D$2
+> +
+> +       echo "=3D=3D=3D $how $opts" | tee -a $seqres.full
+> +
+> +       create_lower
+> +
+> +       # An atime update is a modification too.  With atime the snapshot=
+ would
+> +       # make overlayfs write every file that it reads, also one that
+> +       # overlayfs has lost track of.
+> +       _scratch_mount -o noatime,$opts
+> +
+> +       prepare
+> +       modify
+> +       snapshot > $tmp.before
+> +
+> +       # Nobody holds on to the overlay inodes when they are synced
+> +       echo 2 > /proc/sys/vm/drop_caches
+> +
+> +       if [ $how =3D syncfs ]; then
+> +               $XFS_IO_PROG -c "syncfs" $SCRATCH_MNT
+> +               _scratch_shutdown | tee -a $seqres.full
+> +               _scratch_unmount
+> +       else
+> +               # Only the overlay, the base filesystem stays mounted
+> +               _unmount $SCRATCH_MNT
+> +               _scratch_shutdown | tee -a $seqres.full
+> +               _unmount $OVL_BASE_SCRATCH_MNT
+> +       fi
+> +
+> +       _scratch_mount -o noatime,$opts
+> +       snapshot > $tmp.after
+> +       cat $tmp.after >> $seqres.full
+> +       diff -u $tmp.before $tmp.after
+> +       _scratch_unmount
+> +}
+> +
+> +for how in syncfs umount; do
+> +       for mode in auto relaxed on strict; do
+> +               for meta in off on; do
+> +                       do_test $how \
+> +                               fsync=3D$mode,redirect_dir=3D$meta,metaco=
+py=3D$meta
+> +               done
+> +       done
+> +done
+> +
+> +# success, all done
+> +status=3D0
+> +exit
+> diff --git a/tests/overlay/090.out b/tests/overlay/090.out
+> new file mode 100644
+> index 00000000..d6b46515
+> --- /dev/null
+> +++ b/tests/overlay/090.out
+> @@ -0,0 +1,17 @@
+> +QA output created by 090
+> +=3D=3D=3D syncfs fsync=3Dauto,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D syncfs fsync=3Dauto,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D syncfs fsync=3Drelaxed,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D syncfs fsync=3Drelaxed,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D syncfs fsync=3Don,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D syncfs fsync=3Don,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D syncfs fsync=3Dstrict,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D syncfs fsync=3Dstrict,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D umount fsync=3Dauto,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D umount fsync=3Dauto,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D umount fsync=3Drelaxed,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D umount fsync=3Drelaxed,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D umount fsync=3Don,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D umount fsync=3Don,redirect_dir=3Don,metacopy=3Don
+> +=3D=3D=3D umount fsync=3Dstrict,redirect_dir=3Doff,metacopy=3Doff
+> +=3D=3D=3D umount fsync=3Dstrict,redirect_dir=3Don,metacopy=3Don
+> --
+> 2.55.0
+>
