@@ -1,98 +1,117 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.179
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=103.168.172.152
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794328033;
-	b=qdG+p4+AiDVYjob2QJNgiIh53695FnYF9NX4P/tkr+1kBeazfDo3GbQl8EycNWMdC9DA
-	 WvakXyJP5f+dE+HJ8rk550ExB2fIbRhvuEcxIfGqi4ae/yOxXIUsybci/fDkzdGanRZne
-	 HEMstyj8klih4rf7SNdUHz1fc4Q00nL2yEKSz0Pc1Y90zyXAYho8+syVRDNIjM3HOM0k/
-	 EKYWRLahCnK6DnThNcnhfeeGYZ6Sd8Y/4f6ZwOqIz9tiQOVwTJx5OGAX66ZpZMcqETKVZ
-	 JhJLRZxOFZ51DlfNIvlEq1s9bSPXmCnIXadovY9xboj0oU+0zmxciPLSe0TDyszAT4g==
+	t=1794328697;
+	b=wLSARLcw1Kz9dCSX+MhoTbDZdp2MLUS05KJxu+EEbC9DopDM+yopJ47Ex7dDLjY6gezv
+	 CNgUJOBmX9qXzXNhc03xb/vGnd4SpqduWCNvEftk/Q5hEdOxwrMrYqWPbd060O7L4WuJ0
+	 KMmgmU/OY/QrjqDX5X2MOmU/S9YmBvT6D0iS6t9BHxohf4wyiBMJDWJJ7kRdpiP1U7tfH
+	 50boXUsZl7hUW3Mj5k2MMY0A7LIjL3M3WThiZ+RpEQRbn6J4REaH3JNy7x+PHgwxjXjwY
+	 upPrQ3HdD9HarL59+H7BFjAI35ByL9JH4nIZE7BMfZ+Wwl6c1z+7RYi8N7RB55hirCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794328033;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:Message-ID:In-Reply-To:References:From:Subject:To:Cc:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=MFglliTUWzsKBuarbhqj7BU6xM83KEbfGac4ICvxiWU=;
-	b=yO7g7E+XIJASwFtnKwokxjfdz9DkgRnm1/ScyK5A9X1NvDFJO8f43UwN7J2TZ8uuvRP/
-	 HkPulO3Gn3QC2JJEYuRi12J52m8wB9jGEQSLfXAqNIUkhB4RR9ub+rLJbKOnQ1xqh5Qf+
-	 HBXaGIznGZBc3eSk9T3O86r+fyxQZFjFxU6zhifRskQnM9CSyldH+mwLZKzrLv1jwQ3or
-	 Gdl56TU99SU7D/n/2Mr4Id0rbkr97H3C2WUECEzZQ3vdjPFbYqsWzmLKyz04vthnOD2mA
-	 /xMVMiqGuzRGOF8y6hhSuvWLkZrJEwHPk/Eh9ZPolCfk0/1qZyL1BuRXU6cUuLS9ruQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794328697;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
+	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
+	 X-ME-Sender:X-ME-Received:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:
+	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=aaUKH2pXRne3pLtvgxSAkIPFlHdl82A7bfe/7smVH1k=;
+	b=CqXYrP2gDV+aUtfZWbr9Mmp1skZqU7ZB+WEUjqdJofo4euQP1hb3s+rqaHbXx0X7KgRN
+	 gaE7bGs0CKDDE7GcALLzkvm1ikOOAWUhz78JqFWbUmhFmkXfC9EprBgvaHRypoM/2UArf
+	 rrB6IwbeKNJ5viasy4BW901vyXsT3NU0Slggm8gO1DM9bdpFJJekPUnUsmEmxSOVBwMf0
+	 YwmmOS7c7dS7LDOiIhRkH9N/Y8yUFFftOSnqOPkj3Qc8EB9itL0PF3irb1pu3ZWZdDb9n
+	 fs3R0PW2C7aE1hN+ZQwvENI3JsXT6WcLVL+Ub8nFiDFNiDHY9KKAaDnhsDoNsE1hyjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=toxicpanda.com;
-	spf=pass smtp.mailfrom=toxicpanda.com;
-	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=Z9jR7KRa;
-	arc=none smtp.remote-ip=209.85.221.179
-Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=scrivano.org;
+	spf=pass smtp.mailfrom=scrivano.org;
+	dkim=pass header.d=scrivano.org header.i=@scrivano.org header.a=rsa-sha256 header.s=fm3 header.b="EhmKD+/G";
+	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=KBAoD5WD;
+	arc=none smtp.remote-ip=103.168.172.152
+Received: from fhigh-a1-smtp.messagingengine.com (fhigh-a1-smtp.messagingengine.com [103.168.172.152])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE41606D7D0
-	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 16:27:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DE41606D7D0
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC35C606A20A
+	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 16:38:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DC35C606A20A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scrivano.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scrivano.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=Z9jR7KRa
-Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-5eac319a6c2so1573623e0c.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 08:27:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toxicpanda.com; s=google; t=1794328031; x=1794932831; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:cc:to:subject
-         :from:references:in-reply-to:message-id:date:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=MFglliTUWzsKBuarbhqj7BU6xM83KEbfGac4ICvxiWU=;
-        b=Z9jR7KRah6Og1bzInSt6Z0d2EPqqeBSkC5R+X5Hk4oGf41T/uM8sXdju0zO9BACwgG
-         WUs4iAR2+aKTfHLlQvOZmc8fBelObkZfPqQnJfQ037zwAiFMEZi23HsU66f2xTWt3gs0
-         rpXEw8uJ55Yp5AagpYiSA53+To+xQUHVorBPTIeAJDE3JxF04FO8VZ/qPdSCfNZfg/Hr
-         1rlYEQJLt8Bl9z7yt9+K4K6eBe+srjkhebH/0DItJwIMv97D2wY8WHwhW1vFa8KzIbWI
-         sXo+S+ErfFtigQ/8IaBbsKEhytrHLxP4ChqiwfH/miqxfeaS3x8Uzc/kMvuAMn0kG5aQ
-         meBw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794328031; x=1794932831;
-        h=content-transfer-encoding:content-type:mime-version:cc:to:subject
-         :from:references:in-reply-to:message-id:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=MFglliTUWzsKBuarbhqj7BU6xM83KEbfGac4ICvxiWU=;
-        b=Q6xpVI+kO80EcgX8MEmCR8UDiRhWW9svShTYTBAzB66h9V7LGrOoqtDLlNLdh7cPPH
-         cvAitOuuDc+MPS+HpJvxCg8BtF2bRobaFtnEHUjEyz6Bd/d1ngg5Iw23oCKyngBodSjg
-         SKVFI9YHoscF7U3rVa0+qz5vDddYtXD71q8SyntRpPGLKfAwYa9BSaCYzvIV8Wde13wi
-         ge2tXT8vTiKhfHynddD0N/p++xL5E7gxsVxWKs2FivyHC3gs8eX26/pJl7pYoqyHB5Fh
-         y7lEcISV7n+cjzo/CuP/SbLgVcDa4qZzvkYW7xXYoVulEzOYL6zkuQo10veQQqsAoizh
-         QRmw==
-X-Forwarded-Encrypted: i=1; AL+hErE97izWWPA5lEJl9T28/ET7Fn0wX3IY53Tkba7muSAFRtkgE18HGsTiyIrzJym6b0aWBFpDBg4E7DUpy+n9@vger.kernel.org
-X-Gm-Message-State: APuU4Z+40z6c3mXBQ7bqg49RBIhQAQkyTYMMj0waWpmFQP9pWZvEVpXV
-	mj35KX8+sXePHXCI2eq/qtfkroyekBq+YSjOZIrluYjUomG4IwTcMI7IcPNsPFj/NNc=
-X-Gm-Gg: AYBFou1wfmwEdSV49smvG0xgF0wfBGeEwPYVugrDYSzBlTsJtQObuRRt23FeYBroUF1
-	Fes/+ZK9liaYxeb0Bf66XLHbJY7sYRDS721oPwGfjH3HqmuBU5Az0qdDZ7pfqGsFajSQk8Rca9t
-	WFm5Q1vjWlh22TYrVQVMEU+9gFmRpgHEa1LhCYRD+vIfFyDW6sQT8Ovjc+TmSFVVkQdTYbkkzNS
-	29WWzPQ30J3xolve2EIQ8jLJhcC/1AiVCqyO862nRVwXykoOquUR0q9BeJB/FEhM/uxwIdkKptv
-	yRFvaOrnjTx6h/ZcoGNtDrgtbr7d5yVX3k6Kjn7JXf4nJNgi4gZlOCpqx/wvCD1N05TxvNl0PSb
-	LBZdJwVXc4TXK/urdse8yFPLyJ5qGigX3E/nful0dEVSecYuwNFL7mSMKb6HUw8xPUByOknlXjO
-	01pkxnyHwTbmRARs+XtWPRYem6AehT2afne9A348oDaoRXLFDSJQsmg/Vro5u0bk2W3qWPZqG6j
-	nIiTRO3659OAqt2hvawiD5+WnhbUq9vVetBzjCnld1DwjIVE0DJ0H6VX390l1VXXHRSboGUvg0L
-	msjKEMoRou8xFRE+5AA30jX6HZX4YzRKRrrrP/q36QvdGQ==
-X-Received: by 2002:a05:6122:a5c5:10b0:5ea:a0f0:1945 with SMTP id 71dfb90a1353d-5ee0d0c7167mr941852e0c.6.1794328031072;
-        Tue, 10 Nov 2026 08:27:11 -0800 (PST)
-Received: from toxicpanda.com ([153.61.196.253])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ee0c58ed55sm2053453e0c.5.2026.11.10.08.27.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Nov 2026 08:27:10 -0800 (PST)
-Date: Tue, 10 Nov 2026 16:27:09 +0000
-Message-ID: <99629e3277656888cbe84bf7490c5e54.josef@toxicpanda.com>
-In-Reply-To: <94833333cf2c5dd487022cb290174393.josef@toxicpanda.com>
-References: <773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com>
- <946b46fbf1c555a47a8a9304f2ee31af.josef@toxicpanda.com>
- <94833333cf2c5dd487022cb290174393.josef@toxicpanda.com>
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: [PATCH fstests v4] overlay: test that syncfs and unmount persist all
- changes
+	dkim=pass (2048-bit key, unprotected) header.d=scrivano.org header.i=@scrivano.org header.a=rsa-sha256 header.s=fm3 header.b=EhmKD+/G;
+	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=KBAoD5WD
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 1D6D9140020B
+	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 11:38:16 -0500 (EST)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-05.internal (MEProxy); Tue, 10 Nov 2026 11:38:16 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=scrivano.org; h=
+	cc:cc:content-transfer-encoding:content-type:date:date:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to; s=fm3; t=1794328696; x=1794415096; bh=aaUKH2pXRne3pLtvgxSAk
+	IPFlHdl82A7bfe/7smVH1k=; b=EhmKD+/GAiigSaM54bUZVIVKBYZHK0F0Ox6wF
+	lugAfSsGQ7Qb5pSnRmCvt+0EGsC2RoR8T3PYDRmkRegUK97qwb6J4270plqqgwsd
+	pEQa5RuSUIlJaVhSBj5cPWj7FCiDWu9uzOfsCT4N+Ye+ypbUiRuJ8S209/M5y0Ef
+	kBxdRY6H+cYBO1yW5kOg0v7ZIStx4PnPmvSkTQm/y8pBQ9GZmzceuxDIQGty+prD
+	LeG1xd0uj7wdK496EsZwRkaRvWC0PdCcRo8pG1T+HTcZc5CeeNF8d/SY3AQcOh4d
+	SYvFsKRT5xuIdWx4wP++c7jfmO+K+ERuIGT68mEw+BXgB/ZXg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:date:date:feedback-id:feedback-id:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1794328696; x=1794415096; bh=aaUKH2pXRne3pLtvgxSAkIPFlHdl82A7bfe
+	/7smVH1k=; b=KBAoD5WDHtzu0dFLN/K1oyd2Mu6sRFVDsavjzrTGe3C+W9u5rD+
+	vdV5+oxl7bhTbbsu3bqgKttv34xz6YAnfxB5ydZPvMR6ZYczsm3e0rysnLJk0V3/
+	WPiZ5BzjiFHxn/Z32Kw/gkkRzjm9NIsbMs4BoV3ytMJvjAK2OzDoK2hK/iUr7dix
+	gjYxU+n31xxg+xc0nqNO8RifZYoDd+r7GLDNJctKswbplPd//jjo+Qu4qOekYYyd
+	+fTsyzN6du9wcPH0iG3NYOpXNY032x8WAwjvCWhmoC3A4QhHzOVrwKS2m/9YQAfE
+	mCqkiOmma9jW6lROwYxMmCOHmKTr6lLHiWg==
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=sign d=scrivano.org a=rsa-sha256;
+DKIM2-Signature: i=1; m=1; t=1794328696; d=scrivano.org;
+	mf=PGdpdXNlcHBlQHNjcml2YW5vLm9yZz4=;
+	rt=PGxpbnV4LXVuaW9uZnNAdmdlci5rZXJuZWwub3JnPg==;
+	s=fm3:rsa-sha256:7N3qiHUWr+C9IdMW3Njw9goIwq8eBNUQOknshWXkaj9YdMw
+	inkdigwouEmO6+g8Cc+VODkm8EGfS7gdjDmcQltsSZiA58QlWLrcwUVbK1CLcm84
+	G1i7YOMV+iqhFkOy27EAckKGLVBGRsL9zPCiX6fprO8QUbeRFYbu7Qao4kTtg5jw
+	+Tf4wyt4+kJtCHKrlA74WSppAnSVdtvlc8CwsMIggWN5QT1PjeDjqm/AMLq8L7fJ
+	aksIt1z1YAeiXu039VRvrSIBkKGnCPNRZULJ+IbCmievxcJTON7IBSImFKg5uQtq
+	GLR/UxS5SLYB53c1LiO98i8SlheypsbkjC7aaBg==;
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=mi-m=1; hc=9;
+	hn=cc,content-transfer-encoding,date,feedback-id,from,
+	message-id,mime-version,subject,to;
+Message-Instance: m=1; h=sha256:WB2OYj88dHKfVQ6lY5LLJKBrIr1yThZ6esoQuptYn5w=:Rq0NCxuHu9HpG+5wePA6cNFydSIlmHgBUYMr92DpdoQ=;
+X-ME-Sender: <xms:eEjzarIBxmVnvoYc_65dZdWYCLnO0XaV6XThOAu6BXWFPigHZG2u8A>
+    <xme:eEjzas-yDACvC1fo60vVR1Ccmouh_pycDXZda8L7e9-IcvD2i-PQu3UIwcLLj26Fk
+    pJO7wzjZuLzE7ys9YRV6185EPHWWQ1jSnHcKNUX_lNTS5R4JiZ8S55n>
+X-ME-Received: <xmr:eEjzauJRI3QxgbmiIAojtmDDtNidvS-GBK5ms9IFy6tzdm51aKP3LsWjX8ce1nx5o1RYdGk-ruH4-H1xewYDm8QwokMy>
+X-ME-Proxy-Cause: dmFkZTG3n9i6Ym6C6j+Gap2puwOR7D+9wVDOVkdF2oR6oiKiufWeM7mh01CTZfvYISsJsB
+    OvEMAv/ovlFyKhqFwYZJjEmjzk7vIauDPq8UPjBEJ5psK8XIVALYp24ZvusuOykQxfWOCR
+    bxlkyG19oFk2adadoqeumyCh5S3fO4OoJDFUOJtgdO9cJMpM9bOrHQsDr4KgNJYJR8nwZE
+    SfboveRLxIIl2cfNMCCnw2S1HuEnWqQOsTPkh5FVfyQH5q8y8ZnrPNWkv0G1ZH0lEsuaRw
+    KerDULHQF5ySvcZBZZeuIVtXMrkT0ZzUxL3QAG9OlkNd64ji/icas4nGbbGUu06Mow/pBs
+    7aDealOjnYumFfReOD8Fti5HZwXV9UJPpYCe3OvB6tefO21e2loXUAJYQN/P+bUpENxE76
+    4wdWu6LXbWcHVcL5EAHHAS4fhFM124DYlErCz4Xi2bl2d855Yr7gPkxbTbOZEzjTRFg5lF
+    o+5TS0bX7UQ0jgBx+Kx/9ad2triP1TdaSq0moDl4rkwE8CXTx/I67aH/dYKlEEOrq+PorS
+    PkHF/U2wtJcyT1mL8ADYNV+trKDtcYEa0GQ3wiVxjoJlmIpZ/HyzEq96toU65XWSPuHhCq
+    jEKkGZQJM4NxzIbowuDvSDwn4+WVPKep7ksQCBvlHdU29x6bxQP4kXnkz/vg
+X-ME-Proxy: <xmx:eEjzahk3ifXKm4-nebkgbm4eycHvbWJI7ihsxsrjyOY2BgHXHmNkZg>
+    <xmx:eEjzaiP_49MoPKioiM23hYTcj9WeAId7El-G4442ncBsp2mWt-lPeQ>
+    <xmx:eEjzan36vbjp7P_SPrg35LvGO_axlBLfvZNZZyWarUSseoGSEDxdAQ>
+    <xmx:eEjzahmIPkyTqs6rMHqI7yc5De0MrhyIP_h8ygI4m7W_-8GijKQk1Q>
+    <xmx:eEjzariGzWPb4sCVGM09qYht-Z6Tqy6CZyC9pYyRqYOtnn8TWHja0zTA>
+Feedback-ID: i8e6e4897:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 10 Nov 2026 11:38:15 -0500 (EST)
+From: Giuseppe Scrivano <giuseppe@scrivano.org>
 To: fstests@vger.kernel.org
-Cc: Zorro Lang <zlang@kernel.org>,
-    Amir Goldstein <amir73il@gmail.com>,
-    Christian Brauner <brauner@kernel.org>,
-    linux-unionfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org,
+	amir73il@gmail.com
+Subject: [PATCH fstests v3] overlay: add a test for redirect_dir=followdata
+Date: Tue, 10 Nov 2026 17:38:11 +0100
+Message-ID: <20261110163812.3091063-1-giuseppe@scrivano.org>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -102,294 +121,266 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-overlayfs is about to stop syncing the whole upper filesystem on syncfs(2)
-and unmount.  With fsync=relaxed it only writes the upper inodes that were
-modified through the overlay, so it has to know about all of them.
+Test that data-only layers select redirect_dir=followdata, which follows
+redirects from lower to lowerdata from any lower layer, with userxattr
+and trusted xattrs, and that redirect_dir=nofollow is refused with
+data-only layers.
 
-Modify an overlay in many ways: new files and directories, data and
-metadata copy up, stores through a shared mapping, sendfile, copy_range,
-an O_TMPFILE, a short and a long symlink, hard links, renames, whiteouts.
-Do the same to files that were synced before, so that nothing but the
-modification itself tells overlayfs about them.  Then drop the caches, sync
-or unmount the overlay, shut down the base filesystem without flushing its
-log, cycle the mounts and check that nothing has changed.
+Also test following an absolute redirect past a lower layer that has the
+parent directory of the target, which failed with EIO before the fix
+"ovl: do not always clear absolute_redirect".
 
-Do that with fsync=relaxed and with fsync=on, which still syncs the whole
-upper filesystem, with and without redirect_dir and metacopy.
-
-The base filesystem has to have a journal, so what gets lost if overlayfs
-misses a modification is data in the page cache.  Changes of metadata are
-in the log, which overlayfs commits in any case.
-
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Signed-off-by: Giuseppe Scrivano <giuseppe@scrivano.org>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
-v1: https://lore.kernel.org/r/773faf2a275e0a51bd38cf68f492856c.josef@toxicpanda.com
-v2: https://lore.kernel.org/r/946b46fbf1c555a47a8a9304f2ee31af.josef@toxicpanda.com
-v3: https://lore.kernel.org/r/94833333cf2c5dd487022cb290174393.josef@toxicpanda.com
+ common/overlay        |  15 +++++
+ tests/overlay/090     | 151 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/090.out |  50 ++++++++++++++
+ 3 files changed, 216 insertions(+)
+ create mode 100755 tests/overlay/090
+ create mode 100644 tests/overlay/090.out
 
-v3->v4:
-- It's overlay/091 now. (Amir)
-- It takes 17-18s instead of 64-67s and is back in quick. (Amir)
-  - Only fsync=relaxed and fsync=on, that's 8 rounds instead of 16.
-  - The snapshot is one find -printf and one md5sum instead of a stat and an
-    md5sum per file.
-  - One xfs_io writes all the files of the lower layer, and another one all
-    the files that are synced before they are modified.
-
-Those times are from ./check in a KVM guest with 4 CPUs, on a kernel with
-KASAN, lockdep, UBSAN and DEBUG_OBJECTS. A round takes 1.8s there, a third
-of that is the 40 or so commands that modify the overlay.
-
-With the fsync=auto rounds gone nothing goes through the code that turns auto
-into relaxed. In v3 those rounds never showed anything that the relaxed
-rounds didn't.
-
-This is for "ovl: only sync what was written through the overlay" [1]. It
-needs [2].
-
-It passes on ext4 and xfs with the series, and with only the first patch of
-it, which adds the mount options and still syncs the whole upper file
-system. On the four kernels that I broke on purpose for v3 it loses exactly
-the same files as v3 in the fsync=relaxed rounds, and nothing in the
-fsync=on rounds.
-
-[1] https://lore.kernel.org/r/20261110-b4-ovl-containerized-sync-v6-0-43d1be16a4d6@toxicpanda.com
-[2] https://lore.kernel.org/r/20261106155832.3867017-1-amir73il@gmail.com
-
- tests/overlay/091     | 204 ++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/091.out |   9 ++
- 2 files changed, 213 insertions(+)
- create mode 100755 tests/overlay/091
- create mode 100644 tests/overlay/091.out
-
-diff --git a/tests/overlay/091 b/tests/overlay/091
-new file mode 100755
-index 00000000..260978e3
---- /dev/null
-+++ b/tests/overlay/091
-@@ -0,0 +1,204 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2026 Josef Bacik.  All Rights Reserved.
-+#
-+# FS QA Test 091
-+#
-+# Test that syncfs(2) on an overlay, and unmounting one, persist everything
-+# that was modified through it.
-+#
-+# overlayfs used to sync the whole upper filesystem for that.  With
-+# fsync=relaxed it only writes the upper inodes that were modified through this
-+# overlay, so it has to know about all of them.
-+#
-+# Modify the overlay in every way we can think of, sync it, shut down the base
-+# filesystem without flushing its log, cycle the mounts and check that nothing
-+# has changed.
-+#
-+. ./common/preamble
-+_begin_fstest auto quick shutdown copyup whiteout mmap redirect metacopy
-+
-+. ./common/attr
-+
-+_require_scratch
-+_require_scratch_shutdown
-+_require_metadata_journaling $SCRATCH_DEV
-+_require_scratch_overlay_features fsync redirect_dir metacopy
-+_require_xfs_io_command "syncfs"
-+_require_xfs_io_command "sendfile"
-+_require_xfs_io_command "copy_range"
-+_require_xfs_io_command "falloc"
-+_require_xfs_io_command "-T"
-+_require_xfs_io_command "flink"
-+_require_attrs
-+_require_chown
-+_require_mknod
-+
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+
-+create_lower()
+diff --git a/common/overlay b/common/overlay
+index 8e89d6e4..382960c3 100644
+--- a/common/overlay
++++ b/common/overlay
+@@ -286,6 +286,21 @@ _require_scratch_overlay_datadir_without_metacopy()
+ 
+ }
+ 
++# Check kernel support for the "redirect_dir=followdata" mount option
++_require_scratch_overlay_redirect_followdata()
 +{
-+	# This leaves the base filesystem mounted
-+	_scratch_mkfs >> $seqres.full 2>&1
++	local lowerdir="$OVL_BASE_SCRATCH_MNT/$OVL_UPPER"
++	local datadir="$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
 +
-+	mkdir -p $lowerdir/dir $lowerdir/rmdir $lowerdir/mvdir
-+	cd $lowerdir
-+	# xfs_io runs the command on every file
-+	$XFS_IO_PROG -f -c "pwrite -S 0x6c 0 256k" \
-+		append truncate mmap chmod chown chown_append xattr link \
-+		rename remove dir/append rmdir/file mvdir/file >> $seqres.full
-+	cd - > /dev/null
++	_scratch_mkfs > /dev/null 2>&1
++	_overlay_scratch_mount_opts \
++		-o"lowerdir+=$lowerdir,datadir+=$datadir" \
++		-o"userxattr,redirect_dir=followdata" > /dev/null 2>&1 || \
++		_notrun "overlay redirect_dir=followdata not supported on ${SCRATCH_DEV}"
 +
-+	# These were not written through the overlay, so it does not have to
-+	# sync them.
-+	$XFS_IO_PROG -c "syncfs" $OVL_BASE_SCRATCH_MNT
-+}
-+
-+# Creating a file and copying it up are modifications.  overlayfs remembers them
-+# until the file is synced, and a later modification that it misses does not
-+# show.  So make files that are in the upper layer and have been synced.
-+prepare()
-+{
-+	local m=$SCRATCH_MNT
-+
-+	mkdir $m/clean
-+	cd $m/clean
-+	# xfs_io runs the command on every file
-+	$XFS_IO_PROG -f -c "pwrite -S 0x70 0 256k" \
-+		pwrite truncate fallocate mmap sendfile copy_range chmod \
-+		chown xattr link rename remove >> $seqres.full
-+	cd - > /dev/null
-+	$XFS_IO_PROG -c "syncfs" $m
-+}
-+
-+modify()
-+{
-+	local m=$SCRATCH_MNT
-+
-+	# Stores through a shared mapping, also after a syncfs, no msync.  This
-+	# has to be the first one, the syncfs must not write anything else.
-+	$XFS_IO_PROG -c "mmap -rw 0 256k" -c "mwrite -S 0x66 0 64k" \
-+		-c "syncfs" -c "mwrite -S 0x67 64k 64k" $m/mmap >> $seqres.full
-+
-+	# The files that overlayfs has nothing to remember about
-+	$XFS_IO_PROG -c "pwrite -S 0x71 64k 64k" $m/clean/pwrite >> $seqres.full
-+	$XFS_IO_PROG -c "truncate 4k" $m/clean/truncate
-+	$XFS_IO_PROG -c "falloc 256k 64k" $m/clean/fallocate
-+	$XFS_IO_PROG -c "mmap -rw 0 256k" -c "mwrite -S 0x72 64k 64k" \
-+		$m/clean/mmap >> $seqres.full
-+	$XFS_IO_PROG -c "sendfile -i $m/link 0 64k" $m/clean/sendfile \
-+		>> $seqres.full
-+	# Not aligned, so that the data is copied and not shared
-+	$XFS_IO_PROG -c "copy_range -s 1 -d 1 -l 64k $m/link" \
-+		$m/clean/copy_range
-+	chmod 640 $m/clean/chmod
-+	chown 1234:1234 $m/clean/chown
-+	$SETFATTR_PROG -n user.test -v value $m/clean/xattr
-+	ln $m/clean/link $m/clean/link2
-+	mv $m/clean/rename $m/clean/renamed
-+	rm $m/clean/remove
-+
-+	# New files and directories
-+	$XFS_IO_PROG -f -c "pwrite -S 0x61 0 1m" $m/new >> $seqres.full
-+	mkdir $m/newdir
-+	$XFS_IO_PROG -f -c "pwrite -S 0x62 0 64k" $m/newdir/new >> $seqres.full
-+	$XFS_IO_PROG -f -c "pwrite -S 0x63 0 64k" $m/dir/new >> $seqres.full
-+	ln -s new $m/symlink
-+	# Too long to be stored in the inode
-+	ln -s $(printf 'a%.0s' $(seq 1000)) $m/longsymlink
-+	mkfifo $m/fifo
-+
-+	# Copy up, then change the data
-+	$XFS_IO_PROG -c "pwrite -S 0x64 256k 64k" $m/append >> $seqres.full
-+	$XFS_IO_PROG -c "pwrite -S 0x65 256k 64k" $m/dir/append >> $seqres.full
-+	$XFS_IO_PROG -c "truncate 4k" $m/truncate
-+
-+	# The other ways to write data
-+	$XFS_IO_PROG -f -c "sendfile -i $m/link 0 256k" $m/sendfile \
-+		>> $seqres.full
-+	$XFS_IO_PROG -f -c "copy_range -l 256k $m/link" $m/copy_range
-+	$XFS_IO_PROG -T -c "pwrite -S 0x69 0 64k" -c "flink $m/tmpfile" $m \
-+		>> $seqres.full
-+
-+	# Copy up, then change the metadata
-+	chmod 640 $m/chmod
-+	chown 1234:1234 $m/chown
-+	$SETFATTR_PROG -n user.test -v value $m/xattr
-+
-+	# With metacopy=on the first one only copies up the metadata
-+	chown 1234:1234 $m/chown_append
-+	$XFS_IO_PROG -c "pwrite -S 0x6a 256k 64k" $m/chown_append \
-+		>> $seqres.full
-+
-+	# Names
-+	ln $m/link $m/link2
-+	mv $m/rename $m/renamed
-+	# Without redirect_dir=on mv gets EXDEV and copies the directory
-+	mv $m/mvdir $m/mvdir2
-+	rm $m/remove
-+	rm -r $m/rmdir
-+}
-+
-+# No inode numbers, no timestamps, and no sizes and link counts of directories
-+snapshot()
-+{
-+	cd $SCRATCH_MNT
-+	find . -type d -printf '%p %y %m %U:%G\n' -o \
-+		-printf '%p %y %m %U:%G %n %s %l\n' | LC_ALL=C sort
-+	find . -type f -print0 | LC_ALL=C sort -z | xargs -0 md5sum
-+	_getfattr --absolute-names -n user.test xattr clean/xattr 2>&1
-+	cd - > /dev/null
-+}
-+
-+# <syncfs|umount> <mount options>
-+do_test()
-+{
-+	local how=$1
-+	local opts=$2
-+
-+	echo "=== $how $opts" | tee -a $seqres.full
-+
-+	create_lower
-+
-+	# An atime update is a modification too.  With atime the snapshot would
-+	# make overlayfs write every file that it reads, also one that
-+	# overlayfs has lost track of.
-+	_scratch_mount -o noatime,$opts
-+
-+	prepare
-+	modify
-+	snapshot > $tmp.before
-+
-+	# Nobody holds on to the overlay inodes when they are synced
-+	echo 2 > /proc/sys/vm/drop_caches
-+
-+	if [ $how = syncfs ]; then
-+		$XFS_IO_PROG -c "syncfs" $SCRATCH_MNT
-+		_scratch_shutdown | tee -a $seqres.full
-+		_scratch_unmount
-+	else
-+		# Only the overlay, the base filesystem stays mounted
-+		_unmount $SCRATCH_MNT
-+		_scratch_shutdown | tee -a $seqres.full
-+		_unmount $OVL_BASE_SCRATCH_MNT
-+	fi
-+
-+	_scratch_mount -o noatime,$opts
-+	snapshot > $tmp.after
-+	cat $tmp.after >> $seqres.full
-+	diff -u $tmp.before $tmp.after
 +	_scratch_unmount
 +}
 +
-+for how in syncfs umount; do
-+	for mode in relaxed on; do
-+		for meta in off on; do
-+			do_test $how \
-+				fsync=$mode,redirect_dir=$meta,metacopy=$meta
-+		done
+ 
+ # Helper function to check underlying dirs of overlay filesystem
+ _overlay_fsck_dirs()
+diff --git a/tests/overlay/090 b/tests/overlay/090
+new file mode 100755
+index 00000000..0c9b2148
+--- /dev/null
++++ b/tests/overlay/090
+@@ -0,0 +1,151 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (c) 2026 Giuseppe Scrivano.  All Rights Reserved.
++#
++# FS QA Test 090
++#
++# Test the redirect_dir=followdata mount option.
++#
++# Data-only layers select redirect_dir=followdata, which follows redirects
++# from any lower layer to a data-only layer, and cannot be used with
++# redirect_dir=nofollow.
++#
++# Also test following an absolute redirect past a lower layer that has the
++# parent directory of the redirect target, with metacopy=on.
++#
++. ./common/preamble
++_begin_fstest auto quick metacopy redirect attr
++
++# Import common functions.
++. ./common/filter
++. ./common/attr
++
++# We use non-default scratch underlying overlay dirs, we need to check
++# them explicitly after test.
++_require_scratch_nocheck
++_require_attrs user
++_require_attrs trusted
++_require_scratch_overlay_redirect_followdata
++_require_scratch_overlay_features redirect_dir metacopy
++_require_scratch_overlay_lowerdata_layers
++
++data=$OVL_BASE_SCRATCH_MNT/data
++l1=$OVL_BASE_SCRATCH_MNT/lower1
++l2=$OVL_BASE_SCRATCH_MNT/lower2
++l3=$OVL_BASE_SCRATCH_MNT/lower3
++upper=$OVL_BASE_SCRATCH_MNT/upper
++work=$OVL_BASE_SCRATCH_MNT/work
++layers="$l3:$l2:$l1::$data"
++
++# Make a metacopy file <file> with the redirect <redirect>, for both
++# userxattr and trusted xattr mounts
++make_stub()
++{
++	local file=$1 redirect=$2 x
++
++	touch $file
++	for x in user.overlay. ${OVL_XATTR_METACOPY%metacopy}; do
++		$SETFATTR_PROG -n ${x}metacopy $file
++		$SETFATTR_PROG -n ${x}redirect -v $redirect $file
 +	done
++	truncate -s 4 $file
++}
++
++# Mount the layers $layers with the options <opts>, print redirect_dir=followdata
++# if the mount shows it and <opts> has userxattr or redirect_dir (otherwise it
++# depends on the kernel config), and the content of each of the following files,
++# or the error reading it
++check()
++{
++	local opts=$1 f
++
++	shift
++	echo "== $opts"
++	_overlay_scratch_mount_dirs "$layers" $upper $work -o $opts
++	case $opts in
++	*userxattr*|*redirect_dir=*)
++		_fs_options $OVL_BASE_SCRATCH_MNT | grep -o redirect_dir=followdata
++		;;
++	esac
++	for f; do
++		echo "$f: $(cat $SCRATCH_MNT/$f 2>&1 | sed 's/^cat: .*: //')"
++	done
++	_unmount $SCRATCH_MNT
++}
++
++# Mounting the layers $layers with the options <opts> must fail
++check_fail()
++{
++	local opts=$1
++
++	echo "== $opts"
++	_overlay_scratch_mount_dirs "$layers" $upper $work -o $opts \
++		>> $seqres.full 2>&1 && echo "mount succeeded" && \
++		_unmount $SCRATCH_MNT
++}
++
++_scratch_mkfs
++mkdir -p $data/base $l1/base $l2/base $l3 $upper $work
++echo -n "data" > $data/base/file
++
++make_stub $l1/s1 /base/file
++make_stub $l2/s2 /base/file
++make_stub $l3/s3 /base/file
++# The redirect target in a lower layer below s3, which is not looked up
++echo -n "lowr" > $l2/base/file
++# Redirects that are not followed: relative, directory, upper
++echo -n "lowr" > $l2/reltarget
++make_stub $l3/rel reltarget
++mkdir $l3/dir
++$SETFATTR_PROG -n user.overlay.redirect -v /base $l3/dir
++$SETFATTR_PROG -n $OVL_XATTR_REDIRECT -v /base $l3/dir
++make_stub $upper/up /base/file
++
++# followdata is selected by default with userxattr and a data-only layer
++check userxattr s1 s2 s3
++check userxattr,redirect_dir=followdata s1 s2 s3 rel dir up
++# redirect_dir=off does not follow redirects to lower with userxattr, also
++# with redirect_always_follow=Y, so a data-only layer selects followdata
++check userxattr,redirect_dir=off s1 s2 s3 rel dir up
++# a data-only layer cannot be used without following redirects
++check_fail userxattr,redirect_dir=nofollow
++echo -n "no data-only layer "
++layers="$l3:$l2:$l1" check userxattr
++
++check metacopy=off s1 s2 s3
++check redirect_dir=followdata s1 s2 s3 rel dir up
++check redirect_dir=follow,metacopy=off s1 s2 s3
++check redirect_dir=on,metacopy=off s1 s2 s3
++check_fail redirect_dir=nofollow
++echo -n "no data-only layer "
++layers="$l3:$l2:$l1" check redirect_dir=nofollow
++
++# An explicit option requires a data-only layer and conflicts with metacopy=on
++_overlay_scratch_mount_dirs "$l3:$l2:$l1" $upper $work \
++	-o userxattr,redirect_dir=followdata >> $seqres.full 2>&1 && \
++	echo "mount redirect_dir=followdata without a data-only layer succeeded"
++_overlay_scratch_mount_dirs "$layers" $upper $work \
++	-o redirect_dir=followdata,metacopy=on >> $seqres.full 2>&1 && \
++	echo "mount with redirect_dir=followdata,metacopy=on succeeded"
++
++# The directory "/base" in a lower layer without a redirect must not make the
++# lookup forget that the redirect of the metacopy file is absolute.
++echo "== metacopy=on,redirect_dir=follow"
++_scratch_mkfs
++mkdir -p $data/base $l1 $l2
++echo -n "data" > $data/base/file
++touch $l1/file
++$SETFATTR_PROG -n $OVL_XATTR_METACOPY $l1/file
++$SETFATTR_PROG -n $OVL_XATTR_REDIRECT -v /base/file $l1/file
++truncate -s 4 $l1/file
++for f in "" base base/file; do
++	[ "$f" = base ] && mkdir $l2/base
++	[ "$f" = base/file ] && echo -n "lowr" > $l2/base/file
++	_overlay_scratch_mount_dirs "$l1:$l2::$data" - - \
++		-o ro,redirect_dir=follow,metacopy=on
++	echo "lower2 /$f: $(cat $SCRATCH_MNT/file 2>&1 | sed 's/^cat: .*: //')"
++	_unmount $SCRATCH_MNT
 +done
 +
 +# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/091.out b/tests/overlay/091.out
++_exit 0
+diff --git a/tests/overlay/090.out b/tests/overlay/090.out
 new file mode 100644
-index 00000000..a8536983
+index 00000000..e3cd8fc8
 --- /dev/null
-+++ b/tests/overlay/091.out
-@@ -0,0 +1,9 @@
-+QA output created by 091
-+=== syncfs fsync=relaxed,redirect_dir=off,metacopy=off
-+=== syncfs fsync=relaxed,redirect_dir=on,metacopy=on
-+=== syncfs fsync=on,redirect_dir=off,metacopy=off
-+=== syncfs fsync=on,redirect_dir=on,metacopy=on
-+=== umount fsync=relaxed,redirect_dir=off,metacopy=off
-+=== umount fsync=relaxed,redirect_dir=on,metacopy=on
-+=== umount fsync=on,redirect_dir=off,metacopy=off
-+=== umount fsync=on,redirect_dir=on,metacopy=on
++++ b/tests/overlay/090.out
+@@ -0,0 +1,50 @@
++QA output created by 090
++== userxattr
++redirect_dir=followdata
++s1: data
++s2: data
++s3: data
++== userxattr,redirect_dir=followdata
++redirect_dir=followdata
++s1: data
++s2: data
++s3: data
++rel: Operation not permitted
++dir: Operation not permitted
++up: Operation not permitted
++== userxattr,redirect_dir=off
++redirect_dir=followdata
++s1: data
++s2: data
++s3: data
++rel: Operation not permitted
++dir: Operation not permitted
++up: Operation not permitted
++== userxattr,redirect_dir=nofollow
++no data-only layer == userxattr
++== metacopy=off
++s1: data
++s2: data
++s3: data
++== redirect_dir=followdata
++redirect_dir=followdata
++s1: data
++s2: data
++s3: data
++rel: Operation not permitted
++dir: Operation not permitted
++up: Operation not permitted
++== redirect_dir=follow,metacopy=off
++s1: data
++s2: data
++s3: data
++== redirect_dir=on,metacopy=off
++s1: data
++s2: data
++s3: data
++== redirect_dir=nofollow
++no data-only layer == redirect_dir=nofollow
++== metacopy=on,redirect_dir=follow
++lower2 /: data
++lower2 /base: data
++lower2 /base/file: lowr
 -- 
-2.55.0
+2.56.0
 
