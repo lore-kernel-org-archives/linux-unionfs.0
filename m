@@ -1,100 +1,100 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794324526;
-	b=M6sz0wYzahGN1BgRvp8Q8K5T2/7jROmp3xs+7eSvSmDokTpo4MEASRLHWuwO1p7X6rCD
-	 ArBykeI1ud6CVnrLBJpk9GpEPM8ytH+ireUfjW5zbErjrIso9ar8c1Km3adkKo79hXAer
-	 NIxc01v6SPRwl8zQ+klo5nHcfUeC7nl92dBYOy/A6VDltG+DwkFqFBq++gc7s3VfMhKiy
-	 xhPDfwv+LfOwy6vqEfFNLMJYmS1wBpEhJh7JrIHJSzBZtYrWzwiAOW5k+fgwDisGieuWf
-	 47tCNWbz7c3F34Eyv8gaueG2bNhn8LG6yE9JU6txT86aOIL9AgMWZJlkfMwgwU+Ke+Q==
+	t=1794324844;
+	b=CqVXmSaRJ2kUQzGOeNsQaKUJRdU5/d+xRSJS77O6gIuIDLhmUTbsPE1Mhd2qW1Z8ivAs
+	 rk6mkSbnVfqU33nPIiGX4qZwDAIDGzxnOQvVn8mrY6bFj0B7yl9j0GCwHuQUo0rwLWNTe
+	 +bRACTPDLaiWCWDvjt64P2YRAc4S5617v7zmrCTv6WX0Ld/sV6fEXQXOZVgzjWEVCV8TC
+	 SgB82z8c1MNAxxFXTUxtOjdLi/sGPsbCDsS8njxNovclvw8oaK9qzXbAXPGvyzsz771O9
+	 y0F5VFkZlXkRBP2hcqimgj/5/PtncGgweT/F6A+wD6TO4okkP1hjB7IpTtE1/fSUBaQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794324526;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794324844;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=N/pL52fuDy805O1oezgAmGq/06s1o7MBJVwaW8uXKM0=;
-	b=JR3QbeoVNZliBwWd3QMz9ZH4J8Zobhm4Vy5ZXmk0DojVMnCCcLxeRwkXni+Pqpk/Zq9V
-	 uulxQPokpYF/xHX2rdFnGJNcZbz5Pv4CWeT9zOgRwaiASiY52ejAxpdfXx6z0BI2BSN+W
-	 MLM+jFvso+fPh9/tJNghS/6EOUJaftsk0jTQpodvop9DVGk/4RL1tTzHQydwkOoIUpUlu
-	 zAtFemSGtKiOuH7z6lHIqxvBoSxD01Ch/L3r7FRI4xI6Cc1ngvCGSvPNcaNL0OIJh3SCI
-	 eok1HZoJF/p+PGvBfBPPFVxR3EYYpYQt8jfoOHnwYdhuVoizfmi73u+mrTUkkgRss4Q==
+	bh=zlp+b6aXAaDg8cECS2ZSmA7rI3yE9bTLJjk2dHCmIwE=;
+	b=HEb1boWfiFfjWbpw8EQQY5qlBU4CEWauaFWjiU0K9sESi05IM8+KKifwOyteHHEgYCR3
+	 CfmJ8cZfbNpFk4XFC6q+jp1wYR4M+8pNmRkEmIMhOUKXXWuocy6+xL/9msmUZd4Ot3Kpa
+	 6jWGvPXDTlOJW+hjONkNiz2HrNllgkXOa+qcNnWcbhanXFgm33uVMcAWBsT+pPo5hsSq5
+	 GRo8sXNIiE3Xv1PdC2zMUwkiylEA+zMVHz9Y/9cTZz93xbuEAmTKFXOdX71XqCWbqljJD
+	 Iv2vJtra1ves4TRPvUk0ON4oIryNExY5eqJgnk6s67ak9ofDZ1FThTp93nf3K3qn5Cg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=dt4XSpXK;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=fLDtc0yG;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.43
 Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8F9060A260D
-	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 15:28:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B8F9060A260D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3066606A32D
+	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 15:34:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C3066606A32D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=dt4XSpXK
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b58cb69927so3399443a12.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 07:28:45 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794324524; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=fLDtc0yG
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b7221c0f2cso1248791a12.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 07:34:03 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794324842; cv=none;
         d=google.com; s=arc-20260327;
-        b=ovrR7+ePj7pxDVJuMwu4U09Eld1XhjEv7Eiy7wWVJRR/g5eSvMRFRh20RAWLY+5T/0
-         Emg9yB/0VKmkIfwxpWQ9vbKGGlajLTDFfaaHvyvUs4nlfjGW7bUMz2OUUPTxEK/zm4n2
-         CZX6QvzYlaBjRtXrLXqs9IJZ7es+wmG4qMfrq+m7QUjIr9UCUffXXJxcsL2ryCdDR5jC
-         REJZwsyAv8QeBENwf+31VDaDy2GN/i8fxMqVnlOM+q8aLYTDOp3MQIdDYrpOYBIIpLAx
-         9CIPyUPoqRRgdwoYXDZX8TiXuGv46Y2LQcx1EdkJ/7V/bNaQ5IZ2rLJre5X7Bwz1iX60
-         WLeA==
+        b=C1PHDMpuVTZweQjDkB45awzG8ogEhrQvc8OhqCdl7HiiZZYFmjgHgpdq8OWtt8auFy
+         Dn72z8FvENHmRvJ0bB7oSthhpF4gqmp1h1qzT93xukBPPeb3Bq4bZB4Q5MEfeupa8o6y
+         /FVUYynSrIJTtTbkGfrj+utMtfaKh+4IhBmfoeMQ2qD6MCRPDCaHNQmegBzFVHFrovux
+         aWma/pamw1e+yz0xYeEO2AkzRtA9UcTErX/s4uGNhtOeAar7vUMAMl3xnjUX+fzk6s8E
+         MbaCJUTj8zfBS0U/7BTwWIe3GnTnu3x7HQ/MhHqzk6QyjDd4GNCCXCO6ll8R9MtgzTFB
+         tn+A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=N/pL52fuDy805O1oezgAmGq/06s1o7MBJVwaW8uXKM0=;
-        fh=eKLxAHI1kEXJnmASUqXxhMzamyctcHinZN+YGC9B34M=;
-        b=D0sGqMdPMiJQ4PEgiLYtRhyriNhdpsdWb0Q1HzreAtzLIfihtgAB3HHEIIkdzt8LCw
-         SW8tq0mAVpjGG+PTJE8LaBZ1dvmPrS0l0Eq6kxmic/RMVkM/dGvacWLgeBFm8ESFJiKX
-         cCaqsuBw5YCBCiJtuBcKIUFud3BnBJVjIDHOdpJqA+Q3X6T96MTXoMLWdnxkEpe2W1sV
-         e3RWM3uN26nMrr5VpkVp84d6jguy8EvtgMI3ACJBuYIuCgp7d4tjGE6TkaWD1EATYcXr
-         rHlFUpv/6baC78f7fCET2WfR230/EDuoSwEok4X60Rjjbb3yhbTl/WAOa6Un2zLS2xkJ
-         e9yA==;
+        bh=zlp+b6aXAaDg8cECS2ZSmA7rI3yE9bTLJjk2dHCmIwE=;
+        fh=w1Sz+JN+NvP7CHGVdsVffdg22Ra0sIYIAHpFNXcWMVw=;
+        b=EO6fG6hccI0AifDWFKnFEjLShTEGGQZeC9VAjV99SnKP0pEfHG646uIfk9f28R6glP
+         JeTd46GJKfvHAk2C9jWB2In4iJFm6eUfIbhiNbUg8AGEwKlLjblNK+CHCIvYpJ11lj2D
+         d8fBHW9GxwtwERF1YwdQ5utOj6RbemejUxsCvcl8+4+fuItdDQITEfBFs2vVfDqhHUHs
+         d4yXThXmrZxFnlsXHjVWTjI+HjqIrIFEeN8EALQrdqOAaMC9lCOD9K759fbh75NER5UC
+         DPE/v8TyCIh/Kkun5K+u6schVwDigJaXJHB3huRlzA03sUX2obfkkUid3n5Vdao6vkWc
+         OWLA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794324524; x=1794929324; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794324842; x=1794929642; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=N/pL52fuDy805O1oezgAmGq/06s1o7MBJVwaW8uXKM0=;
-        b=dt4XSpXKWEC/lAY8Ij1wOS2+4YRasGVBXJlQicjWv1F3MuF7qz8m85ymapZS/ZE89T
-         GUqu0sQFEdRi4ssDsjt3QAm6UnBH6S8gsHQHT5KqpjGRPL7srRrIrD/D3fZjf6ixSj1m
-         ojvIQS6znvNR4BQU+3pDKM25w56hsCYVZ0BUppFlAivu1mHyJVSwUfcJhgFu7ShY2SZ6
-         5l+mNoptQWPgHT5NA8HIQGlRoRsG2uG81D+t/xt6c4VUxqgHyOxnuF2Hybzv/v4wot/s
-         /kqHpZdeCxUIxcTrQjSiCzHMJGzpNhAaH9CpaKtVDeO7EaeMCMYQOlYUcZE4MgY6EPNm
-         gSng==
+        bh=zlp+b6aXAaDg8cECS2ZSmA7rI3yE9bTLJjk2dHCmIwE=;
+        b=fLDtc0yGAEqSYzB4uSdd1JAwYpi+STBUzN1jhtPeOCecrjURdHE8PiEGPIE10Ae+qv
+         OfDN4d7rYaxL1EpxkejgK1Yy954mhaji1CtDg9AZAaVt+GFGcc8OPa8llzyJjIhtz1oY
+         WrwmJEyHySGLS0HHYR2KnOMWeQsHXDuBy7ZVXDs8MiFO642DgYFIAnN1ARElewaKSJSB
+         NHUOhEcbVavO1ADlfxcKihR7VwygfBBHr6HNKcbHDj5rKFDxUP8QHiQ1Sw8wBxvYkTEz
+         aBYCsBtAD+Qrk20zJFGONPUc5Ixh6JwanXx1y6+dKCXkjpl8LhZEabpPde/YeIceynsY
+         YNwg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794324524; x=1794929324;
+        d=1e100.net; s=20260707; t=1794324842; x=1794929642;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=N/pL52fuDy805O1oezgAmGq/06s1o7MBJVwaW8uXKM0=;
-        b=rH4ZnqDaLW+JjKDSurYpFm6Fvx2yD9UlHDSybz4oyAVFG4IuZM+1xuuMzsiD+5yNk9
-         baOpS3eHV5GxEYA8AzyJafab9mNT9hPibO+V9Nz/2auGWdMqt5Z5jpW/WKFWysR/+z+L
-         jdkc4K9s1DxjLIPrZCVBY+fLH1XwB/2ZtkbJsy+RISiipB9kOwrZ2agQp6EmkYtQ5Ijd
-         /NkTpWZfZUf1qZSEtTqAaoclHdVDpZTiF1gJQK3vexYHcmNUXaDfVZdbShYZigKwchIx
-         FVIK91eruGPQZT1cGLl8c08Ep6aJYHkAf4F5N9heuybS9WHdTSCU53y9ypHxNSAh3aSi
-         YoSg==
-X-Forwarded-Encrypted: i=1; AL+hErHV9B1OWCTLTdqWEy34MhMo+JnTDGZai/voNHkO7W/YoJZszw5G95pnFptKEpRsi2ZRoYbY0M1xtX7urzUD@vger.kernel.org
-X-Gm-Message-State: APuU4Z/tESAgNalzvCCCMkaX1UTUrRAHZOMh8J4X+gNpYA/hL7wd3YjE
-	d/EU5BjJE+qMCtN2+8L6MTWhjx3whWzltx7aO/s7KUHzrHnTazLITrEoM+Un2UuM6xXLPV4aQ8n
-	3AtB0UF1pF2Wk2BhXnBYgu0GyMBU0cDA=
-X-Gm-Gg: AYBFou0OkmvzFs2akX+iDN3x/x9QbYWkaDw6FWfacsTlBINYmXhEjJeAHrX0Gh2NKAs
-	ShO4YNMdlKBkqEakf97ccw6Za6xWaw2fRWhZGqR8hFX/AZWdKtqYlE2EQp8eWKC6G09NGEKNiNe
-	LmHyVIN6Zc7G5T4kNgw8WIiDDnu4WLsO48EwAHMsrK9afI2PLP53O1IEAuvJQinv9/OZdZkeLDa
-	67NJdD1k9kEPY4nGJ/Mf+UAQnUwM7QAUrTdP/0eAkzaGGEZflElCvXy6G2dLNMQNXbLumdDR/yQ
-	Dj4Fi6+FQk/gzrH3guxwwrJqq4Swk4e9xaLSI9Fx1SB+LeA72t/JvxEu+jQ/rUFHe/kWGovkEJB
-	gk7OS+tFtboyXjzO1whC6ECUmTiEIWvDyxNBsKlYe9ZPdivWBjbEYDKNs72f2jA0+kVxaXQ==
-X-Received: by 2002:aa7:d0c5:0:b0:6b1:b9e9:6cfe with SMTP id
- 4fb4d7f45d1cf-6b75721642amr1700577a12.14.1794324524002; Tue, 10 Nov 2026
- 07:28:44 -0800 (PST)
+        bh=zlp+b6aXAaDg8cECS2ZSmA7rI3yE9bTLJjk2dHCmIwE=;
+        b=l13u7f8qxxIxChfJmCyR3b8L6wXbUvVw5GlZrRUUwKqBS6REestvWAHGwHt9KAOBWy
+         cdniVK5fsQda3r+3+j2FfLr/u7OtxNVNCofgwFn/Ttm2uZ0vNXVej3N/YEzCKL13iNVK
+         MP9Cj82bbUQlK2QFg1ywKxO48K4zm8RORaN8/UXhw4scrRFdxX6fW2axXiEDuV090LSb
+         xUtKOwfuQS5wm0FcNfMty1noO2F9lwwCMSiN2V2mWfMzzlb3M9Sh1CjKdzOyEBSuNOpQ
+         mMx11QrNNUF7KqtR9U8aOVTwC6D5jPIYb7gI41ZG7Cr3H2rBFTnC1EXVIBGGe2LNYNtb
+         VTeA==
+X-Forwarded-Encrypted: i=1; AL+hErHCJ7iZrkJKX0o8047M88poBLI0zj62u44tKzvLmfnQD//6Kh8uRaXen3sFEwu/MxG6nGkv5ufNV5S4QCKs@vger.kernel.org
+X-Gm-Message-State: APuU4Z9q3tQbGXb3AtzGi2jYFcKGkVT+6ExnL/MKHkQ8uKwqKKpmc1jg
+	Yx95o5u4nD0U95ew2cWF3Y9gbZVawfQ/q+h2E1tc+qX0h8mF4/2bVqljareVPAC2XNk4gxzA/+x
+	Bt564OkaAsKjLadnGFO82g5sEHxsSV+Y=
+X-Gm-Gg: AYBFou2KzAsVUHpFr2gfgYsh3o/gkfquXIL+4aQ/zX9LbvEWWTJZMrBR1RNZZ2hxAdu
+	NBdPFo3Yfe6Cq/uHgdgbbxdi8vyjr1XF3Op/Kj/iyXlFBvT5u8pW6ImpoW+VlPohdnbQC/Tyo90
+	39il7T/GzZrvQP0Wpf9Zwscc+VXnqh8nSWp6U2yaOcvxC0E0MTI72yg7Gu/qk0QzBI8vYrRUd+f
+	B9Rdbi/KqXrenyGuD9c8ih3XDbCorr4QFUVhSP3DcOLgWQw02Jr/HrNyoPlrkO0XVJfsj/mNV/a
+	81oDGgeo5o0F6SXUAKNs7Cf7OB4x79s0jnlyWEkTRkYvGxEAqW/m7KHJOWLh3Zn0UjFd/T7p9TT
+	0lr+GLaP2RTlE4y0lsB0pempXYBVxENSbSCe86/cr8UtbLUOe0eQywXfQvVzV0olgW4tGew==
+X-Received: by 2002:aa7:cad8:0:b0:6b5:90b9:e1f4 with SMTP id
+ 4fb4d7f45d1cf-6b756503732mr1958212a12.15.1794324842006; Tue, 10 Nov 2026
+ 07:34:02 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -104,302 +104,393 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261110-ovl-impure-stale-v1-1-1a4c2039e89d@samsung.com>
-In-Reply-To: <20261110-ovl-impure-stale-v1-1-1a4c2039e89d@samsung.com>
+References: <20261110-ovl077-stale-next-v1-1-948a5a434ae2@samsung.com>
+In-Reply-To: <20261110-ovl077-stale-next-v1-1-948a5a434ae2@samsung.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 10 Nov 2026 16:28:32 +0100
-X-Gm-Features: AclHuK_ARv3jHUu-hk69apU85BgeSLTjG62PZe0bEwlU6YBkA1bnmg3heLSI8k4
-Message-ID: <CAOQ4uxgxYZqE=rv5ZYrbyB0cYi_qS-bv_4UCbDwGJoMGg1iNhQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: skip stale entries in impure dir iteration
+Date: Tue, 10 Nov 2026 16:33:50 +0100
+X-Gm-Features: AclHuK8tKVN6oJ1ZVdLK5C5uF2bVbWTbU-1nULInPwTlctPriCZ11xIRhtV4rRY
+Message-ID: <CAOQ4uxgxzee1dqLcYHPWFhkcAxP_WRrJn5DiiL9mB0ZjC83vbQ@mail.gmail.com>
+Subject: Re: [PATCH] overlay/077: check a stale entry in an impure dir on any
+ hash seed
 To: daejun7.park@samsung.com
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Hungyu Lin <dennylin0707@gmail.com>, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Theodore Tso <tytso@mit.edu>
+Cc: fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Hungyu Lin <dennylin0707@gmail.com>, 
+	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 10, 2026 at 9:03=E2=80=AFAM Daejun Park via B4 Relay
+On Tue, Nov 10, 2026 at 9:04=E2=80=AFAM Daejun Park via B4 Relay
 <devnull+daejun7.park.samsung.com@kernel.org> wrote:
 >
 > From: Daejun Park <daejun7.park@samsung.com>
 >
-> ext4 returns the entry that did not fit in the previous getdents buffer
-> first in the next call, even after it was unlinked. The rebuilt impure
-> cache no longer has it. ovl_fill_real() then reports its upper inode
-> number. overlay/077 hits this.
+> overlay/077 already fails on a stale entry in an impure upper dir, but
+> only when the dir hash order puts the removed file where ext4 keeps it
+> between getdents calls. ext4 returns the entry that did not fit in the
+> previous buffer first in the next call, even after it was removed.
 >
-> Remember the entry that did not fit and look it up before the next
-> call. Skip it if it is gone, as commit 9011c2791e63 ("ovl: skip stale
-> entries in merge dir cache iteration") does for merge dirs.
+> Add a bare "-" and a bare "=3D" argument to t_dir_offset2. They remove or
+> recreate the entry the next getdents call returns first. The old fd may
+> list a recreated name with the st_ino of the old or the new file.
+
+That's a very cool improvement for the test util, but I don't want
+to fix this behavior in overlayfs so only if ext4 fix is planned would this
+test be relevant.
+
 >
-> Fixes: 4edb83bb1041 ("ovl: constant d_ino for non-merge dirs")
-> Reported-by: Hungyu Lin <dennylin0707@gmail.com>
-> Closes: https://lore.kernel.org/linux-unionfs/CAGEkeHcg06kHshHQ=3D9U6Yrs_=
-wm8W9H28o9bcC2Qh3fw3tANbWA@mail.gmail.com/
+> Use both on a new impure dir that only has entries with origin. The
+> existing impure dir also has o0, which has no origin. If the next entry
+> is o0, its d_ino is the same whether it is stale or not, and the case
+> is not checked.
+>
+> With an ext4 upper, overlay/077 now fails on every hash seed until the
+> kernel fix "ovl: skip stale entries in impure dir iteration" is applied.
+>
+> Link: https://lore.kernel.org/linux-unionfs/CAGEkeHcg06kHshHQ=3D9U6Yrs_wm=
+8W9H28o9bcC2Qh3fw3tANbWA@mail.gmail.com/
 > Signed-off-by: Daejun Park <daejun7.park@samsung.com>
 > ---
-> With the fstests change "overlay/077: check a stale entry in an impure
-> dir on any hash seed", overlay/077 fails on 3 of 3 random ext4 hash
-> seeds before and passes after, also with index=3Don,nfs_export=3Don. The
-> test checks both a removed and a recreated next entry. overlay/quick on
-> xfs passes.
->
-> Not covered: names on the same hash collision chain as the entry that
-> did not fit also come from the cached tree. A removed entry with origin
-> there is still listed with its upper inode number, as before this patch.
-> ---
->  fs/overlayfs/readdir.c | 120 +++++++++++++++++++++++++++++++++++++++++++=
-++++--
->  1 file changed, 117 insertions(+), 3 deletions(-)
+> Please hold this patch until the kernel fix is accepted. With this
+> change, overlay/077 fails on every ext4 run of a kernel without it.
+> The fix is "ovl: skip stale entries in impure dir iteration":
+> https://lore.kernel.org/linux-unionfs/20261110-ovl-impure-stale-v1-1-1a4c=
+2039e89d@samsung.com/
 
-Daejun,
+Sorry but I am not planning to take this fix.
 
-I am sorry, but this is way too complex to deal with a problem which
-is not important enough IMO.
-
-POSIX does not define the exact behavior of readdir of a directory
-being changed in this way and I don't think that the current behavior
-of ext or overlayfs+ext4 is a gross violation of POSIX or that it could
-break applications.
-
-I would be happy to be proven otherwise.
-
-If anything should be fixed then it would be ext4 and not overlayfs
-which just relays the stale entry that it gets from ext4.
-
-The only thing to deal with is the spurious overlay/077 failures.
-I will address this issue in the test patch review.
+For the problem of spurious test failure, I suggest to relax the expectatio=
+n
+for the first entry in the buffer or to fix ext4 to avoid emitting the stal=
+e
+entry.
 
 Thanks,
 Amir.
 
-
+> ---
+>  src/t_dir_offset2.c | 126 ++++++++++++++++++++++++++++++++++++++++++++++=
++++---
+>  tests/overlay/077   |  25 ++++++++++-
+>  2 files changed, 143 insertions(+), 8 deletions(-)
 >
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index 4cd4af097e5c..0ebc4fe477b7 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -58,10 +58,25 @@ struct ovl_readdir_data {
->         bool in_xwhiteouts_dir;
->  };
+> diff --git a/src/t_dir_offset2.c b/src/t_dir_offset2.c
+> index 026bc8f3..621255e6 100644
+> --- a/src/t_dir_offset2.c
+> +++ b/src/t_dir_offset2.c
+> @@ -10,6 +10,7 @@
 >
-> +/*
-> + * An impure dir entry with origin that the caller of the previous getde=
-nts
-> + * did not take. The real dir may return it first in the next call, even
-> + * after it was removed or replaced.
-> + */
-> +struct ovl_dir_next {
-> +       u64 version;            /* dir version when it was refused */
-> +       u64 real_ino;
-> +       u64 ino;                /* d_ino to report */
-> +       bool gone;              /* removed since, skip it */
-> +       int len;
-> +       char name[];
-> +};
-> +
->  struct ovl_dir_file {
->         bool is_real;
->         bool is_upper;
->         struct ovl_dir_cache *cache;
-> +       struct ovl_dir_next *next;
->         struct list_head *cursor;
->         struct file *realfile;
->         struct file *upperfile;
-> @@ -413,6 +428,8 @@ static void ovl_dir_reset(struct file *file)
->                 od->cache =3D NULL;
->                 od->cursor =3D NULL;
->         }
-> +       kfree(od->next);
-> +       od->next =3D NULL;
->         is_real =3D ovl_dir_is_real(inode);
->         if (od->is_real !=3D is_real) {
->                 /* is_real can only become false when dir is copied up */
-> @@ -767,6 +784,10 @@ static struct ovl_dir_cache *ovl_cache_get_impure(st=
-ruct file *file)
->  struct ovl_readdir_translate {
->         struct dir_context *orig_ctx;
->         struct ovl_dir_cache *cache;
-> +       struct ovl_dir_next *next;              /* refused before */
-> +       struct ovl_cache_entry *refused;        /* refused in this call *=
-/
-> +       u64 refused_ino;                        /* its d_ino from the rea=
-l dir */
-> +       bool next_refused;
->         struct dir_context ctx;
->         u64 parent_ino;
->         int fsid;
-> @@ -781,13 +802,24 @@ static bool ovl_fill_real(struct dir_context *ctx, =
-const char *name,
->         struct ovl_readdir_translate *rdt =3D
->                 container_of(ctx, struct ovl_readdir_translate, ctx);
->         struct dir_context *orig_ctx =3D rdt->orig_ctx;
-> +       struct ovl_dir_next *next =3D rdt->next;
-> +       struct ovl_cache_entry *p =3D NULL;
-> +       u64 real_ino =3D ino;
-> +       bool is_next =3D false;
->         bool res;
+>  #include <errno.h>
+>  #include <fcntl.h>
+> +#include <limits.h>
+>  #include <stdio.h>
+>  #include <unistd.h>
+>  #include <stdint.h>
+> @@ -31,13 +32,63 @@ struct linux_dirent64 {
 >
-> -       if (rdt->parent_ino && name_is_dotdot(name, namelen)) {
-> +       if (next && next->real_ino =3D=3D ino && next->len =3D=3D namelen=
- &&
-> +           !memcmp(next->name, name, namelen)) {
-> +               /* Looked up before this call if the dir changed */
-> +               if (next->gone) {
-> +                       rdt->next =3D NULL;
-> +                       return true;
-> +               }
-> +               ino =3D next->ino;
-> +               is_next =3D true;
-> +       } else if (rdt->parent_ino && name_is_dotdot(name, namelen)) {
->                 ino =3D rdt->parent_ino;
->         } else if (rdt->cache) {
-> -               struct ovl_cache_entry *p;
-> -
->                 p =3D ovl_cache_entry_find(&rdt->cache->root, name, namel=
-en);
->                 if (p)
->                         ino =3D p->ino;
-> @@ -798,10 +830,63 @@ static bool ovl_fill_real(struct dir_context *ctx, =
-const char *name,
+>  static uint64_t d_off_history[HISTORY_LEN];
+>  static uint64_t d_ino_history[HISTORY_LEN];
+> +static char next_name[NAME_MAX + 1];
 >
->         res =3D orig_ctx->actor(orig_ctx, name, namelen, offset, ino, d_t=
-ype);
->         ctx->count =3D orig_ctx->count;
-> +       if (!res) {
-> +               if (is_next) {
-> +                       rdt->next_refused =3D true;
-> +               } else {
-> +                       rdt->refused =3D p;
-> +                       rdt->refused_ino =3D real_ino;
-> +               }
-> +       }
->
->         return res;
+>  void usage()
+>  {
+>         fprintf(stderr, "usage: t_dir_offset2: <dir> [[bufsize] [-|+]<fil=
+ename> [-v]]\n");
+> +       fprintf(stderr, "       t_dir_offset2: <dir> bufsize -|=3D [-v]\n=
+");
+> +       fprintf(stderr, "  a bare - removes, a bare =3D recreates, the en=
+try\n"
+> +                       "  the next getdents returns\n");
+>         exit(EXIT_FAILURE);
 >  }
 >
 > +/*
-> + * The dir changed since the previous call refused this entry. Look the =
-name
-> + * up as ovl_cache_update() does, and report what stat() would return no=
-w.
+> + * Find the entry that the next getdents call on fd returns first: read =
+one
+> + * entry from a second fd at the same offset. ext4 with a hashed dir kee=
+ps
+> + * the entry that did not fit in the previous buffer and returns it in t=
+he
+> + * next call even after it was removed, so removing or recreating this
+> + * entry gets a stale entry on any hash seed.
 > + */
-> +static int ovl_dir_next_update(const struct path *path,
-> +                              struct ovl_dir_next *next)
+> +static int find_next_entry(const char *dir, int fd)
 > +{
-> +       struct path statpath =3D *path;
-> +       struct dentry *this;
-> +       struct kstat stat;
-> +       int err =3D 0;
+> +       char buf[BUF_SIZE];
+> +       struct linux_dirent64 *d;
+> +       off_t off =3D lseek(fd, 0, SEEK_CUR);
+> +       int fd3, nread, bpos;
 > +
-> +       this =3D lookup_one(mnt_idmap(path->mnt), &QSTR_LEN(next->name, n=
-ext->len),
-> +                         path->dentry);
-> +       if (IS_ERR(this))
-> +               return PTR_ERR(this);
-> +       if (!this->d_inode) {
-> +               next->gone =3D true;
-> +       } else {
-> +               statpath.dentry =3D this;
-> +               err =3D vfs_getattr(&statpath, &stat, STATX_INO, 0);
-> +               if (!err)
-> +                       next->ino =3D stat.ino;
+> +       if (off =3D=3D -1) {
+> +               perror("lseek");
+> +               return -1;
 > +       }
-> +       dput(this);
-> +       return err;
-> +}
-> +
-> +static struct ovl_dir_next *ovl_dir_next_new(struct ovl_cache_entry *p,
-> +                                            u64 real_ino, u64 version)
-> +{
-> +       struct ovl_dir_next *next;
-> +
-> +       next =3D kmalloc_flex(*next, name, p->len);
-> +       if (!next)
-> +               return NULL;
-> +       next->version =3D version;
-> +       next->real_ino =3D real_ino;
-> +       next->ino =3D p->ino;
-> +       next->gone =3D false;
-> +       next->len =3D p->len;
-> +       memcpy(next->name, p->name, p->len);
-> +       return next;
-> +}
-> +
->  static bool ovl_is_impure_dir(struct file *file)
->  {
->         struct ovl_dir_file *od =3D file->private_data;
-> @@ -863,9 +948,32 @@ static int ovl_iterate_real(struct file *file, struc=
-t dir_context *ctx)
->                         return PTR_ERR(rdt.cache);
->         }
->
-> +       /* Even if no longer impure: od->next was its last origin entry *=
-/
-> +       if (od->next) {
-> +               u64 version =3D ovl_inode_version_get(d_inode(dir));
-> +
-> +               if (od->next->version !=3D version) {
-> +                       err =3D ovl_dir_next_update(&file->f_path, od->ne=
-xt);
-> +                       if (err)
-> +                               return err;
-> +                       od->next->version =3D version;
+> +       fd3 =3D open(dir, O_RDONLY | O_DIRECTORY);
+> +       if (fd3 < 0) {
+> +               perror("open");
+> +               return -1;
+> +       }
+> +       if (lseek(fd3, off, SEEK_SET) !=3D off) {
+> +               perror("lseek");
+> +               close(fd3);
+> +               return -1;
+> +       }
+> +       while ((nread =3D syscall(SYS_getdents64, fd3, buf, sizeof(buf)))=
+ > 0) {
+> +               for (bpos =3D 0; bpos < nread; bpos +=3D d->d_reclen) {
+> +                       d =3D (struct linux_dirent64 *) (buf + bpos);
+> +                       if (!strcmp(d->d_name, ".") || !strcmp(d->d_name,=
+ ".."))
+> +                               continue;
+> +                       snprintf(next_name, sizeof(next_name), "%s", d->d=
+_name);
+> +                       close(fd3);
+> +                       return 0;
 > +               }
-> +               rdt.next =3D od->next;
 > +       }
+> +       if (nread < 0)
+> +               perror("getdents");
+> +       else
+> +               fprintf(stderr, "no entry after the first getdents\n");
+> +       close(fd3);
+> +       return -1;
+> +}
 > +
->         err =3D iterate_dir(od->realfile, &rdt.ctx);
->         ctx->pos =3D rdt.ctx.pos;
->
-> +       if (!rdt.next_refused) {
-> +               u64 version =3D ovl_inode_version_get(d_inode(dir));
-> +
-> +               kfree(od->next);
-> +               od->next =3D NULL;
-> +               if (rdt.refused)
-> +                       od->next =3D ovl_dir_next_new(rdt.refused,
-> +                                                   rdt.refused_ino, vers=
-ion);
-> +       }
-> +
->         return err;
->  }
->
-> @@ -908,6 +1016,7 @@ static int ovl_iterate_merged(struct file *file, str=
-uct dir_context *ctx)
->
->  static bool ovl_need_adjust_d_ino(struct file *file)
+>  int main(int argc, char *argv[])
 >  {
-> +       struct ovl_dir_file *od =3D file->private_data;
->         struct dentry *dentry =3D file->f_path.dentry;
->         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct dentry *parent;
-> @@ -925,6 +1034,10 @@ static bool ovl_need_adjust_d_ino(struct file *file=
-)
->         if (ovl_is_impure_dir(file))
->                 return true;
+>         int fd, fd2 =3D -1;
+> @@ -50,7 +101,8 @@ int main(int argc, char *argv[])
+>         int retval =3D EXIT_SUCCESS;
+>         const char *filename =3D NULL;
+>         int exists =3D 0, found =3D 0;
+> -       int modify =3D 0, verbose =3D 0;
+> +       int modify =3D 0, verbose =3D 0, next =3D 0, recreate =3D 0;
+> +       uint64_t old_ino =3D 0;
 >
-> +       /* An entry the previous call refused may still need adjusting */
-> +       if (od->next)
-> +               return true;
-> +
->         /* If parent is merge, then need to adjust d_ino for '..' */
->         parent =3D dget_parent(dentry);
->         type =3D ovl_path_type(parent);
-> @@ -1073,6 +1186,7 @@ static int ovl_dir_release(struct inode *inode, str=
-uct file *file)
->                 ovl_cache_put(od, inode);
->                 inode_unlock(inode);
+>         if (argc > 2) {
+>                 bufsize =3D atoi(argv[2]);
+> @@ -61,13 +113,21 @@ int main(int argc, char *argv[])
+>
+>                 if (argc > 3) {
+>                         filename =3D argv[3];
+> -                       /* +<filename> creates, -<filename> removes */
+> +                       /*
+> +                        * +<filename> creates, -<filename> removes, a ba=
+re -
+> +                        * removes and a bare =3D recreates the entry tha=
+t the
+> +                        * next getdents returns
+> +                        */
+>                         if (filename[0] =3D=3D '+')
+>                                 modify =3D 1;
+>                         else if (filename[0] =3D=3D '-')
+>                                 modify =3D -1;
+> +                       else if (!strcmp(filename, "=3D"))
+> +                               modify =3D recreate =3D 1;
+>                         if (modify)
+>                                 filename++;
+> +                       if ((modify < 0 || recreate) && !filename[0])
+> +                               next =3D 1;
+>                         if (argc > 4 && !strcmp(argv[4], "-v"))
+>                                 verbose =3D 1;
+>                 }
+> @@ -81,7 +141,7 @@ int main(int argc, char *argv[])
+>                 exit(EXIT_FAILURE);
 >         }
-> +       kfree(od->next);
->         fput(od->realfile);
->         if (od->upperfile)
->                 fput(od->upperfile);
+>
+> -       if (filename) {
+> +       if (filename && !next) {
+>                 exists =3D !fstatat(fd, filename, &st, AT_SYMLINK_NOFOLLO=
+W);
+>                 if (!exists && errno !=3D ENOENT) {
+>                         perror("fstatat");
+> @@ -100,8 +160,52 @@ int main(int argc, char *argv[])
+>                 if (modify && fd2 < 0 && total =3D=3D 0) {
+>                         printf("getdents at offset 0 returned %d bytes\n"=
+, nread);
+>
+> -                       /* create/unlink entry after first getdents */
+> -                       if (modify > 0) {
+> +                       if (next) {
+> +                               if (find_next_entry(argv[1], fd))
+> +                                       exit(EXIT_FAILURE);
+> +                               filename =3D next_name;
+> +                       }
+> +
+> +                       /* create/unlink/recreate entry after first getde=
+nts */
+> +                       if (recreate) {
+> +                               /*
+> +                                * Keep the old inode open so that the ne=
+w file
+> +                                * cannot get its inode number. The old f=
+d may
+> +                                * still list the old file with its old s=
+t_ino.
+> +                                */
+> +                               int flags =3D O_PATH | O_NOFOLLOW;
+> +                               int ofd =3D openat(fd, filename, flags);
+> +                               struct stat ost;
+> +                               int nfd;
+> +
+> +                               if (ofd < 0) {
+> +                                       perror("openat");
+> +                                       exit(EXIT_FAILURE);
+> +                               }
+> +                               if (fstat(ofd, &ost) < 0) {
+> +                                       perror("fstat");
+> +                                       exit(EXIT_FAILURE);
+> +                               }
+> +                               old_ino =3D ost.st_ino;
+> +                               if (unlinkat(fd, filename, 0) < 0) {
+> +                                       perror("unlinkat");
+> +                                       exit(EXIT_FAILURE);
+> +                               }
+> +                               nfd =3D openat(fd, filename, O_CREAT | O_=
+EXCL,
+> +                                            0600);
+> +                               if (nfd < 0) {
+> +                                       perror("openat");
+> +                                       exit(EXIT_FAILURE);
+> +                               }
+> +                               if (fstat(nfd, &st) < 0) {
+> +                                       perror("fstat");
+> +                                       exit(EXIT_FAILURE);
+> +                               }
+> +                               close(nfd);
+> +                               close(ofd);
+> +                               exists =3D 1;
+> +                               printf("recreated entry %s\n", filename);
+> +                       } else if (modify > 0) {
+>                                 if (openat(fd, filename, O_CREAT, 0600) <=
+ 0) {
+>                                         perror("openat");
+>                                         exit(EXIT_FAILURE);
+> @@ -109,6 +213,11 @@ int main(int argc, char *argv[])
+>                                 exists =3D 1;
+>                                 printf("created entry %s\n", filename);
+>                         } else if (modify < 0) {
+> +                               if (next && fstatat(fd, filename, &st,
+> +                                                   AT_SYMLINK_NOFOLLOW))=
+ {
+> +                                       perror("fstatat");
+> +                                       exit(EXIT_FAILURE);
+> +                               }
+>                                 if (unlinkat(fd, filename, 0) < 0) {
+>                                         perror("unlinkat");
+>                                         exit(EXIT_FAILURE);
+> @@ -164,8 +273,13 @@ int main(int argc, char *argv[])
+>                                                i, d->d_name, (long long i=
+nt)d->d_ino,
+>                                                (long long int)d->d_off);
+>                                 if (!strcmp(filename, d->d_name)) {
+> +                                       /* the old fd may list it stale *=
+/
+> +                                       int stale =3D fd !=3D fd2 && old_=
+ino &&
+> +                                                   d->d_ino =3D=3D old_i=
+no;
+> +
+>                                         found =3D 1;
+> -                                       if (st.st_ino && d->d_ino !=3D st=
+.st_ino) {
+> +                                       if (!stale && st.st_ino &&
+> +                                           d->d_ino !=3D st.st_ino) {
+>                                                 fprintf(stderr, "entry %s=
+ has inconsistent d_ino (%lld !=3D %lld)\n",
+>                                                                 filename,
+>                                                                 (long lon=
+g int)d->d_ino,
+> diff --git a/tests/overlay/077 b/tests/overlay/077
+> index 00de0825..6426bc26 100755
+> --- a/tests/overlay/077
+> +++ b/tests/overlay/077
+> @@ -9,6 +9,7 @@
+>  # This is a regression test for kernel commits:
+>  # 65cd913ec9d9 ("ovl: invalidate readdir cache on changes to dir with or=
+igin")
+>  # 9011c2791e63 ("ovl: skip stale entries in merge dir cache iteration")
+> +# xxxxxxxxxxxx ("ovl: skip stale entries in impure dir iteration")
+>  #
+>  . ./common/preamble
+>  _begin_fstest auto quick dir
+> @@ -20,6 +21,8 @@ _fixed_by_kernel_commit 65cd913ec9d9 \
+>         "ovl: invalidate readdir cache on changes to dir with origin"
+>  _fixed_by_kernel_commit 9011c2791e63 \
+>         "ovl: skip stale entries in merge dir cache iteration"
+> +_fixed_by_kernel_commit xxxxxxxxxxxx \
+> +       "ovl: skip stale entries in impure dir iteration"
+>
+>  _require_scratch_nocheck
+>
+> @@ -40,16 +43,20 @@ create_files() {
+>  _scratch_mkfs
+>
+>  # Create test area with a merge dir, a "former" merge dir,
+> -# a pure upper dir and impure upper dir. For each case, overlayfs
+> +# a pure upper dir and two impure upper dirs. For each case, overlayfs
+>  # readdir cache is used a bit differently.
+>  lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+>  upperdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>
+> -mkdir -p $lowerdir/merge $lowerdir/former $upperdir/pure $upperdir/impur=
+e
+> +mkdir -p $lowerdir/merge $lowerdir/former $upperdir/pure $upperdir/impur=
+e \
+> +       $upperdir/impure2
+>  # Lower files in merge dir are listed first
+>  create_files $lowerdir/merge m
+>  # Files to be moved into impure upper dir
+>  create_files $lowerdir o
+> +# Files to be moved into another impure upper dir, which only has entrie=
+s
+> +# with origin
+> +create_files $lowerdir n
+>  # File to be moved into former merge dir to make it impure
+>  touch $lowerdir/f100
+>
+> @@ -61,6 +68,7 @@ create_files $SCRATCH_MNT/former f
+>  touch $SCRATCH_MNT/merge/m100
+>  # Move copied up files so readdir will need to lookup origin d_ino
+>  mv $SCRATCH_MNT/o* $SCRATCH_MNT/impure/
+> +mv $SCRATCH_MNT/n* $SCRATCH_MNT/impure2/
+>  mv $SCRATCH_MNT/f100 $SCRATCH_MNT/former/
+>
+>  # Remove the lower directory and mount overlay again to create
+> @@ -84,6 +92,19 @@ $here/src/t_dir_offset2 $SCRATCH_MNT/impure $bufsize "=
++o0" 2>&1 >> $seqres.full
+>  echo -e "\nRemove file in impure upper dir:" >> $seqres.full
+>  $here/src/t_dir_offset2 $SCRATCH_MNT/impure $bufsize  "-o100" 2>&1 >> $s=
+eqres.full || \
+>         echo "Found unlinked file in impure upper dir (see $seqres.full f=
+or details)"
+> +# Remove the entry that the next getdents call returns first. An ext4 up=
+per
+> +# with a hashed dir returns it even after it was removed, so this checks=
+ the
+> +# stale entry case on every hash seed, not only when ext4 happens to kee=
+p the
+> +# removed file.
+> +echo -e "\nRemove next file in impure upper dir:" >> $seqres.full
+> +$here/src/t_dir_offset2 $SCRATCH_MNT/impure2 $bufsize "-" 2>&1 >> $seqre=
+s.full || \
+> +       echo "Found unlinked next file in impure upper dir (see $seqres.f=
+ull for details)"
+> +# Recreate the entry that the next getdents call returns first. A new fd
+> +# must list the name with the d_ino of the new file. The old fd may list=
+ it,
+> +# with the d_ino of the old or the new file.
+> +echo -e "\nRecreate next file in impure upper dir:" >> $seqres.full
+> +$here/src/t_dir_offset2 $SCRATCH_MNT/impure2 $bufsize "=3D" 2>&1 >> $seq=
+res.full || \
+> +       echo "Missing recreated next file in impure upper dir (see $seqre=
+s.full for details)"
+>
+>  # Check readdir cache invalidate on merge dir
+>  echo -e "\nCreate file in merge dir:" >> $seqres.full
 >
 > ---
-> base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
-> change-id: 20261110-ovl-impure-stale-af33421a0977
+> base-commit: d07dca72d2455f4ba8c660ad4c008541ccccb707
+> change-id: 20261110-ovl077-stale-next-af1a98ce7151
 >
 > Best regards,
 > --
