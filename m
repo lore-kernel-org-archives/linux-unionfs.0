@@ -1,88 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.169
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.180
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794320703;
-	b=b1B95Tr946lH2wQLxWTgXYLK2+sL+U2Sb/BecwRL8aTpgsRfOAgDFkYXZbin3v1MIK+Z
-	 XlNmcAOqDIxpWowOq8HUzcl14Af4jiKgHYbjb0bCWchdpnGGApfdIxTOUJZVCYUoGjEhA
-	 4r5h31RBc4EvgBbT6mSnwBJ6Iwmd4br78wfcQ0+ifACMnj1n5Qxd/BrFDw7ipjgNA0ndV
-	 z2/sRyaKiliSsOWdf/cHH4PXpMu6C0uWnCXhmhIGwkER4Jot3N1BgwDgWfhpc6vYPALm6
-	 qbx4rdpgXJucBtAWbVPY0GSXJfmNREhLg61sG8bTUsSHlRwkXrT+OVZ3SEMpa4dkIuA==
+	b=txwH7vu0hBjU+EsTP0ffQb1pJu/j5ogZG31WD6G8ogQblrD1QCwWC22qN1/MztQavDzj
+	 OWq0HXq/8Td5F0toz4vCvMiS/ls0GRcf1nmwn3OVHru55Wyw40g3iyqN4NUPewV8JFmjr
+	 RcXtbySeQZ3WVHr6wv/PIl80JqYk6MZ33JeSF1ktlnxAnUIbA7dDVfNOjUs2yaIFZpS7Y
+	 4lO5RZHGODTFSsoVWyheOz6abZXVlfLzkfq7Nl6vB0NEdf/I4fok0K8IWtDB/vqEmZPJE
+	 DmfuZ616oCXnHeSLD0/5ophj38o/kVeuR8mCeTDEjNlc8epOiZkdKSy5PKbkqVJqigw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794320703;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:Subject:Date:Message-Id:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key;
-	bh=uitfk2/X4CWt6/0sIDAHZXqbT86JClnlrGBcisyK0Co=;
-	b=GE6IdsQG3vTlKnXV6kFLc9puZzqz3qpRq6tvGaOQ7UVxdNJnQZMkY7bpvi+a1nkXay/C
-	 tYhXc8DWGuROyl5fHLrNSMQZYnKrmcjK0gMk5H8feL+zkCgrF72xgknJmSW4iwCSwhnLT
-	 VQT84LRaII/coRrkqAlyxE7f6KclU9M2o4pyx/CEMZ2p1RaY1oc+rsmMjR6yUfBZYZA5E
-	 +nTBfR3LGjJmawBsVhOAHM9g4qCJ+SlZ+ZqpoxXbXc66VisR4Ncg22ysrFZInC1upnC8u
-	 u8Zep5Di9hdcVUlxm7Y60JGcWDSnOEyj+16qsnJx10MLtMfWoajUBQiI2bQpeUd50jQ==
+	bh=R22Hkg58AODA+U2Qc/D03rkLftDWo9zEEkg5H+BLiYE=;
+	b=EjnDe/RwGpzyxDgoySc8H/eXaZ5FvicCojlZPU+N7/QN26m0sqMPaceNDal2iRKIWWQ/
+	 RKei18Q+wJrqOzyk1Jf9qEFpg+edMWMflVFKV2NH+iTEzzYwQ1UpA9ZN4zSlP7xxnZ6gZ
+	 cv/yvS+Wg6pPtDqDm34kRcvg3XItYzKIClzuYbgx5YInoPC38miw6hHO/6ttkp5b2fJex
+	 bYxlaBQFpiVCYwd+yV+c7ia/uqjCOxZz9CbjfDhAe1y41GaPCbSN6Od6YfliS5qT6Akmv
+	 rojf1QE4oS2jETwqTdgnqG4nmBxVEXHww1S7aBwCwkC6hOEP8TqNgHYFq5qVWggG2MQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=toxicpanda.com;
 	spf=pass smtp.mailfrom=toxicpanda.com;
-	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=dlwF12Yu;
-	arc=none smtp.remote-ip=209.85.160.169
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=m9dcg7lY;
+	arc=none smtp.remote-ip=209.85.222.180
+Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9325F606A321
-	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 14:25:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9325F606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 637CF606A32E
+	for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 14:25:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 637CF606A32E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=dlwF12Yu
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-53bb57f1310so22524611cf.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 06:25:02 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=m9dcg7lY
+Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-93e55db58cfso181222985a.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Nov 2026 06:25:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toxicpanda.com; s=google; t=1794320701; x=1794925501; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=uitfk2/X4CWt6/0sIDAHZXqbT86JClnlrGBcisyK0Co=;
-        b=dlwF12YuU0vn27rCv6GUvUF8Ehncd1Q/9lDcltMfWKd85hscEEqyQ6RM0Iyrbc1iwn
-         JAJiMmol0n/Xkk22t8S9foNgetF6LO01gWji+GcHrnhnZ9KRYPSl2BUbiTgDQj9k+vuz
-         WBDjclD0eG8G3GjbNIZNCBy2mlnxfSGuLZYq/M4AvHDcjQFbO0WZ6cY07y4kNq1ZGd2d
-         5DFtfv6GGdA4KEkheZxRr+OU5QFZuzk5MxEBfnrHuZ7DreNv7QfWfxIk0+yth5eHNyMW
-         Yd2gvKzL+pKnqMRWHL/9kUx1zLqFyBS2N2dTaOi+/tN9xYoF4tt7L0w2M0w97jdoNxCU
-         IoCw==
+        d=toxicpanda.com; s=google; t=1794320702; x=1794925502; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=R22Hkg58AODA+U2Qc/D03rkLftDWo9zEEkg5H+BLiYE=;
+        b=m9dcg7lYw2j0Gn0bjWJXx5ahK8PPygaG2i9eQO0Rbd5wor+RZk8Iu6WYo+oP5M9rsG
+         ZU16MioHADTK17g8/xnonY7+i/5TbcmtfZdRrj1UTb/y4MayNuqy6J+kdzMXjGh4GH4X
+         T086YMRx7PEnHemv09D5uFoAiTPX9Ch/qPEeae9mpfVHYY4H+NvXROvmwDmKxoxTNx8y
+         pVk+YK5+ArHkh+gkX8yGkql0vgL5dmzc/DZX94q2oW5oYh7+8fVL/KUS33b+sy9Uw1vh
+         JgVsh3SsBCThCNObHsbfDOt/5Vfu5wmjGERiwr6W2cwaCSosXJhDVQ7KgvEBp5t3bVor
+         sSsw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794320701; x=1794925501;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=uitfk2/X4CWt6/0sIDAHZXqbT86JClnlrGBcisyK0Co=;
-        b=kmJDUhMkmRzFL1zD2ovpM2nwlPn2IB2BKMCmdfhCmch3ZJLiuU96BdiP0h5DMfLD5b
-         +d/K/0Oc69aH5Xj1BzgSUmKIy/IKlM6HgTOzTeOLstm4pqO4qsn8xEo3+dlZzbx2/u22
-         rgqlA7ooPp1Q9VshDX6wG5I+k6NdbuoQRykymgr7pRfRIoTrOdQA+g2UjgipO+xflxgD
-         6zBj7eCZRiqo5JRqlRPBqz9XpEAQVRcTaQ5xrpRqcwY1YTml7DOBP2sWV1MEG/ulRuII
-         9oPl0PEglpbS0mUpyCWeBV1vpqxywW38k3QZuRd23GaX013KUmEJbnKkdh6IW+8rBmcv
-         r/sg==
-X-Forwarded-Encrypted: i=1; AL+hErHPjmBq4jjLS9dq46PqVyz9VEQlm3vnKjM0CYrggmQXFjJ4eDrc354ts8c1CUkE45/358SjA0wgoLCv9Prf@vger.kernel.org
-X-Gm-Message-State: APuU4Z9Jf9pnV7w7gy1DrerR1CdhaUVbqt7BVadauFU9N0nNoAJaP2wh
-	CjkhmcwpNWmADxOVnR5pgSxBixAxnQ+Y2B0VF4tPkx9XndLrWMJYWC2Qi68d4sDqGIY=
-X-Gm-Gg: AYBFou2uoGdZRnY3m33+33tdUx7xTJGybBRFy721L5w+xWsi428CWN/C5pilbNlVNcE
-	gsRPtFG/a8dld7EXi1hn1LcrmDMrQkbG4N1dnKHHAH9++QMbkt2m3AKLudLHdfROnyG/pMNTcU9
-	89eJ0mAes02pPXrq8qZ4dyifMs0K8BVvP/NWg2yvR7ODaDaQEMgsziafFixDYrHlkYPljSLrzlR
-	hfRYonwtwaV93oPwWIDHKhlv2CbgTmKxt6J7Zs2kPjHzsjsNUN93QLu+Nfbbny7CS5DudVEjvDf
-	rwj8rLYqkXdo5fbx4BCOVoNS4yL7zfmfvlpnaToZ6uOb3SQZ2vNB9W5NJisXlq4jkiQy0O4ohbX
-	6x5S6OBYuHnR+T5Q9SqJFKR+UUnJ6y4E4MGWgNKEnOdJSiDVaUkXkYX/QdRZBJesENrH0KlO7Pi
-	GOmPS4IOyxdS/JmI+S7abeln9JaOGA1mPvBiaE7BzW+5idHbVI6139afy+ApSIF+VvJufW0d3at
-	CCVmyBqcQhUXRQPiotefhF0VsY1vtQbgwX6NfQKBLz6aAD/SP73Moxx6ePsL0RusM27FNrI/Vco
-	yDG3As3adRdvYTv480HLRDmPHoFbd+m4S2nQdVsTJmg3jA==
-X-Received: by 2002:a05:622a:4d95:b0:536:352d:65e9 with SMTP id d75a77b69052e-555287de21dmr39760591cf.65.1794320701138;
-        Tue, 10 Nov 2026 06:25:01 -0800 (PST)
-Received: from toxicpanda.com ([153.61.196.250])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5550b44e617sm24793671cf.11.2026.11.10.06.25.00
+        d=1e100.net; s=20260707; t=1794320702; x=1794925502;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=R22Hkg58AODA+U2Qc/D03rkLftDWo9zEEkg5H+BLiYE=;
+        b=RZ9x/pMN6Yqvdb30lcAUNmatnlcgNqvfBRwJVcs2ACV7oOGrJgUuCeNd8xbmRh93jt
+         o/ovcd3Yv0WKhM6ISgPyhL/fznJSbd2+ZBuF6WmgWpdJMZ6W82CCl6gvyiSb31fdzB2I
+         I7jCG0K7S34c1hqFeEsRPrwxeCXjmmJcSMAqPTMNdoq+r10yDW6xSt8MzVNuEVAazVW+
+         1cAgHOdXSXBIR2TloTXOuxj018xnWsmi8BJ10czh9oPYzpkzAAzfs8bqjVwKCX+THs94
+         6RcBotZpHJ/QnkaNQh7mNltKdvpw5y4co+a5WgvZUSQJUjPKhll1H+dxaqAngMfwCChd
+         o8Lg==
+X-Forwarded-Encrypted: i=1; AL+hErGyp7+4woacvI+xwqsA15HfD7hcEC4DlPkKWFUSkiFB+HZGKgcqEiixnbMxprC9LW8GlFdjtV4PRlCVTKmc@vger.kernel.org
+X-Gm-Message-State: APuU4Z8AL8VWO2y13kdEe0jSsF9v/23i+HwurNZVlOSRRyDA+eLalJhs
+	FrbTz3ip1Jb04sobwDMdNWxGdHDzMSucsXaK8UV1I5LAqLAQZ7a8+wS4BvCQVoT/cTE=
+X-Gm-Gg: AYBFou3ZP1rF7Yt+EImFOiMuyl5EAgrOyrkNXYuKuTd0pbOG5lsHdckhepJjffnGmrY
+	W3QjNOF2NqdXVB0Y/WPAerUSnzbAH8lHyX+A31jypIU+C4chzV3rxZJxKMVXGtUqHSY4vLK9Fqb
+	OgLEduz5WgM18FolIe604BwfUsxRcTx63oajBtPPfKzL+8C1pL9n4cTuAduNDZH0pl0R7+KSjdZ
+	9v63WOtgHkA7BOLh9JG3yqi6HS31JcYhsY/dXaLq5qHUehJYZJEl/el1adsWH+Xvf6lgsa3S7L9
+	u0Q2mCDhHPUP4mb4rmS5HMBlrwes6/1TxVwZa16ecPesbs2TFyOlxAswoYwSjlPYxS/2y1FT1aL
+	nyqVRPO5LLntfwz1alqqd3YDaDfpPMcVcN+pvNJCVgA3DQKqcBbAS0bDidq7mGPlQfNNAdNaJlU
+	/CePQE7wTeEPqKHg+JGSWIktAjr0/KWp8iQkHIn38p5e8c1Pk6AZHhGh21tyK4tkl1HK4SVHNjK
+	oA4UPlwK24VW/tTgYO5iOD81qj9tFpD70FDTwTIfzCCHW4pq78IXpdZoVDoy9DQd7e6vM9vI9hd
+	95k49g62u2AJ2zd6kK5/KXF+b5XeOmsktC1WVBko2IpnAQ==
+X-Received: by 2002:a05:620a:470f:b0:946:959e:c1b with SMTP id af79cd13be357-9479f1bf2damr440029885a.5.1794320702297;
+        Tue, 10 Nov 2026 06:25:02 -0800 (PST)
+Received: from toxicpanda.com ([153.61.196.252])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91f0199c41bsm75886d6.34.2026.11.10.06.25.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Nov 2026 06:25:00 -0800 (PST)
+        Tue, 10 Nov 2026 06:25:01 -0800 (PST)
 From: Josef Bacik <josef@toxicpanda.com>
-Subject: [PATCH v6 0/9] ovl: only sync what was written through the overlay
-Date: Tue, 10 Nov 2026 14:24:48 +0000
-Message-Id: <20261110-b4-ovl-containerized-sync-v6-0-43d1be16a4d6@toxicpanda.com>
+Date: Tue, 10 Nov 2026 14:24:49 +0000
+Subject: [PATCH v6 1/9] ovl: expand fsync mount options
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -94,296 +94,354 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIADEp82oC/33RwU7EIBAG4FfZcBYFCu3Wk+9hPAzMYDEKm1KbX
- Td9d2GNsYlNDxx+MvPlD1xZpjFQZo+HKxtpDjmkWEJ7d2BugPhKPGDJTAnVynK41TzN79ylOEG
- IZfmLkOdLdFzq3hJK8NQDK/unkXw43+znl5+cP+0buamCdcJCJm5HiG6oVzU+bON1egh5SuPlV
- nWWVf1t1e20miUX/CgUGamarof2aUrn4E4QEe5d+mC12qzWXL/HqcJp6r04kgZh1CbX/HFS6D2
- uqe0QQAmptTfNJqfX3N4XzLpwLSKSsB3iETY5s+Z2384UDhttNZDpPPp/3LIs36puiXBDAgAA
-X-Change-ID: 20261026-b4-ovl-containerized-sync-149bed1afe9a
+Message-Id: <20261110-b4-ovl-containerized-sync-v6-1-43d1be16a4d6@toxicpanda.com>
+References: <20261110-b4-ovl-containerized-sync-v6-0-43d1be16a4d6@toxicpanda.com>
+In-Reply-To: <20261110-b4-ovl-containerized-sync-v6-0-43d1be16a4d6@toxicpanda.com>
 To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
  Christian Brauner <brauner@kernel.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
  Christoph Hellwig <hch@infradead.org>, Chris Mason <mason@kernel.org>, 
  Chengguang Xu <cgxu519@mykernel.net>, linux-unionfs@vger.kernel.org, 
  linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Josef Bacik <josef@toxicpanda.com>, Chengguang Xu <charliecgxu@tencent.com>
+ Josef Bacik <josef@toxicpanda.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openssh-sha256; t=1794320698; l=13526;
+X-Developer-Signature: v=1; a=openssh-sha256; t=1794320698; l=12726;
  i=josef@toxicpanda.com; h=from:subject:message-id;
- bh=EZvIQYTVd5gJ0A2Q+LgE+v2arci+BF9HPmnecLyiS7A=;
+ bh=zAKuXkDringwd4Kp10q8DoNDDNPh2S1hdJ7wVREgXkc=;
  b=U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgUBr36M/n0nWN0DNbnxwzIiCZez6MG
  JiruuNaSCI/zXsAAAAGcGF0YXR0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5AAAA
- QC2RsiKWn+2aTsOo9LKX+Sg3SHlxk23wdE0iYBO8iXkj1qZHZxZyL3776vsq4Nzf+UjXV40KRmP
- A+WnShzNa+Qk=
+ QEqIqDvPo7gZsdeo13BeWIOzRIty9x0h/qqF3CZjjOO1+LjZ/ILUaMptz0r9M130PK6jZv6YiP1
+ Qi+uADNqIngo=
 X-Developer-Key: i=josef@toxicpanda.com; a=openssh;
  fpr=SHA256:C8kOX2QUJCMqnCX+KEeoqRAjLo9L+ELOSH2NSAJHqGA
 
-v1: https://lore.kernel.org/all/20261027-b4-ovl-containerized-sync-v1-0-802e512379a6@toxicpanda.com/
-v2: https://lore.kernel.org/all/20261029-b4-ovl-containerized-sync-v2-0-4e9f08e4a052@toxicpanda.com/
-v3: https://lore.kernel.org/all/20261104-b4-ovl-containerized-sync-v3-0-8daa20144f53@toxicpanda.com/
-v4: https://lore.kernel.org/all/20261106-b4-ovl-containerized-sync-v4-0-6ddde0b7dd8a@toxicpanda.com/
-v5: https://lore.kernel.org/all/20261107-b4-ovl-containerized-sync-v5-0-d34b4ae57fdf@toxicpanda.com/
+From: Amir Goldstein <amir73il@gmail.com>
 
-v5->v6:
-- Lookup marks a merge directory and its parent when it sets the origin
-  and impure xattrs on them. (Sashiko)
-- New patch 8: if somebody else writes the pages of an upper inode and
-  that fails, syncfs() on the overlay reports it. It's best effort, the
-  limits are in the changelog, and it's on its own so it can be dropped.
-  (Sashiko)
-- Left alone: if the deferred timestamps can't be handed over because
-  the upper file system is being frozen, the sync of the freeze can miss
-  them. They are written after the thaw, it's in the changelog of patch
-  7. (Sashiko)
+The fsync mount option currently accepts three values:
+"volatile", "strict" and "auto".
 
-v4->v5:
-- Added sync_fs_and_bdev() to fs/sync.c for the ->sync_fs() and block
-  device part of sync_filesystem(), so ovl_sync_fs() doesn't open code
-  it, patch 2. (Christian)
-- ovl_instantiate() marks a new inode and a new hard link dirty.
-  (Christian, Sashiko)
-- Copy up marks the parent as well, and the inode also when it only adds
-  a link to an indexed upper inode. (Sashiko)
-- Dropped "ovl: make the root inode appear hashed". A fake hash stays in
-  the slab object when the inode is freed, and the next overlay inode in
-  it looks hashed. The root isn't tracked at all now, ovl_sync_fs()
-  writes its upper inode every time. (Sashiko)
-- lazytime got a lot simpler. The overlay inode doesn't get I_DIRTY_TIME
-  any more, deferred timestamps are handed to the upper file system when
-  ->write_inode() finds them. That takes care of the I/O from dentry
-  reclaim, so this doesn't need anything from Jan's deferred inode
-  reclaim series. (Sashiko, Christian)
-- ovl_sync_upper_inode() could lose an error.
-- Left alone: fsync=auto still goes by RENAME_WHITEOUT, no flag. What
-  that leaves uncovered is under "Things I know about". (Christian)
-- Left alone: if somebody else starts the writeback of an upper inode
-  and it fails, syncfs() on the overlay doesn't report it. It never has.
-  (Sashiko)
+All other "enum" mount options have "on" and "off" values and this is
+used by the generic _check_overlay_feature helper in fstests to probe
+for support for enabling overlayfs features.
 
-v3->v4:
-- Patch 1 is v2 of Amir's patch. It has ovl_tracks_dirty() and picks the
-  mode for tmpfs at mount time, so I dropped my version from patch 2.
-  fsync=auto stays auto if it doesn't become relaxed. (Amir)
+This commit adds support for values "on", "off" and "relaxed" and makes
+the value of "auto" depend on a kconfig/module option fsync_auto.
 
-v2->v3:
-- Patch 1 is Amir's, it adds fsync=relaxed. Only an overlay with that
-  syncs just what was written through it, everybody else syncs the whole
-  upper file system as before. fsync=auto, the default, picks relaxed if
-  the upper file system supports RENAME_WHITEOUT. (Amir)
-- Dropped the fake inodes and the calls in the ovl_do_*() helpers,
-  patches 7 to 9 of v2. Upper inodes without an overlay inode are left
-  to ->sync_fs() and the block device, like in v1. (Amir)
+The value of "off" behaves almost the same as "volatile", not
+persisting changes to upper layer, but it does not create the directory
+"$workdir/work/incompat/volatile", which prevents a mount cycle of a
+volatile overlayfs. Some users requested to opt-out of this guard rail.
 
-v1->v2:
-- Dropped the superblock flag and the ext4, xfs and btrfs patches. This
-  is all in overlayfs now and works the same on any upper file system.
-  (Christoph, Amir)
-- Upper inodes without an overlay inode get a fake one that goes on the
-  dirty list, patches 7 to 9.
-- The periodic flusher pass doesn't write the upper inode any more, and
-  syncfs() doesn't make ext4 commit per inode.
-- Record write errors in s_wb_err of the overlay.
-- Make the root inode appear hashed so it can be on the dirty list,
-  don't mark unhashed inodes dirty, read i_writecount with acquire.
-  (Sashiko)
-- Left alone: dirtied_time_when isn't set for an overlay inode that gets
-  I_DIRTY_TIME from ->write_inode(). It only matters for the 12 hour
-  expiry, where the upper file system writes the timestamps on its own.
-  (Sashiko)
-- Rewrote my commit messages. (Christoph)
+With upperdir on tmpfs, overlayfs now falls back to "fsync=off", because
+the other fsync modes are futile on tmpfs.
 
-What it does now:
+The new value "relaxed" is a preparation for not syncing the entire
+upper fs on syncfs(2) and unmount and instead tracking and syncing only
+the upper inodes modified by this overlayfs.
 
-sync_filesystem() writes every inode on a dirty list, calls ->sync_fs()
-and writes the block device. Only the first step is expensive, because
-of other people's data. With fsync=relaxed overlayfs writes the upper
-inodes whose overlay inode was marked dirty and does the other two steps
-as they are.
+The value of "on" is the traditional overlayfs behavior and it behaves
+the same as the current value "auto", releasing the value of "auto" to
+differ by the kconfig/module option fsync_auto.
 
-Whiteouts and the work directories have no overlay inode, so nobody
-writes those inodes. That's fine if ->sync_fs() or the block device gets
-all metadata to disk, which is what relaxed asks of the upper file
-system.
+By default, with kconfig/module option fsync_auto=Y, the meaning of the
+value "auto" is that filesystems that support RENAME_WHITEOUT default to
+"relaxed" and filesystems that do not support RENAME_WHITEOUT default to
+the traditional "fsync=on".
 
-Things I know about:
-
- - ext4 without a journal supports RENAME_WHITEOUT, so it gets relaxed.
-   It's fine there, its metadata is in the buffers of the block device,
-   which we write. I tested it like the others.
- - f2fs, ubifs and fuse get relaxed as well and I didn't test them. f2fs
-   writes its dirty inodes in the checkpoint. ubifs_sync_fs() doesn't,
-   but the only thing overlayfs leaves dirty there on an inode it
-   doesn't track is the chmod of the work directory to 0 at mount time,
-   right after creating it with mode 0. fsync=on is there for anybody
-   who needs more.
- - A default mount that gets relaxed shows that in /proc/mounts.
- - lazytime on the upper file system doesn't do anything for inodes that
-   are modified or read through a relaxed overlay, their timestamps are
-   written with the next pass of the flusher.
- - While a file is open for writing the flusher of the overlay looks at
-   its inode up to every 5 seconds. That doesn't do any I/O.
- - With nobody else's data to skip syncfs() gets a bit slower. Over 30
-   boots per kernel, after creating 2000 files and a chown -R of another
-   2000 it goes from 51ms to 57ms on ext4 and takes 11ms longer on
-   btrfs. After 2000 mkdirs it goes from 45ms to 48ms on xfs and from
-   49ms to 54ms on btrfs, on ext4 I can't tell 235ms and 238ms apart.
-   Nothing else I timed moves.
-
-The testing is the same as for v1, now also on ext4 without a journal.
-syncfs() goes from 222-268ms to 41-50ms and unmount from 122-236ms to
-36-45ms on those four. ext2 with [2], which is in Jan's tree now,
-doesn't get relaxed and does exactly what it did before. fstests with
--overlay gives the same results with and without the series on ext4 and
-on xfs, apart from overlay/019 on ext4 and generic/670, 733 and 751 on
-xfs, which are flaky either way. There's a new fstest for this [3], it
-fails if I break the tracking.
-
-[2] https://lore.kernel.org/r/20261027-b4-ext2-dirsync-v1-1-3dcd012d518d@toxicpanda.com
-[3] https://lore.kernel.org/r/94833333cf2c5dd487022cb290174393.josef@toxicpanda.com
-
---- Original email (v1) ---
-
-Hello,
-
-This picks up Chengguang Xu's "implement containerized syncfs for
-overlayfs", last posted as RFC V6 in November 2021 [1].
-
-syncfs() on an overlay and unmounting one call sync_filesystem() on the
-upper file system, so they write every dirty inode on it no matter who
-dirtied it. We run a lot of containers on one upper file system, and
-stopping one of them writes out the dirty data of all the others. That
-can take a very long time, and s_umount of the upper file system is held
-the whole time, so anything that wants it exclusively queues up and then
-everybody else queues up behind that.
-
-With this an overlay only writes the upper inodes that were changed
-through it, and then has the upper file system commit its metadata.
-
-The V6 discussion ended with a direction but no V7, so that's what I
-tried to follow:
-
- - V6 kept every overlay inode with an upper inode dirty for good. Jan
-   and Amir didn't like the cost of walking them. Now an overlay inode
-   is marked dirty when the upper inode is changed, mostly from
-   ovl_copyattr() as Amir and Miklos suggested.
- - It never looks at the dirty flags of the upper inode, Miklos pointed
-   out that they're cleared when writeback starts.
- - ->write_inode() goes through write_inode_now() on the upper inode,
-   and keeps the overlay inode dirty while the upper inode is open for
-   writing, which covers shared mappings.
- - V6 marked the inodes DONTCACHE, which Jan was worried about. This
-   goes back to the v5 patch that keeps dirty overlay inodes cached.
-
-One thing is new. V6 called wait_sb_inodes() on the upper file system to
-catch writeback that was started but not finished, which waits for
-everybody's writeback. Instead ->write_inode() keeps the overlay inode
-dirty while the upper inode has pages tagged dirty or under writeback.
-The tags don't have the problem the inode flags have, the writeback tag
-is set before the dirty tag is cleared. So a clean overlay inode means
-its data is on disk, and syncfs() only waits for its own inodes.
-
-That takes care of the data. Metadata is harder, a lot of what is
-changed on the upper file system has no overlay inode that could be on
-the dirty list: the root of the overlay isn't hashed, and whiteouts,
-index entries, the work directories and their parent have none. File
-systems that log their metadata don't care, ->sync_fs() commits it. ext2
-does, there a whiteout was gone after a crash. I first had overlayfs
-write all of those itself and kept finding more of them, the last one
-was the link count of the shared whiteout when a whiteout is removed.
-
-So patch 1 adds a superblock flag, SB_I_OVL_USE_SYNC_FS, by which a file
-system says that ->sync_fs() commits all of its metadata, and patches 2
-to 4 set it for ext4 with a journal, xfs and btrfs. Without the flag on
-the upper file system nothing changes, no inode is marked dirty and
-syncfs() and unmount call sync_filesystem() like they always did.
-
-Patches 5, 7, 8 and 10 are Chengguang's with changes noted in them,
-patches 6 and 9 are new. I dropped Jan's Reviewed-by tags from V6 since
-the patches changed.
-
-lazytime on the upper file system needs its own handling. The flusher
-leaves the timestamps in memory for up to 12 hours, so the overlay inode
-can't be clean, but it can't stay dirty and pinned for that long either.
-Patch 9 gives it I_DIRTY_TIME like the upper inode has, and forwards
-->sync_lazytime() to the upper inode.
-
-Things I know about:
-
- - An overlay inode that loses its last reference while it is dirty is
-   kept until it has been written and then sits on the LRU, like with
-   any other file system. Clean and unlinked ones are still freed right
-   away.
- - Every overlay on such an upper file system gets a bdi.
- - I haven't measured syncfs() with a very large number of dirty inodes.
-
-For testing I put several overlays on one upper file system and dirty
-192M next to the overlay under test, through another overlay and
-directly. Then syncfs() or unmount the one overlay, copy the block
-device as it is at that moment, mount the copy, and check that
-everything that was changed through the overlay is in it and that the
-192M aren't. That passes with ext4, xfs and btrfs as the upper file
-system. With KASAN and lockdep on, syncfs() goes from 239-284ms to
-45-48ms and unmount from 126-234ms to 39-44ms. With ext2 and ext4
-without a journal the 192M are written as before.
-
-fstests with -overlay, the auto groups of generic and overlay, gives the
-same results with and without the series on ext4 and on xfs.
-
-[1] https://lore.kernel.org/r/20211122030038.1938875-1-cgxu519@mykernel.net
-
-Thanks,
-
-Josef
-
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 ---
-Changes in v6:
-- Link to v5: https://patch.msgid.link/20261107-b4-ovl-containerized-sync-v5-0-d34b4ae57fdf@toxicpanda.com
+ Documentation/filesystems/overlayfs.rst | 36 ++++++++++++++++++++++++++++-----
+ fs/overlayfs/Kconfig                    | 21 +++++++++++++++++++
+ fs/overlayfs/overlayfs.h                | 24 +++++++++++++++++++---
+ fs/overlayfs/params.c                   | 18 +++++++++++++----
+ fs/overlayfs/params.h                   |  2 ++
+ fs/overlayfs/super.c                    | 22 ++++++++++++++++++--
+ 6 files changed, 109 insertions(+), 14 deletions(-)
 
-Changes in v5:
-- Link to v4: https://patch.msgid.link/20261106-b4-ovl-containerized-sync-v4-0-6ddde0b7dd8a@toxicpanda.com
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index 16c35b491dad..1a59500834a1 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -826,27 +826,53 @@ The fsync during copy up only guarantees that if a copy up is observed
+ after a crash, the observed data is not zeroes or intermediate values
+ from the copy up staging area.
+ 
++Traditionally, syncfs(2) and unmount of an overlay sync the entire upper
++filesystem, including the dirty data of other overlays that share it.
++Overlayfs can be told to only write back the files that were modified
++through the overlay, and then ask the upper filesystem to commit its
++metadata.
++
+ On traditional local filesystems with a single journal (e.g. ext4, xfs),
+ fsync on a file also persists the parent directory changes, because they
+ are usually modified in the same transaction, so metadata durability during
+-data copy up effectively comes for free.  Overlayfs further limits risk by
+-disallowing network filesystems as upper layer.
++data copy up and the persistence of other upper changes such as whiteouts
++effectively come for free.  Other filesystems (e.g. ubifs) require an explicit
++fsync(2) on the copied up files and directories to persist their metadata.
+ 
+ Overlayfs can be tuned to prefer performance or durability when storing
+ to the underlying upper layer.  This is controlled by the "fsync" mount
+ option, which supports these values:
+ 
+-- "auto": (default)
++- "volatile": [*]
++    Prefer performance over durability (see `Volatile mount`_)
++- "off":
++    Same as "volatile", but does not prevent mounting the overlay again
++    after unmount (see `Volatile mount`_)
++- "relaxed":
+     Call fsync(2) on upper file before completion of data copy up.
+     No explicit fsync(2) on directory or metadata-only copy up.
++    syncfs(2) and unmount only write back the files that were modified
++    through the overlay.
++- "auto": (default)
++    "relaxed" if the upper filesystem supports RENAME_WHITEOUT,
++    otherwise "on".
++- "on":
++    syncfs(2) syncs the entire upper filesystem.
++    Copy up behaves like "relaxed".
+ - "strict":
++    syncfs(2) syncs the entire upper filesystem.
+     Call fsync(2) on upper file and directories before completion of any
+     copy up.
+-- "volatile": [*]
+-    Prefer performance over durability (see `Volatile mount`_)
+ 
+ [*] The mount option "volatile" is an alias to "fsync=volatile".
+ 
++The default is "fsync=on" instead of "fsync=auto" with the module option
++"fsync_auto=N" or with the kernel config option
++CONFIG_OVERLAY_FS_FSYNC_AUTO=n.
++
++If the upper filesystem has no writeback (e.g. tmpfs), a non-default mode
++falls back to "fsync=off".
++
+ 
+ Volatile mount
+ --------------
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 2ac67e04a6fb..f1b2f3784c76 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -108,6 +108,27 @@ config OVERLAY_FS_XINO_AUTO
+ 
+ 	  If unsure, say N.
+ 
++config OVERLAY_FS_FSYNC_AUTO
++	bool "Overlayfs: auto select the fsync mode by default"
++	default y
++	depends on OVERLAY_FS
++	help
++	  If this config option is enabled then overlay filesystems will use
++	  "fsync=auto" by default, which selects "fsync=relaxed" if the upper
++	  filesystem supports RENAME_WHITEOUT and "fsync=on" otherwise.
++	  With "fsync=relaxed", syncfs(2) and unmount of an overlay only write
++	  back the files that were modified through the overlay, instead of
++	  syncing the entire upper filesystem.
++
++	  If this config option is disabled then overlay filesystems will use
++	  "fsync=on" by default.  It is still possible to change the default
++	  with the "fsync_auto" module option or on a filesystem instance
++	  basis with the "fsync" mount option.
++
++	  For more information, see Documentation/filesystems/overlayfs.rst
++
++	  If unsure, say Y.
++
+ config OVERLAY_FS_METACOPY
+ 	bool "Overlayfs: turn on metadata only copy up feature by default"
+ 	depends on OVERLAY_FS
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 92da556598da..5b1a097ce543 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -102,8 +102,11 @@ enum {
+ };
+ 
+ enum {
++	OVL_FSYNC_OFF,
+ 	OVL_FSYNC_VOLATILE,
++	OVL_FSYNC_RELAXED,
+ 	OVL_FSYNC_AUTO,
++	OVL_FSYNC_ON,
+ 	OVL_FSYNC_STRICT,
+ };
+ 
+@@ -660,7 +663,8 @@ static inline bool ovl_xino_warn(struct ovl_fs *ofs)
+ 
+ static inline bool ovl_should_sync(struct ovl_fs *ofs)
+ {
+-	return ofs->config.fsync_mode != OVL_FSYNC_VOLATILE;
++	return ofs->config.fsync_mode != OVL_FSYNC_OFF &&
++	       ofs->config.fsync_mode != OVL_FSYNC_VOLATILE;
+ }
+ 
+ static inline bool ovl_should_sync_metadata(struct ovl_fs *ofs)
+@@ -668,9 +672,23 @@ static inline bool ovl_should_sync_metadata(struct ovl_fs *ofs)
+ 	return ofs->config.fsync_mode == OVL_FSYNC_STRICT;
+ }
+ 
+-static inline bool ovl_is_volatile(struct ovl_config *config)
++/*
++ * With fsync=relaxed, track the files that were modified through the overlay,
++ * so that syncfs(2) and unmount only write back those.
++ */
++static inline bool ovl_tracks_dirty(struct ovl_fs *ofs)
++{
++	return ofs->config.fsync_mode == OVL_FSYNC_RELAXED;
++}
++
++/*
++ * With fsync=relaxed, syncfs(2) and unmount only write back the files that were
++ * modified through the overlay.  Otherwise they sync the entire upper
++ * filesystem.
++ */
++static inline bool ovl_should_sync_upper_fs(struct ovl_fs *ofs)
+ {
+-	return config->fsync_mode == OVL_FSYNC_VOLATILE;
++	return ovl_should_sync(ofs) && !ovl_tracks_dirty(ofs);
+ }
+ 
+ /*
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 5a15e5478a6b..549fc1e83ac9 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -28,6 +28,11 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
+ MODULE_PARM_DESC(xino_auto,
+ 		 "Auto enable xino feature");
+ 
++static bool ovl_fsync_auto_def = IS_ENABLED(CONFIG_OVERLAY_FS_FSYNC_AUTO);
++module_param_named(fsync_auto, ovl_fsync_auto_def, bool, 0644);
++MODULE_PARM_DESC(fsync_auto,
++		 "Default to fsync=auto instead of fsync=on");
++
+ static bool ovl_index_def = IS_ENABLED(CONFIG_OVERLAY_FS_INDEX);
+ module_param_named(index, ovl_index_def, bool, 0644);
+ MODULE_PARM_DESC(index,
+@@ -142,8 +147,11 @@ static int ovl_verity_mode_def(void)
+ }
+ 
+ static const struct constant_table ovl_parameter_fsync[] = {
++	{ "off",	OVL_FSYNC_OFF      },
+ 	{ "volatile",	OVL_FSYNC_VOLATILE },
++	{ "relaxed",	OVL_FSYNC_RELAXED  },
+ 	{ "auto",	OVL_FSYNC_AUTO     },
++	{ "on",		OVL_FSYNC_ON       },
+ 	{ "strict",	OVL_FSYNC_STRICT   },
+ 	{}
+ };
+@@ -153,9 +161,9 @@ static const char *ovl_fsync_mode(struct ovl_config *config)
+ 	return ovl_parameter_fsync[config->fsync_mode].name;
+ }
+ 
+-static int ovl_fsync_mode_def(void)
++int ovl_fsync_mode_def(void)
+ {
+-	return OVL_FSYNC_AUTO;
++	return ovl_fsync_auto_def ? OVL_FSYNC_AUTO : OVL_FSYNC_ON;
+ }
+ 
+ const struct fs_parameter_spec ovl_parameter_spec[] = {
+@@ -689,9 +697,11 @@ static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ 		break;
+ 	case Opt_fsync:
+ 		config->fsync_mode = result.uint_32;
++		ctx->set.fsync = true;
+ 		break;
+ 	case Opt_volatile:
+ 		config->fsync_mode = OVL_FSYNC_VOLATILE;
++		ctx->set.fsync = true;
+ 		break;
+ 	case Opt_userxattr:
+ 		config->userxattr = true;
+@@ -896,8 +906,8 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 		config->index = false;
+ 	}
+ 
+-	if (!config->upperdir && ovl_is_volatile(config)) {
+-		pr_info("option \"volatile\" is meaningless in a non-upper mount, ignoring it.\n");
++	if (!config->upperdir && set.fsync) {
++		pr_info("options \"fsync\" and \"volatile\" are meaningless in a non-upper mount, ignoring them.\n");
+ 		config->fsync_mode = ovl_fsync_mode_def();
+ 	}
+ 
+diff --git a/fs/overlayfs/params.h b/fs/overlayfs/params.h
+index ffd53cdd8482..5f3572b270f3 100644
+--- a/fs/overlayfs/params.h
++++ b/fs/overlayfs/params.h
+@@ -15,6 +15,7 @@ struct ovl_opt_set {
+ 	bool redirect;
+ 	bool nfs_export;
+ 	bool index;
++	bool fsync;
+ };
+ 
+ #define OVL_MAX_STACK 500
+@@ -42,3 +43,4 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 			 struct ovl_config *config);
+ int ovl_show_options(struct seq_file *m, struct dentry *dentry);
+ const char *ovl_xino_mode(struct ovl_config *config);
++int ovl_fsync_mode_def(void);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 19b6d54c4500..81da70fd53a6 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -15,6 +15,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/posix_acl_xattr.h>
+ #include <linux/exportfs.h>
++#include <linux/backing-dev.h>
+ #include <linux/file.h>
+ #include <linux/fs_context.h>
+ #include <linux/fs_parser.h>
+@@ -737,6 +738,11 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 	if (!rename_whiteout)
+ 		pr_warn("upper fs does not support RENAME_WHITEOUT.\n");
+ 
++	/* fsync=auto that is not resolved to fsync=relaxed means fsync=on */
++	if (ofs->config.fsync_mode == OVL_FSYNC_AUTO && rename_whiteout &&
++	    mnt->mnt_sb->s_bdi != &noop_backing_dev_info)
++		ofs->config.fsync_mode = OVL_FSYNC_RELAXED;
++
+ 	/*
+ 	 * Check if upper/work fs supports (trusted|user).overlay.* xattr
+ 	 */
+@@ -789,9 +795,9 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 
+ 	/*
+ 	 * For volatile mount, create a incompat/volatile/dirty file to keep
+-	 * track of it.
++	 * track of it.  fsync=off allows mounting the overlay again.
+ 	 */
+-	if (ovl_is_volatile(&ofs->config)) {
++	if (ofs->config.fsync_mode == OVL_FSYNC_VOLATILE) {
+ 		err = ovl_create_volatile_dirty(ofs);
+ 		if (err < 0) {
+ 			pr_err("Failed to create volatile/dirty file.\n");
+@@ -1456,6 +1462,18 @@ static int ovl_fill_super_creds(struct fs_context *fc, struct super_block *sb)
+ 			return err;
+ 
+ 		upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
++		/*
++		 * An upper fs without writeback has nothing to sync and nothing
++		 * to lose, so every fsync mode behaves like fsync=off.  Keep the
++		 * default mode, which is not shown in mountinfo.
++		 */
++		if (upper_sb->s_bdi == &noop_backing_dev_info &&
++		    ofs->config.fsync_mode != ovl_fsync_mode_def() &&
++		    ofs->config.fsync_mode != OVL_FSYNC_OFF) {
++			pr_warn("upper fs does not support writeback, falling back to fsync=off.\n");
++			ofs->config.fsync_mode = OVL_FSYNC_OFF;
++		}
++
+ 		if (!ovl_should_sync(ofs)) {
+ 			ofs->errseq = errseq_sample(&upper_sb->s_wb_err);
+ 			if (errseq_check(&upper_sb->s_wb_err, ofs->errseq)) {
 
-Changes in v4:
-- Link to v3: https://patch.msgid.link/20261104-b4-ovl-containerized-sync-v3-0-8daa20144f53@toxicpanda.com
-
-Changes in v3:
-- Link to v2: https://patch.msgid.link/20261029-b4-ovl-containerized-sync-v2-0-4e9f08e4a052@toxicpanda.com
-
-Changes in v2:
-- Link to v1: https://patch.msgid.link/20261027-b4-ovl-containerized-sync-v1-0-802e512379a6@toxicpanda.com
-
----
-Amir Goldstein (1):
-      ovl: expand fsync mount options
-
-Chengguang Xu (4):
-      ovl: setup overlayfs' private bdi
-      ovl: implement overlayfs' own ->write_inode operation
-      ovl: cache dirty overlayfs' inode
-      ovl: implement containerized syncfs for overlayfs
-
-Josef Bacik (4):
-      fs: add sync_fs_and_bdev()
-      ovl: mark the overlay inode dirty on modification
-      ovl: write the timestamps that lazytime defers
-      ovl: report failed upper writeback in syncfs()
-
- Documentation/filesystems/overlayfs.rst |  36 ++++++-
- fs/overlayfs/Kconfig                    |  21 ++++
- fs/overlayfs/copy_up.c                  |   9 ++
- fs/overlayfs/dir.c                      |   3 +
- fs/overlayfs/file.c                     |   7 +-
- fs/overlayfs/inode.c                    |   4 +-
- fs/overlayfs/namei.c                    |  10 +-
- fs/overlayfs/overlayfs.h                |  58 ++++++++++-
- fs/overlayfs/params.c                   |  32 +++---
- fs/overlayfs/params.h                   |   2 +
- fs/overlayfs/readdir.c                  |   1 +
- fs/overlayfs/super.c                    | 179 ++++++++++++++++++++++++++++++--
- fs/overlayfs/util.c                     |  93 ++++++++++++++++-
- fs/sync.c                               |  52 +++++++---
- include/linux/fs.h                      |   1 +
- 15 files changed, 456 insertions(+), 52 deletions(-)
----
-base-commit: 2c8a968b488c134d05ccefff890270ac8ab899a8
-change-id: 20261026-b4-ovl-containerized-sync-149bed1afe9a
+-- 
+2.55.0
 
