@@ -1,11 +1,11 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=51.159.188.251
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794437007;
-	b=Wel6nTF98WC5SFKO4x9XnOTi77anKqcQKcAsgvE4fhjVl8fle6TXAet/t+nZUB57g5yO
-	 lQbPzv29jf9L2haKvOg3lFiuEYOByDSosCbHocQulWj6QWrjH0vBfPoVAi8k+JctwIcgM
-	 +2mbIUFR2tqT5Ex3pn1xNQjjV3TXcuKJKlhiIljV/AhNc8pszAX712RV9Vv7LO2ZMRQCr
-	 CyU8vmuW0P66nq6IXG+P4KGjJh6L0O49A0PMGV1htWWaI6/g2GRLbBxv2vmWQx/bLcpWA
-	 tBJh9oviz8LfoOvgTbmwHPDWVlmej2mB99jANJIAJKAtUJM8gaMVQvhhbuYsyK5JI6w==
+	b=qb97kRSymDarop9f3SGz+WyIz7z4fH49tAQDTAqgBgekKJUIxJtdRs8YnKG2E3VXIWAS
+	 fB4RanxUNa+tuz03w9niZcIjlsQ5eUDvvKcZc15EyiWE0EmuxaxFWv0kpdgVO2UupIYPl
+	 DpmzCMuPI+sKjglFkZTrWmewwa46Qgl1IFU/bR/FVA+Ax1d+BtDhEUJUk6EBfSV3OtEsE
+	 /C8UR1WsH1xRExkIxGOU9fNpC90xlyjIGl6S4D9FchdVBhIni9jCqWCNzyX0GsJrj/fVF
+	 xYFegqJQd9pC4Ik/m6buPnyuF3g6aq/+A/iTQxIk2wWnfZ5OVg280960IUpT1e8AMEg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794437007;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
@@ -13,55 +13,54 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 Content-Transfer-Encoding:X-AntiAbuse:X-AntiAbuse:X-AntiAbuse:
 	 X-AntiAbuse:X-AntiAbuse:X-Get-Message-Sender-Via:
 	 X-Authenticated-Sender:X-Source:X-Source-Args:X-Source-Dir;
-	bh=dgBET2RSaOCToLo8RlWIwCQekDtOOAs/qg6zrwxRE/g=;
-	b=WDKt3Wa2dTCbaNNG0zSZxAXR3JCCjJhoY9TEIifakI9Qebnxdjb+s8u2kmTunG2utIub
-	 tTkWmoh+XkrP8GcFf4Goc6CeS19go+WijSOoyH9RckUQ3x9fMSIwFwJxMuVetYygnwW4O
-	 s9I6gOiBEao2ZQtVy7yRiqUQ5Dt46CnzaLZQrWCoi8dmZvbayPLNP0XdyW+o/reK5C1Tg
-	 bQKuAcT0ARxLccUC3jxtke7slfc/rXHgjgyo3ccX+Snfbjv0Ro17uQNPzupDsUXkT7dXC
-	 sz6VDXtfufnjtl+J51MCPF3mCXAmJ+oP/L7g9Ie5xULS/1ddFWr/mI1hZ1H+STg4W7g==
+	bh=UXJicnuhcwmyx0ZYJWZpTRYTgCzguUEv8BN06l+oadg=;
+	b=jor1VbzORoo/AdqH47MPRVZK2sDal4CUEnhAUjunma7PfYon6TNrWECWK04EIioQFnYj
+	 OCwUNFfFeinFZ0CaM0bJ+AccBUry+C41DECTY5k10txD1rQ6MkJhMDYjE4Y7AIZRO/IPY
+	 t0vjGnEMB83Lhv8ALrVUyk3n0AHfZl0HwoDoMAogi5MTe6oCsckRu7FBt6QSPI0l44nvB
+	 HNhw2c40CmbcHlxXd0pVS4ulIjBb7tFiDPpbtBl1qD53xtZ3gf97eHHvHni9QhZbM0ECE
+	 UVAY8zOly5zi0tB6j2y90/gS/6YtXOPEHmHfX9jYMztIdcI15I+z6erFFCaeD8mJgLA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=oss.cyber.gouv.fr;
 	spf=pass smtp.mailfrom=oss.cyber.gouv.fr;
-	dkim=pass header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.a=rsa-sha256 header.s=default header.b=J5VR5RVm;
+	dkim=pass header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.a=rsa-sha256 header.s=default header.b=IpAAWb2Q;
 	arc=none smtp.remote-ip=51.159.188.251
 Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F220E606AED7;
-	Wed, 11 Nov 2026 22:43:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F220E606AED7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DEB1606AEDE;
+	Wed, 11 Nov 2026 22:43:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1DEB1606AEDE
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.a=rsa-sha256 header.s=default header.b=J5VR5RVm
+	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.a=rsa-sha256 header.s=default header.b=IpAAWb2Q
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:
 	Reply-To:Sender:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=dgBET2RSaOCToLo8RlWIwCQekDtOOAs/qg6zrwxRE/g=; b=J5VR5RVmq2+ilOpj/wkcyab75v
-	KJlNT/QN/vNP1Sskyh84hU+lGFhJzKLDLW8Cwd+UrK+8dfvKKqdB4s/OSmLl+7Y+SpxKzauV5FREX
-	eRPGlCMaasKpkkBCcAhv7GBP8SiprbmMxBwmOUleOJafj+4X2gjBCuUg2vck+pFLINY+sv7R1Qp2k
-	FRoxUih9SIYeCGbv+Cw/EdGcHjvhQl0n1Rn+WMhR9zGPTA00XhQ74eGQlZp5Gl13nLnxR7SocPgkj
-	2AwUtv7q0sqzmIx4ojE4yDbcJyrONWJ8iL9Us+wdlfviw4voX+vn6Xs9x6TwJD6DbRVVeizWWlCHV
-	rGXn/QIg==;
+	bh=UXJicnuhcwmyx0ZYJWZpTRYTgCzguUEv8BN06l+oadg=; b=IpAAWb2QYQq1OQrUQlpz1rnWzL
+	aG10MJCkusMI0It1L9PJ0imlAUtAx80PMFNBicd4WeLbQG7ASLUbsVcQ2YEkOUqSHBOYpK4qnXjHW
+	XPSFOHdjFPBEG/IOUsUyL/5bkQcWxyxk97Fu/f3VvVQ3M2kGEJIMdFHMvuz+nTrrXgASmukGbxfLh
+	9pifajPnWaN5btFRK1om88IzeCPSVMUOiknx8u6NdQqORqrW/M+SrXWpjl8nZeGuLjT66CjdmmoOp
+	BSIATXvaEcs+qRI7HIKFVokCcn1JglIZsleo8XtWVNt5bo3KNgeXRxgsnH5YsSsCQM/uL/QGRWFc3
+	8QbsahNQ==;
 Received: from [151.115.150.205] (port=36454 helo=gepetto..)
 	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.100.1)
 	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
-	id 1xRH2G-0000000DOpX-32cG;
-	Wed, 11 Nov 2026 23:43:19 +0100
+	id 1xRH2H-0000000DOpX-0xOk;
+	Wed, 11 Nov 2026 23:43:20 +0100
 From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
 To: Miklos Szeredi <miklos@szeredi.hu>,
 	Amir Goldstein <amir73il@gmail.com>
 Cc: linux-unionfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>,
-	stable@vger.kernel.org
-Subject: [PATCH v3 1/2] ovl: reject different lower idmaps on the same fs
-Date: Wed, 11 Nov 2026 22:42:26 +0000
-Message-ID: <20261111224227.2496049-3-Jeremy.Jean@oss.cyber.gouv.fr>
+	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
+Subject: [PATCH v3 2/2] selftests: overlayfs: reject different lower idmaps on same fs
+Date: Wed, 11 Nov 2026 22:42:27 +0000
+Message-ID: <20261111224227.2496049-4-Jeremy.Jean@oss.cyber.gouv.fr>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261111224227.2496049-2-Jeremy.Jean@oss.cyber.gouv.fr>
 References: <20261111224227.2496049-2-Jeremy.Jean@oss.cyber.gouv.fr>
@@ -87,62 +86,67 @@ X-Source:
 X-Source-Args: 
 X-Source-Dir: 
 
-Overlay file handles identify a backing filesystem, but not the lower
-mount used to decode it. If lower layers share a superblock and use
-different idmaps, a handle can decode through the wrong layer.
+Add an idmapped overlay test for two lower layers that share a backing
+superblock but use different idmaps. Check that mount creation fails
+with EINVAL.
 
-Record the first idmap on a private lower clone for each backing
-filesystem. Fail if another clone has a different idmap. Comparing
-the private clones prevents mount_setattr() from changing the checked
-state. Distinct idmap objects are treated as ambiguous.
-
-Fixes: bc70682a497c ("ovl: support idmapped layers")
-Cc: stable@vger.kernel.org
 Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
 ---
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     | 15 +++++++++++++++
- 2 files changed, 17 insertions(+)
+ .../filesystems/overlayfs/idmapped_mounts.c   | 43 +++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index ac07e8769f9b..5b2f1b930daa 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -24,6 +24,8 @@ struct ovl_config {
- struct ovl_sb {
- 	struct super_block *sb;
- 	dev_t pseudo_dev;
-+	/* Idmap of the first lower layer on this fs */
-+	const struct mnt_idmap *lower_idmap;
- 	/* Unusable (conflicting) uuid */
- 	bool bad_uuid;
- 	/* Used as a lower layer (but maybe also as upper) */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 8bc970748b96..40eb8428a718 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1141,6 +1141,21 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 			return err;
- 		}
+diff --git a/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c b/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c
+index 44a75839f4ed..b496b279ce98 100644
+--- a/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c
++++ b/tools/testing/selftests/filesystems/overlayfs/idmapped_mounts.c
+@@ -498,4 +498,47 @@ TEST_F(idmapped_overlay, nfs_export_handles)
+ 	EXPECT_EQ(close(ovl), 0);
+ }
  
-+		if (i < nr_merged_lower) {
-+			const struct mnt_idmap *idmap = mnt_idmap(mnt);
-+			struct ovl_sb *fs = &ofs->fs[fsid];
++/* Same-superblock lower layers must not use different idmaps. */
++TEST_F(idmapped_overlay, reject_same_sb_mixed_idmaps)
++{
++	char lower1[PATH_MAX], lower2[PATH_MAX];
++	char upper[PATH_MAX], work[PATH_MAX];
++	int fd_lower1, fd_lower2, fsfd;
 +
-+			if (!fs->lower_idmap)
-+				fs->lower_idmap = idmap;
-+			if (fs->lower_idmap != idmap) {
-+				pr_err("lower layer '%pd2' conflicts with idmap of another layer on the same fs\n",
-+				       l->path.dentry);
-+				iput(trap);
-+				kern_unmount(mnt);
-+				return -EINVAL;
-+			}
-+		}
++	if (!ovl_supported())
++		SKIP(return, "overlayfs not supported");
 +
- 		/*
- 		 * Make lower layers R/O.  That way fchmod/fchown on lower file
- 		 * will fail instead of modifying lower fs.
++	snprintf(lower1, sizeof(lower1), "%s/l", self->base);
++	snprintf(lower2, sizeof(lower2), "%s/l2", self->base);
++	snprintf(upper, sizeof(upper), "%s/u", self->base);
++	snprintf(work, sizeof(work), "%s/w", self->base);
++	ASSERT_EQ(mkdir(lower2, 0755), 0);
++	ASSERT_EQ(chown(lower2, ID_HOST, ID_HOST), 0);
++
++	fd_lower1 = idmapped_layer_fd(lower1, ID_HOST, ID_NS, ID_RANGE);
++	ASSERT_GE(fd_lower1, 0);
++	fd_lower2 = sys_open_tree(AT_FDCWD, lower2,
++				  OPEN_TREE_CLONE | OPEN_TREE_CLOEXEC);
++	ASSERT_GE(fd_lower2, 0);
++	fsfd = sys_fsopen("overlay", 0);
++	ASSERT_GE(fsfd, 0);
++	ASSERT_EQ(sys_fsconfig(fsfd, FSCONFIG_SET_STRING,
++			       "source", "test", 0), 0);
++	ASSERT_EQ(sys_fsconfig(fsfd, FSCONFIG_SET_STRING,
++			       "upperdir", upper, 0), 0);
++	ASSERT_EQ(sys_fsconfig(fsfd, FSCONFIG_SET_STRING,
++			       "workdir", work, 0), 0);
++	ASSERT_EQ(sys_fsconfig(fsfd, FSCONFIG_SET_FD,
++			       "lowerdir+", NULL, fd_lower1), 0);
++	ASSERT_EQ(sys_fsconfig(fsfd, FSCONFIG_SET_FD,
++			       "lowerdir+", NULL, fd_lower2), 0);
++
++	errno = 0;
++	EXPECT_EQ(sys_fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0), -1);
++	EXPECT_EQ(errno, EINVAL);
++	EXPECT_EQ(close(fd_lower1), 0);
++	EXPECT_EQ(close(fd_lower2), 0);
++	EXPECT_EQ(close(fsfd), 0);
++}
++
+ TEST_HARNESS_MAIN
 -- 
 2.47.3
 
