@@ -1,77 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.254.224.33
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794329543;
-	b=MqUrDRKNkm5LTuWw/p72EmWMN8y5gRS7IKO9coqAv0GrbEWIJsBAT987R4Icfg+VWKI2
-	 uo4ni/3H9tbkzcfyK89ILbPx2po3H4aJt8bADreecaLh6FLcAahbfvoewTUJCStR54Bk0
-	 JkbQES+PqiCgbMDyF1EAIJilLbna8+LZHRvL2MPVmcTpyKzzbXa2rQF+IWXQEj0blP8ym
-	 WgivW55NuDvwXCrregevCDHueABXJ1HvJA+1Z++6bstcMbA/95HTL3+D31s3o6SMuwFgR
-	 VlIH7aw/1GBxOdCm8o9fF+QmMVKT9YNCFkJQeswK5esi27KX1ayMXXTXdDTj4VVAQYA==
+	t=1794372637;
+	b=C1VzsqcrsgoPKnhFFY941tmesAwDWbzsFTo/XfG/ldQmLu1G53j3eyonpy8Ur1pXOgod
+	 R2v9IjeQSz9t82ucF+9aJJu+bf0HSKXXNeFtApWS4OpcFZdadpPvVVN4VW8FbADlOMuu+
+	 W4TPu37yO4ord589ACXj1IcbLDDXov4e/ztRGpYZb3ksfxzW8CKyTnNaQnHBVziXquhOE
+	 R9S1WXPmz3AsAtWyamF7JtxNUAsqYwemj3XroD2i8OT9gU79ByPyabXfEjnRmKHoXh4nP
+	 JWMNlE4lkP/7tWrh/ZE4HaQCYJ4RZ6scFmyR6lhha70M3ILI6wAnLH1QHB/mjdAP4JA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794329543;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=KyDcpTwF2G84cUTe+PVKDz9G3rULU78GRC2w0kOsrLc=;
-	b=l4aw2tre8GbBz5g9LuX5bM4yQTz96CFbLG8LsM7VKIXayuVmXV30ZQ32DPTyLKLklvnF
-	 fYFQ3zY+xdGIl+RC9ylnA/C7J49VUkApYGigBDyRkZo5czIM8Cqw8hUKbFZyn1/IgtQ3m
-	 Z/RGVRymJUJsoZqE4xFLoNPCFQbl09Pa3uiRQy/26ID/0+MFb3/zKlbTzp+JvVrStnzwK
-	 eWITQsh2iQT/0NCBfg5oKIZVh3Q6CWsgmG0dT0HwHYfcy3NvJnhpa5fox9BM20Ijf/wdi
-	 YYcsCHji+6Oik6v5hEeEl7hh1kCC4piXf0Q3DTWANagDf07zGSFRMlxB9cJ+9m6KinQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794372637;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Received:Received:
+	 Mime-Version:Subject:Reply-To:Sender:From:To:CC:X-Priority:
+	 X-Content-Kind-Code:In-Reply-To:X-CPGS-Detection:X-Drm-Type:
+	 X-Msg-Generator:X-Msg-Type:X-Reply-Demand:Message-ID:Date:
+	 X-CMS-MailID:Content-Transfer-Encoding:Content-Type:X-Sendblock-Type:
+	 CMS-TYPE:X-CPGSPASS:X-CPGSPASS:cpgsPolicy:X-CFilter-Loop:
+	 X-CMS-RootMailID:References;
+	bh=2z6RcZw+0FfmTvfxA7IX1opzEG1e0lSubruCi28CNaU=;
+	b=FKQQJa5I51wqPgg3egOfMgos9ZrbmtKPX8yGY8ZQmjPbdqmv4p4lNrh5J0fjAEyNSLbF
+	 yB6Sv9yHG2HBuUod8mIBppwf6nsxqF6SaB9U48IG04tX24D2zruj0oOfu7NcFPWolNk3y
+	 ZxKxk4hT2Qtj8s6UHAGF7IajIehnXiO5YPjBHwPlQ+BYpWKNLQwbtS/ezDfuemf+7YjDa
+	 4y+z0a5koP9FhFr1vZ011rnCaj1zxgPv/015SD4Xo0S0MO5EO/N2yuPYGBHYl8j+brdIJ
+	 uD20lOIXDlQy3t3ZcGvA+8HOtAHCR7+qC19alg4YT/1kE2Ac2LI5+UGlN4tlgA17hhQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="WSR4/meg";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=samsung.com;
+	spf=pass smtp.mailfrom=samsung.com;
+	dkim=pass header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=A4pcxok0;
+	arc=none smtp.remote-ip=203.254.224.33
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57DB6606A330;
-	Tue, 10 Nov 2026 16:52:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06245606A320
+	for <linux-unionfs@vger.kernel.org>; Wed, 11 Nov 2026 04:50:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 06245606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WSR4/meg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C6B21F0089F;
-	Tue, 10 Nov 2026 16:52:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794329543;
-	bh=KyDcpTwF2G84cUTe+PVKDz9G3rULU78GRC2w0kOsrLc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=WSR4/megdggMO9wsDWOY+uoQSmNtO3j2yfbZkG8wNi5rB7hE651wqOzDxlgDXK7Ew
-	 RmAWiz2VBpllg4ynVFTcPIjgzyk7nAxhySjvb+byysmSgsCnpkfEzxkJqRWKHq9/mc
-	 YNAQhE0ikpxZ0sqlywqGqK0vnkiWmSjRjigl1fL7x76Q0lUOnOc+fEhl7WUDNrnt2X
-	 Hda+VOxkwzLr8arHFGMZFn9v/vCdMOGy5b+eY24hGBQ3e42uhb8xHhCF/aPlSMJPft
-	 3tCywwxXOQqTXxdhv8EqxUpg5QCSLRW2i8oyD+4B0ftty6ddfdgKmdarmtnmAcuyq1
-	 heVa4ehNncfYw==
-Date: Tue, 10 Nov 2026 17:52:03 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Cai Xinchen <caixinchen1@huawei.com>
-Cc: mic@digikod.net, gnoack@google.com, paul@paul-moore.com, 
-	jmorris@namei.org, serge@hallyn.com, corbet@lwn.net, skhan@linuxfoundation.org, 
-	utilityemal77@gmail.com, ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org, 
-	eddyz87@gmail.com, memxor@gmail.com, martin.lau@linux.dev, song@kernel.org, 
-	yonghong.song@linux.dev, jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev, 
-	rdunlap@infradead.org, gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, 
-	johan@kernel.org, dlemoal@kernel.org, hch@lst.de, axboe@kernel.dk, 
-	viro@zeniv.linux.org.uk, jack@suse.cz, dhowells@redhat.com, code@tyhicks.com, 
-	linkinjeon@kernel.org, sj1557.seo@samsung.com, yuezhang.mo@sony.com, 
-	hirofumi@mail.parknet.co.jp, cel@kernel.org, jlayton@kernel.org, neil@brown.name, 
-	okorniev@redhat.com, Dai.Ngo@oracle.com, tom@talpey.com, hyc.lee@gmail.com, 
-	miklos@szeredi.hu, amir73il@gmail.com, senozhatsky@chromium.org, 
-	chenxiaosong@chenxiaosong.com, dsterba@suse.com, mason@kernel.org, kpsingh@kernel.org, 
-	matt@bobrowski.net, rostedt@goodmis.org, mhiramat@kernel.org, 
-	mathieu.desnoyers@efficios.com, john.johansen@canonical.com, georgia.garcia@canonical.com, 
-	zohar@linux.ibm.com, roberto.sassu@huawei.com, dmitry.kasatkin@gmail.com, 
-	eric.snowberg@oracle.com, stephen.smalley.work@gmail.com, omosnacek@gmail.com, 
-	casey@schaufler-ca.com, takedakn@nttdata.co.jp, penguin-kernel@i-love.sakura.ne.jp, 
-	xiujianfeng@huawei.com, nanx95726@gmail.com, djwong@kernel.org, lujialin4@huawei.com, 
-	bpf@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, driver-core@lists.linux.dev, linux-block@vger.kernel.org, 
-	linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, netfs@lists.linux.dev, 
-	ecryptfs@vger.kernel.org, exfat@lists.linux.dev, linux-nfs@vger.kernel.org, 
-	ntfs@lists.linux.dev, linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, apparmor@lists.ubuntu.com, linux-integrity@vger.kernel.org, 
-	selinux@vger.kernel.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH v3 -next 00/18] landlock: Add READ_METADATA and
- WRITE_METADATA access rights
-Message-ID: <20261110-rekonstruieren-erbfolge-vollversammlung-26be74966211@brauner>
-References: <20261027121151.1887650-1-caixinchen1@huawei.com>
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=A4pcxok0
+Received: from epcas2p3.samsung.com (unknown [182.195.41.55])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20261111045028epoutp0338d3af7da57c059a0b6772d737c456a0~m5GXxX-kG0485304853epoutp03V
+	for <linux-unionfs@vger.kernel.org>; Wed, 11 Nov 2026 04:50:28 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20261111045028epoutp0338d3af7da57c059a0b6772d737c456a0~m5GXxX-kG0485304853epoutp03V
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1794372628;
+	bh=2z6RcZw+0FfmTvfxA7IX1opzEG1e0lSubruCi28CNaU=;
+	h=Subject:Reply-To:From:To:CC:In-Reply-To:Date:References:From;
+	b=A4pcxok0BGKbCEtgBaA+AKid2yaTFMI/ViICSeKRvq4d1clKrNHxTjWJ2MqKwCth5
+	 qrf6rZ3mZtLicuClvuo6obGs3/lbieWczlq7OoXJIyLz6w4Xq1zjtLR6tcQHcN2FC4
+	 9BEVl5MqvENgSgZFNx9u7LkczcT+G8wyrhEJPu9Q=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas2p3.samsung.com (KnoxPortal) with ESMTPS id
+	20261111045027epcas2p325b3ab664a77cb2058b12dcc3a79ea93~m5GXPutme3085130851epcas2p3O;
+	Wed, 11 Nov 2026 04:50:27 +0000 (GMT)
+Received: from epcas2p3.samsung.com (unknown [182.195.38.210]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4jPWKv1yV6z2SSKg; Wed, 11 Nov
+	2026 04:50:27 +0000 (GMT)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -80,28 +62,61 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20261027121151.1887650-1-caixinchen1@huawei.com>
+Mime-Version: 1.0
+Subject: RE: [PATCH] ovl: skip stale entries in impure dir iteration
+Reply-To: daejun7.park@samsung.com
+Sender: Daejun Park <daejun7.park@samsung.com>
+From: Daejun Park <daejun7.park@samsung.com>
+To: Daejun Park <daejun7.park@samsung.com>, Miklos Szeredi
+	<miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+CC: Hungyu Lin <dennylin0707@gmail.com>, "linux-unionfs@vger.kernel.org"
+	<linux-unionfs@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>
+X-Priority: 3
+X-Content-Kind-Code: NORMAL
+In-Reply-To: <20261110-ovl-impure-stale-v1-1-1a4c2039e89d@samsung.com>
+X-CPGS-Detection: blocking_info_exchange
+X-Drm-Type: N,general
+X-Msg-Generator: Mail
+X-Msg-Type: PERSONAL
+X-Reply-Demand: N
+Message-ID: <20261111045026epcms2p63d9818fa6ad5600eff4f74deca4a6e7a@epcms2p6>
+Date: Wed, 11 Nov 2026 13:50:26 +0900
+X-CMS-MailID: 20261111045026epcms2p63d9818fa6ad5600eff4f74deca4a6e7a
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+X-Sendblock-Type: AUTO_CONFIDENTIAL
+CMS-TYPE: 102P
+X-CPGSPASS: Y
+X-CPGSPASS: Y
+cpgsPolicy: CPGSC10-223,Y
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20261110080419epcas2p24eb47374d80929645076c4d81f512c62
+References: <20261110-ovl-impure-stale-v1-1-1a4c2039e89d@samsung.com>
+	<CGME20261110080419epcas2p24eb47374d80929645076c4d81f512c62@epcms2p6>
 
-On Tue, Oct 27, 2026 at 08:11:33PM +0800, Cai Xinchen wrote:
-> - The idmap is passed separately from the struct path again, instead
->   of being derived from path->mnt inside the helpers and the hooks.
->   As Christian explains in his review of patch 1, the idmap must be
->   taken of the mount at the time it was checked and passed down to
->   the filesystem so that the VFS and the filesystem are guaranteed
->   to see the same idmap.
+Your mail below did not reach my mailbox, so I could not reply to it
+directly.
 
-This regresses AT_EMPTY_PATH. fchmodat2(), fchownat() and utimensat()
-with an empty path now go through CLASS(fd) which is fdget() and that 
-refuses O_PATH file descriptors. IOW, this is very very broken.
+https://lore.kernel.org/all/CAOQ4uxgxYZqE=rv5ZYrbyB0cYi_qS-bv_4UCbDwGJoMGg1iNhQ@mail.gmail.com/
 
-Please also go through Sashiko's review of v3 (cf. [1]). The new struct
-file arguments need __nullable or bpf programs can dereference NULL,
-and the ntfs3 stream setattr and overlayfs fileattr paths that bypass
-the hooks need treatment.
+On Tue, Nov 10, 2026 at 04:28:32PM +0100, Amir Goldstein wrote:
+> I am sorry, but this is way too complex to deal with a problem which
+> is not important enough IMO.
+>
+> POSIX does not define the exact behavior of readdir of a directory
+> being changed in this way and I don't think that the current behavior
+> of ext or overlayfs+ext4 is a gross violation of POSIX or that it could
+> break applications.
+>
+> I would be happy to be proven otherwise.
 
-[1]: https://sashiko.dev/#/patchset/20261027121151.1887650-1-caixinchen1%40huawei.com
+Thanks for the review. I'll drop this patch.
 
--- 
+I looked for a program that breaks on the stale d_ino and did not find
+one. Of the d_ino users I read (find -inum, gnulib fts, glibc getcwd(),
+nfsd READDIRPLUS), none does anything wrong with an entry whose file
+is already gone.
+
+Best regards,
+Daejun
