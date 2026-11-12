@@ -1,78 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794455896;
-	b=oKhz7cfL8MH0aDiwmDqBw7XVRpI3E0I/w8aqz/cMyn5THn9OeYC78cPcgGy3uWzRQLhB
-	 OUlwIDc4m0/X9SnHhts34aqJaiHZvvq6Q5PBRD9lZhw9kSGNqXOFtko2br/Nb4pKMfyVP
-	 JEOX505Elw35+Atl7EDWqpQ/+/52xkBAN3Y/jgGoer5WdnMGLeYpTy+ElXT/eEjGcKP1i
-	 BB+6mML5KkfYtlnZBJqDlm+crgYLKdU88ykjO+hIgC5mfuJFWionlQO2nBD1CnG6BP2C5
-	 7X2ex3CQnp6RFPqx70IJ+s4bugJAOTu0oyg1Xn5lx6Ve7gYdCHDpyewxKeiFf1y/hUA==
+	t=1794456847;
+	b=E1QjjImoz5QOTuDEB81niIkC5bw98ipHvu8HG+bg5XDSekm7OMpCJEla8uTj2R48pJTK
+	 E2rI6w5FBLBjdWdWNtSfURux8Y+GwEgAlxcqheywYIffJBCAHHw/8vjnHKkPjE+FeOpvl
+	 Lsp2liHD3ttFqPxKfJkEj+eS0qWsjxL6khsRB5okuP3aFIhzOzsv6GYOy6Q9/+cmfFlla
+	 01LCaPIRtROY5U9XXM9lYnKstG2r/upGEu6arWCRKqI0N5rjqqAcrBtJNM4DDfmgttalz
+	 TQA4hY9lmltaIudxxLJ5zcwyoNplue2eEOLhiiYfFhuqJ4XKw2J/SM1EXRKmwPJ2EcQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794455896;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794456847;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:X-B4-Tracking:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=iwx45yD8rGo5BwjYbGiHDAeVNtOmwXFoNQbOJBRIlfA=;
-	b=OvUH1e+3R1FJ4zAgRnGDblrrN/29B+U4Me/aQKCqKxvIxdD0axvU5zGjdM9A+SAwTMv1
-	 hcYsFW975mCy4n4R9fA5qPUTwcDnHioOckc63qe1Mh1QyYThIWTjtF9E3zGVZTvGAkvFW
-	 +UewEMP3HCjJKe+1QsmcMEDL16Jr9jUB2hkVPqJwVavnjVZyT/L9S2JwEVuIsHUiHHg9j
-	 IpF/8flEqrRZgpcIKnPPKX0l881P3YG40kWEiyuo9sXIhGCVFzTlm1Eoh6UCS5IeO63xx
-	 dnoIFVULXf7ThpTtPNO9IA1wVaLwHJSY9y9FcXwwcgYm7LPDuUVOvDJr62hWN+NuKcQ==
+	bh=YD1w0JeXcR4tiwXqnCZLuBqyW8EuNSACWiyRzXaRl2Y=;
+	b=xRHfPFLidkWmC4Z4Siyzv0l9WC95zEsvZKrGWOnHkuAZ1Qf23rpVspcBCiOzw/tksbe9
+	 wbl3t7wV3yrsRb++hPzR0zStps3+gsB0A4NGTtFzCGNKItPeD1Vtw3AaFWmevSLH4Giid
+	 7Kf5Rfp4t3u0Xdhm20HC1vfQRzphTzZ/ZdT/iMsoW5koP3QfKTAqMpe12Zkqg+SL8Qsyg
+	 iUaZfAMef9aJKh1jEliEBBFIeTGcfefgP03DXf1WDH9yX2NSB0etN54MBtDE0FXTMLTWZ
+	 AUfzoZvc+Y75HECe1FXgg0QBumx40UKFuUW4oNyQ4w4d9UlrvFInQyzbbcbDD7QyO2w==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=l3VCj916;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="lhgeE/Pq";
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B15B9606A321;
-	Thu, 12 Nov 2026 03:58:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 886F3606A88D;
+	Thu, 12 Nov 2026 04:14:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=l3VCj916
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lhgeE/Pq
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1794455896;
-	b=Kzljv41kh+lyWSgmTg1AbrJNzb7T6L1CzmgV2gHaGva+6yIY0iPHvhnn7PsqNya391t+
-	 EUWi8ftzi+MRteXjPBnYj6ps7BLLhceetqpaWkwy0agmqYRQR2xH3+Ju/niS6ut7CkqQF
-	 3CN6QX8OykzKx7mbMg9IKun4xt748XGzABD8VNMwxqjyFK5qMwUCz0nHr4mslB9drAeH1
-	 cRLPEw0xIvl6jvJg3PWmV8AwNc8eD6BgWJ8awjEXOwHYNLthOiq5xAKNg6PU7MmfTlQCj
-	 An5qQWGMNci7XqrrP2Qx3P4Hgvwsmt5Ee5LAj7LTjzv0FeFArrcPrNVMNSGFXiRmLYQ==
+	t=1794456847;
+	b=WC+ZNY36fUiFa2ca+i2TxE/rJFfEJP0BviilaKFrcattylY7iKbpQdrb2DBUFrirTZFW
+	 QSBHksY72MOSssbQAx7IZCZTqE1aIpqj6eyrbD/h1K36PF9rCaOuXogy+A/NvsGZZCzy5
+	 X4t8FeWQ5IQOyqIoa33mCrf/zbdBI0AZzb6Q1JR4+Lp03XHFYI8AwABRptIak8gyZ9SSZ
+	 /xZIzcFNQaNE+AdUY2+CTkBG18zAUbPSnDATPXDqy09pAMY5ocgYLST7dA9605fMpRWzw
+	 rcuKV7FgW3nPRk8iaaLlXvpS2KPHxF6EyEeS+qXtZrgJf+SUtkeVY78lKmQ4HEsMabA==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1794455896;
+	c=relaxed/relaxed; t=1794456847;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:X-B4-Tracking:To:Cc:X-Mailer:X-Developer-Signature:
 	 X-Developer-Key:X-Endpoint-Received:X-Original-From:Reply-To:
 	 Content-Transfer-Encoding;
-	bh=iwx45yD8rGo5BwjYbGiHDAeVNtOmwXFoNQbOJBRIlfA=;
-	b=pVstdYuuVJxjmNxxQW3ojeMVqwNHvAhx1aA0C1CKaC4rBKyL5c2QlXSo2gfox6JzYJac
-	 Tl6Ra55PPluo3rjDfNlt7RfOqUSWYH+HIdeAAsW25wkMRuZyxiYq1L7ejFP6V2oq5QPG8
-	 nrCtQZDRuxOeiXnuaqGsubIxBm46a/xlPwlndYM3kBKRHCmNZbdjFzCuYOsAxXaGCC6VX
-	 Gth8tqzo2Zgf2+dE3Tf9EK802SRTg3GDktpDymNV0epms/sx5nteY6KRaHQOKjZ1lkSsN
-	 HVv9U0X3Yr3k6iOAi7aJMUN9hGKsqCbwFNq4FV7MR+zoIXsUJFzVjFTflyQt2R7LUNQ==
+	bh=YD1w0JeXcR4tiwXqnCZLuBqyW8EuNSACWiyRzXaRl2Y=;
+	b=MCn3dfSfcCb0oKdadCZy+Y3UJShPXGbd2lod4vEh3mV10JgH74lvsNfbYN/y2ALxOYlI
+	 6qZCb1rMTfjRC4go4xv9tPGTkdsM7prwhqrPq/iXJ9R4qbrEQPVUxQgI4SwvTnDsMJQEt
+	 ZR5PrmmIitT2oYHCJuWD2FADFSFwlxq39uWZlX/PpGqgt5lfc02nTDhASnbAvU5aROJFb
+	 TaANlpWmPZTIXZ0a0WkiBhaL1RDUq3jHXVg8GrHwZdzkWJ7vwLc/pcBH4RLpIZv/JvBnf
+	 S250tIimTr2t6fvHaM5b8ZEVFSJnhfOOWrJ1T0pouZmDWVdZ4IEWwXuerD07rDppwzA==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id E0CF81F00A05;
-	Thu, 12 Nov 2026 03:58:15 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 976D41F00A0A;
+	Thu, 12 Nov 2026 04:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794455896;
-	bh=iwx45yD8rGo5BwjYbGiHDAeVNtOmwXFoNQbOJBRIlfA=;
+	s=k20260515; t=1794456847;
+	bh=YD1w0JeXcR4tiwXqnCZLuBqyW8EuNSACWiyRzXaRl2Y=;
 	h=From:Date:Subject:To:Cc:Reply-To;
-	b=l3VCj916jDlP1w+N6iqECx9R6TzxBxz6ViDMFsVb5n1Y/Ifh+lzae8DlGE5IUfm0A
-	 pbqSbbRP/EbR0sX/sOfENFXVqPQ2+KNLKY+nid83JNaLudb96OAryEhZnfko82QoN+
-	 Rx38kfqapf4TlP1Cz2Rp3SnSEG+e9MvffJ30QmMset8S3X03VQSJT0EI5tNt1VJ8PO
-	 ka9RsOzzY/ux+ZgTiFuJ0o71Pm9/P59mbvjpPzC+3BmLmAnXyQA2CAl2dcs7W/2yaq
-	 ySePvwdYyEQHbP1AA82XQdfJYKKcIbgcSR1woy4rnqsaDzK8QSuLoBnQj0YWEp7ljL
-	 9PhVLulN/EG1w==
+	b=lhgeE/PqSmTUUQi3kIXmS1is6IABUzWtawpbw51X3IgF7DwwfLC8lWLyGFY2rRxvb
+	 EC8JbBQRUVQoIgoAAnWauAJk3MLX2tW6rM2DjcL5J397TXE7ZAhCYOe7j8Rf2B2Iug
+	 oCl+q/5KS68IkELDLeToBYho2WnLwlrf4NAiWgASfJmcW3AuIBEk5CDnAAtj2hW3pw
+	 SMYmWL7TB8d8Qzj+/jtYCSd4wS56xwswej5tEYHonnbM/akKO5+ebLHsmDHs4306AZ
+	 slYwL8hTfIHqWMQPa9UfSaUPv5Ej3ORaZAvfT/P2DHdcvvRI/rqmzYQt6BPUK1Psjz
+	 9KMKwe4gCr5Xg==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 73F3949261;
-	Thu, 12 Nov 2026 03:58:15 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id 2320F4927F;
+	Thu, 12 Nov 2026 04:14:06 +0000 (UTC)
 From: Daejun Park via B4 Relay <devnull+daejun7.park.samsung.com@kernel.org>
-Date: Thu, 12 Nov 2026 12:58:15 +0900
-Subject: [PATCH] overlay: test d_ino of hard links in an impure dir
+Date: Thu, 12 Nov 2026 13:14:06 +0900
+Subject: [PATCH v2] src/t_dir_offset2: do not check d_ino of a stale first
+ entry
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -83,20 +84,21 @@ List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261112-ovl013-hlink-v1-1-4bf8f44050e9@samsung.com>
-X-B4-Tracking: v=1; b=H4sIAFY59WoC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIzNDQ0Mj3fyyHANDY92MnMy8bF3z5DRzk0Rzc9MUI2MloJaCotS0zAqwcdG
- xtbUAmgg6GV4AAAA=
+Message-Id: <20261112-ovl077-stale-next-v2-1-6d3a691a92df@samsung.com>
+X-B4-Tracking: v=1; b=H4sIAA099WoC/32NQQ6CMBBFr0Jm7RimgoAr72FYTHCAJtCaDjYYw
+ t2tHMDle8l/fwOVYEXhlm0QJFq13iUwpwy6kd0gaJ+JweTmSkQ5+jjlVYW68CToZF2Qe+Km7qS
+ ikiDtXkF6ux7NR5t4tLr48DkuIv3sv1okJGyKmksuLgWLuSvP+nbDufMztPu+fwFG8ZpatAAAA
+ A==
 To: fstests@vger.kernel.org
 Cc: Zorro Lang <zlang@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
- Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
- Daejun Park <daejun7.park@samsung.com>
+ Miklos Szeredi <miklos@szeredi.hu>, Hungyu Lin <dennylin0707@gmail.com>, 
+ linux-unionfs@vger.kernel.org, Daejun Park <daejun7.park@samsung.com>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794455894; l=3144;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794456845; l=3221;
  i=daejun7.park@samsung.com; s=20261006; h=from:subject:message-id;
- bh=plEjgCid8fULCglbzGD9W9G0YpAuKpPG535Rx0K4cHg=;
- b=BNtS5aXvEsUM7uuXY9t2ozHIW284VzT+V96eupm58pb/Xld0SobXUpDoOExFLiP5k6uCqw6A3
- jT4lelpus3/B0oV9drObKKupqWxN2Oms6zXJTaEfPDrp63VeadfyZRi
+ bh=h8S3ePG03hCpC7eOjyZ1Cd5PwA2U9TzZrinNmJROrFY=;
+ b=1iC8l7OV8nYQDnwtoE2Xryl2nyxJ2hX5ImPy9Hh6ebm0wARAKJRO11b8mSbeC7uWYnYEJJMeZ
+ qTn8i/hDMpOBmGbDsS+s/PVzbwXnnFTmd1MZ8bfQRqV2uoGEohEdQSf
 X-Developer-Key: i=daejun7.park@samsung.com; a=ed25519;
  pk=4yUfDqGRZTIj0Ik43z1GoMZRWCNm/rgX6uJuM9dtNIg=
 X-Endpoint-Received: by B4 Relay for daejun7.park@samsung.com/20261006 with
@@ -107,102 +109,85 @@ Content-Transfer-Encoding: 7bit
 
 From: Daejun Park <daejun7.park@samsung.com>
 
-Linking a file with copy up origin into a non-merge impure dir does
-not bump the dir version. readdir then reuses the impure dir cache
-built before the link. The new link is not in that cache. readdir
-reports its upper inode number as d_ino instead of st_ino.
+overlay/077 fails on ext4 with some directory hash seeds:
 
-The test builds the cache, then links two files with origin into the
-dir: one from the dir itself and one from the overlay root. It checks
-that readdir finds each new link by its st_ino.
+    entry o100 has inconsistent d_ino (131181 != 524491)
 
+ext4 returns the entry that did not fit in a getdents buffer first in
+the next call, even if it was unlinked in between. In an impure dir
+overlayfs lists that stale entry with the upper inode number. POSIX
+leaves it unspecified whether readdir() returns such an entry.
+
+Do not check d_ino of that entry.
+
+Reported-by: Hungyu Lin <dennylin0707@gmail.com>
+Closes: https://lore.kernel.org/linux-unionfs/CAGEkeHcg06kHshHQ=9U6Yrs_wm8W9H28o9bcC2Qh3fw3tANbWA@mail.gmail.com/
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Daejun Park <daejun7.park@samsung.com>
 ---
-On the overlayfs ovl-fixes branch (0d5e729c515f) with default overlay
-mount options, the test fails in 3 of 3 runs on ext4 and on xfs. With
-the kernel patch "ovl: bump the impure dir version when linking a file
-with origin", it passes in 3 of 3 runs on each.
----
- tests/overlay/013     | 58 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/013.out |  2 ++
- 2 files changed, 60 insertions(+)
+On v7.4-rc2 with ext4, overlay/077 failed on hash seeds ...88bf,
+...8863 and ...886e and passes now (3 runs each). generic/257 and
+generic/637 pass on ext4 and on overlay. With the stale entry mark of
+commit 9011c2791e63 removed, overlay/077 still reports m100 or f100 on
+ext4 (seeds ...8812, ...884a, ...88bf and a random one) and on xfs.
 
-diff --git a/tests/overlay/013 b/tests/overlay/013
-new file mode 100755
-index 00000000..bc65076c
---- /dev/null
-+++ b/tests/overlay/013
-@@ -0,0 +1,58 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2026 Samsung Electronics. All Rights Reserved.
-+#
-+# FS QA Test 013
-+#
-+# Test consistent d_ino of hard links in an impure dir.
-+#
-+# Overlayfs caches the d_ino of the entries with a copy up origin in a
-+# non-merge impure dir. Linking a file with copy up origin into the dir
-+# must invalidate that cache, so that readdir reports the new link with
-+# the same inode number as stat.
-+#
-+. ./common/preamble
-+_begin_fstest auto quick copyup hardlink
-+
-+_fixed_by_kernel_commit xxxxxxxxxxxx \
-+	"ovl: bump the impure dir version when linking a file with origin"
-+
-+_require_scratch
-+_require_test_program "t_dir_type"
-+
-+_scratch_mkfs >>$seqres.full 2>&1
-+
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+mkdir -p $lowerdir
-+touch $lowerdir/foo $lowerdir/bar
-+
-+_scratch_mount
-+
-+impure_dir=$SCRATCH_MNT/impure_dir
-+mkdir $impure_dir
-+
-+# Expect readdir of $impure_dir to find <name> by the st_ino of <name>
-+check_d_ino()
-+{
-+	local name=$1
-+	local ino=$(stat -c '%i' $impure_dir/$name)
-+
-+	$here/src/t_dir_type $impure_dir $ino | grep -q "^$name f$" || \
-+		echo "readdir d_ino of $name does not match st_ino $ino"
-+}
-+
-+# Copy up foo and link it into the pure upper dir, which makes the dir
-+# impure. Then read the dir, so its impure entries get cached.
-+ln $SCRATCH_MNT/foo $impure_dir/foo
-+check_d_ino foo
-+
-+# Link foo again inside the dir
-+ln $impure_dir/foo $impure_dir/foo_link
-+check_d_ino foo_link
-+
-+# Copy up bar and link it into the dir
-+ln $SCRATCH_MNT/bar $impure_dir/bar
-+check_d_ino bar
-+
-+echo "Silence is golden"
-+_exit 0
-diff --git a/tests/overlay/013.out b/tests/overlay/013.out
-new file mode 100644
-index 00000000..3e66423b
---- /dev/null
-+++ b/tests/overlay/013.out
-@@ -0,0 +1,2 @@
-+QA output created by 013
-+Silence is golden
+Changes in v2:
+- New subject. v1 was "overlay/077: check a stale entry in an impure
+  dir on any hash seed".
+- Dropped the "-" and "=" cases and the second impure dir.
+- Relaxed the d_ino check instead (Amir), but only for the first
+  entry of the first call after the unlink, where ext4 returns the
+  stale entry. Relaxing the first entry of every buffer hid the
+  regression that 9011c2791e63 fixed on some hash seeds.
+- This no longer waits for a kernel change.
+---
+ src/t_dir_offset2.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/src/t_dir_offset2.c b/src/t_dir_offset2.c
+index 026bc8f3..a6091f7a 100644
+--- a/src/t_dir_offset2.c
++++ b/src/t_dir_offset2.c
+@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
+ 	struct linux_dirent64 *d;
+ 	struct stat st = {};
+ 	int bpos, total, i;
++	int ncalls = 0;
+ 	off_t lret;
+ 	int retval = EXIT_SUCCESS;
+ 	const char *filename = NULL;
+@@ -96,6 +97,7 @@ int main(int argc, char *argv[])
+ 			perror("getdents");
+ 			exit(EXIT_FAILURE);
+ 		}
++		ncalls++;
+ 
+ 		if (modify && fd2 < 0 && total == 0) {
+ 			printf("getdents at offset 0 returned %d bytes\n", nread);
+@@ -165,7 +167,18 @@ int main(int argc, char *argv[])
+ 					       (long long int)d->d_off);
+ 				if (!strcmp(filename, d->d_name)) {
+ 					found = 1;
+-					if (st.st_ino && d->d_ino != st.st_ino) {
++					/*
++					 * The file is unlinked after the first
++					 * call. A filesystem may still return
++					 * the entry that did not fit in that
++					 * buffer first in the second call. In
++					 * an impure dir overlayfs lists such a
++					 * stale entry with the upper inode
++					 * number, not the st_ino seen before.
++					 * Skip the check for that one entry.
++					 */
++					if (st.st_ino && d->d_ino != st.st_ino &&
++					    (exists || bpos || ncalls != 2)) {
+ 						fprintf(stderr, "entry %s has inconsistent d_ino (%lld != %lld)\n",
+ 								filename,
+ 								(long long int)d->d_ino,
 
 ---
 base-commit: 71641219a506ac62bfa231592394265ca812670e
-change-id: 20261112-ovl013-hlink-7cf74a775d23
+change-id: 20261110-ovl077-stale-next-af1a98ce7151
 
 Best regards,
 -- 
