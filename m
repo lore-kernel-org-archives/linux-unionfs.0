@@ -1,100 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794482405;
-	b=Cr25un5gndW37u+Jq20V4rKVbPE+jBMdH4aWNM05jtr+JbBee4qVlRALfHTA6vTF+aza
-	 MUoyHILtnOQVHyWm4syxXGkOEGYNxCw11hXU39f1H+HeZE8BPUf0FasaoiV5XG2RwgAVL
-	 DNVqs1B6HywFY5ZMJtSihAvgYgg0uWJZNEi8cNVsEFNLSJL+QNVgj8tsfacQtYZGMOD6J
-	 Xc3ZcKJ7kofH3c/Wi0m2G8xN1IL+ZM7zuKeE8darHzyo8sov0gKjBgIC4mHS5O1oxxxKy
-	 cQgGesscgK79OdEAnWPCN8XbcPDS85fZXvF/4eeyZvaRlyiwCdWrUakxDksxi7qWT9Q==
+	t=1794482492;
+	b=PsfCg9KDodkk5j2aTe1BclIPN/Pxkyn0KNf7fsLa8/FCeAlUx7dm9DmQl4ISNS29N+Jl
+	 oghxduu7LbcRijgqtNNMdYWVjHz4JDO8TdkvSiu0YvA/GDnMwHpu3MjKQHRiMwxhUbKT8
+	 puWNsqM3A4P9vKNGNJDcZtfcS6WnfuFYq6/GbivhKhbkHCpUm/llhpMGfjsI8u1zRVEVy
+	 5W30KAbWj/6Y4PatkE03NNDSCdMVhdgqog4Gr48ZLLSZbEWFiLA0cH2BT9MVnV7b1hpx4
+	 6gnMRrykfSj9tr/c2rsT2R0xJ/mGZNEVUgp/tg/yiimXM2srZP5dvND09ScuCoSoY9w==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794482405;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794482492;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=VTglXy+2krUMdtb0w6gPQkgMvJl6AypaaGv2IAF/L+Q=;
-	b=oXY+UL0whtu1mv4Kr2S6oiDo5cJuJKoRAdiiuC1rlsuQpnMUKGbisay9OnpypmkK7vAp
-	 +6+um4tg9vC8ELfduwTNNtQwWbYVkfbGh5xO0Ew4TDiPh/wNSDqZvuK7zankrPtgh79oz
-	 5JTKZybhgzpr1q1XVWtDdVhud6UUg6RkFl/+2BJXXbbGkG/smye3UCs8PvAJE5X8FHVQp
-	 2ccssbfXy/plI4VhksOmhjf8cg9G59UaEmOvhvTHDyQ5ayjk4NeaFFhhrt07AetTjKBMl
-	 IwmKQcnPMm6GwVnibAUbDbJ5aT3PKd9b7Jf+WQChvYBkmAULbrYC0a2cEM1mVNYxK0w==
+	bh=xVzJ+69NlJ0dFEV/ZAMaiMuV0Wc51oFEXKky6ggcO9w=;
+	b=BTab8qjcsiigCKQsF12vYxkYLvEYx+k2HynQZSvXNLUsgO6fO6OdwVLv0EDoobBziLoC
+	 HVAx6b2zTJyWENodgeyXWi+pgXIekXxR9uooMxMwLqdVovjFHZHSl4nUojhhWMQHvSatr
+	 /BUC9I/8TpwlSKVyMv+LGso3fvHB2WYIDVjGgCGNs/jQrvzPPRaEt7JOM9SBhMqthYChr
+	 dd3PUmVveWIt3HXMd3/h+FfP4MWk0L9pc/g7D0fkj974ZvxnivwiyMmVPQRHdFeKyEjk4
+	 fMEO2OmLNdVkBxhxZqP1smSOOidE6Sghz7LtOKCoyZsl4P1v9XW3xPg6rWIJLhauT0A==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Og6lJkpC;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=tLgcIv3K;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E646B606A33E
-	for <linux-unionfs@vger.kernel.org>; Thu, 12 Nov 2026 11:20:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E646B606A33E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA5B560A3838
+	for <linux-unionfs@vger.kernel.org>; Thu, 12 Nov 2026 11:21:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA5B560A3838
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Og6lJkpC
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6a642495d81so1116527a12.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 12 Nov 2026 03:20:04 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794482403; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=tLgcIv3K
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6b167ffd132so1190631a12.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Nov 2026 03:21:30 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794482489; cv=none;
         d=google.com; s=arc-20260327;
-        b=B0kdN7gWOaYsCfBAlHzxis9Nrw7EApIVxdBrtauy5rYbqq0xCUSV+JbNY8HFikYXp5
-         XutjITVatRFwPEM8SW6GIlHEhdLSKemlKgsnTOO2iDf63WUyTc7nBpFecVkDHnOuvddE
-         S7Y2xQkTNxL1ixwWqVI0nFJuZ/VBubxN218k9l+gi03qpzD7bom1ie/dsh0fL7fguSEL
-         u4qZjfJo5ZtvyaOEYR54Ieobqf0CBcivMw82UPLDCaTCw+dCM/B3JkGBonmW06hd9B5z
-         QhwINjjIw9CcRQq8USKVftRfcT/ITvB99ODsojwE8OlVPguTeNdQPR8/FuMOD6gC5GC0
-         VGQQ==
+        b=Z+B5EznoFeUQvTsL09V6R01x7xCq8wzgUz1VKvRcpCa9GCXynBhIfpxLZ0x+nqHsmd
+         Bmdu28p3X5dMC3Ciz3rnEyjtjGgdwkBpCZn+qHmvp5P0ghhQLzD72DAm7KAcx45ULk+A
+         NPFPQnkanx+GU8lNDmvpUlL4fmCCeZzlLIItJ7YecEBMgsQ5CNUv0+kpIgdjQUZZ4nD1
+         i6qaFFGeGwcxLtKqrgWr7suD8ogpJZuqHfK0HnT02zrZrF8HhDbfHFfOK0w92BkIWDTC
+         +RCOwMLNtrtGYfllDS9MC5nvmSlseVng3XY4PU6jKlLCAj5ftQEi83+4XzcaHYUn+7o6
+         /61g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=VTglXy+2krUMdtb0w6gPQkgMvJl6AypaaGv2IAF/L+Q=;
-        fh=HaLpOlXk0VldQ2mVzGy/K+rLEFGfdI2xaqhOri/4pIM=;
-        b=eiPw/frxCCWpXmeI9RzR70cA0P/NVMq3CrH7yWte57whe9Ye3kQZajLGFnOMAvEvAE
-         rQkcwOLOYfipizb8YmWCXoQX+7mx6pTBXFrLARgSbgXR5TJehnqEYKXVSv2PMM0/neCx
-         phesSBZNqT1IhzjugqQ+vW6tjXMNQwlFw4OZL0RCiHTJBCQyn1YkfSheKW2qc3jF+Jpa
-         KKQU2tKqgTgqb01Ah8JrSbSWusuAqFpd+1a+9kIaXqTCDwl0zr0UGHEZjnzTftJ0XqxB
-         AuJbaP1YDk52ZGzHeWatXHZDCNwfecVM+drLa5ikZd2J7GiwuaqHAafDAbivSlAlIHBq
-         h2ng==;
+        bh=xVzJ+69NlJ0dFEV/ZAMaiMuV0Wc51oFEXKky6ggcO9w=;
+        fh=oiQHXvI74nuVAqsbrpGjY3xIHuAdVCnkuIzUX0NQGRI=;
+        b=CbVDd6BrtwwCkS1cmVDaedDXPAD3rwI7SzHG6VUDAtkrd+ZBsb90fQhnD2bAlsZvIZ
+         NhBYVN9Je2mP6iotr+kswau0qijXohmXIPWhR/VhdP3FnIGDeHxSB10N70sQJrriN4mg
+         tjthoL38bgem7EJb7Exs8HOgMxCyYAvjJtRTYwev/ewxCitrpv3nBjgfwUjUyF/TZpKT
+         7g2sNX/2haSAqnmCfxgJWofgOd6dVQxZZ0zh1WPKig0hJfClg0TWuslo0fygBj7x4itZ
+         M3B90+zuHOOtzO+VkRFGLYtmynm6HXXBgwTCqWxdWlh9XOslEhMljx4dJkDqNsgRYpUb
+         y4Cw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794482403; x=1795087203; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794482489; x=1795087289; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=VTglXy+2krUMdtb0w6gPQkgMvJl6AypaaGv2IAF/L+Q=;
-        b=Og6lJkpCZGCCzHQTeJDBK6mCfPw/+14zn7hZpdGDsCRyNlI0noaa65X8fQV7eRtck1
-         ngkY58NbKFequQki+Zyazn6wM9DinrOu54k5jj7Hf/jwuCFIkWIxI/phPPsJkoyomLwG
-         Ujh65QQxC0tnTo8DYW3Biv9Zpny6ZrZsPVsJHCyEhYH3xckawZpu3el8ZJTLJHznnvSc
-         kp+5W4TnTa5zkyDDyvNQTdwntvXGSpOF80bNlepXmIHvg2rH+U7trMQRzqhkACD8ERK0
-         6YekgRSfib99zFP4X55Yfnl6RrtgT0OgKgGE43YbUbH+N397W0abwzw3oLI/398Hbj1B
-         eaLw==
+        bh=xVzJ+69NlJ0dFEV/ZAMaiMuV0Wc51oFEXKky6ggcO9w=;
+        b=tLgcIv3KH49q5tDfuo0N/f91QbozTfalhC7HnR0ffDEcs9PG3mWFT9A/pN3iTxV/0+
+         lwZLc0G6AdAAVFxnMEUQRYpXNjwfbi5nHzD0RVqILjr75+CtHRHaSmQmzpNE2FieZDi/
+         9DYxBNLexlW041BcppV9UWax9nzZL9krgnjbaehW4shRRZ+w74vuSN7A+C6J1pEaah70
+         4ddylQayEXMF5xGsKyODVmBkYodghzKqb5o80wY5k4ophY7zcmgg2z1T7cG1fkA3GRdE
+         4QYjW7g6Ew/AejuUm3vkQVFXyuB9D1p9VL/uz7Kq5peJUaeRZ88ViqfkPc/An3nDe6o4
+         kqCQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794482403; x=1795087203;
+        d=1e100.net; s=20260707; t=1794482489; x=1795087289;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=VTglXy+2krUMdtb0w6gPQkgMvJl6AypaaGv2IAF/L+Q=;
-        b=ZFxkDgkDLDT1THWRKQGNtluEcZKFd3naw1+D38zr3r1KnKGnrtlOQlBPmSk+2UebLE
-         sj6ccWIADeiBiEzn5rkp37U5+wOBUQVvH5ukPpd3QEQK1T5sWpOr1rbqfC5UedRIIaGo
-         BgrfvQJCSgt86iSjSgF8iRtz4O0IPCfY8maYSefv/Dt4RNbiukeJ2Kul73zIXKTNN1s7
-         Tf/XT0D3TXoT6t8/emQXkqaKhT9fSn0UAwLdkk7jRAF9AwugeebEES+Qy+wjl6+QhRV4
-         96zljsBQxvutxiHY3GNfa/6LXr/SDqjhfONdgPBYZCP2lPx0JEHVKbZ+O/nGZXSfFVsP
-         yFoA==
-X-Forwarded-Encrypted: i=1; AL+hErFNTgeQwv2gpJ73ERidW5iisXNsSM5JP09VnxRiOcrJZlsHVYEoX3rwxrEpzkFfgn2nyftIWN/LSY/jTyxa@vger.kernel.org
-X-Gm-Message-State: APuU4Z+R5RMPY6qoTD72u1HP5caL0KXk47yz425eeLDXYxE0O9kxOb9g
-	1TJ9NSg2AvcyrOLn4htfyiPQl0Ym2tEbK+ziKJ81t6qRfVrkuiw7FwkDoUCH87jVQ9txGf6IOCj
-	/r79Z3+huFPugCA32HvbYj8VAlxPoIt8=
-X-Gm-Gg: AYBFou3LJr4HENsjH3qQUmWmz5ItAlq/c6df1o4zih1rPMlrZM69bJ8PUMkztzssfPH
-	5A2TdBq+0RO9IgxQRWm/mrNExcSXFPqvRSdA3KyyuijPDvE79+Q/5RvnjO5LOM6GFZqSH2GficP
-	ebucJW/6wZ5cWLUHZJ5EsBuLHNI0lqL7bgV/ElfrHA+b4pbtwzaC7rViPVMiVK9TP9xfH9DfhXV
-	lOr6VG3cFlOJjtOyDWOFYfVgLY8xED1i9NSTly1pdHdgEbDCpKKg+OboPp45Vo5aNZVy1yra7q4
-	1kTHOiRqBFKwgfI7y+vu2ICNR2EiFIcavarwErf6+9+Ffi4I7qGPMVbroO1muGBN8Xj+RwjA8TP
-	Pp6BvbkiOIO8h1Fo5JkFK2pemsLsGQVmzfzPUI9naCG6O9zqTKYIAxCBdEvCC/LGvUeDcow==
+        bh=xVzJ+69NlJ0dFEV/ZAMaiMuV0Wc51oFEXKky6ggcO9w=;
+        b=0sotk7nQUTHQnvaD2cj/co0k5+85qWqXce3dXKYqv2sj63a+yXXxaBqOUC3TMgn3LZ
+         WHfRUbkL9dKQCddrqEhfjZU7dfPiuZQ/uE9U8WMsrFpg/TLrCVSCp9O+pqQMhw7izSfo
+         dctlU+wPvxF8PsgDJyecx6x4HzfMd4zlFcw513A+dNVlEx/ZSh44CNE8PI0J4bKQkHYd
+         j05g3/Ay+sd2lw7kkHWdCK1ugf9YaVS2O+MVEJ2Bor5NlPcBNX5GQDw5FtCVgf3aAwBP
+         nyGbjPdzZ5K3cpuz1NQWtz8oqaxoJhGiifb+Ce/00u3pW2fc6gq3vd5m0WIP4CyVSK4G
+         ZuOg==
+X-Forwarded-Encrypted: i=1; AL+hErE/GdHqMqeyrWOpUDItXNgY+0/WKo4nD7L/O5KLs1XXi+Gwxqni955d2lMygABK3ztk4CE/5HboVJh2gWEk@vger.kernel.org
+X-Gm-Message-State: APuU4Z/rdDBvQJqqgHI+42rQw5mdCNodC3uJfR9PZ5hoRkQ5qfrvX5aM
+	bXrCTGEGdjs28ZBtMXPGt1jBlf5Et2asvKnwLOKs5XTyHv4ZKKjQArMtRORcRShL0fRPLKOiBVr
+	L/ryOldeblWa30tD+p5SzUQDrhR/T1f4=
+X-Gm-Gg: AYBFou0f+gOQST6agGg2wvzL+WmZg9hrMTfs5bjzA5DTcaSQKFvET/018vuRA/5Gd7a
+	v6S5jJ7kFmF6ZKq38MD9uH3Bsv8dPNBfDaKgqtolKgJ+4/q1X3pHQIV/BNN3h91ispie+WPIDYp
+	RFo4p9uG7nnvZ0fpCKUGF9fC52VJS8660YZANrqXLwWxURPLFKM593iq1/o6g6SYQTHN8rfeRFE
+	KhfAUIY7kbdZKKktogiycJUb0JnRIhwze127MspHzpBX35rCxZ4rXJlXSpKPiPJR6erygOW0HPX
+	EFTpGaCXYsrlcDVZ2Ad0BGZveu8ByXR4S03WnTDZ34RwCY4PcsZ7sWbmVRvk6XScqvWXmFZaYqO
+	v4IvG7iA/BUOJ2mvMpf83mqyf1Pw8R1vbUdpmPO41HcXcruJWSLIyYSHnuv+4m3unqJwUuw==
 X-Received: by 2002:a05:6402:22ca:b0:6b4:21f6:ff48 with SMTP id
- 4fb4d7f45d1cf-6b7773418b6mr3084143a12.3.1794482403134; Thu, 12 Nov 2026
- 03:20:03 -0800 (PST)
+ 4fb4d7f45d1cf-6b7773418b6mr3086397a12.3.1794482489207; Thu, 12 Nov 2026
+ 03:21:29 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -104,16 +104,16 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261112-ovl-link-impure-v1-1-7804905610a9@samsung.com>
-In-Reply-To: <20261112-ovl-link-impure-v1-1-7804905610a9@samsung.com>
+References: <20261112-ovl013-hlink-v1-1-4bf8f44050e9@samsung.com>
+In-Reply-To: <20261112-ovl013-hlink-v1-1-4bf8f44050e9@samsung.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 12 Nov 2026 12:19:51 +0100
-X-Gm-Features: AclHuK8j8C1jDU01PIIaLNz3c4Dysks-pyFxlkXuClWCxYjHTCcGRwGH-vgdal4
-Message-ID: <CAOQ4uxgZfKXGDn=MaMZTXh2nUu=LZ5Zu0JDoJQhXfVcSA69bSw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: bump the impure dir version when linking a file with origin
+Date: Thu, 12 Nov 2026 12:21:17 +0100
+X-Gm-Features: AclHuK-odbIHNo7lj8WqJ9qO3D9MVEnGnT5G78LAnEyvlajdzz8WjRKJksmbCQQ
+Message-ID: <CAOQ4uxiX9wiHXcyvUfi15PDHoucEiBGVqMjtvB=a-b3k7-hyUw@mail.gmail.com>
+Subject: Re: [PATCH] overlay: test d_ino of hard links in an impure dir
 To: daejun7.park@samsung.com
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Sashiko <sashiko-bot@kernel.org>
+Cc: fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -124,131 +124,107 @@ On Thu, Nov 12, 2026 at 4:58=E2=80=AFAM Daejun Park via B4 Relay
 >
 > Linking a file with copy up origin into a non-merge impure dir does
 > not bump the dir version. readdir then reuses the impure dir cache
-> built before the link. It reports the upper inode number as d_ino of
-> the new link, not st_ino.
+> built before the link. The new link is not in that cache. readdir
+> reports its upper inode number as d_ino instead of st_ino.
 >
-> Pass whether the linked file has an origin to ovl_dir_modified(), as
-> rename and unlink do.
+> The test builds the cache, then links two files with origin into the
+> dir: one from the dir itself and one from the overlay root. It checks
+> that readdir finds each new link by its st_ino.
 >
-> Fixes: 4edb83bb1041 ("ovl: constant d_ino for non-merge dirs")
-> Reported-by: Sashiko <sashiko-bot@kernel.org>
-> Closes: https://sashiko.dev/#/bug/linux-98f207b6-3936-48e9-a40f-88f20be4d=
-b7b
 > Signed-off-by: Daejun Park <daejun7.park@samsung.com>
 
-Applied.
+Thanks for the test!
 
-Thanks for taking care of this!
-Amir.
-
-> ---
-> Tested on ext4 and xfs with default overlay options: the new fstests
-> test overlay/013 fails without this patch and passes with it. So does
-> a script that puts a whiteout in a non-merge upper dir before mount
-> and links over it (ovl_create_over_whiteout()). Apart from
-> overlay/013, only 079, 085 and 088 fail in overlay/auto on ovl-fixes,
-> with and without this patch.
-
-FYI:
-
-https://lore.kernel.org/linux-unionfs/20261111132836.3495981-1-giuseppe@scr=
-ivano.org/
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
 > ---
->  fs/overlayfs/dir.c | 20 +++++++++++---------
->  1 file changed, 11 insertions(+), 9 deletions(-)
+> On the overlayfs ovl-fixes branch (0d5e729c515f) with default overlay
+> mount options, the test fails in 3 of 3 runs on ext4 and on xfs. With
+> the kernel patch "ovl: bump the impure dir version when linking a file
+> with origin", it passes in 3 of 3 runs on each.
+> ---
+>  tests/overlay/013     | 58 +++++++++++++++++++++++++++++++++++++++++++++=
+++++++
+>  tests/overlay/013.out |  2 ++
+>  2 files changed, 60 insertions(+)
 >
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index e0a164e22d67..8fec18dc5fc7 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -368,7 +368,7 @@ static bool ovl_type_origin(struct dentry *dentry)
->  }
->
->  static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
-> -                           struct ovl_cattr *attr)
-> +                           struct ovl_cattr *attr, bool origin)
->  {
->         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct dentry *upperdir =3D ovl_dentry_upper(dentry->d_parent);
-> @@ -393,7 +393,7 @@ static int ovl_create_upper(struct dentry *dentry, st=
-ruct inode *inode,
->                 ovl_set_opaque(dentry, newdentry);
->         }
->
-> -       ovl_dir_modified(dentry->d_parent, false);
-> +       ovl_dir_modified(dentry->d_parent, origin);
->         err =3D ovl_instantiate(dentry, inode, newdentry, !!attr->hardlin=
-k, NULL);
->         if (err)
->                 goto out_cleanup;
-> @@ -491,7 +491,7 @@ static int ovl_set_upper_acl(struct ovl_fs *ofs, stru=
-ct dentry *upperdentry,
->  }
->
->  static int ovl_create_over_whiteout(struct dentry *dentry, struct inode =
-*inode,
-> -                                   struct ovl_cattr *cattr)
-> +                                   struct ovl_cattr *cattr, bool origin)
->  {
->         struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct dentry *workdir =3D ovl_workdir(dentry);
-> @@ -582,7 +582,7 @@ static int ovl_create_over_whiteout(struct dentry *de=
-ntry, struct inode *inode,
->                 if (err)
->                         goto out_cleanup_unlocked;
->         }
-> -       ovl_dir_modified(dentry->d_parent, false);
-> +       ovl_dir_modified(dentry->d_parent, origin);
->         err =3D ovl_instantiate(dentry, inode, newdentry, hardlink, NULL)=
-;
->         if (err) {
->                 ovl_cleanup(ofs, upperdir, newdentry);
-> @@ -647,12 +647,12 @@ DEFINE_CLASS(ovl_override_creator_creds,
->
->  static int ovl_create_handle_whiteouts(struct dentry *dentry,
->                                        struct inode *inode,
-> -                                      struct ovl_cattr *attr)
-> +                                      struct ovl_cattr *attr, bool origi=
-n)
->  {
->         if (!ovl_dentry_is_whiteout(dentry))
-> -               return ovl_create_upper(dentry, inode, attr);
-> +               return ovl_create_upper(dentry, inode, attr, origin);
->
-> -       return ovl_create_over_whiteout(dentry, inode, attr);
-> +       return ovl_create_over_whiteout(dentry, inode, attr, origin);
->  }
->
->  static int ovl_create_or_link(struct dentry *dentry, struct inode *inode=
-,
-> @@ -687,12 +687,14 @@ static int ovl_create_or_link(struct dentry *dentry=
-, struct inode *inode,
->                  */
->
->                 if (attr->hardlink)
-> -                       return ovl_create_handle_whiteouts(dentry, inode,=
- attr);
-> +                       return ovl_create_handle_whiteouts(dentry, inode,=
- attr,
-> +                                                          origin);
->
->                 scoped_class(ovl_override_creator_creds, cred, original_c=
-reds, dentry, inode, attr->mode) {
->                         if (IS_ERR(cred))
->                                 return PTR_ERR(cred);
-> -                       return ovl_create_handle_whiteouts(dentry, inode,=
- attr);
-> +                       return ovl_create_handle_whiteouts(dentry, inode,=
- attr,
-> +                                                          origin);
->                 }
->         }
->         return err;
+> diff --git a/tests/overlay/013 b/tests/overlay/013
+> new file mode 100755
+> index 00000000..bc65076c
+> --- /dev/null
+> +++ b/tests/overlay/013
+> @@ -0,0 +1,58 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (c) 2026 Samsung Electronics. All Rights Reserved.
+> +#
+> +# FS QA Test 013
+> +#
+> +# Test consistent d_ino of hard links in an impure dir.
+> +#
+> +# Overlayfs caches the d_ino of the entries with a copy up origin in a
+> +# non-merge impure dir. Linking a file with copy up origin into the dir
+> +# must invalidate that cache, so that readdir reports the new link with
+> +# the same inode number as stat.
+> +#
+> +. ./common/preamble
+> +_begin_fstest auto quick copyup hardlink
+> +
+> +_fixed_by_kernel_commit xxxxxxxxxxxx \
+> +       "ovl: bump the impure dir version when linking a file with origin=
+"
+> +
+> +_require_scratch
+> +_require_test_program "t_dir_type"
+> +
+> +_scratch_mkfs >>$seqres.full 2>&1
+> +
+> +lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +mkdir -p $lowerdir
+> +touch $lowerdir/foo $lowerdir/bar
+> +
+> +_scratch_mount
+> +
+> +impure_dir=3D$SCRATCH_MNT/impure_dir
+> +mkdir $impure_dir
+> +
+> +# Expect readdir of $impure_dir to find <name> by the st_ino of <name>
+> +check_d_ino()
+> +{
+> +       local name=3D$1
+> +       local ino=3D$(stat -c '%i' $impure_dir/$name)
+> +
+> +       $here/src/t_dir_type $impure_dir $ino | grep -q "^$name f$" || \
+> +               echo "readdir d_ino of $name does not match st_ino $ino"
+> +}
+> +
+> +# Copy up foo and link it into the pure upper dir, which makes the dir
+> +# impure. Then read the dir, so its impure entries get cached.
+> +ln $SCRATCH_MNT/foo $impure_dir/foo
+> +check_d_ino foo
+> +
+> +# Link foo again inside the dir
+> +ln $impure_dir/foo $impure_dir/foo_link
+> +check_d_ino foo_link
+> +
+> +# Copy up bar and link it into the dir
+> +ln $SCRATCH_MNT/bar $impure_dir/bar
+> +check_d_ino bar
+> +
+> +echo "Silence is golden"
+> +_exit 0
+> diff --git a/tests/overlay/013.out b/tests/overlay/013.out
+> new file mode 100644
+> index 00000000..3e66423b
+> --- /dev/null
+> +++ b/tests/overlay/013.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 013
+> +Silence is golden
 >
 > ---
-> base-commit: 0d5e729c515f4ae4eacc179dbcf350d9b499a161
-> change-id: 20261112-ovl-link-impure-8624810156d8
+> base-commit: 71641219a506ac62bfa231592394265ca812670e
+> change-id: 20261112-ovl013-hlink-7cf74a775d23
 >
 > Best regards,
 > --
