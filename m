@@ -1,58 +1,64 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794661447;
-	b=cprRb67552UyU2JR5otWyB5Xs7Trr39Jhp1pwRapVEiopeD0IoHTRvIW0o6BATbdFvW8
-	 E3r4I/9CNCwrGrGTOFazcuHkXXnOHG9QzPQl7bxxk1A633IPiXko/TmUraqVhyyH5O+ry
-	 SMozq0tmBXF+FktukHDHX9hKHg4RoIAzm73whO+66Yg9gXDPo9u3Tbv41xDsue2IZ6S+U
-	 Rk2bDRAc1DNSxI1xeWSivdG1FW3vnjX81GeqZwvOasikB3wrs4ziExoIJ7XjMWV5CG9iT
-	 IBJE432kQYv/D8fCHRoDGunI5Myk8R8R2drRRWBNFiRyFLQ4zSt18qPgFKISqLWXPvg==
+	t=1794674979;
+	b=5Ty4+jgjWJS/PwGTfigQAdSSm7JcQJ4CJBG9YwTjmwf9TqbU73OAXqdRq69F9HPprqWW
+	 Mxv9ASJVmVEDeB/g8VKh60SvsiGQhxz+ObZxc5KT/VHxYzBNGlDSQx7mkB2o/1DNGibYl
+	 rrVuQquCMRXPc0a0mSUu/RujrAZ3Ndknfui8MCabZJ1XnhRh7dyFl6YUFMfs1J6hfVMmN
+	 FEagZjxQvFa+3e4HAj5fz5C65V6Lfx7DgSpvO/iTNZWnSVJyUXyanrtmIX12/jnM9VFW+
+	 RghqQEPi3qBDhqTXdpIeXU+TVARxi0fg8b4BMgzaTJBL+aWNtbyR1Rc/Atr7jmv/lKg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794661447;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=jmFaSxEkxznu2joKRb4CtLIuI9acOjlBj4phgIO6eYw=;
-	b=1dcwGfXavhy2hiPz/fopmWznHhFhB0X0zadjlN+44xe7c5+ZurCKajTRkU57IE+m1b4n
-	 bRmH/iDd3Zc8kWCt1s71PIQrI7HTXwaweoxgexum3XVbpfGpVP+Z4Sj5UtW37wZluVob5
-	 Xa0POjVK6aaSJgbbDr5OibVMpV/rd6c+SpKYlgfQPThZASM1iwp7vqY++T7GPClZfIrxW
-	 2JFlZcrr1+R6nbbI0osKCD/4EnAr2EggnUpUc0FcQOHR+TM69YxOtF/jGXyx07NySpzZx
-	 unlRWiDKZ3gnbRORSgS6uKq2tnsba2gb0hdt6RIoktGq01Q9QDEOdrTlLhZRlkpnz1w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794674979;
+	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:References:
+	 X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:X-PR-Tracked-Remote:
+	 X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:X-PR-Merge-Refname:
+	 X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc;
+	bh=FNbYdJDwICL/VH0gJDRVHmFp/3pGz97jL0DPqcVh4Es=;
+	b=rcpypA+bB2yysoFGS+5Rz9oNR+N3t8ggD2CNR4RdNxKF1B6huC1nbkLe0h5AR0zrIorP
+	 AqDZ5MoJpYwem++/synxonz7i3bVVWQnDg2TY5ZeWJWN7mJ51ClpeH81uWaFlnfdckVef
+	 NQT59tQsCuFGohdaPlBaBONbU7jhzGH7Eb09vrnh3pRK7s1MZcYKkJ/VF2a8biHsWlrS6
+	 plT8UwyV1JexIS5hvoroyCpe4lf/8Lm2nv/wY4s/ynmWtcgT3V5Zsna/8TJ6loqXVYc5g
+	 93OwbnDh4ehLIJ7yWQgx5xAZWZMq00KSuCeiePVDeZ8mpZXLtNptWKNjYL88tPy+76A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Uq//O83y";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R0J6R+XP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56BD6606A323;
-	Sat, 14 Nov 2026 13:04:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2290606A89D;
+	Sat, 14 Nov 2026 16:49:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Uq//O83y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64B7F1F000C4;
-	Sat, 14 Nov 2026 13:04:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R0J6R+XP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82CF31F000CB;
+	Sat, 14 Nov 2026 16:49:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794661447;
-	bh=jmFaSxEkxznu2joKRb4CtLIuI9acOjlBj4phgIO6eYw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Uq//O83yckPl8vOXt6Bc5q+ZyVZY4qQBBhRv1J9JLebKgNU5ceZzhurztTOW5DrAd
-	 zfzs4HQmFb9YGJjmDtcxKBj7yu1B1/Rt+kAnsgqrjbYGXQx/6WZu5oZBMA4a47YM6E
-	 vANzyXh4CyCnG/3GxhlzD2mhbxERzTvUGvtsCtyOUEHdyooDZuvmgQoyOeD6JPloVc
-	 jNCzylTQJ6BzxJ80Al9idnTCEUSUVZuZlaHUd3eAe4MQJDf5bdSw+ufDSFi8ELd0hw
-	 vRjMIenjc/xng+l2uPAiI9tepuJgl1TxCOqH8MuZFjr46jl/c7HFGZYfzbP3V0RlnJ
-	 mxXAEvyBWx8nQ==
-Date: Sat, 14 Nov 2026 14:04:01 +0100
-From: Christian Brauner <brauner@kernel.org>
+	s=k20260515; t=1794674978;
+	bh=FNbYdJDwICL/VH0gJDRVHmFp/3pGz97jL0DPqcVh4Es=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=R0J6R+XPxZfnNodQm36d+LefeqiqUJ+vuiPsT0l2BW51EgLdE6zSwv8l2WGXJgNKr
+	 JElhzCmIqPM35zFvz3YOZ8ymRaWmSLHQarR87RJR//Q5iprSykzqf8Z80hIaoWxNTY
+	 cjXyB+Qytu4q710BSovuA/tAjhqjBYV9+70Ttl7jV9cx2aRggWuk6kDWqlpIbN1fkO
+	 YAUnBvq5il9/zhTXk1eP9kUJdXDnzxal0jkKRWoZC1GkXEPnTXpfK9mJUUFEjCk4gE
+	 cA+9j540M7gjVWOBmbAYJewyU+giKYjpmg03QW+hvusfHxNzJlJa1aPFzeyhDO29bd
+	 EOL+cr4FQxkCA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 772F5380821F;
+	Sat, 14 Nov 2026 16:49:38 +0000 (UTC)
+Subject: Re: [GIT PULL] overlayfs fixes for 7.4-rc3
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20261114102846.574470-1-amir73il@gmail.com>
+References: <20261114102846.574470-1-amir73il@gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20261114102846.574470-1-amir73il@gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-7.4-rc3
+X-PR-Tracked-Commit-Id: 748739f3171ed1c44a30a98b0e0341b1a8d62d31
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: aacb7797504183a90d66b19b1efb555cfe9b3eec
+Message-Id: <179467497704.2233204.2411147913930865126.pr-tracker-bot@kernel.org>
+Date: Sat, 14 Nov 2026 16:49:37 +0000
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Jan Kara <jack@suse.cz>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jens Axboe <axboe@kernel.dk>, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, io-uring@vger.kernel.org, Christoph Hellwig <hch@lst.de>, 
-	linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, 
-	target-devel@vger.kernel.org, linux-unionfs@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-nfs@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH 00/12] fs: take freeze protection for writes to backing
- files
-Message-ID: <20261114-tragen-joghurt-wucher-ad0ccbd68f25@brauner>
-References: <20261114-work-fs-frozen_writes-v1-0-f5ae61c898b1@kernel.org>
- <avhUn1Hb5iT6zBZp@amir-ThinkPad-T480>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Miklos Szeredi <miklos@szeredi.hu>, Giuseppe Scrivano <giuseppe@scrivano.org>, Christian Brauner <brauner@kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -61,46 +67,16 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <avhUn1Hb5iT6zBZp@amir-ThinkPad-T480>
 
-On Sat, Nov 14, 2026 at 01:31:27PM +0100, Amir Goldstein wrote:
-> On Sat, Nov 14, 2026 at 11:47:07AM +0100, Christian Brauner wrote:
-> > While testing the pseudo filesystem series I noticed that zloop, the
-> > nvme target's file backend and the fileio backend of the scsi target
-> > with fd_async_io=1 call ->write_iter() of their backing files without
-> > taking freeze protection. So their writes go straight through to a
-> > frozen filesystem. ext4 complains loudly:
-> > 
-> >     WARNING: fs/ext4/ext4_jbd2.c:90 at ext4_journal_check_start+0x1f6/0x2d0
-> > 
-> > Loop doesn't get it right for discard and write zeroes. Those end up
-> > calling ->fallocate() of the backing file directly. The fileio backend
-> > does the same for UNMAP. And zloop records its write pointers on flush
-> > with vfs_setxattr() which leaves freeze protection to the caller. So all
-> > of them modify a frozen filesystem just the same. Fix them too.
-> > 
-> > Looking for more of the same turned up a few simple ones. coredump
-> > truncates the core file, overlayfs stores its uuid xattr on mount, nfsd
-> > truncates on OPEN and the BPF xattr kfuncs modify xattrs, all without
-> > freeze protection. Fix those as well. The ones that need more work in
-> > their subsystems I have reported separately.
-> > 
-> > The fileio backend also frees its aio command in the completion handler
-> > while the filesystem may still be using the kiocb. KASAN catches ext4
-> > doing that for direct reads on v7.4-rc1. ext4 gets its own fix (cf. [1])
-> > but fileio should hold a reference across the submission like loop,
-> > zloop and fs/backing-file.c do.
-> > 
-> > [1]: https://lore.kernel.org/r/20261113-work-ext4-dio_read_kiocb-v1-1-172a88be803c@kernel.org
-> > 
-> 
-> Claude says you missed another one.
-> nfs_local_write_iocb_done() does not end_write
-> its ended too early right after submission.
+The pull request you sent on Sat, 14 Nov 2026 11:28:46 +0100:
 
-I know. There's a bunch more. These are the easy ones.
-I sent individual bug reports to susbystems that need larger changes.
-NFS is one of them, so is ksmbd, ecryptfs, ima and so on. :)
+> git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-7.4-rc3
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/aacb7797504183a90d66b19b1efb555cfe9b3eec
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
