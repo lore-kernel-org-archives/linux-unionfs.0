@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794751369;
-	b=DeD5C2HmR6BAHej7eHsLPBv4onNLI75x3yggTuIxARFheh8LypO3rOQVT/bbv8M0nRKd
-	 GjXUJnao2/mOcQMSbBSmJAQG6Axvwjt/XaZjOzUKk4IT3Oi9J4nyrhIXgssJnkHGs4rZ+
-	 3Adz4u4K2r6BxzD6j/v7u5+3OVBjJJ10sduaxf2VCnr/zEBlAQWUd78DyZERjd9knMzc6
-	 n7J8xxZ6gpb3gONNmMHO1++0jO28d/066gfFueh6oAcQnLnDH2QE4B3rUYy4cSdghw5Sh
-	 twLjmvtMMBz+7NHHIs+2wTB/TKg25mWp8u5NjcWd6aAl3WpnyTzph74H6Lfo//FDcuA==
+	t=1794751372;
+	b=cJgffKML2vovNFdCDbqH9PNAZ6TnUWn2NZIWYvzlHWgpbRyhs6FBXsXbzNrXaTmFD9Zc
+	 pG7/pvklY0vsI0s9PL5Kwzfb693j511DSRAzWbpy7hTqyvgQbZhAtiDpt21E7pFMxoVjJ
+	 Z9gkmiSCL/inXNN1SSyGUYUFE4mGZ/kHYZ31kFBVeuAiQJpj1nVXCtt9Fy3Z2W8y7zKoQ
+	 fWKHxJnBYegC05KLYLyYtrMuzRw9PHyIZZxhiemKScIKnTzbllCbDuMIHb2QpFODBFxO1
+	 6+KWDPz61+hcz0wqw7U++orgOwDEV8OBuAPX3UWCzb+DV6pwcY2kyyyws9NHKQTXiYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794751369;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794751372;
 	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
 	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=oP5zIZCQTcMU9+CPrnID7f1P0LDTPtLFFjYPE0HeKnY=;
-	b=UuQ+wW4mpbCRvDjo6aqdiY45qYJ02QN7Lb6F58Gof6pec6jk3NXOzQkSRnBG1sn0hodj
-	 u/fuahl+pCfrMICcfyJWV1qAaR9OJXozM/hLG+YjMyPU9SF9F2+Mfrqmyr2UxsjQFa8QP
-	 vS3bVqZT1vCInvB43dDzYnS4kn0Kzfgvg9TJlv2nmO/3K7Etn6gh428K7RmSs9laSdi6e
-	 x455X0h4uz19I/AvxbJ9ZUWmHVpXK/gdyWCZY2abHhbyvqiKKLBRqonWmjFm52OgZ4s8s
-	 8/x/QZySeYb5j2iTwEDsZ7Phj8w2KW8ljaVJBP9VdKUnlwZrGjpcdN25eN+3ugaoe/g==
+	bh=yN6Rkl1L43xto0GNjrkTF/h2UW8ZoyBlI4+dV6PL+Zk=;
+	b=LhKL81/LuovzZrJjgmG+N6K3ITBeByOyRSMU6DuczOKAEj0nuhRWwq7Q9IVcINywhXYu
+	 4QWZzrSwOtzDy1yf1q1KP2tAo1LmO6tiAwBBVhL96F+uCcF/2wWrx/3IoNJJffTZuFVV2
+	 dJjZRa0Y12BcHJ4nuay17z/PHxVNM8JqvqM+T2sUbTOutP2yntMQRUcSJIXtrui4Eot74
+	 TvxEhVmOG6mcktbIEs/uVBDDr4E1yKlPV2Wm3YT3P3eUO2JruEvWPYP94gXq/Fl400c0S
+	 EkPRfdS7grpx2OiqwjnZxClykKGrt260fk9Vl+BqeFDTvYINKSIrcTfdGlpRI/En/XQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K5ptMEvX;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=loi3I3vF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D990606A8B0;
-	Sun, 15 Nov 2026 14:02:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7782B60A5BDA;
+	Sun, 15 Nov 2026 14:02:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K5ptMEvX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A3F51F000C4;
-	Sun, 15 Nov 2026 14:02:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=loi3I3vF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C5F81F000D0;
+	Sun, 15 Nov 2026 14:02:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794751369;
-	bh=oP5zIZCQTcMU9+CPrnID7f1P0LDTPtLFFjYPE0HeKnY=;
+	s=k20260515; t=1794751372;
+	bh=yN6Rkl1L43xto0GNjrkTF/h2UW8ZoyBlI4+dV6PL+Zk=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=K5ptMEvXOFu9qpLLiVWzupBP0giX+aKB+gY5mvwLuKtilk1+JXMObMjAgnCUsISCU
-	 2497YIWWQwd+8BSlRCera9VbFkT+iLV7OrAxD9xvA32qYgrG4GyHi9e0wpRENhkD8R
-	 nPUxAuijTqPnVrbls6vpZ06JMNKW8CP0vOWqohnrnB1ow0wpTwR7hTFmZD7NpldVhi
-	 3T7hENFpK/e3YaFEtIf4MfiZqPBE0pk16ewIH+JZi7c6nSNNWuxwKgNrNGWWQdbZNm
-	 RFcJk0PGwXpT6ZV9Gg7UH4l6eS/vOydX1+K8aCZYSS3Oi4ZEhIfYmhFTdv+/eo8ABP
-	 +EVy0uNQY+XuA==
+	b=loi3I3vFq+MyTChzl8YT0jBGhMXooxkatMOHR86+J+u++wcuW7IIzsnDM3JjhuP0R
+	 EwHZUaxyqnPmAQ8fVGccDau0JxuuXn1NIvb8aeUlLf8GALcRJadoYipeGyJC768sT+
+	 r+n94ZI/eou3KAW12cBOezTA4fMdBkNF29M24p56GarMJvaSKjv3tJz1PEJJUbEx6L
+	 QM4XEnIh6veBo2MPetAikOA5Jko9ugwSblmYiFPM8wCcVpk+pSAuQ1Q0a9IV516ifU
+	 jdtlk2fw2YHQMB3ZprPsJ63AUAlbKK21hmI8gUY7Nk5kqARKErvDe4EmFxP0Y8JAC2
+	 Ga6XCuraqzT0g==
 From: Christian Brauner <brauner@kernel.org>
-Date: Sun, 15 Nov 2026 15:01:42 +0100
-Subject: [PATCH 12/13] selftests/ftrace: add uprobe tests on overlayfs
+Date: Sun, 15 Nov 2026 15:01:43 +0100
+Subject: [PATCH 13/13] selftests/bpf: add uprobe_multi test on overlayfs
+ without data
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -54,7 +55,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261115-work-ovl-d_real-v1-12-ca155efbcb2e@kernel.org>
+Message-Id: <20261115-work-ovl-d_real-v1-13-ca155efbcb2e@kernel.org>
 References: <20261115-work-ovl-d_real-v1-0-ca155efbcb2e@kernel.org>
 In-Reply-To: <20261115-work-ovl-d_real-v1-0-ca155efbcb2e@kernel.org>
 To: Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
@@ -64,130 +65,197 @@ Cc: Chris Down <chris@chrisdown.name>, Miklos Szeredi <mszeredi@redhat.com>,
  linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org, 
  linux-mm@kvack.org, "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-ce4c1
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4013; i=brauner@kernel.org;
- h=from:subject:message-id; bh=xU8r7+QeQbm0YiMN28AhupsgwvIfGboboN38EplDOpw=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWT93B1rLux4aLX3tOn77I7tfTqN3eKmzWFbD1dmk1zHG
- YoZjyYJd5SyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEzk1H9GhkkW83jiHk2dIez5
- x7dQd6vso67TTLpvnMzepxjJvlZ4dJ6RYYpxgVsM+315zvbbl9cw/TxuJZby4xvr37cujL+eHnN
- R5QMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5550; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=s/2BR6vApkMwUflb/E75PK0IMgv+kNCBTrkxznLRTiM=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWT93B3HtVQj9M+7kF7d2o8Wv34t5J/z5q2u4bWgrefVJ
+ v1UzYz81FHKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjCR218Y/pelXXPurtlcsa0l
+ u2tR1xMmvjQNNoaFvZUPNFkW3s6dsZXhf8LC/R77J0dVLGKdPetqkeyeX3wCL2feWvcnrW5TjHn
+ cSTYA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-Add uprobe tests on overlayfs with a data-only layer:
+Add a uprobe_multi test that attaches to a metacopy file on overlayfs
+whose redirect into a data-only layer points at nothing:
 
-- a metacopy file whose redirect points at nothing: creating the probe
-  fails, the error log has the new message and nothing gets tainted by a
-  WARN
+- the overlayfs is set up in a child in its own mount namespace
 
-- a metacopy file whose data lives in the data-only layer: the data is
-  looked up when the probe is created and the probe hits when the file
-  is executed
+- BPF_LINK_CREATE must fail with ENOENT from the lazy lowerdata lookup
 
-None of the existing tests puts a uprobe on overlayfs.
+- skip if overlayfs with data-only layers isn't available
+
+Before d_real() could fail this got an EIO from uprobe_register().
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- .../test.d/dynevent/add_remove_uprobe_overlayfs.tc | 92 ++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+ .../selftests/bpf/prog_tests/uprobe_multi_test.c   | 141 +++++++++++++++++++++
+ 1 file changed, 141 insertions(+)
 
-diff --git a/tools/testing/selftests/ftrace/test.d/dynevent/add_remove_uprobe_overlayfs.tc b/tools/testing/selftests/ftrace/test.d/dynevent/add_remove_uprobe_overlayfs.tc
-new file mode 100644
-index 0000000000000..a4351e6a3b181
---- /dev/null
-+++ b/tools/testing/selftests/ftrace/test.d/dynevent/add_remove_uprobe_overlayfs.tc
-@@ -0,0 +1,92 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+# description: Generic dynamic event - add/remove uprobe events on overlayfs
-+# requires: uprobe_events error_log setfattr:program readelf:program
+diff --git a/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c b/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
+index 7fbcfddc3cc36..907d8c6d5ec93 100644
+--- a/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
++++ b/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
+@@ -3,6 +3,10 @@
+ #include <unistd.h>
+ #include <pthread.h>
+ #include <fcntl.h>
++#include <sched.h>
++#include <sys/mount.h>
++#include <sys/stat.h>
++#include <sys/xattr.h>
+ #include <test_progs.h>
+ #include "uprobe_multi.skel.h"
+ #include "uprobe_multi_bench.skel.h"
+@@ -575,6 +579,141 @@ static void test_attach_api_fails(void)
+ 	uprobe_multi__destroy(skel);
+ }
+ 
++enum ovl_no_data_stage {
++	OVL_NO_DATA_SETUP,
++	OVL_NO_DATA_MOUNT,
++	OVL_NO_DATA_ATTACH,
++};
 +
-+grep -qw overlay /proc/filesystems || modprobe overlay 2> /dev/null || :
-+if ! grep -qw overlay /proc/filesystems; then
-+  echo "No overlayfs support. skipped."
-+  exit_unsupported
-+fi
++struct ovl_no_data_result {
++	enum ovl_no_data_stage stage;
++	int err;
++};
 +
-+echo 0 > events/enable
-+echo > dynamic_events
++/*
++ * Runs in a child in its own mount namespace. Create an overlayfs with a
++ * metacopy file whose redirect into a data-only layer points at nothing
++ * and try to attach to it.
++ */
++static void ovl_no_data_child(int prog_fd, const char *dir, int wfd)
++{
++	struct ovl_no_data_result res = { .stage = OVL_NO_DATA_SETUP };
++	LIBBPF_OPTS(bpf_link_create_opts, opts);
++	char path[PATH_MAX], data[PATH_MAX * 2 + 32];
++	unsigned long offset = 0;
++	int fd;
 +
-+OVL=$TMPDIR/ovl
-+mkdir $OVL
-+mount -t tmpfs tmpfs $OVL
++	if (unshare(CLONE_NEWNS) ||
++	    mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) ||
++	    mount("tmpfs", dir, "tmpfs", 0, NULL))
++		goto out_errno;
 +
-+cleanup() {
-+  echo > uprobe_events
-+  umount $OVL/merged 2> /dev/null || :
-+  umount $OVL 2> /dev/null || :
++	snprintf(path, sizeof(path), "%s/lower", dir);
++	if (mkdir(path, 0755))
++		goto out_errno;
++	snprintf(path, sizeof(path), "%s/data", dir);
++	if (mkdir(path, 0755))
++		goto out_errno;
++	snprintf(path, sizeof(path), "%s/merged", dir);
++	if (mkdir(path, 0755))
++		goto out_errno;
++
++	snprintf(path, sizeof(path), "%s/lower/f", dir);
++	fd = open(path, O_CREAT | O_WRONLY, 0755);
++	if (fd < 0)
++		goto out_errno;
++	close(fd);
++	if (setxattr(path, "trusted.overlay.metacopy", "", 0, 0) ||
++	    setxattr(path, "trusted.overlay.redirect", "/missing",
++		     strlen("/missing"), 0))
++		goto out_errno;
++
++	res.stage = OVL_NO_DATA_MOUNT;
++	snprintf(data, sizeof(data), "lowerdir=%s/lower::%s/data", dir, dir);
++	snprintf(path, sizeof(path), "%s/merged", dir);
++	if (mount("overlay", path, "overlay", 0, data))
++		goto out_errno;
++
++	res.stage = OVL_NO_DATA_ATTACH;
++	snprintf(path, sizeof(path), "%s/merged/f", dir);
++	opts.uprobe_multi.path = path;
++	opts.uprobe_multi.offsets = &offset;
++	opts.uprobe_multi.cnt = 1;
++	res.err = bpf_link_create(prog_fd, 0, BPF_TRACE_UPROBE_MULTI, &opts);
++	if (res.err >= 0)
++		close(res.err);
++	goto out;
++
++out_errno:
++	res.err = -errno;
++out:
++	if (write(wfd, &res, sizeof(res)) != sizeof(res))
++		_exit(1);
++	_exit(0);
 +}
-+trap cleanup EXIT
 +
-+mkdir $OVL/lower $OVL/data $OVL/merged
++/*
++ * The data of a metacopy file in an overlayfs data-only layer is looked up
++ * lazily. If it can't be found attaching must fail with the error from the
++ * lookup.
++ */
++static void test_attach_api_fails_ovl_no_data(void)
++{
++	struct ovl_no_data_result res = {};
++	char dir[] = "/tmp/uprobe_multi_ovl.XXXXXX";
++	struct uprobe_multi *skel = NULL;
++	int pipefd[2] = { -1, -1 };
++	int status, prog_fd;
++	ssize_t n;
++	pid_t pid;
 +
-+# A metacopy file whose data lives in the data-only layer.
-+REALBIN=`readlink -f /bin/sh`
-+cp $REALBIN $OVL/data/sh
-+truncate -s `stat -c %s $REALBIN` $OVL/lower/sh
-+chmod 755 $OVL/lower/sh
-+setfattr -n trusted.overlay.metacopy $OVL/lower/sh
-+setfattr -n trusted.overlay.redirect -v /sh $OVL/lower/sh
++	skel = uprobe_multi__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "uprobe_multi__open_and_load"))
++		return;
++	prog_fd = bpf_program__fd(skel->progs.uprobe_extra);
 +
-+# A metacopy file whose data doesn't exist.
-+touch $OVL/lower/broken
-+setfattr -n trusted.overlay.metacopy $OVL/lower/broken
-+setfattr -n trusted.overlay.redirect -v /missing $OVL/lower/broken
++	if (!ASSERT_OK_PTR(mkdtemp(dir), "mkdtemp"))
++		goto cleanup;
++	if (!ASSERT_OK(pipe(pipefd), "pipe"))
++		goto cleanup_dir;
 +
-+mount -t overlay overlay -o lowerdir=$OVL/lower::$OVL/data $OVL/merged
++	pid = fork();
++	if (!ASSERT_GE(pid, 0, "fork"))
++		goto cleanup_pipe;
++	if (pid == 0) {
++		close(pipefd[0]);
++		ovl_no_data_child(prog_fd, dir, pipefd[1]);
++	}
 +
-+TAINT_WARN=512
-+TAINTED=`cat /proc/sys/kernel/tainted`
++	close(pipefd[1]);
++	pipefd[1] = -1;
++	n = read(pipefd[0], &res, sizeof(res));
++	if (!ASSERT_EQ(waitpid(pid, &status, 0), pid, "waitpid"))
++		goto cleanup_pipe;
++	if (!ASSERT_EQ(n, sizeof(res), "read result"))
++		goto cleanup_pipe;
 +
-+# The data of the broken file can't be resolved so the probe must fail
-+# right away and not only when it is enabled.
-+echo > error_log
-+if echo "p:broken $OVL/merged/broken:0x0" >> uprobe_events; then
-+  echo "uprobe on a file without data was created"
-+  exit_fail
-+fi
-+grep -q "trace_uprobe: error: Failed to resolve the data of the given file" error_log
-+! grep -q broken uprobe_events
-+test ! -d events/uprobes/broken
++	if (res.stage == OVL_NO_DATA_MOUNT) {
++		printf("%s:SKIP: overlayfs with data-only layers not available (%d)\n",
++		       __func__, res.err);
++		test__skip();
++		goto cleanup_pipe;
++	}
++	if (!ASSERT_EQ(res.stage, OVL_NO_DATA_ATTACH, "setup"))
++		goto cleanup_pipe;
++	ASSERT_EQ(res.err, -ENOENT, "link_create");
 +
-+# Get the entry point virtual address from ELF header and convert it to
-+# a file offset. See add_remove_uprobe.tc.
-+ENTRY=`readelf -hW ${REALBIN} | grep "Entry point" | awk '{print $NF}'`
-+ENTRY_DEC=$(printf '%d' "$ENTRY")
-+OFFSET=$ENTRY
-+while IFS= read -r line; do
-+    set -- $line
-+    [ "$1" = "LOAD" ] || continue
-+    VA_DEC=$(printf '%d' "$3")
-+    OFF_DEC=$(printf '%d' "$2")
-+    FSZ_DEC=$(printf '%d' "$5")
-+    if [ "$ENTRY_DEC" -ge "$VA_DEC" ] && [ "$ENTRY_DEC" -lt "$((VA_DEC + FSZ_DEC))" ]; then
-+        OFFSET=$(printf '0x%x' "$((ENTRY_DEC - VA_DEC + OFF_DEC))")
-+        break
-+    fi
-+done << EOF
-+$(readelf -lW ${REALBIN} | grep LOAD)
-+EOF
++cleanup_pipe:
++	if (pipefd[0] >= 0)
++		close(pipefd[0]);
++	if (pipefd[1] >= 0)
++		close(pipefd[1]);
++cleanup_dir:
++	rmdir(dir);
++cleanup:
++	uprobe_multi__destroy(skel);
++}
 +
-+# The data of the metacopy file is looked up when the probe is created.
-+echo "p:myevent $OVL/merged/sh:${OFFSET}" >> uprobe_events
-+grep -q myevent uprobe_events
-+test -d events/uprobes/myevent
-+
-+echo 1 > events/uprobes/myevent/enable
-+echo 'ls' | $OVL/merged/sh > /dev/null
-+echo 0 > events/uprobes/myevent/enable
-+grep -q myevent trace
-+
-+echo "-:myevent" >> uprobe_events
-+! grep -q myevent uprobe_events
-+
-+# Nothing above may have warned.
-+test $((`cat /proc/sys/kernel/tainted` & TAINT_WARN)) -eq $((TAINTED & TAINT_WARN))
-+
-+clear_trace
+ #ifdef __x86_64__
+ noinline void uprobe_multi_error_func(void)
+ {
+@@ -1452,6 +1591,8 @@ void test_uprobe_multi_test(void)
+ 		test_bench_attach_usdt();
+ 	if (test__start_subtest("attach_api_fails"))
+ 		test_attach_api_fails();
++	if (test__start_subtest("attach_api_fails_ovl_no_data"))
++		test_attach_api_fails_ovl_no_data();
+ 	if (test__start_subtest("attach_uprobe_fails"))
+ 		test_attach_uprobe_fails();
+ 	if (test__start_subtest("consumers"))
 
 -- 
 2.53.0
