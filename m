@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794751339;
-	b=qIscvzXPXE4AS0GCJC7OaZzqBXvyiaW9PR15eEzCZAZ44UAc8kSnZGp0gfNf9Ayogynk
-	 NWk6eF63sGwWH96M2r3s+jBiUk8V4JqpefnHa5Lwz0MAC9RSZ0uG29lqzI7BHOx0+pHpb
-	 UkrPopQblBvtM4rgOyqLE3uRdh6Fu9TfuknOtTLBt2dtzNns6ArtHZDYBxWyNMaDtCVV0
-	 Xvrp6qn2DjBombfLWDbLbrfDcTzwGyQZHiyHFyXJOIlNY0fycOAEdF7ustMu2WwxO2PMN
-	 c8FtWX8uNpCoUut/jt7tEXndLR32LNbMM9qZ/qACsCDJXSKM0VGe17rra+IbaGkhkvQ==
+	t=1794751345;
+	b=Co98z3tcGeur/0Sznf7g6Vpc38CZOSy9UTs2VPoVdSa9wTRhF9rXHcMZKkpHFqFOydau
+	 4ADtkuQwhcUlUlBkdZlbb7/m7fmXXaNKQenUkSbYfbFMSg5VEJJfeAM9U/ksAV2PQ0RQg
+	 uHa7txWHugD/Qobf4cwqfvwRdBWlwIalNBQNVP5iHvtwnIkXl3orSTAIg/MKjftFdW+0+
+	 0zsAj3uArIWNwvfKhbKYL2quu/2AYIwenAdfBCnVXtIQHy1udHVGE1BjFQiI9bDxIsMZi
+	 NJfIJxnEof3r3wdbHgubLZTzTM9U+npONttun66MYeNIHQ4YHiYH0B0AxrwBjloLdlA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794751339;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794751345;
 	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
 	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=8DcJPqoTIqU3DThjLnJPMhCVprJHt+RxP4LV+bwrcWc=;
-	b=dsxCjxL60MMSPw+h20PKdAJrnIqLWApPCiSTMuxWnrEl2CHVlvwnJtxVz+PqDpS/NqnB
-	 upN7C/EfhxheblMN0RV5vUbGSlBvCv5w34wTaH2wgNqOHKxR7ceQA3Pdvn2InWoBOy1jj
-	 d0hWstLmJ8fAwmz9Z9ciwAREg1iKUBW+zsrlNwUkePBIa01vbAH2Q0muy8k4SqANEEh3S
-	 hJP8MPXp98sG4psnptO3eVjlGWQvSTN/RduDEGQwbJofzr0hbxRK16OF0XEL3wnAGaSit
-	 HySgKyKZq5Uw2W3tUwvlytSSbjifJJVbZq1bWSejhVQdFBJCgpavV8SSzkEMYnpWVsA==
+	bh=5oUYGBoKkBqpSXIVcJnlDk8QcSCyfAXF5SKIMuUlOHo=;
+	b=tMmXC2ho5gPaUt9ztxzGBY+jTB9FgVnuwLIvEfC/Xtj7z4ntE5eWyZ/OpkjnzyRZzj/m
+	 cxB7ZkMlWywYxSSbwyJ55Z2ziU9AfBm7wyiemAcAh18XIzcvWb1+4auR2/yiuIgJUi4BC
+	 rGBuY+3LxMxcIRZhzdBcv/90byQgARxaoXUTGW9TjePFcqSfHJ3viWsZHsIFz0djob+3s
+	 TtpEeWxH7zTy4jKGUChuLTcOCt7Wezo+XOfK2o95GGBRrf8rMJ1JZemY95tdCy4nG5r/E
+	 yRnjqCutlQvjmtPgAccxLVgjabTXiikGVhoV2cq/VOBGM+MozyVtGAySFE1hptIcP7w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kITTNKSS;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BKlN1ePm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F71606A33A;
-	Sun, 15 Nov 2026 14:02:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23BB606A885;
+	Sun, 15 Nov 2026 14:02:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kITTNKSS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E034F1F000C5;
-	Sun, 15 Nov 2026 14:02:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BKlN1ePm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C463E1F0181A;
+	Sun, 15 Nov 2026 14:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794751339;
-	bh=8DcJPqoTIqU3DThjLnJPMhCVprJHt+RxP4LV+bwrcWc=;
+	s=k20260515; t=1794751345;
+	bh=5oUYGBoKkBqpSXIVcJnlDk8QcSCyfAXF5SKIMuUlOHo=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=kITTNKSS9mm8yBndEG/cxjD+IPNbPBXi5J53OOrpv/ZSyKWGdV8UfaHuw8+tT2t3q
-	 Q5uHn8efX7ZIMM8zCgpu71OJqOhqbxm39EPsvAXO499fhnwtqZKkAzQdRKdRsoK6kh
-	 pm3o0Xh41WktXxJfHv1Px/dBD3GjnIYxofN7MGKAc76WBxjCDgHx995pgCM2fev6fL
-	 ZpsYJyN6zuc6RL6yMqWseAT4Luzp0uoxMCVihyh0Sx0k4YyPjgWGDEUDrVdRnlZWKw
-	 0TrNAAbao/NNdtt3tp+4xRr9Is+n5+i4p51bd4Rhua/+4xcbmWu8iow9ARgqwF9O9Z
-	 DTjUXXO5WBBsA==
+	b=BKlN1ePmcvZPicZgSvyq2gFmq0LHU3RqhRWTkS89/oQQ5sMgH2mlZnbAGJYFYdVnp
+	 CiTplMFlor+54osiSyJdokh0dOvWtdDkgTOa98BfA+GMnITM07Hd2rXbsZG9gez7sa
+	 6smUBtR2bo5UYS3zvF7Rs8jMyJNBChu+d8PChicys8H7WUCvMmlF0BypywlI+bzR9J
+	 0418lL6aBSmkiaiVMSy/8C5P617iY+VppR2k82Ks94lnFi2ANSyYohUGS3pe12PnUI
+	 2jJ8sQmlCN2i+kjtTZX0Xcwta4TJe2Q4BMSUOfI+TQLc2rl4zkN7kvUe/uHGs+1IuU
+	 8mpNAyJ2rZ57Q==
 From: Christian Brauner <brauner@kernel.org>
-Date: Sun, 15 Nov 2026 15:01:32 +0100
-Subject: [PATCH 02/13] fs: add d_real_data_inode() and
- d_real_metadata_inode()
+Date: Sun, 15 Nov 2026 15:01:34 +0100
+Subject: [PATCH 04/13] bpf: handle errors from resolving the real inode in
+ uprobe_multi
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -55,7 +55,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261115-work-ovl-d_real-v1-2-ca155efbcb2e@kernel.org>
+Message-Id: <20261115-work-ovl-d_real-v1-4-ca155efbcb2e@kernel.org>
 References: <20261115-work-ovl-d_real-v1-0-ca155efbcb2e@kernel.org>
 In-Reply-To: <20261115-work-ovl-d_real-v1-0-ca155efbcb2e@kernel.org>
 To: Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
@@ -65,110 +65,66 @@ Cc: Chris Down <chris@chrisdown.name>, Miklos Szeredi <mszeredi@redhat.com>,
  linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org, 
  linux-mm@kvack.org, "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-ce4c1
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3553; i=brauner@kernel.org;
- h=from:subject:message-id; bh=r/TK4S9fdHcWiH8C2c6UfK7xalJuGV7ntU2PLLcgpwQ=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWT93B3o9HiBWLhyQ+/PoPIpPCVP/896/Ozi+6QtqevnH
- lmT5jhbuqOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAi72cwMqy96J9hur2P34HX
- ertSgf4lxQKnCRN6UjWW/T+//Z+rqTnDP31Rjs7Xat8CmoU+ndGxNJjzfUnNwa0JS2X3/dmu1vA
- pgwMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1988; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=viYx97t2m4wJXNi6UiuGqezFK69cu1tybe/q2U/ijp0=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWT93B3S/t3wrMhMnloe3abb9kvuuKtx7+HYL3pxQ6Jg5
+ VmbwiOFHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABO59ZqR4ckGD1OzKceyRDzX
+ x5zvXScud2D3F2ct1/hcAdnEP5M0lzMyTLvkMYd5xS5PswO3P2jqHnzjWqf4L6PSyOTV4Zggfe+
+ D/AA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-Currently, d_real() can't fail. When overlayfs fails to look up the data
-of a metacopy file in a data-only layer it hands back the overlayfs
-dentry and callers silently work with the overlayfs inode. That's more
-problematic than current callers realize.
+d_real() is about to be able to fail for D_REAL_DATA. So switch
+bpf_uprobe_multi_link_attach() from d_real_inode() to
+d_real_data_inode() and deal with the error.
 
-For trace_uprobe and bpf's uprobe_multi it means uprobe_register() fails
-with an -EIO that has nothing to do with the actual problem. For IMA it
-means the stacked change detection is skipped and for IPE the file is
-evaluated against an inode that has none of the properties of the real
-file.
+Currently, the real inode is resolved again for every single uprobe of
+the link. There's no point in doing that. Resolve it once right after
+the d_is_reg() check and fail BPF_LINK_CREATE with the error if the data
+of the file can't be resolved. Then all uprobes of the link are
+registered on the same inode.
 
-Teach d_real() to fail and teach all callers to handle errors. This adds
-two helpers for the callers to switch over to:
+This is a no-op until d_real() can actually fail.
 
-- d_real_data_inode() returns the inode hosting the data or an ERR_PTR()
-  if that can't be resolved.
-
-- d_real_metadata_inode() returns the inode hosting the metadata. It
-  never has to look anything up and so never fails (but no promises for
-  the future).
-
-d_real() can't fail yet so this is a pure preparation. d_real_inode()
-stays around until all callers are converted.
-
-No functional changes.
-
-Suggested-by: Amir Goldstein <amir73il@gmail.com>
-Link: https://lore.kernel.org/all/CAOQ4uxhGxpBtMZ5kfuzR1tQAewiecoX7UjXQRo91QjJHH9T_Yw@mail.gmail.com
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- include/linux/dcache.h | 44 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ kernel/trace/bpf_trace.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 84b0cfe4ed0e7..674bc50b81827 100644
---- a/include/linux/dcache.h
-+++ b/include/linux/dcache.h
-@@ -3,6 +3,7 @@
- #define __LINUX_DCACHE_H
+diff --git a/kernel/trace/bpf_trace.c b/kernel/trace/bpf_trace.c
+index 2aec56d7f3d3e..15f32b971326e 100644
+--- a/kernel/trace/bpf_trace.c
++++ b/kernel/trace/bpf_trace.c
+@@ -3280,6 +3280,7 @@ int bpf_uprobe_multi_link_attach(const union bpf_attr *attr, struct bpf_prog *pr
+ 	struct bpf_uprobe *uprobes = NULL;
+ 	struct task_struct *task = NULL;
+ 	unsigned long __user *uoffsets;
++	struct inode *inode;
+ 	u64 __user *ucookies;
+ 	unsigned long size;
+ 	u32 flags, cnt, i;
+@@ -3336,6 +3337,12 @@ int bpf_uprobe_multi_link_attach(const union bpf_attr *attr, struct bpf_prog *pr
+ 		goto error_path_put;
+ 	}
  
- #include <linux/atomic.h>
-+#include <linux/err.h>
- #include <linux/list.h>
- #include <linux/math.h>
- #include <linux/rculist.h>
-@@ -660,6 +661,49 @@ static inline struct inode *d_real_inode(const struct dentry *dentry)
- 	return d_inode(d_real((struct dentry *) dentry, D_REAL_DATA));
- }
++	inode = d_real_data_inode(path.dentry);
++	if (IS_ERR(inode)) {
++		err = PTR_ERR(inode);
++		goto error_path_put;
++	}
++
+ 	if (pid) {
+ 		rcu_read_lock();
+ 		task = get_pid_task(find_vpid(pid), PIDTYPE_TGID);
+@@ -3394,7 +3401,7 @@ int bpf_uprobe_multi_link_attach(const union bpf_attr *attr, struct bpf_prog *pr
+ 		      &bpf_uprobe_multi_link_lops, prog, attr->link_create.attach_type);
  
-+/**
-+ * d_real_data_inode - Return the real inode hosting the data
-+ * @dentry: The dentry to query
-+ *
-+ * If @dentry is a regular file on a union/overlay, then return the
-+ * underlying, real inode that hosts its data. Otherwise return d_inode().
-+ *
-+ * The union/overlay may have to look up the data first. This can sleep and it
-+ * can fail, e.g., because the data is missing or because its verity digest
-+ * doesn't match.
-+ *
-+ * Return: The real inode hosting the data of @dentry, or an ERR_PTR() if it
-+ * can't be resolved.
-+ */
-+static inline struct inode *d_real_data_inode(const struct dentry *dentry)
-+{
-+	struct dentry *real;
-+
-+	/* This usage of d_real() results in const dentry */
-+	real = d_real((struct dentry *)dentry, D_REAL_DATA);
-+	if (IS_ERR(real))
-+		return ERR_CAST(real);
-+	return d_inode(real);
-+}
-+
-+/**
-+ * d_real_metadata_inode - Return the real inode hosting the metadata
-+ * @dentry: The dentry to query
-+ *
-+ * If @dentry is a regular file on a union/overlay, then return the
-+ * underlying, real inode that hosts its metadata. Otherwise return d_inode().
-+ *
-+ * Unlike d_real_data_inode() this never has to look anything up and so it
-+ * never fails.
-+ *
-+ * Return: The real inode hosting the metadata of @dentry.
-+ */
-+static inline struct inode *d_real_metadata_inode(const struct dentry *dentry)
-+{
-+	/* This usage of d_real() results in const dentry */
-+	return d_inode(d_real((struct dentry *)dentry, D_REAL_METADATA));
-+}
-+
- struct name_snapshot {
- 	struct qstr name;
- 	union shortname_store inline_name;
+ 	for (i = 0; i < cnt; i++) {
+-		uprobes[i].uprobe = uprobe_register(d_real_inode(link->path.dentry),
++		uprobes[i].uprobe = uprobe_register(inode,
+ 						    uprobes[i].offset,
+ 						    uprobes[i].ref_ctr_offset,
+ 						    &uprobes[i].consumer);
 
 -- 
 2.53.0
