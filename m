@@ -1,113 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.49
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794835019;
-	b=r4suPmDK9jso8SuNRvoRCDG/xWqOHNmP5nnsRkuqRLx2tI6QoBw02QRnARBPGGBtz3o9
-	 IJHPuxGeLKfL5Lr+xSQjvJG7VmmFRCHKgSB2byPYpar7v+f3NhLq7VDqVEO72uhKnXZs8
-	 HiYB6DXuluDPMgmqdhwzndRJuB19955VuhChX/QY8GpGttRjBcXkVWTh68+iKUDc5XjBP
-	 ye+V/JmPl8B51XWzfpFi1Gf1UiGmEtLmMG7pZ1g9ucdGzmILamOyVtAtz8Usg6lkp6XIs
-	 JzlH3pKNBEDeeVaBH92Vg7Q8O6HxeNTBJ47EvrIC+1Ibt8+f3EKzm/fcWKFSIvhG2Bg==
+	t=1794857321;
+	b=rt6YTGK8Pj82sNRMr9a0MyC1FgLbDSPcmtjMu948U4iJI+Y8tl+Rv9OXGujRO4rtKrPB
+	 WHp9unE9Ngp/BWU6vfoQSt1xb1TipAiI9/S0gXOOkXhhBtx2S34C3Qexx26QLzyqBRF2f
+	 JV0WgHCBuXWd6fSVxwY0lf9XUYOhdXt0WWm2u4+oE3p8gFntLre/gC67MZ/xVNyTIgwsM
+	 Kod3sIcig2IS5UxKESRd4M+hSqNU/7f5XK0dGwmQPsgYELcse6/fjjzGADSnMDBc+JFk8
+	 TxoJ8oG+VyxJCa1yIlobBnw/t+FmEoisIDOAWOSjK5dvP3aEFWNyi2rM21jHYvlB0ng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794835019;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Rspamd-Queue-Id:X-Spam-Level:X-Rspamd-Server:
-	 X-Rspamd-Action:X-Spam-Flag:X-Spamd-Result:X-Spam-Score;
-	bh=lTWHtPkfbVykhjqpLO1VySVvAD38nuNNKIznkJylwvU=;
-	b=xO3RjuGH0Rb5K7E+zguO2IfNDgP3WSJH42lgqocn3uOmcYmIwStTI/OyGIra3xa3YGlc
-	 4gX2i5kFv99mP7cp20yuh4jElB8KLebkTRjEgB+qdmT6SsNopm6V4NE+JYv7PGPI6HEem
-	 4KkX7or7kwJIncMcgUN1+LXJatyVRaRyA1LT5IbyP9Uy0306LQBZ+JnuXRgOJ4pkpBRmb
-	 dj4SUZhtUGifBECRfFUQfxHUdduhFtv/oElBUappG4BITzAHoOaen54/+DwLRIimx0jVP
-	 1E/qg+T63t19evyDfuAg1xxrhf2lYsWMEUcS5HGkfABOJHjhmMKWp6y8MG89Y3olsew==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794857321;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=lTGurxI/Bgu5ZJqbmAvAIEQWhn+vjtZ691Mnb5crEUo=;
+	b=naBVIhlyGQDhfrDA18ERXBDvUVQIeoJeaYJ23KZqBKAq0CHeJD09Bcz/8yHgQ7tr6Z/0
+	 t1W+X2ESEWc2YmI4XLCD4ZDqSV6gYPemq0rSqUzuyL3a+HBEN56QLTKb0o7NsTcD6cTcX
+	 f0lbye2VIzDUj54XVAlWrhAmtY2vV95BHrSFB57a+3ysh9ZuUPd2VcQtcZelfB6hy4n2Q
+	 u9S0mb9NP91DJTZ7zfDsnaPCD5anaGVyzz9ChP0WTsmPaKjJ9lZY61NPpgZIeyb+3aJVi
+	 Ykl8G/I7+F0oWLtnnkRfYV44NiFV3iGuJxsHWPeKGQh1k0mkXN3druiB1cg0lDYqQog==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=suse.cz;
-	spf=pass smtp.mailfrom=suse.cz;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=qsi2TCNY;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=sPuHxUiF;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=G0qYdWpi;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=iHmh5dIA;
-	arc=none smtp.remote-ip=195.135.223.131
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=IWS+vIYN;
+	arc=none smtp.remote-ip=209.85.128.49
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9CCB606A32C;
-	Mon, 16 Nov 2026 13:16:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E9CCB606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52CB0606A31C
+	for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2026 19:28:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 52CB0606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=qsi2TCNY;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=sPuHxUiF;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=G0qYdWpi;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=iHmh5dIA
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id E2FAF1F7D2;
-	Mon, 16 Nov 2026 13:16:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1794835017; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lTWHtPkfbVykhjqpLO1VySVvAD38nuNNKIznkJylwvU=;
-	b=qsi2TCNYjsGnplxchNmN3wBRWH2niNG5KnKKQoaZG6n4gEKjonz8TXCDDjZKhCqS/ShFCN
-	5HXys5ra2q+Bp6O9OCgIrzz6fohusABreHzw8eGZ71fJOXNsy6QskFVlAAiJHcsb2KP89U
-	4AB6Xsag8aiiBcEW2rPRXVFXICidbIs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1794835017;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lTWHtPkfbVykhjqpLO1VySVvAD38nuNNKIznkJylwvU=;
-	b=sPuHxUiFGCjSIp0Vm+oFCrrpWmbjHl45ICax/gVjIdDJ4O2E/JKfxJPL2QA0sJF29SfRaD
-	ZyWbZT+nSbSopLAQ==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=G0qYdWpi;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=iHmh5dIA
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1794835016; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lTWHtPkfbVykhjqpLO1VySVvAD38nuNNKIznkJylwvU=;
-	b=G0qYdWpiUhhmF++tjYNWvuHVFW2mbK0GcGaTvYywn7KojG9EsNQZkOQk26yyYHQY3sbwGy
-	N7cmGCnBM1j6VFsmNwf8QpSBCwTm3LfuIvy4sT2sqOHTtm4RXL0XbY3Pg4WMmiJUELQOUM
-	kKSR26KfImG7xEmknWwFVbQ3QnX/Nvo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1794835016;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lTWHtPkfbVykhjqpLO1VySVvAD38nuNNKIznkJylwvU=;
-	b=iHmh5dIApmfNgjjn0nNnxPyON95mel3ih2Op0PgAHE6WdEwPeTubOoS0Kqkdys7uHbGvw5
-	z+7h8etg4tHXqoBw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B6D2C1334C;
-	Mon, 16 Nov 2026 13:16:56 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id gcsFJEgC+2oiHAAAD6G6ig
-	(envelope-from <jack@suse.cz>); Mon, 16 Nov 2026 13:16:56 +0000
-Received: by quack.suse.cz (Postfix, from userid 1000)
-	id 4764324E17; Mon, 16 Nov 2026 14:16:56 +0100 (CET)
-Date: Mon, 16 Nov 2026 14:16:56 +0100
-From: Jan Kara <jack@suse.cz>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=IWS+vIYN
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4b467581b98so34020905e9.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2026 11:28:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794857320; x=1795462120; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=lTGurxI/Bgu5ZJqbmAvAIEQWhn+vjtZ691Mnb5crEUo=;
+        b=IWS+vIYNTdhfojIsC97vmpuRmjoqNqaaD6dn7mB9xk5io9JNRFmzZghkuwUnVpqQQ0
+         WfeOmKu2DY+luQqUS0yj1HuneQrBma3nmlMpAXgyXs8XQVh5ub7kXZFpxDmPCd1pO876
+         0N0YqA64VlXu5TdlNugP8LAU0gUxWzfGHFqP5YxeDDjCuoaPIeYVdLJSAyewCrNZYbmR
+         fmnL4UKq6YQds7/Ced+7TaG7ugcVIO3YJs/ZsuNQQoLFnwVtzHHPiriR5RCKi7BsO/FB
+         1/w6xhVDPsl+qlPiphNEZVFdXUnyu2ISr7eVX8V4LEwYTOgCLK7o5HEUmsMZ1/uPjoTG
+         B2Gw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794857320; x=1795462120;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=lTGurxI/Bgu5ZJqbmAvAIEQWhn+vjtZ691Mnb5crEUo=;
+        b=nUYRO276/7Ns+q6O6s6zFeX9Q4Jirpewyd4JV7vE4QJVtnKIO0vkHxcPHU4FirqyOs
+         JGCzQiTjnwHF9RK9pIONgjHbEkLCJ0dw9nh/QdX3NS38N1cHejss0R0fsEhc5YyPJ3sC
+         JEQOUxFjZBYPPV8bMMsv7d3rShE/NbpykZ7a2JvL7NCdpqr0c5+b+l3gHu8Fr/JyZibh
+         rcV+0jhonVs1trxi4yz5HedBXIsDuk8W9M9NL4MUBXJ3JnmlS4QUgwRUADh7bX1G/qow
+         sav1G/361AmBX4AgVsXF0YUytFNBFMO0xHcxQR2w86QphAlNnp7prPCr1Fn9y7aiZifb
+         HTsw==
+X-Forwarded-Encrypted: i=1; AL+hErGXHhWNiJjv1SMv2q0N0WiJHAM8txX8lLNb3EkixNJj42DsxDhWDIinjzTEfJUzgR+rGkdrq0PGfggH+0T2@vger.kernel.org
+X-Gm-Message-State: APuU4Z9nhZ+Uy/2JUCIUwLQkTvml5oGPXVXUTwvQnXnukM8V68z84LhW
+	bv63VU0k94I45URJFjSq+ONkbL6nrdN8icsvDJ2ZKA8qFZFODN5Reb6p
+X-Gm-Gg: AYBFou052ewkevrbNctPXRv+bYCOk9eYXnffTDGzIOTnOCSEOiwguAaklh6OKnIGzFW
+	qrJkmFkfrVjQmgK3dZOg7Hqg4U5IsmS6sw+edxBThKMu9zBzu2AjeYWCzaQ9NZcezRNvleNfmG3
+	XdpHo8qaKdfgvL3YNyEmB16/xpGTcd9/YwKnL7Cp9lGvH7MP1WJAtNNX7AlwEus0vFKxsDOrwCT
+	YeKLxYcyJnTnGvni/jSmbEBwuT8dBQlj7PYX5HGiVEe0yS/Ne/7sGj/JoEsEtRLaOkWyemEreNf
+	AzzA08qlNese3FiH/Bp4cKTLnJg2M9Lm2AcpWmq31HNcYwUTo0lyxe+olqH2PefGuELJS3RrIpk
+	MKoIYMEhq9n71nIZ71UrN0Im8ctvrpyFdqFLBV3PZeUYQEwgt6pfHyLFPzbP43GUtIAqPKzb3ev
+	Hllp+5mkeHpFlV3O2j6uSxfZqzbNICwozczbesATsXdmmsPVQ23Efk+aDoxHrdD7y9WCStmwKIE
+	0x7ynTnsZgXdR2WiVPI8oI4tYQDMrj83EjlzHAfdh8aKqGAmqB66XbiYH2HkJGVONbS3digqwUc
+	Q7bIqwGk6ZomxRjYSoQFK9AileQJrcaWjyG+AoDo3iOxLIQJ1CNWq7CVnUgMcy33iqny+ylNb7+
+	0IFgUxq/UT7U9
+X-Received: by 2002:a05:600c:8b65:b0:4bb:6a5a:783d with SMTP id 5b1f17b1804b1-4bb6a5a795dmr112896865e9.18.1794857319492;
+        Mon, 16 Nov 2026 11:28:39 -0800 (PST)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb783965c8sm9641515e9.9.2026.11.16.11.28.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Nov 2026 11:28:39 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
 To: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jens Axboe <axboe@kernel.dk>, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, io-uring@vger.kernel.org, Christoph Hellwig <hch@lst.de>, 
-	linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, 
-	target-devel@vger.kernel.org, linux-unionfs@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-nfs@vger.kernel.org
-Subject: Re: [PATCH v2 16/17] fs: use kiocb_write_iter() in
- vfs_iocb_iter_write()
-Message-ID: <4s7yphneo2xw4pitednbhotih7ymlycv4gc65oistoa4pslfzd@dy5pe24utp3k>
-References: <20261116-work-fs-frozen_writes-v2-0-ecc4a2aac40e@kernel.org>
- <20261116-work-fs-frozen_writes-v2-16-ecc4a2aac40e@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH] ovl: refuse pseudo filesystem layers in some setups
+Date: Mon, 16 Nov 2026 20:28:37 +0100
+Message-ID: <20261116192837.937852-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -117,94 +96,108 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261116-work-fs-frozen_writes-v2-16-ecc4a2aac40e@kernel.org>
-X-Rspamd-Queue-Id: E2FAF1F7D2
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-13.01 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_COUNT_THREE(0.00)[3];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.cz:dkim,suse.cz:email,suse.com:email];
-	RCPT_COUNT_TWELVE(0.00)[16];
-	MIME_TRACE(0.00)[0:+];
-	FROM_HAS_DN(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	TO_DN_SOME(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_TLS_LAST(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MISSING_XM_UA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DKIM_TRACE(0.00)[suse.cz:+];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.cz:dkim,suse.cz:email,suse.com:email]
-X-Spam-Score: -13.01
+Content-Transfer-Encoding: 8bit
 
-On Mon 16-11-26 12:03:56, Christian Brauner wrote:
-> vfs_iocb_iter_write() open-codes what kiocb_write_iter() does. Use it.
-> The kiocb is marked with IOCB_WRITE now so the caller can drop freeze
-> protection with kiocb_end_write_iter().
-> 
-> This also means that an IOCB_NOWAIT write fails with -EAGAIN instead of
-> waiting for a frozen filesystem. No caller passes IOCB_NOWAIT today.
-> overlayfs and fuse passthrough don't set FMODE_NOWAIT and cachefiles
-> and nfsd don't ask for it.
-> 
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+From: Christian Brauner <brauner@kernel.org>
 
-Looks good. Feel free to add:
+Using pseudo filesystems as overlayfs layers is a questionable practice.
+Copy up requires that the size of the lower file correctly represents
+the expected data size, which is not always the case with pseudo
+filesystems.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+None of the pseudo filesystems can act as a functional upper layer.
+Most of them fail to create the work dir and the overlayfs mount falls
+back to read-only (e.g. sysfs, cgroup, debugfs). Others (bpffs, configfs,
+tracefs) create the work dir, but fail the mount later on. So let's stop
+pretending and explicitly deny pseudo fs as upper layer. Setups that
+used to fall back to a read-only mount now fail to mount.
 
-								Honza
+Pseudo filesystems should have probably been classified as
+ovl_dentry_weird() and disallowed as any overlayfs layer, but until the
+introduction of the SB_I_PSEUDO flag, there was no way to identify them,
+so we do not know if existing setups are using them as overlayfs layers.
 
-> ---
->  fs/read_write.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/fs/read_write.c b/fs/read_write.c
-> index 6767283108991..eca0aa73e5a4d 100644
-> --- a/fs/read_write.c
-> +++ b/fs/read_write.c
-> @@ -923,7 +923,7 @@ ssize_t vfs_iter_read(struct file *file, struct iov_iter *iter, loff_t *ppos,
->  EXPORT_SYMBOL(vfs_iter_read);
->  
->  /*
-> - * Caller is responsible for calling kiocb_end_write() on completion
-> + * Caller is responsible for calling kiocb_end_write_iter() on completion
->   * if async iocb was queued.
->   */
->  ssize_t vfs_iocb_iter_write(struct file *file, struct kiocb *iocb,
-> @@ -946,10 +946,7 @@ ssize_t vfs_iocb_iter_write(struct file *file, struct kiocb *iocb,
->  	if (ret < 0)
->  		return ret;
->  
-> -	kiocb_start_write(iocb);
-> -	ret = file->f_op->write_iter(iocb, iter);
-> -	if (ret != -EIOCBQUEUED)
-> -		kiocb_end_write(iocb);
-> +	ret = kiocb_write_iter(iocb, iter);
->  	if (ret > 0)
->  		fsnotify_modify(file);
->  
-> 
-> -- 
-> 2.53.0
-> 
+Data-only layers were introduced to facilitate the setup of images
+built with the composefs tool.  The data-only layer is expected to
+be a filesystem backed by real storage and the lower layers are
+expected to be loop mounted read-only images, typically erofs.
+
+In a composefs setup, pseudo filesystems do not make sense and there
+is no reason at all that those setups would exist in the wild.
+So let's refuse overlayfs mount with data-only layers if any of the
+lower layers are pseudo filesystems.
+
+Data-only layers can be added via the "::" separator in "lowerdir=" and
+via "datadir+" by path or by file descriptor. All of them end up at the
+end of ctx->lower. So a single check in ovl_get_lowerstack() covers all
+of them.
+
+Note that regular lower layers on pseudo filesystems are left alone.
+Stacking overlayfs on top of sysfs without data-only layers keeps working
+(for now).
+
+Co-developed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Link: https://lore.kernel.org/all/CAOQ4uxhGxpBtMZ5kfuzR1tQAewiecoX7UjXQRo91QjJHH9T_Yw@mail.gmail.com
+Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+---
+
+Christian,
+
+This patch applies on top of your patch to ban pseudo datadir [1]
+and expands the ban to more setups.
+
+I got carried away and did a survey of the pseudo fs as upper fs and
+found that it is worth banning a pseudo upper fs early on, regardless
+of datadir.
+
+Note that the selftest will now fail for some setups that used to
+be acceptable (e.g. pseudo_lower::datadir in lowerdir_sysfs) and it
+does not test for rejection of a pseudo upperdir.
+
+I will send you a patch for the test shortly.
+
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/linux-fsdevel/20261116-work-loop-pseudo-v3-33-8cbbea1cf34f@kernel.org/
+
+ fs/overlayfs/params.c | 3 ++-
+ fs/overlayfs/super.c  | 6 +++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index d1ca4a9094f28..496f4daa7f750 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -347,7 +347,8 @@ static int ovl_mount_dir_check(struct fs_context *fc, const struct path *path,
+ 	 * as the mount attributes could change.
+ 	 */
+ 	if (upper) {
+-		if (path->dentry->d_flags & DCACHE_OP_REAL)
++		if ((path->dentry->d_flags & DCACHE_OP_REAL) ||
++		    (path->dentry->d_sb->s_iflags & SB_I_PSEUDO))
+ 			return invalfc(fc, "filesystem on %s not supported as upperdir", name);
+ 		if (__mnt_is_readonly(path->mnt))
+ 			return invalfc(fc, "filesystem on %s is read-only", name);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 990a470112c5c..f2c484b45b509 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1259,10 +1259,10 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 	for (i = 0; i < ctx->nr; i++) {
+ 		l = &ctx->lower[i];
+ 
+-		/* Pseudo filesystems don't hold data for metacopy files. */
+-		if (i >= ctx->nr - ctx->nr_data &&
++		/* Pseudo filesystems don't belong in composefs setup */
++		if (ctx->nr_data &&
+ 		    (l->path.dentry->d_sb->s_iflags & SB_I_PSEUDO)) {
+-			pr_err("filesystem on %s not supported as data-only layer\n",
++			pr_err("pseudo filesystem on %s not supported along with data-only layers\n",
+ 			       l->name);
+ 			return ERR_PTR(-EINVAL);
+ 		}
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.56.1
+
