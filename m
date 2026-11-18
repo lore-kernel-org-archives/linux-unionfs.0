@@ -1,11 +1,11 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.179
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1795021423;
-	b=3Dowy8bwjAnMORZIGW9p76YqwE3N6hKxKB3KEtO3X0M6NAg+3yRRmIOsPe0blmYCe1A0
-	 BhIpkBIWY0RQO+Ot5W41QaCxOQRMM+bXpshfwolFaDyuyJvyWJtF9zKbbuwUagaG1jphV
-	 EQMdI88vjnuKeQ6mWnNid6u2RowA/Vqw4bEmqxeALbIktVDCz+iYN0+BbyeDpIh/sKddJ
-	 8lfXJfd/GRkCsBeDhCdPpP7YoE+YfuLE+rxADYQVTu906UQv3yfqEvqrwnUWf0fYWlUVy
-	 6eHt16woFSMCR6RYcEcpUGSWYeu+LuZ+jytNEiyB0o5goFn/1oT8Ol7zJW8nn6818hw==
+	b=mQaS0jTPzem/kQho7wRmUqntMXF8FZvv8XZjSKAh5we+ONDyBgnZ3lVrZAWXFEDavQ7e
+	 6ilQG6entTftYi5VTmihCqSouDY27237yTqkS/qiAARljUN5cVXBr91U+WPocjX2S7sLe
+	 uW9ylaywivZTlHvlwsBBjEObA8iVgSOpvoelS6q9/gVfOTPbK8iOghL1cHqSF3XPZNEcM
+	 jYo23Itx6GFbmiLv3uimKbB5LIftNUSZLGzsBxHQvMzVMO0uTyFRbYCAas9reBieo9Itm
+	 t0Sp8t99pT6f6wWDBjDIjzWpMAe0CJIH3sh9tDmjUIKTSYaEcGKdtQnzno/JN66oNYw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795021423;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
@@ -13,77 +13,76 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key;
-	bh=Y70yXZAvOr66TxVQEPkIiAIDxuUPqlw54kS33Yt/9Yg=;
-	b=g2HYcpMp4cAHuZbGJNPwnfwKxkDdn7KzN5dsvQ0RWCfXgxhgZYfjct/S1Q7RC1hc00Nc
-	 4dJTlSuiECU/zIobqEQ6nPGWp7glqrePfY3CVZO8bkfqNWBcHx1n5YXxIEr2J6oHr8ti4
-	 bWhfV6tJGtm8hxwxwAbTJUQ8s3v/5wK2LZVPKkvGyItZMl7gHF282pokCQVZzDBWfbmDl
-	 kEParFm2Q8X3VzN9+TbsTnjJXEHMJOcUSDc6H8hGeez+Je0w4o00JIAsaFyuaBrQ8ZBfp
-	 l9+IZDEJ4uDIMQtBlXyoytu15A/olAVqaB9GIkqq0lNqRhIIeLVVODbKx1bnPKwnbig==
+	bh=fvH4Ub8pP4SdrCX5S0hlW5fTiXrWyYJiu9ya5yzf294=;
+	b=oO0unh9lnAWxv5UlfJU63lbrazQ1YJUkKNuSv/NDtNDV5VWox4gtZtAxjw597iH0tcLW
+	 oXy83c+U2ti48IkHO4GIojDgSur3VT8GebLzD8RcWH8x6M8iLrLJAlIcXLh4aDP0G8BOo
+	 IVjU8n0UqIaymd1lpu17ZPSxozJ9wgrjE6CVpiGKJbUh8xLFHrnI6unSCrx/heK4Te8wx
+	 QhwOC6OkN50XQRfc/FKORAm5TgLdtd+utYIYqKU4mZax1y21AHWzGR7FNJcLmFUx5apDC
+	 YI8Uq38FwblNfwi+50rqmgWTIyPJhHMLer2JLqcBa0Ecbs5KC47uzxN94pV7HIKno2w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=toxicpanda.com;
 	spf=pass smtp.mailfrom=toxicpanda.com;
-	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=VvxeAFXj;
-	arc=none smtp.remote-ip=209.85.128.172
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
+	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=jtytjb57;
+	arc=none smtp.remote-ip=209.85.160.179
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43B3460A3819
-	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 17:03:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 43B3460A3819
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AFD760A2611
+	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 17:03:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4AFD760A2611
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=VvxeAFXj
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-8b4d26094beso12936337b3.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 09:03:42 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=jtytjb57
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-55bd96affd2so99671cf.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 09:03:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toxicpanda.com; s=google; t=1795021421; x=1795626221; darn=vger.kernel.org;
+        d=toxicpanda.com; s=google; t=1795021422; x=1795626222; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Y70yXZAvOr66TxVQEPkIiAIDxuUPqlw54kS33Yt/9Yg=;
-        b=VvxeAFXjuopI0I2Mu1pmoG80zb9nFW9MNifuU2a++NMuSoxb8LNb9Lvv/nHUcOxGGv
-         a6sJyMl9I/E+/mA9w3nkDaQAK5wDp7O4uMLi5+ypwPkDAFrsZNY4dxnk5jGRtsVWFrMN
-         ERscCbz1TquRbEoaoCS/ss+u5qbMHwiiFhXxiz7hRGgGHl/iJY1tNpWNep7yE/5FHgzH
-         Z7GqyBVuGIkGGp0i2u0s0gpfHXgpIw/ZA2ypd/HTWfZlw1AZu+8Tf/mfXJj+pVX9JTtU
-         uA/FnqQoSloTlPWoQj90YnlZdVWtVcFqQIa+9nwH8tKMVgnRUXSeG1+0y/c7yAJt9Z+y
-         ZSEQ==
+        bh=fvH4Ub8pP4SdrCX5S0hlW5fTiXrWyYJiu9ya5yzf294=;
+        b=jtytjb57xWTV0T3LCUy3gueJ9ET8VJS5Lif7NquguELphfY9Sg8SADYdnucpgE+9tL
+         JHjO1HaK5LNCd/fjguE4v+bDOqrwOYMyYEPI/5pj/ZirfgyCOcCNi9fXrn9mppI7tPPl
+         7j3W3u41eDM+UkvQIibSESXmVld4g397bUZv0DuoIdJbQEIUCzApfpTLDeiNDxY0J9vJ
+         j8xtiH68EYMsfPK+yPvWhNMWz6pgihO4e8NknbslH9IWCNKGP982enbdFUdF9pyWrVZT
+         ENEqzHPpFpsiNCQBugGdhHM28hyOY+vthdpwFP229gzP4ubaQhcGEOCqZIsru4WbZlG1
+         Qpnw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795021421; x=1795626221;
+        d=1e100.net; s=20260707; t=1795021422; x=1795626222;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Y70yXZAvOr66TxVQEPkIiAIDxuUPqlw54kS33Yt/9Yg=;
-        b=wvmxkxoSdoT9UAQXJEg/uKM5RAEn6WlBIl1DqvB9Z6EJD09Beg0KlQh+BhsD0od5X+
-         0V4qcajxhFyQvlArN1pZwM6lXOI6kdp+t11kHYOq8n3oUuzWWdBYuPRwOmo6743tg9PR
-         pn6ipKIQHyyAh4gZbWnJCLkLVxZlPMS+9Adzn6WRsPR30GDsEA3tjtBPj4pR2RkXveWC
-         Zn1+V2XKiWOiCOFUzzA5hmw873IEuAVUrAsgoDRvIp+EOukTB4Lm8vmNDvtokM1cR90I
-         /BQNexRr8Z1GjpiRKsHbpvO5rVmrxMtVQN9XqKmv3h8+Fx1JRHDiKs6DoxiQygODdW3O
-         7tqw==
-X-Forwarded-Encrypted: i=1; AL+hErEJqqrcKpCHA+OS0r5jIrFENinRMhELwvHU2lZWZ7IVs0B14dBC+AumXto7TNe6nc6y7J4wKoosBYCrvbSt@vger.kernel.org
-X-Gm-Message-State: APuU4Z/qeRRnDmUriwl/1uGcAl0Lyf7YUxudUsrllxA6Ky/GR+fw9XDi
-	nMgSjDefkDD1gKapgPel3nXajeksAGnpRkI77s3INywv+BEKbqWm73NjJpL419KuhVU=
-X-Gm-Gg: AZFdTZcpjyGRnR4xsEyIQbfdjf7y8YwvQdtrnrNkZIzHneBosL1kF6WM3TMamj1nHBw
-	Lm8xJNnO+gYJ7/yUhYORDIpAWoNOVXLqFzDJ7Uny9dkoiQ+qJPJlv886xwRQzKYMjWWiWwM3T3O
-	RfS8agMh8JzczcTUs0CLDUk6ybQLCvPndhpGG8mVPphbWmXhyQbaefcbhqTwtx50ZosK7bHtJ72
-	nCFqwDeJ0Znn6edH5TIhKprgT+4hevee0yz2n11zaLV/q4/7SdQ2hQpMwfLjJ77LMk6VVs472sm
-	TTRJSBmeawl53aDAcLjn3JbkBFzlvVKMOgkAcKS2zGUIiqDO4QJ3g/MU0zd4oUBVsRQFYtoFTbK
-	+rLL54x+yp9694M+6C7Xx1AXDqFmRhgd8ggHGiGS4oHGqZn3rLjFaS/0BbtuWWpOvVz+SmojLZl
-	g/SYuCHWR1wbOsH0vC+sJLPDeubwTN/vPB8B4vWsc+MQhW/q2vUslMyKnPw+jOpsNrtYgGYzeay
-	EmH6LlTph88eDSJO/Aoi1onkJ+HkDvWn+pcMGsQJq0UVW7R2TrV869Ui0Aj3NovVgkjJIV/rgZZ
-	Ihr7d4jvSV/0jsacNvvrQVRb8UU1y6Tqqw+igL0FwzeofA==
-X-Received: by 2002:a05:690c:a417:20b0:8b5:6e9:217a with SMTP id 00721157ae682-8b506e927ebmr6451737b3.31.1795021420862;
-        Wed, 18 Nov 2026 09:03:40 -0800 (PST)
+        bh=fvH4Ub8pP4SdrCX5S0hlW5fTiXrWyYJiu9ya5yzf294=;
+        b=cFiEQLkZxZuyeKTIk3gTyjpSTYu6QpWOwSDQ9nM+fsM/ZbkG/Csn9j0NpeEHZ7BZvO
+         OEFmT+IhLYMgSO1EO6gf5dZy+zWN+aDPKCEG+8fdb4JjKsBaJzREGWqJmr+Ze9w3x+MC
+         FnNJIcT1KbHmVtqXi6aYiOHadcox/YU1/JJgQquY5adxOyRGJQD9GXccaQEr3cGAIjYd
+         hGV9zH9RXdNjE+8gzaKmKg5vFYIwaX/xv1R1Z4UCNDbhIwsloK6yT7o44xUfLiTnWFQN
+         ciCvZr4h9cEJh1GqLCDRaYb3O4ACBu+kvuWGN9E2S8LMCp26DAl66bKefxywlsIk33YR
+         ZhtQ==
+X-Forwarded-Encrypted: i=1; AL+hErH89RYwVamNeh36TaUlZALlu60zerB+P/eLsCcB8uBJsJvO7ab4ceFw3jBgT3VASbJMyCRE/5z30CeFVP4d@vger.kernel.org
+X-Gm-Message-State: APuU4Z+gYb7YbjE9C0YS6TK6EGCC5dzjM28Opnq72eAR3OptW5N36Mnq
+	RZgrlAO8j5TpR43hZR2GG8qMLidyBlDfF/7SklhbhutIQbPz8MptWOREQAiwMhohxek=
+X-Gm-Gg: AYBFou3QzlxqvXJ5U5YhzTuTU4dUTncBT/OAzMx2YLU5IEk7rSx9HwHVmrU99Bj3eDX
+	lDFi0yciwHOlVQLrqMNXEcMN/IdRyXZf6AXfOl43pCzYGCQ0sS2hv/fki7R7BDMFrGwtWErs1Nr
+	mhn10Zxa6gGcKqg8i2W8FiBAtGWvha5Bore1Mp9+5vMVJzk0QmPFyD89IFCMuiYsjysycOst00P
+	drhxQJ2BMmEPO8eJynFyuIu7rbJShGXr3H3q6TXpzRqdPZV43d9g+67j0JRn0BgzMSNhn6a5RSo
+	IwjGCdHhopYYvpQyljjjVS4OENM9k+7MXkEFIW0jRFnvTvFaSO1E6N3SQ8hPX+NHqqyAZx6WYV5
+	M4W4BPAN9hVAez7/aA4DeYNurJfbxlaJESDC3Y3HNKccCFQ/h1nzcuhUDz/osjEAKPPAruZwJa0
+	TwE0MWliqU8hcHdyOlCDVw3iGRvVOCk4Pt4M7XU0uemB70Qao74fxr5/jx6hDMHG6QHf8w2/85x
+	5/RoN2TomCOBGGPZirJhgp2ziLy+abb/HWPmbQvMSHP7n+XBRu9MkBiWO/hXky2rzdomWJ/Wk7X
+	w81oKSRNiSPiqKKa6MjxpqVH7DD7CRGgyflQHKn160zvDA==
+X-Received: by 2002:a05:622a:888a:b0:531:2eb:be76 with SMTP id d75a77b69052e-55d685dca55mr1340681cf.22.1795021421979;
+        Wed, 18 Nov 2026 09:03:41 -0800 (PST)
 Received: from toxicpanda.com ([153.61.196.248])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9499b7ccf2fsm224499785a.36.2026.11.18.09.03.40
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55d66b75823sm3947741cf.13.2026.11.18.09.03.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Nov 2026 09:03:40 -0800 (PST)
+        Wed, 18 Nov 2026 09:03:41 -0800 (PST)
 From: Josef Bacik <josef@toxicpanda.com>
-Date: Wed, 18 Nov 2026 17:03:28 +0000
-Subject: [PATCH v7 5/7] ovl: add a set of the inodes that a sync has to
- write
+Date: Wed, 18 Nov 2026 17:03:29 +0000
+Subject: [PATCH v7 6/7] ovl: track an inode when it is modified
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -95,7 +94,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261118-b4-ovl-containerized-sync-v7-5-54f45743fe55@toxicpanda.com>
+Message-Id: <20261118-b4-ovl-containerized-sync-v7-6-54f45743fe55@toxicpanda.com>
 References: <20261118-b4-ovl-containerized-sync-v7-0-54f45743fe55@toxicpanda.com>
 In-Reply-To: <20261118-b4-ovl-containerized-sync-v7-0-54f45743fe55@toxicpanda.com>
 To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
@@ -106,592 +105,380 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
  linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Josef Bacik <josef@toxicpanda.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openssh-sha256; t=1795021413; l=20402;
+X-Developer-Signature: v=1; a=openssh-sha256; t=1795021413; l=13673;
  i=josef@toxicpanda.com; h=from:subject:message-id;
- bh=firYUPSqbzQV1rQ8cQeHwp95pCeKXnKisRaN+Gl6t8o=;
+ bh=sPqSka9KhAUm2vDOMU5sUKmAVVG3y6JkxmGpRbiINKM=;
  b=U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgUBr36M/n0nWN0DNbnxwzIiCZez6MG
  JiruuNaSCI/zXsAAAAGcGF0YXR0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5AAAA
- QEljXLHtzHBpk8vxccH/PMMI9TEAjtx8LAvS3h7xdPgPJpL3boy0e962JJt5UDTlAaBTV/pjA8c
- Zn1OCOKHeHgs=
+ QGnsSjcuEKTtgEft92GUU32bXEuHRW8HnFTNhiaCJW68t6KKT4UsoRahoD+H6+lZqin6Mi/UD1S
+ zS0NalCrLBQ4=
 X-Developer-Key: i=josef@toxicpanda.com; a=openssh;
  fpr=SHA256:C8kOX2QUJCMqnCX+KEeoqRAjLo9L+ELOSH2NSAJHqGA
 
-To sync only what was written through an overlay, overlayfs has to know
-which upper inodes were modified through it.
+Put an overlay inode into the set of inodes to sync when its upper inode is
+modified through the overlay.
 
-An overlay inode has no pages and no metadata of its own.  What is dirty,
-under writeback or deferred by lazytime is the state of the upper inode, in
-another superblock, and nothing tells overlayfs when it changes.  So do not
-mirror that state.  Only remember the overlay inodes that were modified, in
-an xarray of the overlay, and let a sync ask the upper inode of each.
+Nearly every modification ends in ovl_copyattr(), so do it there.  These do
+not, so they track the inode themselves:
 
-The xarray has the marks of the page cache, dirty, towrite and writeback.
-This patch only uses the first, the others come with the sync.
+ - copy up, for the inode and for its parent
+ - ovl_instantiate(), for a new inode and for a new hard link
+ - atime updates, if the atime of the upper inode has changed
+ - the root, because the mount may have set xattrs on the upper root
+ - shared writable mappings
+ - the removal of a stale "impure" xattr in readdir
+ - the "origin" xattr that lookup sets on a merge directory
+ - the helpers that set the "impure", "redirect", "opaque" and "nlink"
+   xattrs, and ovl_clear_empty() for the parent.  The operation that calls
+   them may still fail, and then it does not get to ovl_copyattr().
+ - a setattr that fails, it may have truncated some of the file
 
-The set holds a reference to an inode that has a mark.  The overlay inode
-holds the upper dentry, so the upper inode is one pointer away, whatever
-the upper filesystem is.
+Take an inode out of the set when its last link is removed.  Nobody needs
+a deleted file to be durable, and the reference of the set would keep its
+space.  An O_TMPFILE that can still get a name is tracked like any other
+file, and leaves the set when its dentry goes without one.
 
-An inode gets its slot in the xarray when it is allocated, and tracking it
-only sets a mark, so that cannot fail.  The index is the address of the
-inode.  i_ino is not unique in an overlay, and xa_alloc() needs one of the
-three marks for itself.  So with fsync=relaxed, which the default resolves
-to on most upper filesystems, every inode of the overlay, also one that is
-never modified, costs a slot and takes the lock of the xarray when it is
-allocated and when it is freed.
+syncfs() does not look at the set yet.  Until the next patch an inode only
+leaves it when it is unlinked, at unmount, or when memory is needed.
 
-All overlays allocate from one slab cache, so where their inodes are mixed
-a slot can cost a node of the xarray or more.  With 64 overlays of 2000
-files on a guest with KASAN and lockdep it is 21 bytes an inode if they
-are walked one after the other, 89 if all at once, and 489 if they take
-turns entry by entry.  The tree is tall, about 6K for every overlay.
+Based on work by Chengguang Xu.
 
-An inode leaves the set in a sync, when it is unlinked, or when memory is
-needed and its upper inode has become clean.  For the last one use the
-hooks of the superblock's own shrinker.  Reclaim in a memory cgroup only
-runs shrinkers that have objects on a list_lru of that cgroup, which one of
-our own would not have.  The hook only queues a work item.  The reference
-that is dropped may be the last one to an upper inode that was unlinked,
-and filesystems allocate memory under locks that deleting a file needs.
-
-An inode only leaves the set for being clean if its upper inode is seen
-clean under the i_lock of the overlay inode, which tracking takes as well.
-A modification that came before is visible, and one that comes later puts
-the inode back.  So whoever walks the set needs no lock against anybody
-else who does.
-
-With lazytime the upper inode holds timestamps back for up to a day.  The
-last iput() would write them, but that cannot come while the inode is in
-the set.  So the work item hands them to the upper filesystem.
-
-When an inode enters the set, remember where the wb_err of the upper
-mapping is.  Writeback that fails from there on, whoever does it, is for a
-sync of the overlay to report, and until then the inode is not clean.
-
-Nothing is put into the set yet, and syncfs() still syncs the upper
-filesystem.
-
+Link: https://lore.kernel.org/r/20211122030038.1938875-1-cgxu519@mykernel.net
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
+Suggested-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 ---
- fs/overlayfs/Makefile    |   2 +-
- fs/overlayfs/overlayfs.h |  13 ++
- fs/overlayfs/ovl_entry.h |   9 ++
- fs/overlayfs/params.c    |   2 +
- fs/overlayfs/super.c     |  11 +-
- fs/overlayfs/sync.c      | 374 +++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 409 insertions(+), 2 deletions(-)
+ fs/overlayfs/copy_up.c   |  9 +++++++++
+ fs/overlayfs/dir.c       | 11 +++++++++++
+ fs/overlayfs/file.c      |  7 ++++++-
+ fs/overlayfs/inode.c     | 27 +++++++++++++++++++++------
+ fs/overlayfs/namei.c     |  9 +++++++--
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/readdir.c   |  1 +
+ fs/overlayfs/super.c     | 11 +++++++++++
+ fs/overlayfs/util.c      | 16 ++++++++++++++--
+ 9 files changed, 81 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/Makefile b/fs/overlayfs/Makefile
-index 5648954f8588..080fb902bafd 100644
---- a/fs/overlayfs/Makefile
-+++ b/fs/overlayfs/Makefile
-@@ -6,4 +6,4 @@
- obj-$(CONFIG_OVERLAY_FS) += overlay.o
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index c147ad155b79..f5c89af79e15 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -1223,6 +1223,15 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			err = ovl_link_up(&ctx);
+ 		if (!err && ovl_dentry_needs_data_copy_up_locked(dentry, flags))
+ 			err = ovl_copy_up_meta_inode_data(&ctx);
++		/*
++		 * All three write to the upper inode, and there may be no later
++		 * write that would track the overlay inode.  The first two
++		 * also add an entry to the upper inode of the parent, set its
++		 * "impure" xattr and restore its timestamps.
++		 */
++		ovl_track_inode(d_inode(dentry));
++		if (parent)
++			ovl_track_inode(d_inode(parent));
+ 		ovl_copy_up_end(dentry);
+ 	}
+ 	do_delayed_call(&done);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 1792e4114621..3d50e0e7183f 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -276,6 +276,9 @@ static int ovl_set_opaque_xerr(struct dentry *dentry, struct dentry *upper,
+ 	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_OPAQUE, "y", 1, xerr);
+ 	if (!err)
+ 		ovl_dentry_set_opaque(dentry);
++	/* A new directory has no inode yet, ovl_instantiate() tracks it */
++	if (d_inode(dentry))
++		ovl_track_inode(d_inode(dentry));
  
- overlay-objs := super.o namei.o util.o inode.o file.o dir.o readdir.o \
--		copy_up.o export.o params.o xattrs.o
-+		copy_up.o export.o params.o xattrs.o sync.o
+ 	return err;
+ }
+@@ -330,6 +333,9 @@ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 		inc_nlink(inode);
+ 	}
+ 
++	/* The upper inode was just created, or has got a new link */
++	ovl_track_inode(inode);
++
+ 	if (tmpfile)
+ 		d_mark_tmpfile(tmpfile, inode);
+ 
+@@ -457,6 +463,8 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
+ 
+ 	err = ovl_do_rename_rd(&rd);
+ 	end_renaming(&rd);
++	/* The caller tracks the parent, unless it fails after this */
++	ovl_track_inode(d_inode(dentry->d_parent));
+ 	if (err)
+ 		goto out_cleanup_unlocked;
+ 
+@@ -971,6 +979,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 			clear_nlink(dentry->d_inode);
+ 		else
+ 			ovl_drop_nlink(dentry);
++		ovl_untrack_inode(dentry->d_inode);
+ 	}
+ 	ovl_nlink_end(dentry);
+ 
+@@ -1127,6 +1136,7 @@ static int ovl_set_redirect(struct dentry *dentry, bool samedir)
+ 	err = ovl_check_setxattr(ofs, ovl_dentry_upper(dentry),
+ 				 OVL_XATTR_REDIRECT,
+ 				 redirect, strlen(redirect), -EXDEV);
++	ovl_track_inode(d_inode(dentry));
+ 	if (!err) {
+ 		spin_lock(&dentry->d_lock);
+ 		ovl_dentry_set_redirect(dentry, redirect);
+@@ -1339,6 +1349,7 @@ static int ovl_rename_upper(struct ovl_renamedata *ovlrd, struct list_head *list
+ 			clear_nlink(d_inode(new));
+ 		else
+ 			ovl_drop_nlink(new);
++		ovl_untrack_inode(d_inode(new));
+ 	}
+ 
+ 	ovl_dir_modified(old->d_parent, ovl_type_origin(old) ||
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 7433220d4ad6..95dc34f2690b 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -472,8 +472,13 @@ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ 		.cred = ovl_creds(file_inode(file)->i_sb),
+ 		.accessed = ovl_file_accessed,
+ 	};
++	int err;
+ 
+-	return backing_file_mmap(of->realfile, vma, &ctx);
++	err = backing_file_mmap(of->realfile, vma, &ctx);
++	/* Stores through the mapping go straight to the upper inode */
++	if (!err && vma_is_shared_maywrite(vma))
++		ovl_track_inode(file_inode(file));
++	return err;
+ }
+ 
+ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index a11564e90751..08de2e9fdffa 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -84,11 +84,17 @@ int ovl_setattr(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 		if (err)
+ 			goto out_put_write;
+ 
++		/* Before a truncate dirties a page, for errors of writeback */
++		if (winode)
++			ovl_track_inode(dentry->d_inode);
++
+ 		inode_lock(upperdentry->d_inode);
+ 		with_ovl_creds(dentry->d_sb)
+ 			err = ovl_do_notify_change(ofs, upperdentry, attr);
+ 		if (!err)
+ 			ovl_copyattr(dentry->d_inode);
++		else
++			ovl_track_inode(dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
+ 		ovl_drop_write(dentry);
+ 
+@@ -582,11 +588,17 @@ int ovl_update_time(struct inode *inode, enum fs_update_time type,
+ 		};
+ 
+ 		if (upperpath.dentry) {
++			struct inode *upper = d_inode(upperpath.dentry);
++			struct timespec64 old = inode_get_atime(upper), new;
++
+ 			if (flags & IOCB_NOWAIT)
+ 				return -EAGAIN;
+ 			touch_atime(&upperpath);
+-			inode_set_atime_to_ts(inode,
+-					      inode_get_atime(d_inode(upperpath.dentry)));
++			new = inode_get_atime(upper);
++			inode_set_atime_to_ts(inode, new);
++			/* touch_atime() may have had nothing to do */
++			if (!timespec64_equal(&old, &new))
++				ovl_track_inode(inode);
+ 		}
+ 	}
+ 	return 0;
+@@ -898,7 +910,8 @@ void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
+ 	oi->lowerdata_redirect = oip->lowerdata_redirect;
+ 
+ 	realinode = ovl_inode_real(inode);
+-	ovl_copyattr(inode);
++	/* Nothing was changed, the inode is only being looked up */
++	__ovl_copyattr(inode);
+ 	ovl_copyflags(realinode, inode);
+ 	ovl_map_ino(inode, ino, fsid);
+ }
+@@ -975,7 +988,7 @@ static int ovl_set_nlink_common(struct dentry *dentry,
+ 	struct inode *inode = d_inode(dentry);
+ 	struct inode *realinode = d_inode(realdentry);
+ 	char buf[13];
+-	int len;
++	int len, err;
+ 
+ 	len = snprintf(buf, sizeof(buf), format,
+ 		       (int) (inode->i_nlink - realinode->i_nlink));
+@@ -983,8 +996,10 @@ static int ovl_set_nlink_common(struct dentry *dentry,
+ 	if (WARN_ON(len >= sizeof(buf)))
+ 		return -EIO;
+ 
+-	return ovl_setxattr(OVL_FS(inode->i_sb), ovl_dentry_upper(dentry),
+-			    OVL_XATTR_NLINK, buf, len);
++	err = ovl_setxattr(OVL_FS(inode->i_sb), ovl_dentry_upper(dentry),
++			   OVL_XATTR_NLINK, buf, len);
++	ovl_track_inode(inode);
++	return err;
+ }
+ 
+ int ovl_set_nlink_upper(struct dentry *dentry)
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index c6127edb9be9..353392dbbde4 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -951,7 +951,8 @@ static int ovl_fix_origin(struct ovl_fs *ofs, struct dentry *dentry,
+ 	ovl_drop_write(dentry);
+ out:
+ 	kfree(fh);
+-	return err;
++	/* Tell the caller that @upper was modified, it has no inode yet */
++	return err ? err : 1;
+ }
+ 
+ static int ovl_maybe_validate_verity(struct dentry *dentry)
+@@ -1102,6 +1103,7 @@ static int ovl_lookup_layers(struct ovl_lookup_ctx *ctx, struct ovl_lookup_data
+ 	struct dentry *origin = NULL;
+ 	bool upperopaque = false;
+ 	bool uppermetacopy = false;
++	bool origin_fixed = false;
+ 	int metacopy_size = 0;
+ 	unsigned int i;
+ 	int err;
+@@ -1181,10 +1183,11 @@ static int ovl_lookup_layers(struct ovl_lookup_ctx *ctx, struct ovl_lookup_data
+ 		 */
+ 		if (ctx->upperdentry && !ctx->ctr && !ofs->noxattr && d->is_dir) {
+ 			err = ovl_fix_origin(ofs, dentry, this, ctx->upperdentry);
+-			if (err) {
++			if (err < 0) {
+ 				dput(this);
+ 				return err;
+ 			}
++			origin_fixed = err;
+ 		}
+ 
+ 		/*
+@@ -1370,6 +1373,8 @@ static int ovl_lookup_layers(struct ovl_lookup_ctx *ctx, struct ovl_lookup_data
+ 			return PTR_ERR(inode);
+ 
+ 		ctx->inode = inode;
++		if (origin_fixed)
++			ovl_track_inode(inode);
+ 		if (ctx->upperdentry && !uppermetacopy)
+ 			ovl_set_flag(OVL_UPPERDATA, ctx->inode);
+ 
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 13fbe016ed75..fad8ab77ac19 100644
+index fad8ab77ac19..f4770b4c0222 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -65,6 +65,8 @@ enum ovl_inode_flag {
- 	OVL_CONST_INO,
- 	OVL_HAS_DIGEST,
- 	OVL_VERIFIED_DIGEST,
-+	/* Modified since a sync has started to write it, under i_lock */
-+	OVL_TRACKED,
- };
- 
- enum ovl_entry_flag {
-@@ -886,6 +888,17 @@ struct inode *ovl_get_inode(struct super_block *sb,
+@@ -886,6 +886,7 @@ bool ovl_lookup_trap_inode(struct super_block *sb, struct dentry *dir);
+ struct inode *ovl_get_trap_inode(struct super_block *sb, struct dentry *dir);
+ struct inode *ovl_get_inode(struct super_block *sb,
  			    struct ovl_inode_params *oip);
++void __ovl_copyattr(struct inode *to);
  void ovl_copyattr(struct inode *to);
  
-+/* sync.c */
-+void ovl_track_init(struct ovl_fs *ofs);
-+void ovl_track_exit(struct ovl_fs *ofs);
-+int ovl_track_alloc(struct super_block *sb, struct inode *inode);
-+void ovl_track_inode(struct inode *inode);
-+void ovl_untrack_inode(struct inode *inode);
-+void ovl_forget_inode(struct inode *inode);
-+void ovl_drop_tracked(struct ovl_fs *ofs);
-+long ovl_nr_cached_objects(struct super_block *sb, struct shrink_control *sc);
-+long ovl_free_cached_objects(struct super_block *sb, struct shrink_control *sc);
-+
- /* vfs fileattr flags read from overlay.protattr xattr to ovl inode */
- #define OVL_PROT_I_FLAGS_MASK  (S_APPEND | S_IMMUTABLE)
- /* vfs fileattr flags copied from real to ovl inode */
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index ac07e8769f9b..44e22b2860d2 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -92,6 +92,13 @@ struct ovl_fs {
- 	/* r/o snapshot of upperdir sb's only taken on volatile mounts */
- 	errseq_t errseq;
- 	bool casefold;
-+	/* The inodes that syncfs() and unmount have to write, see sync.c */
-+	struct xarray tracked;
-+	atomic_long_t nr_tracked;
-+	/* Reclaim has this drop what is clean: how many, and where it goes on */
-+	struct work_struct release_work;
-+	atomic_long_t release_nr;
-+	unsigned long release_id[2];
- };
- 
- /* Number of lower layers, not including data-only layers */
-@@ -164,6 +171,8 @@ struct ovl_inode {
- 	const char *redirect;
- 	u64 version;
- 	unsigned long flags;
-+	/* wb_err of the upper mapping up to where a sync has reported it */
-+	errseq_t wb_err;
- 	struct inode vfs_inode;
- 	struct dentry *__upperdentry;
- 	struct ovl_entry *oe;
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 549fc1e83ac9..370dd6341392 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -842,6 +842,7 @@ int ovl_init_fs_context(struct fs_context *fc)
- 	fc->ops			= &ovl_context_ops;
- 
- 	mutex_init(&ofs->whiteout_lock);
-+	ovl_track_init(ofs);
- 	return 0;
- 
- out_err:
-@@ -883,6 +884,7 @@ void ovl_free_fs(struct ovl_fs *ofs)
- 	kfree(ofs->config.workdir);
- 	if (ofs->creator_cred)
- 		put_cred(ofs->creator_cred);
-+	ovl_track_exit(ofs);
- 	kfree(ofs);
- }
- 
+ /* sync.c */
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 2018e3114655..599e76e1294a 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -745,6 +745,7 @@ static struct ovl_dir_cache *ovl_cache_get_impure(const struct path *path)
+ 		if (!ovl_want_write(dentry)) {
+ 			ovl_removexattr(ofs, ovl_dentry_upper(dentry),
+ 					OVL_XATTR_IMPURE);
++			ovl_track_inode(inode);
+ 			ovl_drop_write(dentry);
+ 		}
+ 		ovl_clear_flag(OVL_IMPURE, inode);
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 31a58e28968c..5eb510bf1b9a 100644
+index 5eb510bf1b9a..7f7d3993bc7a 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -221,6 +221,10 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
- 	oi->__upperdentry = NULL;
- 	oi->lowerdata_redirect = NULL;
- 	oi->oe = NULL;
-+	if (ovl_track_alloc(sb, &oi->vfs_inode)) {
-+		kmem_cache_free(ovl_inode_cachep, oi);
-+		return NULL;
-+	}
- 	mutex_init(&oi->lock);
+@@ -187,8 +187,16 @@ static int ovl_dentry_init(struct dentry *dentry)
+ #define ovl_dentry_init NULL
+ #endif
  
- 	return &oi->vfs_inode;
-@@ -240,6 +244,7 @@ static void ovl_destroy_inode(struct inode *inode)
- {
- 	struct ovl_inode *oi = OVL_I(inode);
++/* An O_TMPFILE that has not got a name cannot get one without a dentry */
++static void ovl_d_iput(struct dentry *dentry, struct inode *inode)
++{
++	ovl_untrack_inode(inode);
++	iput(inode);
++}
++
+ static const struct dentry_operations ovl_dentry_operations = {
+ 	.d_real = ovl_d_real,
++	.d_iput = ovl_d_iput,
+ 	.d_revalidate = ovl_dentry_revalidate,
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ 	.d_init = ovl_dentry_init,
+@@ -197,6 +205,7 @@ static const struct dentry_operations ovl_dentry_operations = {
+ #if IS_ENABLED(CONFIG_UNICODE)
+ static const struct dentry_operations ovl_dentry_ci_operations = {
+ 	.d_real = ovl_d_real,
++	.d_iput = ovl_d_iput,
+ 	.d_revalidate = ovl_dentry_revalidate,
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ 	.d_hash = generic_ci_d_hash,
+@@ -1407,6 +1416,8 @@ static struct dentry *ovl_get_root(struct super_block *sb,
+ 	ovl_dentry_set_flag(OVL_E_CONNECTED, root);
+ 	ovl_set_upperdata(d_inode(root));
+ 	ovl_inode_init(d_inode(root), &oip, ino, fsid);
++	/* The mount may have set xattrs on the upper root */
++	ovl_track_inode(d_inode(root));
+ 	WARN_ON(!!IS_CASEFOLDED(d_inode(root)) != ofs->casefold);
+ 	ovl_dentry_init_flags(root, upperdentry, oe, DCACHE_OP_WEAK_REVALIDATE);
+ 	/* root keeps a reference of upperdentry */
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 521717209b2e..2effec540dac 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -921,6 +921,8 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+ 	err = ovl_check_setxattr(ofs, upperdentry, OVL_XATTR_IMPURE, "y", 1, 0);
+ 	if (!err)
+ 		ovl_set_flag(OVL_IMPURE, d_inode(dentry));
++	/* Here, because the operation that needs this may still fail */
++	ovl_track_inode(d_inode(dentry));
  
-+	ovl_forget_inode(inode);
- 	dput(oi->__upperdentry);
- 	ovl_stack_put(ovl_lowerstack(oi->oe), ovl_numlower(oi->oe));
- 	if (S_ISDIR(inode->i_mode))
-@@ -252,8 +257,10 @@ static void ovl_put_super(struct super_block *sb)
- {
- 	struct ovl_fs *ofs = OVL_FS(sb);
- 
--	if (ofs)
-+	if (ofs) {
-+		ovl_drop_tracked(ofs);
- 		ovl_free_fs(ofs);
-+	}
+ 	return err;
+ }
+@@ -1482,7 +1484,7 @@ int ovl_sync_status(struct ovl_fs *ofs)
  }
  
- /* Sync real dirty inodes in upper filesystem (if it exists) */
-@@ -327,6 +334,8 @@ static const struct super_operations ovl_super_operations = {
- 	.drop_inode	= inode_just_drop,
- 	.put_super	= ovl_put_super,
- 	.sync_fs	= ovl_sync_fs,
-+	.nr_cached_objects = ovl_nr_cached_objects,
-+	.free_cached_objects = ovl_free_cached_objects,
- 	.statfs		= ovl_statfs,
- 	.show_options	= ovl_show_options,
- };
-diff --git a/fs/overlayfs/sync.c b/fs/overlayfs/sync.c
-new file mode 100644
-index 000000000000..03dfd903bf08
---- /dev/null
-+++ b/fs/overlayfs/sync.c
-@@ -0,0 +1,374 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * The inodes that syncfs() and unmount have to write with fsync=relaxed.
-+ *
-+ * An overlay inode has no pages and no metadata of its own.  What is dirty,
-+ * under writeback or deferred by lazytime is the state of the upper inode, and
-+ * nothing tells overlayfs when it changes.  So overlayfs does not mirror that
-+ * state.  It only remembers which overlay inodes were modified, and a sync
-+ * asks the upper inode of each of them.
-+ *
-+ * The set is an xarray with the marks of the page cache:
-+ *
-+ *   OVL_X_DIRTY      the upper inode was modified
-+ *   OVL_X_TOWRITE    a sync that has begun is going to write it
-+ *   OVL_X_WRITEBACK  a sync has started to write it
-+ *
-+ * The set holds one reference to an inode that has any of them.  They change
-+ * under the i_lock of the inode, except that OVL_X_TOWRITE is added to
-+ * OVL_X_DIRTY under the lock of the xarray alone.
-+ *
-+ * There is one difference to the page cache.  No completion clears
-+ * OVL_X_WRITEBACK, whoever has waited does.  Another sync may have started the
-+ * inode again meanwhile, so the mark only goes when the upper inode is seen
-+ * clean.  That way whoever walks the set needs no lock against anybody else who
-+ * does.
-+ */
-+
-+#include <linux/fs.h>
-+#include <linux/log2.h>
-+#include <linux/mount.h>
-+#include <linux/pagemap.h>
-+#include <linux/writeback.h>
-+#include <linux/xarray.h>
-+#include <linux/xattr.h>
-+#include "overlayfs.h"
-+
-+#define OVL_X_DIRTY	XA_MARK_0
-+#define OVL_X_TOWRITE	XA_MARK_1
-+#define OVL_X_WRITEBACK	XA_MARK_2
+ /*
+- * ovl_copyattr() - copy inode attributes from layer to ovl inode
++ * __ovl_copyattr() - copy inode attributes from layer to ovl inode
+  *
+  * When overlay copies inode information from an upper or lower layer to the
+  * relevant overlay inode it will apply the idmapping of the upper or lower
+@@ -1492,7 +1494,7 @@ int ovl_sync_status(struct ovl_fs *ofs)
+  * map any lower or upper inode owned by id 1001 to id 1000. These mapping
+  * helpers are nops when the relevant layer isn't idmapped.
+  */
+-void ovl_copyattr(struct inode *inode)
++void __ovl_copyattr(struct inode *inode)
+ {
+ 	struct path realpath;
+ 	struct inode *realinode;
+@@ -1516,3 +1518,13 @@ void ovl_copyattr(struct inode *inode)
+ 	i_size_write(inode, i_size_read(realinode));
+ 	spin_unlock(&inode->i_lock);
+ }
 +
 +/*
-+ * Index by address.  Inodes are at least their size apart and the shift rounds
-+ * down, so it stays unique, and neighbours in a slab share an xarray node.
++ * The attributes are copied because the real inode was modified through the
++ * overlay, so this is also where the overlay inode is tracked for a sync.
 + */
-+static unsigned long ovl_slot(struct inode *inode)
++void ovl_copyattr(struct inode *inode)
 +{
-+	return (unsigned long)OVL_I(inode) >> ilog2(sizeof(struct ovl_inode));
-+}
-+
-+/*
-+ * Give a new inode its slot in the set, so that tracking it later cannot fail.
-+ * An entry without a mark is never looked at.
-+ */
-+int ovl_track_alloc(struct super_block *sb, struct inode *inode)
-+{
-+	struct ovl_fs *ofs = OVL_FS(sb);
-+
-+	if (!ovl_tracks_dirty(ofs))
-+		return 0;
-+
-+	return xa_insert(&ofs->tracked, ovl_slot(inode), inode, GFP_KERNEL);
-+}
-+
-+/*
-+ * @inode is about to be freed.  It is not tracked, or it had a reference.
-+ *
-+ * Mount settles on the fsync mode after it has allocated the first trap inodes,
-+ * so the mode does not tell if @inode has a slot.
-+ */
-+void ovl_forget_inode(struct inode *inode)
-+{
-+	struct ovl_fs *ofs = OVL_FS(inode->i_sb);
-+
-+	WARN_ON_ONCE(ovl_test_flag(OVL_TRACKED, inode));
-+	if (!xa_empty(&ofs->tracked))
-+		xa_erase(&ofs->tracked, ovl_slot(inode));
-+}
-+
-+static bool ovl_marked(struct ovl_fs *ofs, unsigned long id)
-+{
-+	return xa_get_mark(&ofs->tracked, id, OVL_X_DIRTY) ||
-+	       xa_get_mark(&ofs->tracked, id, OVL_X_TOWRITE) ||
-+	       xa_get_mark(&ofs->tracked, id, OVL_X_WRITEBACK);
-+}
-+
-+/* OVL_TRACKED is OVL_X_DIRTY without a walk down the tree */
-+static void ovl_set_dirty(struct ovl_fs *ofs, struct inode *inode)
-+{
-+	unsigned long id = ovl_slot(inode);
-+
-+	lockdep_assert_held(&inode->i_lock);
-+
-+	if (ovl_test_flag(OVL_TRACKED, inode))
-+		return;
-+	if (!ovl_marked(ofs, id)) {
-+		struct inode *upper = ovl_inode_upper(inode);
-+
-+		__iget(inode);
-+		atomic_long_inc(&ofs->nr_tracked);
-+		/* A sync reports what fails now, or what nobody has seen */
-+		OVL_I(inode)->wb_err = filemap_sample_wb_err(upper->i_mapping);
-+	}
-+	ovl_set_flag(OVL_TRACKED, inode);
-+	xa_set_mark(&ofs->tracked, id, OVL_X_DIRTY);
-+}
-+
-+/* OVL_X_DIRTY goes first, nobody adds OVL_X_TOWRITE after that */
-+static void ovl_clear_dirty(struct ovl_fs *ofs, struct inode *inode)
-+{
-+	unsigned long id = ovl_slot(inode);
-+
-+	lockdep_assert_held(&inode->i_lock);
-+
-+	ovl_clear_flag(OVL_TRACKED, inode);
-+	xa_clear_mark(&ofs->tracked, id, OVL_X_DIRTY);
-+	xa_clear_mark(&ofs->tracked, id, OVL_X_TOWRITE);
-+}
-+
-+/*
-+ * The upper inode was modified through this overlay, remember the overlay
-+ * inode for syncfs() and unmount.  The caller holds a reference to @inode.
-+ *
-+ * Do not look at the upper inode here.  Its dirty flags are cleared when its
-+ * writeback starts, not when it completes.
-+ *
-+ * Nobody needs an unlinked file to be durable, and the reference would keep its
-+ * space.  An O_TMPFILE that can still get a name is not such a file.
-+ *
-+ * This takes i_lock even if @inode is tracked already, see ovl_untrack().
-+ */
-+void ovl_track_inode(struct inode *inode)
-+{
-+	if (!ovl_tracks_dirty(OVL_FS(inode->i_sb)) || !ovl_inode_upper(inode))
-+		return;
-+
-+	spin_lock(&inode->i_lock);
-+	if (inode->i_nlink || (inode_state_read(inode) & I_LINKABLE))
-+		ovl_set_dirty(OVL_FS(inode->i_sb), inode);
-+	spin_unlock(&inode->i_lock);
-+}
-+
-+/*
-+ * Is there nothing that a sync would have to do for the upper inode?  The
-+ * caller holds i_lock.
-+ *
-+ * Stores through a shared mapping dirty the pages without a call into
-+ * overlayfs, so the inode has to stay tracked while there may be one.  The
-+ * mapping holds the real file open for writing.  Read i_writecount first: the
-+ * page cache tag is set before the last fput().
-+ *
-+ * That does not cover pages that are pinned through such a mapping.  A direct
-+ * read into it that completes after the last munmap() and close() dirties them
-+ * with nobody looking.
-+ *
-+ * An error that was not reported yet is something to do as well.
-+ */
-+static bool ovl_upper_clean(struct inode *inode)
-+{
-+	struct inode *upper = ovl_inode_upper(inode);
-+	struct address_space *mapping = upper->i_mapping;
-+
-+	if (atomic_read_acquire(&upper->i_writecount) > 0)
-+		return false;
-+
-+	return !mapping_tagged(mapping, PAGECACHE_TAG_DIRTY) &&
-+	       !mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK) &&
-+	       !(inode_state_read_once(upper) & (I_DIRTY_ALL | I_SYNC)) &&
-+	       !filemap_check_wb_err(mapping, OVL_I(inode)->wb_err);
-+}
-+
-+enum ovl_untrack {
-+	OVL_UNTRACK_ALWAYS,
-+	OVL_UNTRACK_CLEAN,	/* if the upper inode is clean */
-+	OVL_UNTRACK_UNLINKED,	/* if it has no link and cannot get one */
-+};
-+
-+/*
-+ * Take @inode out of the set.  The caller holds a reference to @inode of its
-+ * own.
-+ *
-+ * The condition is looked at under i_lock as well.  A task that has called
-+ * ovl_track_inode() before is ordered by i_lock, so what it did to the upper
-+ * inode, or to the link count, is visible.  One that calls it later tracks
-+ * @inode again.
-+ */
-+static bool ovl_untrack(struct inode *inode, enum ovl_untrack when)
-+{
-+	struct ovl_fs *ofs = OVL_FS(inode->i_sb);
-+	unsigned long id = ovl_slot(inode);
-+	bool done;
-+
-+	spin_lock(&inode->i_lock);
-+	done = ovl_marked(ofs, id);
-+	if (done && when == OVL_UNTRACK_CLEAN)
-+		done = ovl_upper_clean(inode);
-+	else if (done && when == OVL_UNTRACK_UNLINKED)
-+		done = !inode->i_nlink &&
-+		       (!(inode_state_read(inode) & I_LINKABLE) ||
-+			hlist_empty(&inode->i_dentry));
-+	if (done) {
-+		ovl_clear_dirty(ofs, inode);
-+		xa_clear_mark(&ofs->tracked, id, OVL_X_WRITEBACK);
-+		atomic_long_dec(&ofs->nr_tracked);
-+	}
-+	spin_unlock(&inode->i_lock);
-+
-+	if (done)
-+		iput(inode);
-+	return done;
-+}
-+
-+/*
-+ * A link to @inode was removed, or a dentry of it has gone and it may be an
-+ * O_TMPFILE that never got a name.  The caller holds a reference to @inode.
-+ */
-+void ovl_untrack_inode(struct inode *inode)
-+{
-+	if (ovl_tracks_dirty(OVL_FS(inode->i_sb)) && !inode->i_nlink)
-+		ovl_untrack(inode, OVL_UNTRACK_UNLINKED);
-+}
-+
-+/*
-+ * Get a reference to the first inode with @mark from *@id on.  A mark is
-+ * cleared before the reference of the set is dropped, so under the lock of the
-+ * xarray an inode that has one is alive.
-+ */
-+static struct inode *ovl_next_marked(struct ovl_fs *ofs, unsigned long *id,
-+				     xa_mark_t mark)
-+{
-+	struct inode *inode;
-+
-+	xa_lock(&ofs->tracked);
-+	inode = xa_find(&ofs->tracked, id, ULONG_MAX, mark);
-+	if (inode)
-+		ihold(inode);
-+	xa_unlock(&ofs->tracked);
-+
-+	return inode;
-+}
-+
-+/* Does only lazytime keep @upper from being clean? */
-+static bool ovl_only_lazytime(struct inode *upper)
-+{
-+	return (inode_state_read_once(upper) & I_DIRTY_ALL) == I_DIRTY_TIME &&
-+	       atomic_read(&upper->i_writecount) <= 0;
-+}
-+
-+/*
-+ * Drop @inode if its upper inode is clean.
-+ *
-+ * lazytime holds timestamps back for up to a day.  The last iput() would write
-+ * them, but that cannot come while the overlay inode is tracked.  So hand them
-+ * to the upper filesystem.  Nobody has asked for them to be on disk, so there
-+ * is nothing to wait for.
-+ */
-+static void ovl_release_inode(struct vfsmount *mnt, struct inode *inode)
-+{
-+	struct inode *upper = ovl_inode_upper(inode);
-+	int err;
-+
-+	if (ovl_untrack(inode, OVL_UNTRACK_CLEAN) ||
-+	    !ovl_only_lazytime(upper) || mnt_get_write_access(mnt))
-+		return;
-+
-+	err = write_inode_for_sync(upper);
-+	mnt_put_write_access(mnt);
-+	if (err)
-+		errseq_set(&inode->i_sb->s_wb_err, err);
-+
-+	ovl_untrack(inode, OVL_UNTRACK_CLEAN);
-+}
-+
-+/*
-+ * Look at up to *@nr inodes with @mark.  Dropping one writes nothing, so that
-+ * also works on an upper filesystem that has become read-only.  It keeps a
-+ * freeze out, because on a frozen filesystem dropping the last reference to an
-+ * inode that was unlinked sleeps until the thaw.
-+ */
-+static void ovl_scan_marked(struct ovl_fs *ofs, xa_mark_t mark,
-+			    unsigned long *id, unsigned long *nr)
-+{
-+	struct vfsmount *mnt = ovl_upper_mnt(ofs);
-+	struct inode *inode;
-+
-+	while (*nr && sb_start_write_trylock(mnt->mnt_sb)) {
-+		--*nr;
-+		inode = ovl_next_marked(ofs, id, mark);
-+		if (inode) {
-+			ovl_release_inode(mnt, inode);
-+			iput(inode);
-+		}
-+		sb_end_write(mnt->mnt_sb);
-+
-+		if (!inode) {
-+			*id = 0;
-+			break;
-+		}
-+		++*id;
-+		cond_resched();
-+	}
-+}
-+
-+/*
-+ * An inode may be left with OVL_X_WRITEBACK alone, if a sync did not get to
-+ * wait for it.
-+ */
-+static void ovl_release_work(struct work_struct *work)
-+{
-+	struct ovl_fs *ofs = container_of(work, struct ovl_fs, release_work);
-+	unsigned long nr = atomic_long_xchg(&ofs->release_nr, 0);
-+
-+	ovl_scan_marked(ofs, OVL_X_DIRTY, &ofs->release_id[0], &nr);
-+	ovl_scan_marked(ofs, OVL_X_WRITEBACK, &ofs->release_id[1], &nr);
-+}
-+
-+void ovl_track_init(struct ovl_fs *ofs)
-+{
-+	xa_init_flags(&ofs->tracked, XA_FLAGS_ACCOUNT);
-+	INIT_WORK(&ofs->release_work, ovl_release_work);
-+}
-+
-+void ovl_track_exit(struct ovl_fs *ofs)
-+{
-+	unsigned long id = 0;
-+
-+	/* Not xa_empty(), an insert that has failed can leave nodes behind */
-+	WARN_ON(xa_find(&ofs->tracked, &id, ULONG_MAX, XA_PRESENT));
-+	xa_destroy(&ofs->tracked);
-+}
-+
-+/*
-+ * Unmount.  The sync of generic_shutdown_super() has written what it could, if
-+ * the overlay is not read-only.  evict_inodes() has left alone what is still
-+ * in the set.  Trap inodes can be in the xarray as well, without a mark.
-+ */
-+void ovl_drop_tracked(struct ovl_fs *ofs)
-+{
-+	struct inode *inode;
-+	unsigned long id;
-+
-+	cancel_work_sync(&ofs->release_work);
-+
-+	xa_for_each(&ofs->tracked, id, inode) {
-+		ihold(inode);
-+		ovl_untrack(inode, OVL_UNTRACK_ALWAYS);
-+		iput(inode);
-+		cond_resched();
-+	}
-+}
-+
-+long ovl_nr_cached_objects(struct super_block *sb, struct shrink_control *sc)
-+{
-+	return atomic_long_read(&OVL_FS(sb)->nr_tracked);
-+}
-+
-+/*
-+ * A tracked inode, its upper inode and the dentry of that cannot be reclaimed.
-+ * While the upper inode is dirty that is as with any filesystem.  Afterwards
-+ * nothing tells overlayfs, so look when memory is needed.
-+ *
-+ * Not from reclaim itself.  The reference that is dropped may be the last one
-+ * to an upper inode that was unlinked, and handing over timestamps takes locks
-+ * of an upper inode that is in use.  Filesystems allocate memory under the
-+ * locks that both need.
-+ */
-+long ovl_free_cached_objects(struct super_block *sb, struct shrink_control *sc)
-+{
-+	struct ovl_fs *ofs = OVL_FS(sb);
-+
-+	atomic_long_add(sc->nr_to_scan, &ofs->release_nr);
-+	queue_work(system_dfl_wq, &ofs->release_work);
-+
-+	return 0;
++	__ovl_copyattr(inode);
++	ovl_track_inode(inode);
 +}
 
 -- 
