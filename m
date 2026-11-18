@@ -1,100 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.48
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795024824;
-	b=2HzCHCmcGMDQHYQ3wC8Yq1AU++G0x+H9vqoD/dgQFnYa8dP0Ts8eg6+XavagOjl1FRc0
-	 mwjvYcmq/QcZxlNuEjKxqx10VG9tMfXsRY0/XOe2iI+/95QvyejOc0t0P6b7U/bRvRPPv
-	 kkIYXj6H9AwSA9SjOKB7nvcPuWOvCT/pF0ABzTJiJMdDfFCIgHo5YgJDFFCtKxwEKCvDW
-	 G88JonJ2030GArEiu0P2rmYafD2NoCe3AkTzkn3qWcpPC1ZpY3B9SsekvcJ4N38S1HqhM
-	 TJFo58AQH58gnzIqaZzQXi5cwncZjhn7Hl1pA4ZzUuVHgmpD/YG6TBVj7DpQVcPSnbQ==
+	t=1795025358;
+	b=pN9b9LgaTPa/QAV1vzGFZopDskLdgTJgqql2dAldfZmbPpOM+9QUHp+Q1P5FNevibte4
+	 6P5x3Qn0VZQ2LfZrkTawX49rk8nPjrq2vwHbORRD/8iML8teb/UHBCXoMAVYD45sOlsbI
+	 cvfgiu1FIkdJIDHC1XHWKcY20OxA+OCBRdojffRdv88NA/geYWh6Bw2a7RxijZr79QJbC
+	 8vNHXzxG17olCTThS0D08EI582OkMv9nHCA3jiLNT5bGbWbcH+Y/+rlJo3lW3/rT83Vdl
+	 iawnV4Th/AXba6SVzcyn1anWKybGMCvUwy6z3xfPMsoZP/4ES4kw7STSuICDs6Q36Mg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795024824;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795025358;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=u4qdZCxQUja0NlcjEdDck3V1blA80itO4i7W2ltfseg=;
-	b=RXUbpQApXG9Rp4rdf5mbzGGuIVUQ3AKKlhR1usCRp1Irl+tKIf5Gk9YznjzLgMY4fVwP
-	 2dOUoMc5JOcqi8rIgAMsSb7VssSram0L9BTnQayTp+umo820dwjUL1xiPNllRZsWY5T2J
-	 o+ig2ccvl3F/9AbYx7SDOCOhHxWrxzWymsC5wy5p/cKPVU5AIlPvWB5vgauCVH12GFTgT
-	 YVmx3V0eflq/yIvFbKXEyVIFNrdiyCzeZkdpKTNmcaZcYPWKg7OFUCKMLgwqadPNaKTZN
-	 g/50vET9x3HDPhujtjouYUWM69HxYERtw1f+17nDgJyPJMe8MwvF3VRNPznp0U7g7/Q==
+	bh=kwy4Hj1zovxLuT7JhwbmIP+fCBASCZe33N49zoGI9m8=;
+	b=ROLpcFq4J0Uaj4OdT//5BhGfb71eMMsdTkKAA2dIQ7zrrlIH3anR1mQsxYbsaY26sHrw
+	 bp0ZlV7HfiegZTtAyHTh/qI4ECvaBfM+g88az5zhzA07AJ6LpHcOy1Yk6iOA5RG7w2dwK
+	 beZkqx04qHBqgkM8r5WZ/6WiMvAdTepsMRPL2iiutXA7f+LBY5l415i2pqUt/YzeHrjyF
+	 7/j0BGcAInszit2vpw/CNehETT7Pp2R6YplEWSh+AwV5i+hVF0A27NaEdn6wPwVJ2h3aP
+	 xajaLW/Y/uiEjzSu6Zt2xfAAhCVn6u3xZXt6xX6F+Js7evkQ5tpEEAvs88YDdaqfLmA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=K+Mjuum7;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.42
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=FaCjoIxd;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.48
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DA2B606A32F
-	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 18:00:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6DA2B606A32F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08EE560A2615
+	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 18:09:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 08EE560A2615
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=K+Mjuum7
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6b87a92c17eso2280943a12.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 10:00:24 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795024823; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=FaCjoIxd
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-6b86bbce3d1so1862803a12.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 10:09:17 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795025356; cv=none;
         d=google.com; s=arc-20260327;
-        b=OlsQPAma8G9zwLKn6OoLwXSCdEcyUvsN/kdek/v/iU82QI/f5TArxAEE4hoMqRvoxX
-         or+HRAK873tAU/wr6omQhGKcOcLTp2OiAvtu/QYTlLU5bqHtd2kQOLRdMNvZzWA8c7HK
-         TtLQ2R32ZnqzOFyPD835R5SY8CCKFMTcHlngMsj4reUwefFnU2HwLjaFknJr7vQnwBNE
-         aD6iDO4OiYFbxP/YvpJHHy6H5LHatqdMQ6onf45h3Pc6n4Zw5GOigE33VJZxQT7mLcOS
-         WlQwqzoJVM8vsR2CqNw40MagFLB2EFaNcOtnKTgrFWqSmmIRyfBfHycYMHnkNkGRigwb
-         r1lQ==
+        b=Ng+SAVuJYgxAXWGS5hiGGrlx4ZG1pCCY/cASkLfxWkNYUMfJW92LpWS3RAOQCUez0f
+         HyPsUvKoiUFMzbnOoU5o56b8ciUSX1sjsBrJW2erSHRI93Nzfctes20OYNBijTMQYPSP
+         2TpWdKFAkyC3NCyo9QEFBsG9VC59I4d6h627k43rTjbhzck747+hQyphmzxsACb6+8i9
+         Jol+DkQ2fXf4zcx8gaRBDa1PQPKxFhKLvVjZ/IYlto28QB5NYE5sN88Mao0N8x5RcSyi
+         SNJzfv5m8+zuOI9cwebJwO4U3VopwrwJF78mfAfOcQUSv2WQAxFHF/Krzcat/sf2P+K6
+         Wg5g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=u4qdZCxQUja0NlcjEdDck3V1blA80itO4i7W2ltfseg=;
-        fh=Mi5sSeETGNYaqsm6vb3BYda4ZAXtYZWhLpgCcrchkAw=;
-        b=kwEqNDMiwmWLUKpI224Y6OACVfhp0vWETuDIjxgWqBxcyk20tTCuXhYx5bVlT3bFHk
-         p4sAl6TLb9NUwMe6qfWSQgTHKE6pUlx0rauW2Y+jvHNvZtHBN9lsUObHZTr4tVBoSUVN
-         x0UtWCpuw792b4hwCYERG/P2O1mRsGV1c6txHoAZ2+Zcu6dk0ljElnfGO+JoSw0PAwYf
-         t7PINmrEXwl0xINx2clR9IRqwGcDY40FuZi/MJSZP8vKjvJa5SEKh7lW5E/VB7noA1em
-         cz4+fqNZn44kkTxvvP4v0RguhpI1NkQITcR0Pc5LyUdUO1Ol8IK78exz6gMI46WxR5hY
-         P2EA==;
+        bh=kwy4Hj1zovxLuT7JhwbmIP+fCBASCZe33N49zoGI9m8=;
+        fh=EAYgtcrtaZ+1dUpXEgofi1u+bcnuJhVzxe8GrPDEs+A=;
+        b=XEZV8nUPqnwHtUmtqECpFw3/Md+UfZcWxzCNfYhd//ENnkUKvQUfykwFnju8cdoa09
+         hsoe08+7knq8j3aq4q/P8Cr+aVKIXkFwcs4g97df32C1EWW+hp3D+WYhj7KfPwf+bkYW
+         j3buFDjsBu1SOnKbJLGUxmF7rsjEr6K/iMbEriXB/89wGqhNHjel53g7sbixm11PEnr0
+         1ZlaGbaRInQ0JxjYJAHNMy80XT1i2UUsER610AKODtOBo83J+3WNvywfzlcFIIJ31snN
+         nJN8BpcDHjt4wLbLsIMfdhQd3OY/jbo8wewnhlO32XXPL0F4ri9kGyf18Fs3spdXrmXx
+         Hciw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795024823; x=1795629623; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795025356; x=1795630156; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=u4qdZCxQUja0NlcjEdDck3V1blA80itO4i7W2ltfseg=;
-        b=K+Mjuum7DZlbzQhj44dxy5A6maxZYAyZ29Ulwd8z8W13r5opinN8nQyga6gKKUTIn3
-         irv8hTc3j4/gaqyiAXmOT+UTNk6HC+MY7Uf7a9b6WNEm5JkkOxWWEAKop9rvi+cr5sej
-         mDDYfE32YCXVoQGoWcdnmed36eW/gsmlzt59+Dy3/XgVziXonW9SrTYu/k8rkGTUf3LD
-         8YkjfAu0RpO36JcNXYdFoZwXhxqjZj12t2gRgljQWUSsmQJ05Bx1gGIw0cTe2lfCYBki
-         DxIOJYRPP+azMglgRqXMkXmo+hGpR6ZcpcRAi7arTWNZ3zrHbx/75jBgltZUXBNNLpuB
-         QlWw==
+        bh=kwy4Hj1zovxLuT7JhwbmIP+fCBASCZe33N49zoGI9m8=;
+        b=FaCjoIxduW+OQqqM1HY+h2AatdrxA8mvHHYzo/xdr5ctytG8VhpPyqRKZKMRhE7iVv
+         7FgmUAafV1rRzfmFxPFRFw3/BiHts/CNWjIbRJHB2j3xXPmy5weVodlesnbV0UkSas/2
+         04rG+3UIa8LffuqU1uXJ9bDdgIwXauiQh4WsLgN4RYqIqTp1/ywOah9cXAKi6V+tM6wb
+         /PMdlxMBGsA/QMbgsYo7AO/hF9BST1V0cVWyNmm27iBtzdykIEmrdjR/cVPK2ZzRoM6I
+         WtiX51ayzxrUg9vwzy5WadGWFEyQicy72O2ouN3fpFqg9K6FEkOJIh/l5xbnNTQ+JvAG
+         CxFw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795024823; x=1795629623;
+        d=1e100.net; s=20260707; t=1795025356; x=1795630156;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=u4qdZCxQUja0NlcjEdDck3V1blA80itO4i7W2ltfseg=;
-        b=0qdqOLYuz3VG3e3yBFSlFLcO7H4hq+BPq17SnUAAN+zQgKgXBk9djmZdv+MoX76+vr
-         LeNWIMo6nTe34Pt2xjSr2G1G8423KPb0ZO7t5uyqxhIA0WVZJMEnYHxSMx/Ib41mdjrc
-         nkU0l67DwSy1h5XfAXj9NMZgxGnqri/CQxPQwBDpb9lCL6EOEtDrncjzkBqdIejfkXB0
-         y1VylnAuRTYFvgvLaQlsD6RvHajtxHRuJesbCskh3HSS0jDmvEKqC8nEWWYwFvJ0mix2
-         m+vd2cNMU9jsd3yEhvLRe6ux29VNcjplDTjCJg3lDsl/1n0/v2/LVDs585Af1gVzDX2l
-         p+iA==
-X-Forwarded-Encrypted: i=1; AL+hErGdQ8lclHcxnWxbQXKZTxIHNybu48tvsD6AHLkfFxL1MKmDctfJGgsIS+cqJP9SD47BlzbRPGq4/2nKOstx@vger.kernel.org
-X-Gm-Message-State: APuU4Z9ueSGGbHCrSKvJ6bMq6OWqrkLHWku1kd5QyMrK5glHeguy6mrS
-	EakO7px2BxxkgNfbWi0CnezTWVhay8TWi7d7jdS7oi3UkEuSqKgKnuHuk/ah7Iq1V3LHBd8sAML
-	f0mybRJwu1Z2TPKxgY29rEeSt1nWpVpc=
-X-Gm-Gg: AYBFou3pfjpVbTJR/USZgf9lpdT9/cqIGGzqAqlQDlODzeoW1oKMUqylpA7NE53KQgi
-	4Y23F08/sJn8neJS4SjXcua6Ilk7/UFl9wKAFp5NmxYsPRYJwEk4FafutA/uMSXM3ZY4kP8W7ih
-	dRhHNkZCP2UKQ83QMOO4SAYbCrYRxPpX29BbTQ8Q2BajzCZ6FBp5FrH7TT3YRztfPBpXiOED0XY
-	FDK3VUsCxDa+mEgRK5lNM600iYZy1fsbFZZxGkw+nuYSRLesFXl0GZWdyi+8jOawAQ99n6F4Jl9
-	erdYKo0GA0MZII3FXI3svIr2GYW8eaHfKxmegGgjiMtqD+Flc2lxBSOKtGUGKgU3DNrgtK7d3ZD
-	2kPyfmG6GkQJJ9V4U3SxWjjhOMeX8O8TPI7E52Pgws6DQVYhUu6eRoCm1WDks0ciZp0PyyHg=
-X-Received: by 2002:a05:6402:1607:b0:6b6:4dcd:967e with SMTP id
- 4fb4d7f45d1cf-6b887ebebb8mr2374799a12.20.1795024822234; Wed, 18 Nov 2026
- 10:00:22 -0800 (PST)
+        bh=kwy4Hj1zovxLuT7JhwbmIP+fCBASCZe33N49zoGI9m8=;
+        b=GGAgDcNJpqzmGdu40bX54UgWP1+UoqFGRAzShJ/jnqjhnbA3fTkkKFXm5cVhvPR41K
+         xsDaSE61S31dHEdrr1ROQUyFQ9sKus8v/OrApOlTlsCORkp1zVWhKApl5U/dFUXR4M7O
+         rDoqSUraErIObdZEw0CHfcjUxS3GwzCjWqQZy+gbuypMNfA1VM1j9FGo8zp/7123M8wc
+         aWJ66nUG9S4tw3aqQfrsvv+9aFV0DRBHxTckuzhVOtNWCEH2mOFTwI/zQmHPTu/m8tVH
+         ijQQoPh2aDIL1edKfl8ANZw9InopVL6jP0YKZzUiv5Cj84X/d0jzfUmXeQq2VH3ryAmt
+         K0qg==
+X-Forwarded-Encrypted: i=1; AL+hErEksGXmMQ9i7fgpldXuKWsJ1WVt5Htxd3N3d/mmrBS88gFS9BdM3TLmvyBXDJEee7Mw2AO1fPziiMgqJuFS@vger.kernel.org
+X-Gm-Message-State: APuU4Z9vxz0hKjW+nkVw068LAWvBCAbXyNQcFMOCUxoF3v+EGrLEnSC4
+	cRDwReNflGv1zkHsaAK0iEpF4CQoZL6pn6ncX8yz65GxwAWKaetqREyCMp7XK3+CiyTiPkU3IRe
+	fFrUNKjvNKCSeejpKFGDhEZrQVuVJFz4=
+X-Gm-Gg: AYBFou1vEHor+wTJkHS+q0MLmXG2TkjfiZkpiECx6w0WP1Y0qIv9UMzhM4vhqv7+XvX
+	r1OUnkwtkoc7aHp/WIXCwD69lBnqqPqUogWdlVQJ//7MX28MMWnzenqUlXESKpEnDp3lsYXlibm
+	kbcQtbpX/PYqooW8y1YFFiB8Kt8HXwJhuV9H35Xp2zz10ZCyrSKtwwxPJejqGmeiCm9zD5wSLfp
+	J/+ftOWYVgKRFxcC+jBOixKPN9XvzF9gv8jUxqYw2DqcZ09CLnxYatWyS9fFBqJ+nvTgU1G+cW+
+	4wtmKbJbiEY3DSaab0rBxizo0AP5Pls4f4W8IjTJQfskpzOFJxrDHhZ2r384WSZhlDs/ynILKDX
+	NbVlP8l5HgqgiaVKOsH5MvlHb7vpPtfd1oPWZctVn8eLNCjBKG6/q6pU=
+X-Received: by 2002:a05:6402:1d4b:b0:6b7:f9e0:a5bd with SMTP id
+ 4fb4d7f45d1cf-6b887eb273amr2779728a12.23.1795025356010; Wed, 18 Nov 2026
+ 10:09:16 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -105,112 +105,200 @@ List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 References: <20261118-b4-ovl-containerized-sync-v7-0-54f45743fe55@toxicpanda.com>
- <20261118-b4-ovl-containerized-sync-v7-2-54f45743fe55@toxicpanda.com>
-In-Reply-To: <20261118-b4-ovl-containerized-sync-v7-2-54f45743fe55@toxicpanda.com>
+ <20261118-b4-ovl-containerized-sync-v7-7-54f45743fe55@toxicpanda.com>
+In-Reply-To: <20261118-b4-ovl-containerized-sync-v7-7-54f45743fe55@toxicpanda.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 18 Nov 2026 19:00:09 +0100
-X-Gm-Features: AclHuK_YmUY-cyrn8sPqESOYVBMGy_5scGhTZjCC06dq4P7IzI17kYjTkaWbeHw
-Message-ID: <CAOQ4uxhp73OkM9-OUKXeO6Hrq2sV2oYYJ7CCzD=-mXHtRjBxDw@mail.gmail.com>
-Subject: Re: [PATCH v7 2/7] ovl: no fsync=relaxed without data integrity
+Date: Wed, 18 Nov 2026 19:09:04 +0100
+X-Gm-Features: AclHuK8VtQI7kbgQWNsYTQs5zinc50rhvyv9MuCfqsFP8jTSp9pRJGJQpVNgjmU
+Message-ID: <CAOQ4uxiexeX-Mu3eTOUTnOknb7BrYw3vSsSxqA3+oQVVYVh9oQ@mail.gmail.com>
+Subject: Re: [PATCH v7 7/7] ovl: implement containerized syncfs for overlayfs
 To: Josef Bacik <josef@toxicpanda.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
 	Christoph Hellwig <hch@infradead.org>, Chris Mason <mason@kernel.org>, 
 	Chengguang Xu <cgxu519@mykernel.net>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Chengguang Xu <charliecgxu@tencent.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Wed, Nov 18, 2026 at 6:03=E2=80=AFPM Josef Bacik <josef@toxicpanda.com> =
 wrote:
 >
-> A sync does not wait for a filesystem with SB_I_NO_DATA_INTEGRITY, which =
-is
-> fuse, so that a server that does not answer cannot block it.
+> From: Chengguang Xu <charliecgxu@tencent.com>
 >
-> With fsync=3Drelaxed, syncfs() and unmount of the overlay are going to wr=
-ite
-> the upper inodes one by one and wait for each.  fuse_write_inode() waits
-> for the server whatever the sync mode is, so they would wait for the
-> server once for every inode.
+> Now overlayfs can only sync own dirty inodes during syncfs,
+> so remove unnecessary sync_filesystem() on upper file system.
 >
-> Do not resolve fsync=3Dauto to fsync=3Drelaxed on such an upper filesyste=
-m, and
-> fall back to fsync=3Don if fsync=3Drelaxed was asked for.
+> Do that with fsync=3Drelaxed only, which is what the default, fsync=3Daut=
+o,
+> selects on most filesystems.  fsync=3Don brings the old behaviour back.
 >
+> Take the steps of sync_filesystem() for the upper filesystem, but only fo=
+r
+> the tracked inodes, and go about it like the page cache does.
+>
+> Without wait, ->sync_fs() gives every inode that is marked dirty the
+> towrite mark.  That is what this sync has to write.  Then it starts
+> writeback of the upper inode of each of them, and replaces dirty and
+> towrite by the writeback mark.
+>
+> With wait, for every inode with the writeback mark, it calls
+> write_inode_for_sync(), which also hands over the timestamps that lazytim=
+e
+> has deferred, and waits for the data, whoever has started to write it.
+>
+> Both end with sync_fs_and_bdev(), which is what sync_filesystem() does
+> after the inodes.  Do the same for unmount and for a read-only remount.
+>
+> A sync tags once, so tasks that modify files do not keep it going.  The
+> marks are shared by all syncs that are running, so it also writes and wai=
+ts
+> for what another one tags ahead of it.  A walk only goes up, so it ends.
+>
+> In the page cache the completion of the I/O clears the writeback mark.
+> Here whoever has waited does, and another sync may have started the inode
+> again meanwhile.  So the mark only goes if the upper inode is seen clean.
+> Until then every sync sees the inode and waits for it as well, so they do
+> not have to wait for each other.  Otherwise the inode is marked dirty
+> again, which also covers an upper inode that is open for writing: stores
+> through a shared mapping do not call into overlayfs.
+>
+> That does not cover pages that are pinned through such a mapping.  A dire=
+ct
+> read into it that completes after the last munmap() and close() dirties
+> them when the inode may have left the set, and the next syncfs() does not
+> write them.
+>
+> syncfs() now also returns the error of writeback that the flusher of the
+> upper filesystem has done before, which it did not do so far.  It compare=
+s
+> the wb_err of the upper mapping with what it was when the inode entered t=
+he
+> set.  Unlike the error flags of the mapping, nobody can take that away, a=
+n
+> fsync() for one.  The error is recorded in the superblock of the overlay
+> under the lock that protects the cursor, so another syncfs() that runs at
+> the same time gets it as well.
+>
+> A read-only remount of the overlay syncs it the same way, so it now fails
+> with such an error, once.
+>
+> Keep a freeze and a read-only remount of the upper filesystem out while a=
+n
+> inode is handed over.  If one has already begun when ->sync_fs() is to
+> wait, sync the whole upper filesystem, like before.  If one kept it from
+> starting an inode and has gone away since, start that inode then.
+>
+> Upper inodes that have no overlay inode, like whiteouts and the work
+> directories, are not tracked.  It is up to ->sync_fs() and the block devi=
+ce
+> to get them to disk.  ext4, xfs and btrfs log all metadata, and ext4
+> without a journal keeps it in the buffers of the block device.
+>
+> With many containers on one upper filesystem, stopping one of them no
+> longer writes out the dirty data of all the others.
+>
+> Signed-off-by: Chengguang Xu <charliecgxu@tencent.com>
+> [josef: everything after the first paragraph]
 > Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-
-Ha I very much didn't want to include FUSE in this exclusive club
-This was an oversight on my part.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
 > ---
->  Documentation/filesystems/overlayfs.rst |  4 ++++
->  fs/overlayfs/super.c                    | 13 ++++++++++++-
->  2 files changed, 16 insertions(+), 1 deletion(-)
+>  Documentation/filesystems/overlayfs.rst |   7 +-
+>  fs/overlayfs/overlayfs.h                |   1 +
+>  fs/overlayfs/params.c                   |  14 +--
+>  fs/overlayfs/super.c                    |   3 +
+>  fs/overlayfs/sync.c                     | 217 ++++++++++++++++++++++++++=
+++++++
+>  5 files changed, 230 insertions(+), 12 deletions(-)
 >
 > diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
 systems/overlayfs.rst
-> index 1a59500834a1..8a007fbc5257 100644
+> index 8a007fbc5257..00e2cba65e2c 100644
 > --- a/Documentation/filesystems/overlayfs.rst
 > +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -870,6 +870,10 @@ The default is "fsync=3Don" instead of "fsync=3Dauto=
-" with the module option
->  "fsync_auto=3DN" or with the kernel config option
->  CONFIG_OVERLAY_FS_FSYNC_AUTO=3Dn.
->
-> +An upper filesystem that cannot guarantee data persistence on sync (fuse=
-)
-> +does not get "fsync=3Drelaxed".  "fsync=3Dauto" means "fsync=3Don" there=
-, and
-> +"fsync=3Drelaxed" falls back to it.
+> @@ -830,7 +830,12 @@ Traditionally, syncfs(2) and unmount of an overlay s=
+ync the entire upper
+>  filesystem, including the dirty data of other overlays that share it.
+>  Overlayfs can be told to only write back the files that were modified
+>  through the overlay, and then ask the upper filesystem to commit its
+> -metadata.
+> +metadata and write its block device.
 > +
->  If the upper filesystem has no writeback (e.g. tmpfs), a non-default mod=
+> +In that mode syncfs(2) also returns the error of writeback of such a fil=
 e
->  falls back to "fsync=3Doff".
+> +that has failed earlier, like fsync(2) on the file does.  As after fsync=
+(2),
+> +a file that is opened on the upper filesystem later does not get that er=
+ror
+> +any more.  A read-only remount of the overlay fails with such an error o=
+nce.
 >
+>  On traditional local filesystems with a single journal (e.g. ext4, xfs),
+>  fsync on a file also persists the parent directory changes, because they
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index f4770b4c0222..63200551a7d0 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -899,6 +899,7 @@ void ovl_forget_inode(struct inode *inode);
+>  void ovl_drop_tracked(struct ovl_fs *ofs);
+>  long ovl_nr_cached_objects(struct super_block *sb, struct shrink_control=
+ *sc);
+>  long ovl_free_cached_objects(struct super_block *sb, struct shrink_contr=
+ol *sc);
+> +int ovl_sync_tracked(struct super_block *sb, int wait);
+>
+>  /* vfs fileattr flags read from overlay.protattr xattr to ovl inode */
+>  #define OVL_PROT_I_FLAGS_MASK  (S_APPEND | S_IMMUTABLE)
+> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> index 370dd6341392..90111c480440 100644
+> --- a/fs/overlayfs/params.c
+> +++ b/fs/overlayfs/params.c
+> @@ -774,22 +774,14 @@ static int ovl_reconfigure(struct fs_context *fc)
+>  {
+>         struct super_block *sb =3D fc->root->d_sb;
+>         struct ovl_fs *ofs =3D OVL_FS(sb);
+> -       struct super_block *upper_sb;
+> -       int ret =3D 0;
+>
+>         if (!(fc->sb_flags & SB_RDONLY) && ovl_force_readonly(ofs))
+>                 return -EROFS;
+>
+> -       if (fc->sb_flags & SB_RDONLY && !sb_rdonly(sb)) {
+> -               upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+> -               if (ovl_should_sync(ofs)) {
+> -                       down_read(&upper_sb->s_umount);
+> -                       ret =3D sync_filesystem(upper_sb);
+> -                       up_read(&upper_sb->s_umount);
+> -               }
+> -       }
+> +       if (fc->sb_flags & SB_RDONLY && !sb_rdonly(sb) && ovl_should_sync=
+(ofs))
+> +               return sync_filesystem(sb);
+>
+> -       return ret;
+> +       return 0;
+>  }
+>
+>  static const struct fs_context_operations ovl_context_ops =3D {
 > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 5960974c5af2..31a58e28968c 100644
+> index 7f7d3993bc7a..a2d527f62d75 100644
 > --- a/fs/overlayfs/super.c
 > +++ b/fs/overlayfs/super.c
-> @@ -765,7 +765,8 @@ static int ovl_make_workdir(struct super_block *sb, s=
-truct ovl_fs *ofs,
+> @@ -287,6 +287,9 @@ static int ovl_sync_fs(struct super_block *sb, int wa=
+it)
+>         if (!ret)
+>                 return ret;
 >
->         /* fsync=3Dauto that is not resolved to fsync=3Drelaxed means fsy=
-nc=3Don */
->         if (ofs->config.fsync_mode =3D=3D OVL_FSYNC_AUTO && rename_whiteo=
-ut &&
-> -           mnt->mnt_sb->s_bdi !=3D &noop_backing_dev_info)
-> +           mnt->mnt_sb->s_bdi !=3D &noop_backing_dev_info &&
-> +           !(mnt->mnt_sb->s_iflags & SB_I_NO_DATA_INTEGRITY))
->                 ofs->config.fsync_mode =3D OVL_FSYNC_RELAXED;
->
->         /*
-> @@ -1499,6 +1500,16 @@ static int ovl_fill_super_creds(struct fs_context =
-*fc, struct super_block *sb)
->                         ofs->config.fsync_mode =3D OVL_FSYNC_OFF;
->                 }
->
-> +               /*
-> +                * A sync does not wait for such an upper fs, whose serve=
-r may
-> +                * not answer.  A relaxed overlay waits for each upper in=
-ode.
-> +                */
-> +               if ((upper_sb->s_iflags & SB_I_NO_DATA_INTEGRITY) &&
-> +                   ofs->config.fsync_mode =3D=3D OVL_FSYNC_RELAXED) {
-> +                       pr_warn("upper fs does not guarantee data integri=
-ty, falling back to fsync=3Don.\n");
-> +                       ofs->config.fsync_mode =3D OVL_FSYNC_ON;
-> +               }
+> +       if (!ovl_should_sync_upper_fs(ofs))
+> +               return ovl_sync_tracked(sb, wait);
 > +
->                 if (!ovl_should_sync(ofs)) {
->                         ofs->errseq =3D errseq_sample(&upper_sb->s_wb_err=
-);
->                         if (errseq_check(&upper_sb->s_wb_err, ofs->errseq=
-)) {
->
-> --
-> 2.55.0
->
+>         /*
+>          * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SY=
+NC).
+>          * All the super blocks will be iterated, including upper_sb.
+
+Maybe also move ovl_sync_fs() to sync.c makes this
+a very nice finale ;)
+
+Thanks,
+Amir.
