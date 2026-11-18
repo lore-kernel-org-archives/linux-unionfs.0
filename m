@@ -1,91 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794974493;
-	b=yBemOb9CgVhwYPogSoDo3oDqf6bcPC27wMDfMDGlI2RcfWNpSXrjNhaonSZoMIFwcFrc
-	 pktA6EvLuYDvjruDxY/gV5NEE8bpJ1qBkXu/Rg71PBHxYcR0swskFkcZaOC352s9w+nV6
-	 t9l1mbPO0WGJMdPxOM7AhA3Gaa6EwlW0Tz1f+EVbxAO9qWj7ycHSptyUGhC/3kIACYMSH
-	 99WhkgCkTc8nIOoegegM29psp7GhdEmTPeBZavvMoiZrCjdflucaQSlcLZ1TnbSyppcGX
-	 P7kK9QApdTryXws+FRafad6jlZ3jLXVlAGBT7aIddvl3bYKpWypPaxls/oQ127Ugwcg==
+	t=1794987065;
+	b=Tgu7MkXwhnyViH0rkRHcvpzJ4NjYFpCdF2C7fDcypECCntX5s+8CnbH1ryIFOrF+twlM
+	 R7tx2QqG1iqOygrcPlPIdKtXslg8rskGkvcT5f0H0ZozmxLja+AQVYXiHGzdvKIGcwChK
+	 4x3JFpmffS+Z3ifI4dCTqUdbSdDXaKHo5oW+4KkXV9Owbdl5GfEDifI1kiOYirhgBTBaZ
+	 FVluc+gG3JWoAzwRW6Rxre9JEY7qLING50aosB6XlOLSXPLX2o8PqkaLV+gIfooPLLL0c
+	 BWGro1dXBLRaQFWQmEdhzJitwbKvyu5ZdNjOHpEMfpyV/6KEeFka6DsYn5i2Sy2XaGQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794974493;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794987065;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=i8JG/335Ei/T3nsMnFt3EwOc1nsl3qPje8nCv8HP4GM=;
-	b=a4R0Fp8/2wfcUBpdF/0GBsWqvF/Vh+uts2egkg9ywO+puGggAMfa4zQaYNkdj62E2F+H
-	 TRW/DDVmEvMEOUxckHiKgEPeFPQhGFfq5/5j54jrUqPFobV84tte59MNBgqN+/EZAHSOl
-	 H1yiVSj1izYTCPUDEgK8uzeHsVgOhsZitiOg09iOF3lAG6d4CvSyha29/eLs1r09NtG3/
-	 LfXBe+eYsUF2BruG4QKDq5M9lfhe6sgIgYMORdTue+N6Xy0Oveuz2SGzjinl7icIfdXEQ
-	 FQcCKO8W3nUep87dophCnXMPEeUtFb4F+5NwuTm9kSFtBpFOln3OrhjklwaHTNJeIqw==
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=0J5dycAQyrXi+H6VpoYIGTGq8GdbI4+vkynl3svKXOg=;
+	b=mYjynKeIDlv/vTtURVX6DOtMP+WGSoGwZb3hG+l0EvMg2+XDny4Zct/ETtXySxZ/5Te7
+	 XtqBmRtQmT76vGY+OKtewBruP2HQoGsT1U9wnq64KwJynWKL7ZVzAAenhrFM2vrFB20mS
+	 rHqLDj6u+GDBK4mC88rYM3njSEuI5EFKAlXo2ByRwX39gI3llGxxHuiJ14XrVK3Eyu3FA
+	 WLndPpjnqB3a1TSwrDO3DvLJgME+VlCsjYK4o8Pf4ayaqQjErSz+5reWKamIbLcSev1ua
+	 cW9h9/SEPZ3UXOwku7pF/ta8tuMcRyVv3wSuSARSM9zIXqBDCsWPic92u+k8styBW4w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=p3vuzoUs;
-	arc=none smtp.remote-ip=209.85.216.50
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iAzhnC6Z;
+	arc=none smtp.remote-ip=209.85.208.44
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BC6B606A31C
-	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 04:01:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3BC6B606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD9A606A325
+	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 07:31:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5AD9A606A325
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=p3vuzoUs
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-3ae2b7e1e17so317318a91.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Nov 2026 20:01:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iAzhnC6Z
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6b547d6c07bso825226a12.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Nov 2026 23:31:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794974492; x=1795579292; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794987064; x=1795591864; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=i8JG/335Ei/T3nsMnFt3EwOc1nsl3qPje8nCv8HP4GM=;
-        b=p3vuzoUsVRnTGLL8m7ZG4pi8R4Z9meVqoZ2s7Z6z4AKxrRtFfE9leaJqFLg2UJ+YT4
-         WKmt0fq7uOrnwsooz5DfLo+ZW0fH0CqShBofwn4orqQHrPjVN2rEKBSaXL1KWePYbutg
-         O4oa95ReLwUxvvpL9hiNYnYu56ugSymeVitdGcvjVSpKM6B0MR169dg98pm0/9k83g7T
-         KVU+SuMfhx6ac+2oXUkGmMqzFKwByfr5X1WMe1jLIl8o4ZXalAp0wACNi9xuYvRvNqQb
-         KaB8bq3RqcsGGKvFgD6hW31SZyRSFlS4dGqwIEQ2yLfbYZUqOILZMX84G3kp7MIIzoNJ
-         jk+g==
+        bh=0J5dycAQyrXi+H6VpoYIGTGq8GdbI4+vkynl3svKXOg=;
+        b=iAzhnC6ZeE8qzx1JdcZTlHUSXA/9zvovXFevq4333M/ceTzJ21m5otRh1It8cwjBu0
+         fGFNypOgpa3Uel/9HuXS5Y7k5QJETpP4OzhFD9nziZGZOyd45EH0Sa2oWM+LbM703Qtt
+         wKFSbRPw5fT6bVrepVwauXuGCS8+2ql4tGPvEBXLQGgbXfGQCGmAjfmaPeiQqfXtr6mj
+         uV4dZLl+y+ZXXBxwYLziegdFrf7kCRghzN5vJQ27U6GHU4fO5j0RfuluFF6aTXxrNxA9
+         6e/8bBMNvsg+rC8CRNHABep1qQui/ulfzAChSimIzZS+CZ274bANl/xJFgtPX8UxaVFQ
+         rzew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794974492; x=1795579292;
+        d=1e100.net; s=20260707; t=1794987064; x=1795591864;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=i8JG/335Ei/T3nsMnFt3EwOc1nsl3qPje8nCv8HP4GM=;
-        b=nttmwip3l3whBzk6l7KPATo/IkSS54pBkKm50G3Wx3mij2E6y6h+SEwwN61YVvl7Pa
-         5rUJPE0fJiOa5qHlujhV8LLd8vo95sU7aSFvk5TjV7rlxfzhYAa+13NyUEV7jG1dMfaI
-         RLAxFLl6P9UAeFKbZTsD1+y4JnIscwnv8MVhoqBOC5FQZAsdmqiDMIizw2LXAIFxraDd
-         aQlsirNaGDixzQnGRestWCp85KlSHDwFX544xmYqF/Pk5Md6aGrhbfApIWCAi697Hpq/
-         gI8lXamW/qCzt4PXPta4NtNOPaWS/Ao+XH1GZAOB95ryjejeg73LnZRFGLLJqDa74OhS
-         FkaA==
-X-Gm-Message-State: APuU4Z9BHtkX+/gjq7+B/Er4wInDFRk0G4b4UXReiwv5A617xzsy6tCv
-	N+OzWfSDk/Si2tMYxC4TnVK7ngwRPpAsd7PYLSG5rerL6Qu2u39xGEXmNHU2sQ==
-X-Gm-Gg: AZFdTZcnBUCYyD8tatgrFnyqmJvw47CQHPTeKdRun+xBn9JtMM1Jq7YuGDjsGqFn/yh
-	moguH7CuUd2nXz/EDpIseB23xND6Y2O7F/y3Xh4hCIKoq6gcVMs5vvhBF40OekMxrvypanBPWr9
-	HhlhdJR8O9gGFi8nYgV4fD/61OL2DBOo0o5ZQ2Dh1mLAxoODyUERsKgZTB6nfDzke1+ZydA9/oI
-	iISELp7yGBMnsJnBdX04PZ8u3OppyhntQ8tN76fK64HT2BO/Jz8Lqjx/zt4CFI9CWjCp+MGIhHW
-	a3JvHKraGpw3hL/iBiMTAZ03C/q0hYXwfOqoQ/FKIjevbr56vfEnETYKAEGBnxLCgwxNFdkcLQl
-	qJL5ZKdOSLUAjTfvGYc4/PEr3Tj5T/xH7eSUNYGa46wsyK2D6q45YJhWha0cqSG/ohBbQaEtCKG
-	4oDjSID80lOrJ7dqrsKnOGmTIh88VZnmhn/JRqN08+unWPj00JjJexxGlQ18hEpme4r7IRYoY02
-	MuCB9Wke/aa3UKirSOlFQLUDMAa8+GFIJAuoVspszsr6IVftPkW0/yNOKxCdZrILvoU1t7aIOJX
-	H7yQG9g1/UNWPKUAaXnPJ74zq3yC5hlzyx1bDeMpR54EupiSjaF6uwlEkMr+SvpZFQ==
-X-Received: by 2002:a17:90b:3892:b0:3aa:6b5d:a00a with SMTP id 98e67ed59e1d1-3b3d07c2484mr1499748a91.53.1794974492310;
-        Tue, 17 Nov 2026 20:01:32 -0800 (PST)
-Received: from MacBook-Pro-8.lan ([27.125.146.195])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b3d5689adasm580542a91.1.2026.11.17.20.01.30
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Tue, 17 Nov 2026 20:01:31 -0800 (PST)
-From: Ding Feng <dingf3ng@gmail.com>
-To: linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Subject: ovl: sync_file_range() does nothing on overlayfs files
-Date: Wed, 18 Nov 2026 12:00:56 +0800
-Message-ID: <20261118040056.6543-1-dingf3ng@gmail.com>
-X-Mailer: git-send-email 2.55.0
+        bh=0J5dycAQyrXi+H6VpoYIGTGq8GdbI4+vkynl3svKXOg=;
+        b=lorNE/E/BZmtN9fAqXgtKY/PDBgz+/z1LQK0ljUT/JxQCph2amGNi55DES6WZJk1SV
+         T5PIy/SLWt6GNdL2LrlZZ6gMeKNhL52c5bDnKbodkpxj7WyV7FiNiKdWMumZAuUD7mgC
+         h7cWIlpG/Qp296ITOghT160fzvFRFc1Son4illRTX8MKY9nCQS3/c2JfNkg5/lxaO/VF
+         3cCK5YHCg1/azS9mFSIHaK6FapZwmTP1MOd6k6IjDRRte3Ho46YG6qj24gKmVUHGUD6Q
+         ml9+ba8jsvFsJ304xaosBAH30INtmFiiFawMgEx9PgUqKJgyILn4yBMNGEWduBSMnKhO
+         WS5A==
+X-Forwarded-Encrypted: i=1; AL+hErGSpxWnB2uOSi8Qv/4YKnLl2Z3F4W6ok4QTs/zqZ9reSC7riaL1HPkNn74hV18nugQf0UUA38Uc5QH/XZDA@vger.kernel.org
+X-Gm-Message-State: APuU4Z9uARPecDgT4BSOtl3Phi0iX5yPS+DcqbHVo5tzAgPQ6y/IF4QR
+	VYf50mzaUMkaJOAM7iDNRlX3Za5bg0agiwAaaFqFNzozyS7VFTRkMs4lJIj/XUWk
+X-Gm-Gg: AYBFou1/6i6A13HIEPro9T3uLWNdmOWNS8hF4B49eHoaCdtaZUp3RAiYlbZ4DJd/4xL
+	FRUnpeNtyGawfO0PN2yBZl2o3i6vHiueIC3sAmiNPzuun/f07HrfGaRtO7Ny1/sRh0d06D4C4gU
+	aJVgkFl8LSojzbX8NoTOZSKNG8DiNEtpFxrmncTJx6NhlNzMAgyFPFUhakkvOT3eq1XOQLtj28w
+	QZxmNLSmXCD/q4Zqh1KyVXC3wRYYo95aig7kxbWq6SCtQIqTDCK8i5HyuOE/sn5yuxUfDFs3Ycb
+	h/V1LGDK0/gx2Gyvjzf/+HVUbuWJIeo6DTnRqdu+qulEF13heVyCX1nzEuJ+sBFM8JvKZ1JdBY9
+	3aqPhFl8vR/x1NpQpBIkyVtxqqTvyEAcz5rs4gI9/DHI1UF5juce3AOY0qj+lNQx3lE6T3rI6n1
+	dI3Aq5lAlgTINDr2u1u4tttXz0ffoWZEQVYtKooEWTGuwgLtj7cNp1osWJO2319Yr+gLFABEzfC
+	vGJ9TL0sytLHz1F6KHnB8MLUeDZFGpd/zwiZfnC/bdLGpuM0boSy+RZGcHMZI4C5aMFlaGxBeNj
+	T9SocMhwzsBkMkCLIslT7W1CsMHLWEkhCX/NPk+FNa2rciepgkIrtJRQx+OZVK2ZqBrgVaPy9i+
+	AizLQw0nlE8Y=
+X-Received: by 2002:a17:907:6d27:b0:c2e:2baa:a642 with SMTP id a640c23a62f3a-c510e4d265fmr134087166b.30.1794987063521;
+        Tue, 17 Nov 2026 23:31:03 -0800 (PST)
+Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c510c83fb8bsm66189466b.11.2026.11.17.23.31.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Nov 2026 23:31:02 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Christian Brauner <brauner@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [PATCH 0/6] ovl: restrict pseudo filesystems as overlayfs layers
+Date: Wed, 18 Nov 2026 08:30:56 +0100
+Message-ID: <20261118073102.1216568-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -97,42 +98,35 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+Christian,
 
-sync_file_range(2) acts on file->f_mapping. For an overlayfs file that
-is the overlay inode's mapping, which holds no pages: the data sits in
-the real file's page cache. So on an overlayfs file the call writes and
-waits on nothing and returns 0.
+These patches are based on vfs-7.5.pseudofs.fixes and replace the two
+patches I sent on top of "ovl: refuse data-only layers on pseudo
+filesystems".
 
-On a Docker overlayfs root (6.10.14): write 64 MiB to a file, then call
-
-  sync_file_range(fd, 0, 0, SYNC_FILE_RANGE_WAIT_BEFORE |
-                            SYNC_FILE_RANGE_WRITE |
-                            SYNC_FILE_RANGE_WAIT_AFTER);
-
-Dirty in /proc/meminfo stays 64 MiB higher until fsync(). The same
-program on ext4 sees Dirty drop by 64 MiB after the call. Mainline
-fs/sync.c still takes file->f_mapping.
-
-Amir posted a fix in 2018 [1]. Miklos preferred to leave it [2], and
-Dave pointed out that the call used WB_SYNC_NONE and so guaranteed
-nothing. Since commit c553ea4fdf27 ("fs/sync.c: sync_file_range(2) may
-use WB_SYNC_ALL writeback"), the full write-and-wait form does
-data-integrity writeback on other filesystems, so on overlayfs it now
-silently skips what it does elsewhere.
-
-cachestat() has the same cause, and Pavel's series in June [3] fixes it
-by forwarding to the real file, as ovl_fadvise() does. Christian
-suggested a helper in fs/backing-file.c for that instead of a new file
-operation. Could sync_file_range() use the same helper? I can send a
-patch along those lines if that direction is acceptable.
-
-I found this while checking sync_file_range() against its man page
-with an AI-assisted verification tool, and reproduced it as above.
-
-[1] https://lore.kernel.org/linux-fsdevel/1535300717-26686-7-git-send-email-amir73il@gmail.com/
-[2] https://lore.kernel.org/linux-fsdevel/CAJfpegv50HELSZuwt9gGjgSyB+4aPbiTncc-yBNqUVgTLNHaXw@mail.gmail.com/
-[3] https://lore.kernel.org/linux-fsdevel/?q=%22ovl%3A+make+cachestat%28%29+work%22
+Pseudo filesystems are refused as upper layer and allowed as lower
+layers only in legacy setups.
 
 Thanks,
-Ding Feng
+Amir.
+
+Amir Goldstein (6):
+  ovl: do not change redirect_dir=follow to on in a non-upper mount
+  ovl: do not allow offline lower changes with data-only layers
+  ovl: refuse pseudo filesystem as upper layer
+  ovl: refuse pseudo lower layers unless offline lower changes are
+    allowed
+  selftests/ovl: test pseudo filesystem upper and lower layers
+  selftests/ovl: use legacy setups for pseudo lower layer tests
+
+ Documentation/filesystems/overlayfs.rst       |   7 +-
+ fs/overlayfs/overlayfs.h                      |   4 +-
+ fs/overlayfs/params.c                         |  19 +--
+ fs/overlayfs/super.c                          |   9 +-
+ .../overlayfs/automount_in_layer.c            |   6 +-
+ .../filesystems/overlayfs/pseudo_datadir.c    | 111 ++++++++++++++++--
+ 6 files changed, 131 insertions(+), 25 deletions(-)
+
+-- 
+2.56.1
+
