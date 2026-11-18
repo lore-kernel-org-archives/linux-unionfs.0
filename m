@@ -1,92 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.44
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794987065;
-	b=Tgu7MkXwhnyViH0rkRHcvpzJ4NjYFpCdF2C7fDcypECCntX5s+8CnbH1ryIFOrF+twlM
-	 R7tx2QqG1iqOygrcPlPIdKtXslg8rskGkvcT5f0H0ZozmxLja+AQVYXiHGzdvKIGcwChK
-	 4x3JFpmffS+Z3ifI4dCTqUdbSdDXaKHo5oW+4KkXV9Owbdl5GfEDifI1kiOYirhgBTBaZ
-	 FVluc+gG3JWoAzwRW6Rxre9JEY7qLING50aosB6XlOLSXPLX2o8PqkaLV+gIfooPLLL0c
-	 BWGro1dXBLRaQFWQmEdhzJitwbKvyu5ZdNjOHpEMfpyV/6KEeFka6DsYn5i2Sy2XaGQ==
+	t=1794987066;
+	b=qm/XAsc6B+ggKbkeuIntckPgpXC0fHuzDmllF112ldSbxEgSqPmqTSczSW8gp2LRq64C
+	 3jDblm1SS/paPfE1ykIVIbQCClIPjbCTvkYKXFaqYS1HWSOlWZm+QD8l4YtMip31MB/IX
+	 1K/irR05iRw0SvNqX4pXjObCAUTz1y9pQw5urROfc5fw2KciBx0jgrttWnzmnYUFGCm/h
+	 fKCacgNOKXXwEhLJee0I7ipWmT9f39dev97NFNzUeSWJIHsCf/b/od/dtl+PeHEQ+lKjY
+	 6FRZA+FvIIQjqLHUM4Upq/rFUT24UTIocOOibi5TD2AtPmgCZERZ8pCBJzUxaqxmRWA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794987065;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794987066;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=0J5dycAQyrXi+H6VpoYIGTGq8GdbI4+vkynl3svKXOg=;
-	b=mYjynKeIDlv/vTtURVX6DOtMP+WGSoGwZb3hG+l0EvMg2+XDny4Zct/ETtXySxZ/5Te7
-	 XtqBmRtQmT76vGY+OKtewBruP2HQoGsT1U9wnq64KwJynWKL7ZVzAAenhrFM2vrFB20mS
-	 rHqLDj6u+GDBK4mC88rYM3njSEuI5EFKAlXo2ByRwX39gI3llGxxHuiJ14XrVK3Eyu3FA
-	 WLndPpjnqB3a1TSwrDO3DvLJgME+VlCsjYK4o8Pf4ayaqQjErSz+5reWKamIbLcSev1ua
-	 cW9h9/SEPZ3UXOwku7pF/ta8tuMcRyVv3wSuSARSM9zIXqBDCsWPic92u+k8styBW4w==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=hrFB2xZ4uuzix/ci88TgH2/bUivuDdMzcB4EtRfyy94=;
+	b=b3rXv8kwOvhlGSxjJ8h6P6DzFbRf6Y/FeZCkFz980Qj0l8w0E+/DjJ7CFLDlGBG2teoD
+	 JsINJ62Ebwj3RQHEkoHOb3CIyUPkrRnXFggbha+xA8j6CRefzcrwiZpD2/MddWOe4LHKs
+	 kF14bQUh00NXRcDepeE8aAjsOsLYqhwXmGKZgkp0rK83aqi5uDMcZ9Bo8uqysqzuepRfR
+	 2RjafwuB/m06+oIutHbY4Lm+0UBQ3bHFr28BBiEQx2wmMMsiuOXLpFvR/DrQZSu9mdViF
+	 OUTp3gaY5iVRyaNqmGSZ5MsYSzZde6rcoRrbESCpUQ2eIZrxYy2WwiJLfF1H5davosA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iAzhnC6Z;
-	arc=none smtp.remote-ip=209.85.208.44
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=0AznghE3;
+	arc=none smtp.remote-ip=209.85.208.43
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD9A606A325
-	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 07:31:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5AD9A606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84D22606A333
+	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 07:31:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 84D22606A333
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iAzhnC6Z
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6b547d6c07bso825226a12.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Nov 2026 23:31:05 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=0AznghE3
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b8784a3284so1123112a12.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Nov 2026 23:31:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794987064; x=1795591864; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=0J5dycAQyrXi+H6VpoYIGTGq8GdbI4+vkynl3svKXOg=;
-        b=iAzhnC6ZeE8qzx1JdcZTlHUSXA/9zvovXFevq4333M/ceTzJ21m5otRh1It8cwjBu0
-         fGFNypOgpa3Uel/9HuXS5Y7k5QJETpP4OzhFD9nziZGZOyd45EH0Sa2oWM+LbM703Qtt
-         wKFSbRPw5fT6bVrepVwauXuGCS8+2ql4tGPvEBXLQGgbXfGQCGmAjfmaPeiQqfXtr6mj
-         uV4dZLl+y+ZXXBxwYLziegdFrf7kCRghzN5vJQ27U6GHU4fO5j0RfuluFF6aTXxrNxA9
-         6e/8bBMNvsg+rC8CRNHABep1qQui/ulfzAChSimIzZS+CZ274bANl/xJFgtPX8UxaVFQ
-         rzew==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794987064; x=1795591864;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1794987065; x=1795591865; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=0J5dycAQyrXi+H6VpoYIGTGq8GdbI4+vkynl3svKXOg=;
-        b=lorNE/E/BZmtN9fAqXgtKY/PDBgz+/z1LQK0ljUT/JxQCph2amGNi55DES6WZJk1SV
-         T5PIy/SLWt6GNdL2LrlZZ6gMeKNhL52c5bDnKbodkpxj7WyV7FiNiKdWMumZAuUD7mgC
-         h7cWIlpG/Qp296ITOghT160fzvFRFc1Son4illRTX8MKY9nCQS3/c2JfNkg5/lxaO/VF
-         3cCK5YHCg1/azS9mFSIHaK6FapZwmTP1MOd6k6IjDRRte3Ho46YG6qj24gKmVUHGUD6Q
-         ml9+ba8jsvFsJ304xaosBAH30INtmFiiFawMgEx9PgUqKJgyILn4yBMNGEWduBSMnKhO
-         WS5A==
-X-Forwarded-Encrypted: i=1; AL+hErGSpxWnB2uOSi8Qv/4YKnLl2Z3F4W6ok4QTs/zqZ9reSC7riaL1HPkNn74hV18nugQf0UUA38Uc5QH/XZDA@vger.kernel.org
-X-Gm-Message-State: APuU4Z9uARPecDgT4BSOtl3Phi0iX5yPS+DcqbHVo5tzAgPQ6y/IF4QR
-	VYf50mzaUMkaJOAM7iDNRlX3Za5bg0agiwAaaFqFNzozyS7VFTRkMs4lJIj/XUWk
-X-Gm-Gg: AYBFou1/6i6A13HIEPro9T3uLWNdmOWNS8hF4B49eHoaCdtaZUp3RAiYlbZ4DJd/4xL
-	FRUnpeNtyGawfO0PN2yBZl2o3i6vHiueIC3sAmiNPzuun/f07HrfGaRtO7Ny1/sRh0d06D4C4gU
-	aJVgkFl8LSojzbX8NoTOZSKNG8DiNEtpFxrmncTJx6NhlNzMAgyFPFUhakkvOT3eq1XOQLtj28w
-	QZxmNLSmXCD/q4Zqh1KyVXC3wRYYo95aig7kxbWq6SCtQIqTDCK8i5HyuOE/sn5yuxUfDFs3Ycb
-	h/V1LGDK0/gx2Gyvjzf/+HVUbuWJIeo6DTnRqdu+qulEF13heVyCX1nzEuJ+sBFM8JvKZ1JdBY9
-	3aqPhFl8vR/x1NpQpBIkyVtxqqTvyEAcz5rs4gI9/DHI1UF5juce3AOY0qj+lNQx3lE6T3rI6n1
-	dI3Aq5lAlgTINDr2u1u4tttXz0ffoWZEQVYtKooEWTGuwgLtj7cNp1osWJO2319Yr+gLFABEzfC
-	vGJ9TL0sytLHz1F6KHnB8MLUeDZFGpd/zwiZfnC/bdLGpuM0boSy+RZGcHMZI4C5aMFlaGxBeNj
-	T9SocMhwzsBkMkCLIslT7W1CsMHLWEkhCX/NPk+FNa2rciepgkIrtJRQx+OZVK2ZqBrgVaPy9i+
-	AizLQw0nlE8Y=
-X-Received: by 2002:a17:907:6d27:b0:c2e:2baa:a642 with SMTP id a640c23a62f3a-c510e4d265fmr134087166b.30.1794987063521;
-        Tue, 17 Nov 2026 23:31:03 -0800 (PST)
+        bh=hrFB2xZ4uuzix/ci88TgH2/bUivuDdMzcB4EtRfyy94=;
+        b=0AznghE31q2J2d4m4f9VN1APtK4HiYCff0Ds2DS5NHQQJQIPBnZxH6NAWJRR7XwVtx
+         US+FARmcaJm3ilA726ncQmRvCFlA+uspoe+hp1uVGPdmNaQBNqKMByCPEx/RtU/S6JkV
+         EpicP2aB0x+sz1c8T4VdOppZyUkiJAXVBYRUZjsuoU5rLA9OtV0+Eib8aOSB5YalnnMa
+         Qjian0w3tOvwfsComdh3xECmx6sEQE9aqbDW+jbBIjMvZMCv2wFt9w07OMrKoMuLp4g6
+         SbDN+D96pLFLF4Vj5Orc/WuDpu6DxDl/BZIK/dOFV1uCsRdUy4nUlj+ZW1hNhHA/Uiyc
+         OMnA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794987065; x=1795591865;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=hrFB2xZ4uuzix/ci88TgH2/bUivuDdMzcB4EtRfyy94=;
+        b=ky6cPvjntWEnhC7IQzQQ76cxIE64da0p6BhoWg5kCkaHIT/4NP7uAU5bTu1TG8q0wd
+         3DUH2JDwsn+tiQwWyt49Ty6zJ6SKQo1P9Gjg19WfISyz+gEP13+le4Mp7ho0WgHcXUuj
+         t5pPXaT4ULUieNLqGfFYjrUonyFSc+GgHiWs/noI6HII6R2xTBRJNYH0e1FGoYdX3foZ
+         hsvGq4MWdH90rDpyEV69qx3NcCfRUVV4vqzo76M85C5TQ8gnRCA2jQc8geqrE9l7dnh0
+         xXRIZt+wuHFDmXOCbdk0/UE6atXxQeJTxHg7JdSjfRom+A+ZvUKKOuI/AvyAFIv1yBW2
+         lmIQ==
+X-Forwarded-Encrypted: i=1; AL+hErEZmMBYGQTkiGY7ZPUbBnfHBU0Z1KWy329M+pJG5oOP5QBMXI3LJJCSp94ZUoGriwH/xDEKCp9wGqylbIiI@vger.kernel.org
+X-Gm-Message-State: APuU4Z8RPBJVNgsTT77PeYusUpn29C9ESEkFekj6RQPUDVh7jDTjyWmt
+	vIuxYi8Cy3q5/sUZENAYoDUCeddokdcb/Lv0pL6+dS1CPaWpGn6pjhB3
+X-Gm-Gg: AYBFou1Q3/IJpka4T0+K0SLBS+lAka8lpSIDYTQygYrDBl0JZDctwrTuBf52o2s2PCI
+	utj4isWySXlP+y96ACr1Ty/fm8cCIxzWWAb4n9v/wI+3dzSdUbzyN8qNEh51Y40kRY7QbD8ar2H
+	DOySeXZZvOZXkncFGftcXGtKQvWuXa1RwNvZlMETTenkila+/WlOAUMnKHpbNh/bGQY+6gQow2h
+	/okEmzHwdLF802adlnm7KrehCc9kRlQPinhNDAsvuT/cupsfHC+H/OOOcyz/sb437WiuKSgBLWW
+	Y00c8gxj6mesXvD3MzpGLBFLzTTRPr7lmhAmzN6c61znJlrvKkVuL50P7hwJy/CFdW+UzUwwbk6
+	aqnNPSMH64bQytHHOx1mIkJiyoV6hOEA5dx5SXlAgzhcuceLqt9kYaWQr1Nyh948PeLZMRbp/Ww
+	ZPC4PjhmcE4ORWBmJlHr7JEZCoQZIOgxu/bwFdHLywW6ErxucHVRlJH5/AskMoUfdZfS+QX6Stm
+	po/izqOIktma1r/YEoNkFdrjfAhzvvNwny5bJjrScs350FtWLx4PSjRgNuAfvnhhWY38t7C+bp9
+	a4lpK2O0Xk7sXxw3mo1Gx29aQPF0p0F0x2D3k0EvuMAicjpgT4D+M0gx/6a/lrTBvpitD6ZxmG8
+	4VjR0o1LZERg=
+X-Received: by 2002:a05:6402:42d4:b0:6b8:6f17:5a44 with SMTP id 4fb4d7f45d1cf-6b887f13cc0mr1134817a12.24.1794987064472;
+        Tue, 17 Nov 2026 23:31:04 -0800 (PST)
 Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c510c83fb8bsm66189466b.11.2026.11.17.23.31.02
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b88a225b12sm683262a12.28.2026.11.17.23.31.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Nov 2026 23:31:02 -0800 (PST)
+        Tue, 17 Nov 2026 23:31:04 -0800 (PST)
 From: Amir Goldstein <amir73il@gmail.com>
 To: Christian Brauner <brauner@kernel.org>,
 	Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-fsdevel@vger.kernel.org,
 	linux-unionfs@vger.kernel.org
-Subject: [PATCH 0/6] ovl: restrict pseudo filesystems as overlayfs layers
-Date: Wed, 18 Nov 2026 08:30:56 +0100
-Message-ID: <20261118073102.1216568-1-amir73il@gmail.com>
+Subject: [PATCH 1/6] ovl: do not change redirect_dir=follow to on in a non-upper mount
+Date: Wed, 18 Nov 2026 08:30:57 +0100
+Message-ID: <20261118073102.1216568-2-amir73il@gmail.com>
 X-Mailer: git-send-email 2.56.1
+In-Reply-To: <20261118073102.1216568-1-amir73il@gmail.com>
+References: <20261118073102.1216568-1-amir73il@gmail.com>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -98,35 +101,59 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Christian,
+In a non-upper mount, redirect_dir=follow was changed to redirect_dir=on
+to simplify the metacopy -> redirect_dir dependency check.
 
-These patches are based on vfs-7.5.pseudofs.fixes and replace the two
-patches I sent on top of "ovl: refuse data-only layers on pseudo
-filesystems".
+The two modes behave the same in a non-upper mount, because redirects
+are only created in upper, but the resulting mode is visible to users
+in mount options and to ovl_allow_offline_changes(), which treats
+redirect_dir=on as one of the features that do not allow offline changes
+to the lower layers.
 
-Pseudo filesystems are refused as upper layer and allowed as lower
-layers only in legacy setups.
+Drop the conversion and let the metacopy dependency check accept
+redirect_dir=follow in a non-upper mount, where metacopy only needs to
+follow redirects.
 
-Thanks,
-Amir.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/params.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Amir Goldstein (6):
-  ovl: do not change redirect_dir=follow to on in a non-upper mount
-  ovl: do not allow offline lower changes with data-only layers
-  ovl: refuse pseudo filesystem as upper layer
-  ovl: refuse pseudo lower layers unless offline lower changes are
-    allowed
-  selftests/ovl: test pseudo filesystem upper and lower layers
-  selftests/ovl: use legacy setups for pseudo lower layer tests
-
- Documentation/filesystems/overlayfs.rst       |   7 +-
- fs/overlayfs/overlayfs.h                      |   4 +-
- fs/overlayfs/params.c                         |  19 +--
- fs/overlayfs/super.c                          |   9 +-
- .../overlayfs/automount_in_layer.c            |   6 +-
- .../filesystems/overlayfs/pseudo_datadir.c    | 111 ++++++++++++++++--
- 6 files changed, 131 insertions(+), 25 deletions(-)
-
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index d1ca4a9094f28..0c7bfff7f06dc 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -936,14 +936,12 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 		config->redirect_mode = follow_mode;
+ 
+ 	/*
+-	 * This is to make the logic below simpler.  It doesn't make any other
+-	 * difference, since redirect_dir=on is only used for upper.
++	 * metacopy -> redirect_dir dependency.
++	 * metacopy needs to create redirects in upper and to follow redirects
++	 * in a non-upper mount.
+ 	 */
+-	if (!config->upperdir && config->redirect_mode == OVL_REDIRECT_FOLLOW)
+-		config->redirect_mode = OVL_REDIRECT_ON;
+-
+-	/* metacopy -> redirect_dir dependency */
+-	if (config->metacopy && config->redirect_mode != OVL_REDIRECT_ON) {
++	if (config->metacopy && config->redirect_mode != OVL_REDIRECT_ON &&
++	    (config->upperdir || config->redirect_mode != OVL_REDIRECT_FOLLOW)) {
+ 		if (set.metacopy && set.redirect) {
+ 			pr_err("conflicting options: metacopy=on,redirect_dir=%s\n",
+ 			       ovl_redirect_mode_name(redirect_opt));
+@@ -959,7 +957,9 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 			config->metacopy = false;
+ 		} else {
+ 			/* Automatically enable redirect otherwise. */
+-			config->redirect_mode = OVL_REDIRECT_ON;
++			config->redirect_mode = config->upperdir ?
++						OVL_REDIRECT_ON :
++						OVL_REDIRECT_FOLLOW;
+ 		}
+ 	}
+ 
 -- 
 2.56.1
 
