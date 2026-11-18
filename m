@@ -1,54 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795019197;
-	b=e/FVShMdepm1qmiqS/e/dj9XSVnLKZFmYBqG5bDnEaMh/J1vlfvKzpc3BAZINLs0R5+C
-	 yboZx7pfrzn5NUspRKlLnn+8bB37kbT24YF4VhZNh8nHNjzAtle9i7Z8QBG/U3KQZ064F
-	 Nca0ZbIRwSoBbqF56NJZJy37p9KbluyPpHTYK0uUvmvU31QXM9Sgi1pO79A5IU2Q9fAKC
-	 yWLHJtcFJHi9EMdmce8/8HNPmXxApKuj3iBPCVk436WXzGfed0hnidxNNwQaJnK9CjFSM
-	 iPQuMdeUp9mF03uViegvove0mJME0SN0pbNDVERTA9VQSq/XjxWf6wSorNLwoVmJHMA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795019197;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=8R8LZ+i0FaLTDkigpffcBCAnwgB/uoixBqukycJfWRk=;
-	b=SMtblM2t1nL+qcSNLtctC485LJNF9h6hYuaSvEIx2/FgsHvzDlbbb4X3GlppuPFDD5Dj
-	 z1AAH50u0qAoteawNuJN7wKRoFaKUSVUPRw68qZatFZqidZstr84QBB9zK+th2+HqTYBv
-	 hGr50GBfk5GvHPKKNPjJGskf9KIygrBjiBBXfIIVSTsRvuhRFmTzeNrLPZKJTIZbT1YZ2
-	 iGt1+lVHtK66svyS0/53FU/zHKzmk9Y8KJ+Kax399RkF8t8jd8vVf+tNxKBZVV+56VU1q
-	 Dm5um/muypoOjAgL4sNWQq+fbNERnGojmODcF7tjtZ9ff8ek5cGRxW2NZQs7ekWqXJg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BoT1vU4V;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.48
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795019650;
+	b=JOweqroFKbHeb8k4j+qQpXBebfGESme1vgn6Ln3iBZs5SuQZsqaFDgUs+2cqd88Ic+mh
+	 898oOx2jitXNM73zE7ERGnTND/1L6LyfdtCLrxAwr6THDOrXkQwrLLjc5I6hW+Z4HqmDG
+	 jLVl8vPyj7tFnaJ1fZr88SIzs0y/CMRxQXP/LJ47Ky+y1hsHcbOf+gYGLDbQoOFyx7R+c
+	 PoEnZRV99lJdW5ZvDVUsxfPsXGvfev1mYiDqM0kVjRua3gTASNje+cteH6lhQQJ5sKzV8
+	 IFItWTQEFDySPVZl40CO0WJZjZk6dTPyegtxN7DRu5uRvl+2LRf/eOhNLerOUFShKOA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795019650;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=N6HX3LXsa4mhOdLfCTbxFIXTc5FHr4ZNGQBe4lysFkI=;
+	b=zrRJZWLMTNgYBOOqYo6LhQvGRbb0igd11EVFOIXaE41IAzTyBOsV1lsmua0MsLg132cb
+	 ptHxiP1qmYvt2t40zVrwmvMWl9km+dqRoQe3N42RnUuhq9OnuIVHrUTsdfiVhob/w0aRl
+	 ndWnsq4GJ3s1bNwLzPydZt5Qt79iLzG99TXNb3fo9CX8bkKtcDMct+nPWzxMs2ZSGj1aA
+	 1CaGelbi4cQVKW+Ok1AGi6ERFKQSyfpoNYwtwNClMDnv6RjyOT9VJZAHOn5oV5sDSbi3p
+	 BIvaiXCahMmcrLk0QtWyav4BnlJW1aCIbY33GZQfTwAoRKcN5a4DPV079a+5fDylerQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=edDD+3HN;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.48
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50D26606A331;
-	Wed, 18 Nov 2026 16:26:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D35606A335
+	for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 16:34:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 29D35606A335
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BoT1vU4V
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E62181F000C4;
-	Wed, 18 Nov 2026 16:26:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795019197;
-	bh=8R8LZ+i0FaLTDkigpffcBCAnwgB/uoixBqukycJfWRk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=BoT1vU4Vcp+f02HUwQGgB3aSXaAj5nanI7aZF7JaVb7+/JGVGvNznNcMh9J4VLwFs
-	 siTG+ebR2rum+4SW3xq8Ztm8jAwb/hFWY06zulTlbq4nUcYWiqtH2qUrMl7nmuNlab
-	 UWehwP0yI04CD4roAqKoAd4B2CxJla5VbirLKxcdhlL8GBsgBplUOd+TPkm3AItBHt
-	 GmBgOK5zD8CPQ3QTZo89VtjEWhsZTLOsXHBmM+iKlL01iRo5ihGcyWX0+whSFFXVMz
-	 x6P5ND51CQc8xBrBcIwR10Ux5QiumG6RB9KPC4nrsa0kl2EtPOowjJDzz5QXXCW+Cu
-	 gY83Y7XioatgQ==
-Date: Wed, 18 Nov 2026 17:26:33 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 4/6] ovl: refuse pseudo lower layers unless offline lower
- changes are allowed
-Message-ID: <20261118-wildwasser-raketen-hierbei-10c9d844ca6f@brauner>
-References: <20261118073102.1216568-1-amir73il@gmail.com>
- <20261118073102.1216568-5-amir73il@gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=edDD+3HN
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-6b88bc47e23so1538666a12.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Nov 2026 08:34:08 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795019647; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ejrLNvlBBegi/xMNHF/GAtAQX4yZDKis6oM+FeEflxnUSDCCiEOAuoVj/teB+CcR+x
+         ppIq+iWCcutfPdUbgNjAFzuMGj4F5VhJlED0uygGfT7zlHXXjuuyiE5RomTtLpJg4eak
+         ZnroB6RYBnnRZDZ61tiOtMggtHlSUCoyhB2LhREoOrPDXiF82hCP8mZhh45QAgLuZuwv
+         +Sda52sHbR6GBm4QRaYvg+fYHf/5fSX5dkhtkVQvbKqS3GAZsBE5PwcUAirhtpH4BrUD
+         c/r5irSMRQG1tIYNNbaycMJN+73ZssUwUDDUeah7HYLfIBuzxKC290G/FPWhfMYd23jX
+         HyqQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=N6HX3LXsa4mhOdLfCTbxFIXTc5FHr4ZNGQBe4lysFkI=;
+        fh=QvzmKQBsZnJwkPM+juC5Cdsr40advHo51959z0Mxr4s=;
+        b=TL2mjnozmeTBaNQ6vZyXmIBgDFiSMErTUGy6Z9unTdmQw3UvpwuZ4ZAV7JlA/z9nRF
+         cR7SA7TfxVzJlMzzJNQTIP4NE54tF4ZEBHxXum35MH0M5jT6G1y+AjB7QBueWgNsN3Iu
+         DQ7XKblCsik/WHxMn64w3vQq5nqQGytqgHGfQ4KjxfDhPHDGQm6Zt6BvytdGYv8w3Boc
+         nG1QHguzl2OI4HfVjxNoHDmhN6/hB/8rbebs0Szkpx+IU5YcNZeZl/nRlS83Mjxys9JA
+         eahLXGjjwm6FvaYtNySxlGX7fuwvjV2eZDZTgCka2Qsg5qyFJ4CCfF50unWQBHXl9ngb
+         v9hQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795019647; x=1795624447; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=N6HX3LXsa4mhOdLfCTbxFIXTc5FHr4ZNGQBe4lysFkI=;
+        b=edDD+3HN3eSgxPe1vLYMsZA9DrM5whP4dDb6n+MqzrRN7ZqOif36k7v2vBh/SURUzl
+         h45+n5470/Z1jV0YhRHqQGF8vCKxYixCoW96DLDba2renWvH3vOO+WEsdwtqHwRM2bly
+         rGjZ500zdbUecLbTi7KBVdGOT58lTeKB0SbBCg2Gdmp0szBqM7jDK7Qc4QUQ+SW/KHyS
+         pYbjN2WhdxX24l9f2g61LHIlBuowbE2fzG2sUPimi1+EANR3GhB9jK35eA9Dkb3JL+D+
+         g3ufmoSo9e5O/Zu/uPruXbqCKquDzeHhTWiwpTLCOWYzi5kI5gkCjFHqRHJUjE+314hb
+         q1EQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795019647; x=1795624447;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=N6HX3LXsa4mhOdLfCTbxFIXTc5FHr4ZNGQBe4lysFkI=;
+        b=AzEf+L6tVeEy+EsdNDXAi/0yAj4lINCq+Jps//TTVNsvPdU00lppxzmvOMsxVdRlEx
+         MESrAawSt/wA9Z4HXGn5l7AKmJvdAjhOi52VJk5l4F4GORLgKQmkZwYYQDPWqf8MXV9+
+         HSMYWVW1SHVkeA+nP3ZjSvomIlsrsoL4+6GA4ksjGbC2lP8Pdb9EmYhv7VUYwRAIdENY
+         6GuI/G6p5xiQhmTEcjVwZFu5oC2lEv2AzmFTmBPYaZgYjqpiedI9UepkzWPdw3ntPorb
+         CpI9kocmUfz6Wuex8IVx0XKPuG3Ld3jyGsjcmXl3Ab5PZ3RgdwGh0uVpSD1UxYpJRw9C
+         zeUw==
+X-Forwarded-Encrypted: i=1; AL+hErH6K/RWY/6Uvs5hhSIvocGBkgHJAX3/mVHITPCIa6lPrw3RSAHqIPUn7OGO+hFodZf5pROKByqhYq0a4B9Z@vger.kernel.org
+X-Gm-Message-State: APuU4Z8dlwJYf7n5WmGGiUQHWM75+YRYjNSHhbfZg+GWluAKtNF1yUFS
+	V7nu+E3ubeI4zds/TWS+/gpzw019Tjm6Nzz0DYVyaeVFkFIa2V7wk9KCdNen1DHMsqA3RLOZtRX
+	+NMVpo7UUjHBG9uWJ1yXM8u6e5AYbeBI=
+X-Gm-Gg: AYBFou1TjzCeyFBnR9vRZlaWnALVduzpHELLeIybEHks8v+zEb0aM7nTfxs+nxz9bTn
+	gWTQ5t11zJpDK+7TPqMdXKaqB8GMMD/0ruc/IXu9DwUJmWc7e3dSZ4Yy2ZBUgcVBVoY1KbvwU2t
+	u+yoIsuK+I4dMsZ/QAeOtzBiB+3aJ5BmRPa3UE0B5Sv6S0Cul3QAIwKa9DkVWBZYj0UYQe/+qUO
+	mH2obDPs6/N0AAFbQnJ4KTdzSkiZ+4CMCXsvCjDFIkfKMAUCV7/RVWvNe9lhRRBzZ/+vlSQSC0X
+	hjzMuM8jTOE6c0gOQqpQ0+vK+QORVl4VhSohKzsBwFUY8PtnN3am7Y6Rc00AbrZzzMH4AtKl1rb
+	n0vFfEADkh0nRcjtIGBRPMujQw0DRGsFJLrqpHChbzFeFVYu70nvutw286R+0GUR62X7A7+k=
+X-Received: by 2002:a05:6402:450e:b0:6b4:73e6:dc9d with SMTP id
+ 4fb4d7f45d1cf-6b887f1fff8mr2542347a12.41.1795019647204; Wed, 18 Nov 2026
+ 08:34:07 -0800 (PST)
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -58,109 +104,167 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20261118073102.1216568-5-amir73il@gmail.com>
+References: <20261118123105.1247627-1-amir73il@gmail.com> <179500653692.684213.4730864102080566101.b4-review@b4>
+In-Reply-To: <179500653692.684213.4730864102080566101.b4-review@b4>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 18 Nov 2026 17:33:55 +0100
+X-Gm-Features: AclHuK-POwvPU_DJejkPcXzGEWdSEeV7ICPQ8L3Z6niqB3lgCgZbU0XeQWMehQA
+Message-ID: <CAOQ4uxjHwtZEHu9xMM6zg9niSgNdLXhAu65jA8Ai_SKVg-W2nw@mail.gmail.com>
+Subject: Re: [PATCH v1] fs: add ->f_real() file operation
+To: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, Ding Feng <dingf3ng@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 18, 2026 at 08:31:00AM +0100, Amir Goldstein wrote:
-> -		/* Pseudo filesystems don't hold data for metacopy files. */
-> -		if (i >= ctx->nr - ctx->nr_data &&
-> +		/* Pseudo filesystems don't mix with new overlayfs features */
-> +		if (!ovl_allow_offline_changes(ofs) &&
->  		    (l->path.dentry->d_sb->s_iflags & SB_I_PSEUDO)) {
+On Wed, Nov 18, 2026 at 1:55=E2=80=AFPM Pavel Tikhomirov
+<ptikhomirov@virtuozzo.com> wrote:
+>
+> > sync_file_range(2) and cachestat(2) operate on file->f_mapping.  For a
+> > file on a stacking filesystem, such as overlayfs, the data and its page
+> > cache are in the real (backing) file, so on a stacked file
+> > sync_file_range() writes back nothing and cachestat() reports nothing.
+> >
+> > Add a ->f_real() file operation, modelled after ->d_real(), and a
+> > file_real() helper in backing-file.h that returns the backing file
+> > holding the data of a stacked file, or the file itself.  file_real() is
+> > a no-op without CONFIG_FS_STACK; otherwise its slow path in
+> > fs/backing-file.c calls ->f_real() and verifies that it returned a
+> > backing file.  The real file is owned by the stacked file, so it is
+> > valid for as long as the caller holds the stacked file.
+> >
+> > file_real() is only meant for inspecting and writing back the page cach=
+e
+> > of the data.  Operations that need the credentials or permission checks
+> > of the stacking filesystem need a dedicated file operation, like
+> > ->fadvise().
+> >
+> > Use file_real() in sync_file_range() (also used by io_uring) and in
+> > cachestat(), and implement ->f_real() for overlayfs.
+>
+> Approach looks good.
+>
+> Would you mind taking the cachestat selftest patch together with it:
+> https://lore.kernel.org/linux-fsdevel/20260623111533.2285005-4-ptikhomiro=
+v@virtuozzo.com/
+>
+> I will test it on your patch and update with results.
+>
 
-sashiko.dev <sashiko@sashiko.dev>:
+Since you found a bug, do you mind adding the nested ovl test case
+as well as lower file test case and re-post your test?
 
-[Severity: Medium]
-Does checking ovl_allow_offline_changes(ofs) here run before
-ofs->config.index has been finalized?
+Merging your test is independent of merging my fix, but Christian
+can take them together when you have approved both work.
 
-[...]
+> >
+> > Tested-by: Ding Feng <dingf3ng@gmail.com>
+> > Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+> > Link: https://lore.kernel.org/r/20261118040056.6543-1-dingf3ng@gmail.co=
+m/
+> > Link: https://lore.kernel.org/r/20260623111533.2285005-1-ptikhomirov@vi=
+rtuozzo.com/
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >
+> > diff --git a/Documentation/filesystems/locking.rst b/Documentation/file=
+systems/locking.rst
+> > index f7363ad770c76..db9ba2a8c13e7 100644
+> > --- a/Documentation/filesystems/locking.rst
+> > +++ b/Documentation/filesystems/locking.rst
+> > @@ -485,6 +485,7 @@ file_operations
+> >                       struct file *file_out, loff_t pos_out,
+> >                       loff_t len, unsigned int remap_flags);
+> >       int (*fadvise)(struct file *, loff_t, loff_t, int);
+> > +     struct file *(*f_real)(const struct file *);
+> >
+> >  locking rules:
+> >       All may block.
+> > diff --git a/Documentation/filesystems/vfs.rst b/Documentation/filesyst=
+ems/vfs.rst
+> > index 1824462a43711..e4ce15545244b 100644
+> > --- a/Documentation/filesystems/vfs.rst
+> > +++ b/Documentation/filesystems/vfs.rst
+> > @@ -1038,6 +1038,7 @@ This describes how the VFS can manipulate an open=
+ file.  As of kernel
+> >                                          struct file *file_out, loff_t =
+pos_out,
+> >                                          loff_t len, unsigned int remap=
+_flags);
+> >               int (*fadvise)(struct file *, loff_t, loff_t, int);
+> > +             struct file *(*f_real)(const struct file *);
+> >               int (*uring_cmd)(struct io_uring_cmd *ioucmd, unsigned in=
+t issue_flags);
+> >               int (*uring_cmd_iopoll)(struct io_uring_cmd *, struct io_=
+comp_batch *,
+> >                                       unsigned int poll_flags);
+> > @@ -1162,6 +1163,22 @@ otherwise noted.
+> >  ``fadvise``
+> >       possibly called by the fadvise64() system call.
+> >
+> > +``f_real``
+> > +     stacking filesystems (e.g. overlayfs) whose file data is accessed
+> > +     through a backing file implement this method to return that backi=
+ng
+> > +     file.  It is called through file_real() by system calls that oper=
+ate
+> > +     on the page cache of the data, such as sync_file_range(2) and
+> > +     cachestat(2).
+> > +
+> > +     The returned file must be a backing file (FMODE_BACKING) or the f=
+ile
+> > +     itself.  It is owned by the file and must remain valid for as lon=
+g
+> > +     as the caller holds a reference to the file.
+> > +
+> > +     The returned file is only used to inspect and write back the page
+> > +     cache of the data.  Operations that need the credentials or the
+> > +     permission checks of the stacking filesystem need a dedicated fil=
+e
+> > +     operation (e.g. ``fadvise``).
+> > +
+> >  ``mmap_prepare``
+> >       Called by the mmap(2) system call. Allows a VFS to set up a
+> >       file-backed memory mapping, most notably establishing relevant
+> > diff --git a/fs/backing-file.c b/fs/backing-file.c
+> > index c601b27f0fd35..1e0e85515b4c7 100644
+> > --- a/fs/backing-file.c
+> > +++ b/fs/backing-file.c
+> > @@ -102,6 +102,18 @@ struct file *backing_tmpfile_open(const struct fil=
+e *user_file, int flags,
+> >  }
+> >  EXPORT_SYMBOL(backing_tmpfile_open);
+> >
+> > +/* Slow path of file_real() for a file with ->f_real() */
+> > +struct file *__file_real(struct file *file)
+> > +{
+> > +     struct file *real_file =3D file->f_op->f_real(file);
+> > +
+> > +     if (!IS_ERR(real_file) && real_file !=3D file &&
+> > +         WARN_ON_ONCE(!(real_file->f_mode & FMODE_BACKING)))
+> > +             return ERR_PTR(-EIO);
+> > +
+> > +     return real_file;
+>
+> This will go one level only AFAICS and in case of nested overlay we would=
+ not get to
+> the real file.
 
-Because most pseudo filesystems do not implement export operations,
-evaluating ovl_allow_offline_changes(ofs) before those fallbacks run
-causes a regression where mounting with an upperdir over a pseudo lower
-layer fails with -EINVAL instead of falling back to index=off, and makes
-multi-layer mounts depend on whether a non-exportfs lower layer appears
-before or after the pseudo layer in lowerdir.
+Good catch! but the bug is not here it is in ovl_f_real()
+Please test with
 
-via: https://sashiko.dev/#/message/20261118073102.1216568-5-amir73il@gmail.com
-
-I think that's right. ovl_lower_dir(), ovl_get_fsid() and the !workdir
-case in ovl_fill_super_creds() all turn the index off.
-
-So with index=on sysfs is refused when it comes first and accepted
-behind a lower layer without file handles.
-
-Same for sashiko's 6/6 report.
-
-So I would fold the following diff so we check the layers once they're
-set up but before ovl_init_uuid_xattr() and ovl_get_indexdir() write to
-upper. I can fold this into 4/6, plus tests into 6/6, if you agree:
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 2c08dc07bd149..4d803b16f3298 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1260,14 +1260,6 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
- 	for (i = 0; i < ctx->nr; i++) {
- 		l = &ctx->lower[i];
- 
--		/* Pseudo filesystems don't mix with new overlayfs features */
--		if (!ovl_allow_offline_changes(ofs) &&
--		    (l->path.dentry->d_sb->s_iflags & SB_I_PSEUDO)) {
--			pr_err("pseudo filesystem on %s not supported with metacopy, index, redirect_dir=on, xino=on or data-only layers\n",
--			       l->name);
--			return ERR_PTR(-EINVAL);
--		}
--
- 		err = ovl_lower_dir(l->name, &l->path, ofs, &sb->s_stack_depth);
- 		if (err)
- 			return ERR_PTR(err);
-@@ -1374,6 +1366,28 @@ static int ovl_check_overlapping_layers(struct super_block *sb,
- 	return 0;
+ static struct file *ovl_f_real(const struct file *file)
+ {
+-       return ovl_real_file(file);
++       struct file *real_file =3D ovl_real_file(file);
++
++       if (IS_ERR(real_file))
++               return real_file;
++
++       /* Handle recursion into stacked lower fs */
++       return file_real(real_file);
  }
- 
-+/*
-+ * Pseudo filesystems don't mix with new overlayfs features.  Check the layers
-+ * only after setting them up, as that may have turned off the index.
-+ */
-+static int ovl_check_pseudo_layers(struct ovl_fs *ofs)
-+{
-+	unsigned int i;
-+
-+	if (ovl_allow_offline_changes(ofs))
-+		return 0;
-+
-+	for (i = 1; i < ofs->numlayer; i++) {
-+		if (ofs->layers[i].mnt->mnt_sb->s_iflags & SB_I_PSEUDO) {
-+			pr_err("pseudo filesystem on %s not supported with metacopy, index, redirect_dir=on, xino=on or data-only layers\n",
-+			       ofs->config.lowerdirs[i]);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static struct dentry *ovl_get_root(struct super_block *sb,
- 				   struct dentry *upperdentry,
- 				   struct ovl_entry *oe)
-@@ -1538,6 +1552,15 @@ static int ovl_fill_super_creds(struct fs_context *fc, struct super_block *sb)
- 	if (!ovl_upper_mnt(ofs))
- 		sb->s_flags |= SB_RDONLY;
- 
-+	/* A mount without a workdir doesn't use the index */
-+	if (!ofs->workdir)
-+		ofs->config.index = false;
-+
-+	/* Before the uuid and the index dir are set up on the upper layer */
-+	err = ovl_check_pseudo_layers(ofs);
-+	if (err)
-+		goto out_free_oe;
-+
- 	if (ovl_has_fsid(ofs) && ovl_upper_mnt(ofs)) {
- 		/* Use per instance persistent uuid/fsid */
- 		ovl_init_uuid_xattr(sb, ofs, &ctx->upper);
 
--- 
+When you have tested this please report back and I will post v2.
+
+Thanks,
+Amir.
