@@ -1,56 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795183364;
-	b=2ksBY9J4S0WlB5/fkIU9CxP2Ogq85+nHXS4WN7YXVKLtJjPjJmXtuPA6W5zB9ZLbXh+S
-	 aCdQqNits2Q7dtoc7aSR65gMn+Wxq9OFx82gzn5EJVzlg4YUySPgxE2Cv7/c9L78JIR9n
-	 Tj6lK/bS/C8IDgxRNYDzjuz6t6jIaHgMfUcE4Jqel4vgUfracHDmSlj5ryar7VzM6vptx
-	 58w5MblDpERSQrftqHp2rees50E50mdw6MDy3Fc6YnnEB6CwVtaWejj2xSewwwXtiS1qC
-	 MQNICVvq0cpghTmaXIGJ0XbtBLrUsvsjEuE35Iivtv7mBPJQ8giUA6SCywudJLruHkg==
+	t=1795184012;
+	b=Qri54F4K/Ig65oXaQDprfo63mKbcZVMwtb1BbShpnYVbHD7JqeuJJfDI3Y3w1WjZmFOD
+	 zAfg0VI5COrBYQIMhoGomB8b9+82nCATfXVRDBad8PYupzsPE4SYOQATfmnJaBijxzbk8
+	 9EvRdDhHL+LOFWf8OOMxvtorzMorcdlQWrPo4S01pEVY/5ygXUJAV6V0uF6GyQccpFc4a
+	 YJ/UAr1kY8sHfSgisn0RWhMyyPX/y0fz6Luf7GhyT5SxM6YYOiBCgJK9prjthmGSeX+yh
+	 AqFTs4sq1dhxootEfvaGu1NMX49WBDX2oPCBHm6dHFJGTMvehhjC6IpFkZ2J0QCpsKA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795183364;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=qSIDkyNLpFJKk0/zs7wtThTlgXHE/iwI1tQ++yL3Pqw=;
-	b=fOpErgHw+ikioLhF0fwGOzbAZqGEAziGGPJojbBGql7C5hotJCVArXXxGbEEGX1e6VnP
-	 71/TjjkjnLm3A0vU/N5CTVpsxc/A1tqi22h7irrTzAlSFqiVc3Tz1bFFf/2HsoyH1kUrH
-	 jwRkHFoGXxEhW2jjcCko5q1+H7nMITjXOyLZ+cMMwLG5KUtLjPymtKFc5RIqv49AFc9Sf
-	 Eo90Vf+vDDPHAvNIhu90OaG7NEbzUdNW3sWxUYtmk+S63PlPl7jnHhO4CL0StifvORQN1
-	 UHnF31jdF2PB+dPLo/fvNoXOU45MbOVN08mh0hSa21dW63ZKnUpQJkm2XI46mqip5Tw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795184012;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=aKaMVU/dT0QTBucQLQjhzsxNL2qzvlkOcAcAoisAQsk=;
+	b=tXMM+WajsTdmsMXnGHETjeDLrfEEaNBVYf7CQcie/RFScJAlMM7t7ymsegg6stj4VtwA
+	 /sEJUfugqDfBIMYtweB2/jsLP8KdLNVrMruDxgcZWnkCPIL+R64KD3HjPq6MzJhqOk6+x
+	 DwDXqltzU4o+QET56Z6vUzG2bObyrlR1QNDvzHZiuhwRqi0fw66sz+aj9JvyhDvw8TBQX
+	 f0tNblKhPPOOUCj4n3rtOOfoIwU8AdgXf6la+XWE4KGYmsJDRnUcKuk4mFx6QExK75SWX
+	 /g4qgbe7TuPNDKdxbJ3Bd+ROHLt1QhG5zOBCx0+bFxXz4Wmb2D2YlqwhLHPov52sdug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nmpzs9ik;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ljujamFy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E05606A32A;
-	Fri, 20 Nov 2026 14:02:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8752C606A326;
+	Fri, 20 Nov 2026 14:13:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nmpzs9ik
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EA7B1F000C4;
-	Fri, 20 Nov 2026 14:02:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ljujamFy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 717C61F000D1;
+	Fri, 20 Nov 2026 14:13:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795183363;
-	bh=qSIDkyNLpFJKk0/zs7wtThTlgXHE/iwI1tQ++yL3Pqw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=nmpzs9ikR9Czg8LuZfBHMFXo299lzCh37VmcNsgp4VIZQ21JhgCuMo8HN5ZznvNhq
-	 V8EMLZ9oAkMRDUj/Bk9zPUvvxn+v2jWJLEBKC2rM9ySGg3KfmDU2JmLty0FtwrZ5S6
-	 sTvQWZf/8P54f+GGNLDi8ecpl0RyRYcfMqeXxYAK7a/6/soS1RFT5SqitWdtP7DM7z
-	 pzv8PEAJ0qnYvbEYUE0uoN3K91B0mq6zWVRbQ3jUiMGw+JdS10crDfFcU1KvFd3HeZ
-	 VvKs2inu6RAqQje9Mrsv7iuXx2amuFWLe1GRADkMmlbHPp/9K3UNJuron6dVo5yyQi
-	 4FL2U5isD4PlQ==
-Date: Fri, 20 Nov 2026 15:02:39 +0100
+	s=k20260515; t=1795184011;
+	bh=aKaMVU/dT0QTBucQLQjhzsxNL2qzvlkOcAcAoisAQsk=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=ljujamFy4GjL+wmEh9HzbCvZAYAguNdhYLWw50qGxN7FblFNat6ODLBRFXteSWHRk
+	 uZmrhOAt0DBPvnu3U1WeSSCmgEQ4cJZwzDjO8sSTLIbYomX4WD/D9rZ54NHi4cckXo
+	 h4J+cYDNFLv3hbMZf/LX6Nr4Dyn93DJuYV+XaxssIo5v5bikT3m0wkbR2RI+zA4P4+
+	 ma2m5gIA6EnCTp5DOAsNzLHbj8vzmeAjtAaLukP2H3Mf2sqp9VS/EvoVsSqPFfZZAk
+	 rr9d72zXo5Xeq/b8qKTvc0krKfJRZnR2G6p69mtfnLRIoFBYNMxAWyoDzwCm+2+Hcf
+	 L8H/KEbQrHbBg==
 From: Christian Brauner <brauner@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Ding Feng <dingf3ng@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Josef Bacik <josef@toxicpanda.com>, Pavel Tikhomirov <ptikhomirov@virtuozzo.com>, 
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: ovl: sync_file_range() does nothing on overlayfs files
-Message-ID: <20261120-waten-freunde-warnung-77aa6a3aa14e@brauner>
-References: <CAOQ4uxg5baphOjo+_A=3nZBmFEmMV7KOiv_W=rjEVYV41eTEaA@mail.gmail.com>
- <20261118113241.29101-1-dingf3ng@gmail.com>
- <CAOQ4uxgk=Teyci_b1PVaTgDip-UHXXsnXFCQQatFTSVxSHynYw@mail.gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+ Ding Feng <dingf3ng@gmail.com>, 
+ Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+In-Reply-To: <20261119211542.1509119-1-amir73il@gmail.com>
+References: <20261119211542.1509119-1-amir73il@gmail.com>
+Subject: Re: [PATCH v2] fs: add ->f_real() file operation
+Message-Id: <20261120-karten-felsen-klammheimlich-685d0218d0c5@brauner>
+Date: Fri, 20 Nov 2026 15:13:28 +0100
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -60,64 +59,41 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxgk=Teyci_b1PVaTgDip-UHXXsnXFCQQatFTSVxSHynYw@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.17-dev-04696
 
-On Wed, Nov 18, 2026 at 01:18:44PM +0100, Amir Goldstein wrote:
-> On Wed, Nov 18, 2026 at 12:32 PM Ding Feng <dingf3ng@gmail.com> wrote:
-> >
-> > Amir Goldstein wrote:
-> > > Like this?
-> > >
-> > > Completely untested.
-> >
-> > Thanks, Amir. I tested it on v7.4-rc3 (20eef29b7c84), where it applies
-> > with an 8-line offset in mm/filemap.c.
-> >
-> > Setup: arm64 defconfig in QEMU; overlayfs with lower and upper on one
-> > ext4 disk; periodic writeback off (dirty_writeback_centisecs=0). Each
-> > case writes 64 MiB (16384 pages) through the overlay and calls
-> > sync_file_range(fd, 0, 0, flags). Dirty pages are read with cachestat()
-> > on the upper file's ext4 path, before and after the call.
-> >
-> >                                    before patch       with patch
-> >   ext4 file, flags=7              16384 -> 0         16384 -> 0
-> >   overlay new file, flags=7       16384 -> 16384     16384 -> 0
-> >   overlay new file, flags=2       16384 -> 16384     16384 -> 0 (4096 under writeback)
-> >   read-only fd opened before
-> >   copy-up, written via another
-> >   fd, flags=7                     16384 -> 16384     16384 -> 0
-> >
-> > cachestat() on the overlay fd reported cache=0 dirty=0 before the patch
-> > and cache=16384 dirty=16384 with it, in all three overlay cases. All
-> > calls returned 0, and the kernel log showed no warnings.
-> >
-> > Tested-by: Ding Feng <dingf3ng@gmail.com>
-> >
-> > Two questions:
-> >
-> > 1. FUSE passthrough also keeps data in a backing file
-> > (fs/fuse/passthrough.c) and already forwards ->fadvise(). Does it need
-> > ->f_real() too? I have not tested that.
+On Thu, 19 Nov 2026 22:15:42 +0100, Amir Goldstein wrote:
+> sync_file_range(2) and cachestat(2) operate on file->f_mapping.  For a
+> file on a stacking filesystem, such as overlayfs, the data and its page
+> cache are in the real (backing) file, so on a stacked file
+> sync_file_range() writes back nothing and cachestat() reports nothing.
 > 
-> Yes it does, although FUSE does not have d_real(), meaning
-> that nobody probably tested uprobes with FUSE passthrough
-> I don't know if IMA/EVM/IPE are applicable to FUSE.
-> There is no obligation to implement FUSE f_real() from the start
-> if sync_range doesnt work now it can continue not to work.
+> Add a ->f_real() file operation, modelled after ->d_real(), and a
+> file_real() helper in backing-file.h that returns the backing file
+> holding the data of a stacked file, or the file itself.  file_real() is
+> a no-op without CONFIG_FS_STACK; otherwise it calls backing_file_real()
+> in fs/backing-file.c, which calls ->f_real() and verifies that it
+> returned a backing file.  The real file is owned by the stacked file, so
+> it is valid for as long as the caller holds the stacked file.
 > 
-> >
-> > 2. In the copy-up case, sync_file_range() on a read-only fd can now
-> > open the upper file and return that open's error. The man page lists
-> > none of those codes. I assume that is acceptable, as a write would see
-> > the same error, but I wanted to mention it.
-> 
-> The man page never covers all possible errors
-> especially general errors like EIO, EACCESS, EPERM should
-> always be anticipated.
-> I am sure this is documented somewhere but I don't know where.
+> [...]
 
-It's shameful that we need all these special-sauce overlayfs ops but
-what other fscking option is there. So yes, looks ok.
+Applied to the vfs-7.5.misc branch of the vfs/vfs.git tree.
+Patches in the vfs-7.5.misc branch should appear in linux-next soon.
+
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
+
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs-7.5.misc
+
+[1/1] fs: add ->f_real() file operation
+      https://git.kernel.org/vfs/vfs/c/f9b088d910e8
+
