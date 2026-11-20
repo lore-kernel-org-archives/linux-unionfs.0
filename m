@@ -1,101 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795160240;
-	b=jHbJ8GArkpd1IOeT3l/jzRlI1WQ1uf91E4eZmeAuJx/hp/huZ6H3u2bfmQPuM+2fDPFv
-	 A71mBe8TV1QE1oBkNJ5ucmAWVwaQ3pMSjeslkbhhw+dewa9bK/DTK7Fo6grEO2sjeeDjx
-	 AB33tZepFC0hD3BsIw5UWoZOTBkPmkX52SzBs2C1KhynU3Y3TIUQNPQhU112L4a+PpAjz
-	 AcmmgNsTJRrVW+oSPJyzGpAHsKLJNY4pm/v8wX19Rb2pkOLcPtbwHfUmuaCo26NaFRF0K
-	 a1djznHghwOUlGrf4r7GuH0H6QlS+zMsA9WS+DKWqHFtbaMrgWKYL9E6kfueWvhUUtg==
+	t=1795163145;
+	b=0UUcYuR9arXsNUV2mc9fJ0qwARVc5ITPLpaL75ptx3Zt+7+bXr520kw8wlv+kpooLBac
+	 zd2Hfqx6EWKnlEzJcq0cYBbnBS+gEN03IKw8yd8TUwWgK09WObQ0yKmlOTaceEmOtzdkX
+	 GZJqFplFVidr0lWmVQ67RV66mCtVt1Cj3LgWpr963ab/jpncASRAWcGQYBzEd2xgCV3eA
+	 mP8OmDZvRwzZFOxA5HCPKuU0vrtW1edVQ5RYI+ICrjV+Vx4tNGtrAFOS15LwPGzZRPt56
+	 FmlvtjFPu9KzMA+88udtiUk0FWxqoYEetROyG77/1EuelnM6xGtNUL4PlgCBOlCKyuw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795160240;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795163145;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=RoorVLMi62FuFQRrqrflAmA+uFRRnvjjHFtI7v/dMic=;
-	b=xsHOxchDMG47993h21mYUZDYkiEec7B/FMnODTWbawfGQKdUFiZNdjYOjQLlWddseNSx
-	 hqAOZ3RO1r78wPR0JeU3dx/KIJCAYsTkhRafklpmn7sRIC5HKDChW3k7LEhGiv9KEUdQ7
-	 8IhASg+8cdSXbmw3KwyDy6Y+0vE9I1RF5sDXi0DDHELuNwH20xnW9Ej840UnQ/7GZlqXV
-	 dsNJfiCBuo4J4DM68EjRZ2fzU6gyFvGl1nyf2Z+IKeyyTkL5LL10NA+MfJJH1CT8g5B+X
-	 fLay0n3a5I2A+u30PSPvp+KYO1UUYeaZB6Eb2oPowL88TvQ49xrEDzr1qj7Cqbu2mkQ==
+	 Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:Content-Transfer-Encoding:User-Agent:MIME-Version;
+	bh=kGfrKoF5IEunQnK8Ab/XQNyAZ5mzvOHkU8ItZhatHss=;
+	b=OBu9IFUVnmd0jkL7C/cFE6xWvLQZqPuSY3ndOne1jC8Wfz6rXm0/B8B7WIieooAHHq5R
+	 wQZP27QWbIIwatSmHI/3Z2JNivW/OOvCrJzr3sgl/9wp6I6fPQOvSjkDewqay5oa+vY+C
+	 mhrCguJIhXR+BaN6NWi8weZ1XhxOmK6DD3EDMvcfeKlPHD023pSBjRLwlPe2CVNQq21BA
+	 1GmA77p4gjMpe1MVigSgSztobq0QSKZlvFunEdg5BQBD28TQ8a8kFqQQeZEhBCM8lF/KP
+	 4tZWWVaYY+YaYbkTi+oN/urP/nAlX2L3tX1qbgTD1vEG1GncWp78DFpquCClE3EREHA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=hceukMgh;
-	arc=none smtp.remote-ip=209.85.208.50
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	dmarc=none header.from=amutable.com;
+	spf=pass smtp.mailfrom=amutable.com;
+	dkim=pass header.d=amutable-com.20260707.gappssmtp.com header.i=@amutable-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=P2kOCs7P;
+	arc=none smtp.remote-ip=209.85.221.50
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2202E606A32C
-	for <linux-unionfs@vger.kernel.org>; Fri, 20 Nov 2026 07:37:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2202E606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C45606A325
+	for <linux-unionfs@vger.kernel.org>; Fri, 20 Nov 2026 08:25:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 94C45606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amutable.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amutable.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=hceukMgh
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-6ae305e3bd9so1063313a12.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 19 Nov 2026 23:37:19 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=amutable-com.20260707.gappssmtp.com header.i=@amutable-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=P2kOCs7P
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-4a9be758734so336077f8f.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 20 Nov 2026 00:25:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795160238; x=1795765038; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=RoorVLMi62FuFQRrqrflAmA+uFRRnvjjHFtI7v/dMic=;
-        b=hceukMghY7le6BIvmBla2eFNVCQIbmkpOBHR0Qmni9s9Tx5CJJVqMf3vpfilPmRW5G
-         K5wgOLsqd9MAS1z6OmEN/CrYQRV9tFx2RXS6txqkQxbbd/dKWCfmrVKOilSn/zmap3b1
-         YNsLVgq+Vm8OssuoTDaCUB7VlZ5YhvYFA+SIyOP0/6fykgUwThttvdaJNRdt+00yImGy
-         +T4jsEnKlm3k7w4G0FPANL64WVx4J3DRwpm0UjGciS6HVC6q0moeniT6KYlLWLNDEAVd
-         f5BhGFbkXk8GTLaKY51IysD3Ajx4lCQI120uvi9wU/CNygHwZmyVXAHogmXGeGP8PVSE
-         HcAQ==
+        d=amutable-com.20260707.gappssmtp.com; s=20260707; t=1795163143; x=1795767943; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:content-type
+         :references:in-reply-to:date:cc:to:from:subject:message-id:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=kGfrKoF5IEunQnK8Ab/XQNyAZ5mzvOHkU8ItZhatHss=;
+        b=P2kOCs7Ps76+OW1VoPmYekHIumtk0wuQvz7uKBJIr9N9RT4TQBd/+geUmYxrSFT0yW
+         u0kBPIlqf69t8u+JIGwEutrPtQ2F8/6eeWWfQZfynZ6vSHmmgYOKnf4YYRjPoqf7Os6s
+         h6VSCchC7cGia5WnSn/4TsYZDAQL9phNHMAzptzlWYO+722idJvp1BniR7/B0/KOVjLw
+         GCj6CF0Yzt4lTIUngz5PTTzi2FYqySX7nFqFuVDkHHHMThPaa0z9D3gK8Odt85VJ6aSh
+         aFOo6RlPqJEEiQI+JDEw4bYUt6PzY46VXTxmDSx4K1wC5g3PH493D16qDR8kMiCQZ3Su
+         zw0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795160238; x=1795765038;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=RoorVLMi62FuFQRrqrflAmA+uFRRnvjjHFtI7v/dMic=;
-        b=0N0lUZzp6k4H+7XVtPy9MFOxA/SmBrMlS+kj3V44qkmJfufWgVHOQqxnJdvwcKRdCK
-         dj/lZnmmsPqED5yYZAtk49H3FIg4y+lGc4vO3ADpo/EwPUEtDPO6CWACzCNZ2nA/TdPy
-         ZaqWaIsmbCZh+wEUaB/mP56abqjk2c9U3icaPeyqdFrzdKu7VI2bdINtPjeFiQ2XmeHo
-         2iC/pglIAOT7fOQXUNX2VRShSvdk3dim0j+XFwRtPEvkag3BcSPTWcxV5Q8hQ5vRpAqB
-         DxizbIwOjhhc8iViEYtqGZ2Ty2xXwfwYRXsKOW/Jgc2SfCstzb416NwTSYepM41Ki0zM
-         tpxA==
-X-Forwarded-Encrypted: i=1; AL+hErGPTqP5n/iaMuHCY73AojJED+G+k3LxV8BzWMx7tgf5yIWfzZXWuHaRXYtUB5DOreR7Ytl3EpfO8wa3lsN/@vger.kernel.org
-X-Gm-Message-State: APuU4Z/6u2hunbd6piN5VHDdwooHA+yDYaaPb8CqT0X5Bo9jnpwwt1CW
-	dxW5/c75hWwoCEe0sTdVI0uo5KZCtJnEq/NBHIrdzWfXbkHgaOzaovYe
-X-Gm-Gg: AZFdTZcpLgaE+OeBQe55AxIm4qGjbouGcsLcxo2UR4OySPXVHHJCvc/IPaYe8hK55fp
-	0tDxKxtE5PGeAKsVyNZ3zujVkN5CaCl44UEHNiWULMNRQ4fHEgnk14CEr8B2+C9GlaDLOc6tU7W
-	B+racfZQAZw/JJP/1a8kFvis8n6cQZbzMfJMi5W78ONQaGIXDLOMwUlfZZTJWqKjM7sY1jfhysv
-	7zysFYnLBTl5BTAvRIHLWKYoyd786igYZszXAq6TyCDDJbp2VaA9s7IDx2YdDxLfvGXtRUclndb
-	nmZwPKojdLgtoHdefACKeKPnDVse4uwB8836aEnbXAslyvo0PSrDi/+Gw2PfG+hL7nUQAv3NlFn
-	wlxAi+quj/dQHrZx9iM1ArUqAovphxH+zFJegxXoTpdnzHrKDXbl07hV4ltX2THS12ZbV+2A9CP
-	inDiZnYg37yp0o8dKKrvxGLgsW8Kvj3uKDFFPFkOQYa1MLiVnMfujXfic0K/I6+3cW4WAdknDAP
-	329a0gFSOKbKMwMFdpPcoJIrwQNwG88/nO1ETl++BX82ts4zrdZxlLndNuPZ1O9MTiMrjn4XnoQ
-	WOXdDvLMZ2KcyK2+JhCX20CsaJhkYBvgTdXoLfeXGA66O45DLY/gUK9aeKT8FJO5GqoEZg37/y1
-	nW6nbp39oGRI=
-X-Received: by 2002:a05:6402:210a:b0:6ba:4bf3:4a7 with SMTP id 4fb4d7f45d1cf-6ba4bf3066fmr408910a12.23.1795160238249;
-        Thu, 19 Nov 2026 23:37:18 -0800 (PST)
-Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6ba370fc020sm841867a12.25.2026.11.19.23.37.17
+        d=1e100.net; s=20260707; t=1795163143; x=1795767943;
+        h=mime-version:user-agent:content-transfer-encoding:content-type
+         :references:in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=kGfrKoF5IEunQnK8Ab/XQNyAZ5mzvOHkU8ItZhatHss=;
+        b=FMVhy4zurVy0p9TNTxUSCgY/T7DkHp2tw6UH01ldQdzqxK+FOpDRWyVsry/fIny+EX
+         gzOb/j3k2v7P9YjNM8Baa8by/UiNCnNRPAthu6gRWkOncXdFrhWyecq7wMVBu+YAhoFH
+         sPaXz1FYLNrF2v5NJY6yiWbSm9srIXBhcJBQGDp2bvC+/qydwkIWseZP0ZNvHr4mv0IN
+         ZUaoaFA2BIrB/5v6r+tp7FtHgkLH3Hv+askFO1qEkapl/KHiZRecXs60KgrnTrhm30wR
+         kAOBRa1tRMtExlCkJi6ZFEXATLfBn5UJ+re1OHSa6c3EPZszKNk+omV5syGRzcIvGvtO
+         K5ZA==
+X-Forwarded-Encrypted: i=1; AL+hErGN0ZvdY2rHXnwLI1D3sx3huw4nv1jfoLaqR8Ecdn+yvgDdvZqDYS1OQ+pJgla3IbGhNlS4qic+EvREaUgf@vger.kernel.org
+X-Gm-Message-State: APuU4Z/s0FRBEKBFiB7b6kyv7jtu1kgqSr4xZs835B2LnN58mBgYUvXU
+	+SE8pwybFeoMcY6f7h7Sk5KA53SY8wi8F4zuR7ViVaknk+vkrMQ3dpmjOWmckJ8bSV4q
+X-Gm-Gg: AZFdTZfuumHKpw8bmOTY8qubZzq9TYhAUDrr0a28wsMNb2dgDTHi3DRZqRQXjooGFww
+	ltYWY/jWgodaRp052lGqLO7PpaSDoEkgho7Pq3UCVuJGGCM94b7t6HzsLOO1NCVNsTAAzl/+zdF
+	3fefQO5j1EvAHAw2nTyJRAsZv7fwbq8QpcEr4jdVSFK/d0VaXAtr+M2o1ugoij02hpYHRdn/Cd4
+	3f7vtzvAXm5pRbLr17RrsmtVKrpAzTUj+yDHi2jX8W8UnDecmCFlWIQWnS0j2S9MrMX4ucHlmCg
+	P61ZNnguBEbj1RPVU29vGAa8A5SYMzQob32AOyQYQ6R7JOLr8dZGH1QgXnasdjfoE1Ym1L2z76V
+	w67PrvXQlunZojrDR2rrEQGfudnkZFPNEdBmf81qWtLpRhXHFEzVnMP9+zKwJjdmhXSr7qhly2L
+	0fiK6g9tFDFYLgSb7D2kykbhcc4VBtN7G3NumvnGI039KtnwXTFjAHzHBZCfXaQvGF4MhHALxZX
+	3Lth1i7v6bB5IgPXLbwNtXdagMsMTD1uhhUnNnEHaAkTT1+mLRnmDSnOYzL2PPxMfShNWWhn9kw
+	cXmO4xFDmnypKHnSvhI0NGx0p3myMKmN+nr6K1kk7SyFeUajgHwP9eA6KBQJiL8JVg==
+X-Received: by 2002:a05:6000:4808:b0:4a9:760f:1843 with SMTP id ffacd0b85a97d-4abb0d51e12mr4500017f8f.27.1795163142689;
+        Fri, 20 Nov 2026 00:25:42 -0800 (PST)
+Received: from [10.0.0.233] (tmo-084-188.customers.d1-online.com. [80.187.84.188])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab6ae2dcf9sm3992584f8f.32.2026.11.20.00.25.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Nov 2026 23:37:17 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Paul Moore <paul@paul-moore.com>
-Cc: James Morris <jmorris@namei.org>,
-	"Serge E . Hallyn" <serge@hallyn.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	linux-security-module@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	Stephen Smalley <stephen.smalley.work@gmail.com>,
-	Vivek Goyal <vgoyal@redhat.com>,
-	Christian Brauner <brauner@kernel.org>,
-	Chris Mason <mason@kernel.org>,
-	Josef Bacik <josef@toxicpanda.com>,
-	linux-fsdevel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH RESEND] lsm: put the copy up creds when an LSM hook fails
-Date: Fri, 20 Nov 2026 08:37:16 +0100
-Message-ID: <20261120073717.1588080-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.56.1
+        Fri, 20 Nov 2026 00:25:42 -0800 (PST)
+Message-ID: <982814d1f60b01387b24ff277478b77ef53da336.camel@amutable.com>
+Subject: Re: [PATCH v2] fs: add ->f_real() file operation
+From: Alexander Mikhalitsyn <alex@amutable.com>
+To: Amir Goldstein <amir73il@gmail.com>, Christian Brauner
+ <brauner@kernel.org>,  Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, Ding Feng
+	 <dingf3ng@gmail.com>, Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Date: Fri, 20 Nov 2026 09:25:40 +0100
+In-Reply-To: <20261119211542.1509119-1-amir73il@gmail.com>
+References: <20261119211542.1509119-1-amir73il@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -105,87 +101,351 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Chris Mason <mason@kernel.org>
+On Thu, 2026-11-19 at 22:15 +0100, Amir Goldstein wrote:
+> sync_file_range(2) and cachestat(2) operate on file->f_mapping.=C2=A0 For
+> a
+> file on a stacking filesystem, such as overlayfs, the data and its
+> page
+> cache are in the real (backing) file, so on a stacked file
+> sync_file_range() writes back nothing and cachestat() reports
+> nothing.
+>=20
+> Add a ->f_real() file operation, modelled after ->d_real(), and a
+> file_real() helper in backing-file.h that returns the backing file
+> holding the data of a stacked file, or the file itself.=C2=A0 file_real()
+> is
+> a no-op without CONFIG_FS_STACK; otherwise it calls
+> backing_file_real()
+> in fs/backing-file.c, which calls ->f_real() and verifies that it
+> returned a backing file.=C2=A0 The real file is owned by the stacked file=
+,
+> so
+> it is valid for as long as the caller holds the stacked file.
+>=20
+> file_real() is only meant for inspecting and writing back the page
+> cache
+> of the data.=C2=A0 Operations that need the credentials or permission
+> checks
+> of the stacking filesystem need a dedicated file operation, like
+> ->fadvise().
+>=20
+> Use file_real() in sync_file_range() (also used by io_uring) and in
+> cachestat(), and implement ->f_real() for overlayfs.
+>=20
+> Tested-by: Ding Feng <dingf3ng@gmail.com>
+> Link:
+> https://lore.kernel.org/r/20261118040056.6543-1-dingf3ng@gmail.com/
+> Tested-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+> Link:
+> https://lore.kernel.org/r/20261119183039.1505892-2-ptikhomirov@virtuozzo.=
+com/
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-security_inode_copy_up() leaks a struct cred when one LSM allocates new
-creds for an overlayfs copy up and a later LSM then denies the copy up.
-One such pair is SELinux and a BPF LSM program that denies
-inode_copy_up. Enabling both LSMs and loading the program requires
-root. After that, each denied copy up leaks one struct cred, no matter
-which user triggers it.
+Hi Amir,
 
-The hook calls each enabled LSM in turn. SELinux or Smack allocates the
-creds and returns them through a pointer argument of the hook. A later
-LSM can still return an error, and the hook then returns that error with
-the creds still allocated. Its kernel-doc does not say that the caller
-owns them on error, and the only caller, overlayfs, does not put them.
+please feel free to add:
 
-Reproduced with SELinux and such a BPF LSM program: 36000 failed opens
-and chmods by an unprivileged user on an overlayfs mount left 36000
-struct cred objects allocated, which kmemleak reported.
+Reviewed-by: Alexander Mikhalitsyn <alex@amutable.com>
 
-Fix this by putting the creds in security_inode_copy_up() when the hook
-fails, so the caller gets either creds that it owns or none.
+Kind regards,
+Alex
 
-Fixes: d8ad8b496184 ("security, overlayfs: provide copy up security hook for unioned files")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chris Mason <mason@kernel.org>
-[amir: put the creds in security_inode_copy_up() instead of in overlayfs]
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Hi Paul,
-
-Apologies for missed the LSM list and maintainers in first posting [1].
-Resending with proper Cc list.
-
-I think this LSM hook was introduced with confusing contact for chained
-LSMs and this change makes the hook contract more sane in this case.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/r/20261104082128.3573690-1-amir73il@gmail.com/
-
- security/security.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/security/security.c b/security/security.c
-index f6583d5073959..ad382afbff271 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -2314,18 +2314,26 @@ void security_inode_getlsmprop(struct inode *inode, struct lsm_prop *prop)
- /**
-  * security_inode_copy_up() - Create new creds for an overlayfs copy-up op
-  * @src: union dentry of copy-up file
-- * @new: newly created creds
-+ * @new: newly created creds, must point to NULL on entry
-  *
-  * A file is about to be copied up from lower layer to upper layer of overlay
-  * filesystem. Security module can prepare a set of new creds and modify as
-  * need be and return new creds. Caller will switch to new creds temporarily to
-  * create new file and release newly allocated creds.
-  *
-- * Return: Returns 0 on success or a negative error code on error.
-+ * Return: Returns 0 on success or a negative error code on error, in which
-+ *         case @new is left pointing to NULL.
-  */
- int security_inode_copy_up(struct dentry *src, struct cred **new)
- {
--	return call_int_hook(inode_copy_up, src, new);
-+	int rc = call_int_hook(inode_copy_up, src, new);
-+
-+	/* An earlier LSM may have prepared creds before a later one failed */
-+	if (unlikely(rc < 0) && *new) {
-+		put_cred(*new);
-+		*new = NULL;
-+	}
-+	return rc;
- }
- EXPORT_SYMBOL(security_inode_copy_up);
- 
--- 
-2.55.0
-
+> ---
+>=20
+> Christian,
+>=20
+> v2 fixes the nested overlayfs case that Pavel pointed out.
+>=20
+> Thanks,
+> Amir.
+>=20
+> Changes since v1:
+> - ovl_f_real() recurses into a stacked lower fs (Pavel)
+> - Rename __file_real() to backing_file_real() and export it for ovl
+> - Added Pavel's tested-by and link to his new test
+>=20
+> v1:
+> https://lore.kernel.org/r/20261118123105.1247627-1-amir73il@gmail.com/
+>=20
+> =C2=A0Documentation/filesystems/locking.rst |=C2=A0 1 +
+> =C2=A0Documentation/filesystems/vfs.rst=C2=A0=C2=A0=C2=A0=C2=A0 | 17 ++++=
++++++++++++++
+> =C2=A0fs/backing-file.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | =
+13 +++++++++++++
+> =C2=A0fs/overlayfs/file.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 17 +++++++++=
+++++++++
+> =C2=A0fs/sync.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 8 ++++++++
+> =C2=A0include/linux/backing-file.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 | 26
+> ++++++++++++++++++++++++++
+> =C2=A0include/linux/fs.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 =
+1 +
+> =C2=A0mm/filemap.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 9 ++++++++-
+> =C2=A08 files changed, 91 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/Documentation/filesystems/locking.rst
+> b/Documentation/filesystems/locking.rst
+> index f7363ad770c76..db9ba2a8c13e7 100644
+> --- a/Documentation/filesystems/locking.rst
+> +++ b/Documentation/filesystems/locking.rst
+> @@ -485,6 +485,7 @@ prototypes::
+> =C2=A0			struct file *file_out, loff_t pos_out,
+> =C2=A0			loff_t len, unsigned int remap_flags);
+> =C2=A0	int (*fadvise)(struct file *, loff_t, loff_t, int);
+> +	struct file *(*f_real)(const struct file *);
+> =C2=A0
+> =C2=A0locking rules:
+> =C2=A0	All may block.
+> diff --git a/Documentation/filesystems/vfs.rst
+> b/Documentation/filesystems/vfs.rst
+> index 1824462a43711..e4ce15545244b 100644
+> --- a/Documentation/filesystems/vfs.rst
+> +++ b/Documentation/filesystems/vfs.rst
+> @@ -1038,6 +1038,7 @@ This describes how the VFS can manipulate an
+> open file.=C2=A0 As of kernel
+> =C2=A0					=C2=A0=C2=A0 struct file *file_out,
+> loff_t pos_out,
+> =C2=A0					=C2=A0=C2=A0 loff_t len, unsigned int
+> remap_flags);
+> =C2=A0		int (*fadvise)(struct file *, loff_t, loff_t, int);
+> +		struct file *(*f_real)(const struct file *);
+> =C2=A0		int (*uring_cmd)(struct io_uring_cmd *ioucmd,
+> unsigned int issue_flags);
+> =C2=A0		int (*uring_cmd_iopoll)(struct io_uring_cmd *,
+> struct io_comp_batch *,
+> =C2=A0					unsigned int poll_flags);
+> @@ -1162,6 +1163,22 @@ otherwise noted.
+> =C2=A0``fadvise``
+> =C2=A0	possibly called by the fadvise64() system call.
+> =C2=A0
+> +``f_real``
+> +	stacking filesystems (e.g. overlayfs) whose file data is
+> accessed
+> +	through a backing file implement this method to return that
+> backing
+> +	file.=C2=A0 It is called through file_real() by system calls that
+> operate
+> +	on the page cache of the data, such as sync_file_range(2)
+> and
+> +	cachestat(2).
+> +
+> +	The returned file must be a backing file (FMODE_BACKING) or
+> the file
+> +	itself.=C2=A0 It is owned by the file and must remain valid for
+> as long
+> +	as the caller holds a reference to the file.
+> +
+> +	The returned file is only used to inspect and write back the
+> page
+> +	cache of the data.=C2=A0 Operations that need the credentials or
+> the
+> +	permission checks of the stacking filesystem need a
+> dedicated file
+> +	operation (e.g. ``fadvise``).
+> +
+> =C2=A0``mmap_prepare``
+> =C2=A0	Called by the mmap(2) system call. Allows a VFS to set up a
+> =C2=A0	file-backed memory mapping, most notably establishing
+> relevant
+> diff --git a/fs/backing-file.c b/fs/backing-file.c
+> index c601b27f0fd35..c63acb636ad0e 100644
+> --- a/fs/backing-file.c
+> +++ b/fs/backing-file.c
+> @@ -102,6 +102,19 @@ struct file *backing_tmpfile_open(const struct
+> file *user_file, int flags,
+> =C2=A0}
+> =C2=A0EXPORT_SYMBOL(backing_tmpfile_open);
+> =C2=A0
+> +/* Get the innermost backing file of @user_file */
+> +struct file *backing_file_real(struct file *user_file)
+> +{
+> +	struct file *real_file =3D user_file->f_op->f_real(user_file);
+> +
+> +	if (!IS_ERR(real_file) && real_file !=3D user_file &&
+> +	=C2=A0=C2=A0=C2=A0 WARN_ON_ONCE(!(real_file->f_mode & FMODE_BACKING)))
+> +		return ERR_PTR(-EIO);
+> +
+> +	return real_file;
+> +}
+> +EXPORT_SYMBOL_GPL(backing_file_real);
+> +
+> =C2=A0struct backing_aio {
+> =C2=A0	struct kiocb iocb;
+> =C2=A0	refcount_t ref;
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 7433220d4ad6c..41a3daf3e0663 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -195,6 +195,22 @@ static struct file *ovl_real_file(const struct
+> file *file)
+> =C2=A0	return ovl_real_file_path(file, &realpath);
+> =C2=A0}
+> =C2=A0
+> +/*
+> + * The real file that holds the page cache of the data: the upper
+> file after
+> + * copy up, otherwise the lower data file.=C2=A0 After copy up of a file
+> that was
+> + * opened from lower, this opens the upper file, just like a write
+> would.
+> + */
+> +static struct file *ovl_f_real(const struct file *file)
+> +{
+> +	struct file *real_file =3D ovl_real_file(file);
+> +
+> +	if (IS_ERR(real_file))
+> +		return real_file;
+> +
+> +	/* Handle recursion into stacked lower fs */
+> +	return file_real(real_file);
+> +}
+> +
+> =C2=A0static int ovl_open(struct inode *inode, struct file *file)
+> =C2=A0{
+> =C2=A0	struct dentry *dentry =3D file_dentry(file);
+> @@ -656,6 +672,7 @@ const struct file_operations ovl_file_operations
+> =3D {
+> =C2=A0	.mmap		=3D ovl_mmap,
+> =C2=A0	.fallocate	=3D ovl_fallocate,
+> =C2=A0	.fadvise	=3D ovl_fadvise,
+> +	.f_real		=3D ovl_f_real,
+> =C2=A0	.flush		=3D ovl_flush,
+> =C2=A0	.splice_read=C2=A0=C2=A0=C2=A0 =3D ovl_splice_read,
+> =C2=A0	.splice_write=C2=A0=C2=A0 =3D ovl_splice_write,
+> diff --git a/fs/sync.c b/fs/sync.c
+> index 4a84dd837b863..e8f5ddf14cbe4 100644
+> --- a/fs/sync.c
+> +++ b/fs/sync.c
+> @@ -7,6 +7,7 @@
+> =C2=A0#include <linux/kernel.h>
+> =C2=A0#include <linux/file.h>
+> =C2=A0#include <linux/fs.h>
+> +#include <linux/backing-file.h>
+> =C2=A0#include <linux/slab.h>
+> =C2=A0#include <linux/export.h>
+> =C2=A0#include <linux/namei.h>
+> @@ -269,6 +270,13 @@ int sync_file_range(struct file *file, loff_t
+> offset, loff_t nbytes,
+> =C2=A0	if (!S_ISREG(i_mode) && !S_ISBLK(i_mode) &&
+> !S_ISDIR(i_mode))
+> =C2=A0		goto out;
+> =C2=A0
+> +	/* The page cache of a stacked file is in its real file */
+> +	file =3D file_real(file);
+> +	if (IS_ERR(file)) {
+> +		ret =3D PTR_ERR(file);
+> +		goto out;
+> +	}
+> +
+> =C2=A0	mapping =3D file->f_mapping;
+> =C2=A0	ret =3D 0;
+> =C2=A0	if (flags & SYNC_FILE_RANGE_WAIT_BEFORE) {
+> diff --git a/include/linux/backing-file.h b/include/linux/backing-
+> file.h
+> index c939cd222730c..dec7f8f017418 100644
+> --- a/include/linux/backing-file.h
+> +++ b/include/linux/backing-file.h
+> @@ -40,5 +40,31 @@ ssize_t backing_file_splice_write(struct
+> pipe_inode_info *pipe,
+> =C2=A0				=C2=A0 struct backing_file_ctx *ctx);
+> =C2=A0int backing_file_mmap(struct file *file, struct vm_area_struct *vma=
+,
+> =C2=A0		=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct backing_file_ctx *ctx);
+> +struct file *backing_file_real(struct file *user_file);
+> +
+> +/**
+> + * file_real - Return the real file hosting the data
+> + * @file: the file to query
+> + *
+> + * If @file is on a stacking filesystem (e.g. overlayfs) whose data
+> is
+> + * accessed through a backing file, return that backing file.
+> + * Otherwise return @file itself.
+> + *
+> + * The returned file is owned by @file and is valid for as long as
+> the
+> + * caller holds a reference to @file.
+> + *
+> + * The real file is only meant to be used for inspecting and writing
+> + * back the page cache of the data (e.g. sync_file_range(2),
+> cachestat(2)).
+> + * It must not be used for operations that require the credentials
+> or the
+> + * permission checks of the stacking filesystem; those need a
+> dedicated
+> + * file operation (e.g. ->fadvise()).
+> + */
+> +static inline struct file *file_real(struct file *file)
+> +{
+> +	if (!IS_ENABLED(CONFIG_FS_STACK) || likely(!file->f_op-
+> >f_real))
+> +		return file;
+> +
+> +	return backing_file_real(file);
+> +}
+> =C2=A0
+> =C2=A0#endif /* _LINUX_BACKING_FILE_H */
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 5b3a100aba77b..613f7c692a420 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1960,6 +1960,7 @@ struct file_operations {
+> =C2=A0				=C2=A0=C2=A0 struct file *file_out, loff_t
+> pos_out,
+> =C2=A0				=C2=A0=C2=A0 loff_t len, unsigned int
+> remap_flags);
+> =C2=A0	int (*fadvise)(struct file *, loff_t, loff_t, int);
+> +	struct file *(*f_real)(const struct file *);
+> =C2=A0	int (*uring_cmd)(struct io_uring_cmd *ioucmd, unsigned int
+> issue_flags);
+> =C2=A0	int (*uring_cmd_iopoll)(struct io_uring_cmd *, struct
+> io_comp_batch *,
+> =C2=A0				unsigned int poll_flags);
+> diff --git a/mm/filemap.c b/mm/filemap.c
+> index b04be64a5069f..bead492070ed6 100644
+> --- a/mm/filemap.c
+> +++ b/mm/filemap.c
+> @@ -31,6 +31,7 @@
+> =C2=A0#include <linux/hash.h>
+> =C2=A0#include <linux/writeback.h>
+> =C2=A0#include <linux/backing-dev.h>
+> +#include <linux/backing-file.h>
+> =C2=A0#include <linux/folio_batch.h>
+> =C2=A0#include <linux/security.h>
+> =C2=A0#include <linux/cpuset.h>
+> @@ -4782,6 +4783,7 @@ SYSCALL_DEFINE4(cachestat, unsigned int, fd,
+> =C2=A0		struct cachestat __user *, cstat, unsigned int,
+> flags)
+> =C2=A0{
+> =C2=A0	CLASS(fd, f)(fd);
+> +	struct file *real_file;
+> =C2=A0	struct address_space *mapping;
+> =C2=A0	struct cachestat_range csr;
+> =C2=A0	struct cachestat cs;
+> @@ -4804,11 +4806,16 @@ SYSCALL_DEFINE4(cachestat, unsigned int, fd,
+> =C2=A0	if (flags !=3D 0)
+> =C2=A0		return -EINVAL;
+> =C2=A0
+> +	/* The page cache of a stacked file is in its real file */
+> +	real_file =3D file_real(fd_file(f));
+> +	if (IS_ERR(real_file))
+> +		return PTR_ERR(real_file);
+> +
+> =C2=A0	first_index =3D csr.off >> PAGE_SHIFT;
+> =C2=A0	last_index =3D
+> =C2=A0		csr.len =3D=3D 0 ? ULONG_MAX : (csr.off + csr.len - 1)
+> >> PAGE_SHIFT;
+> =C2=A0	memset(&cs, 0, sizeof(struct cachestat));
+> -	mapping =3D fd_file(f)->f_mapping;
+> +	mapping =3D real_file->f_mapping;
+> =C2=A0	filemap_cachestat(mapping, first_index, last_index, &cs);
+> =C2=A0
+> =C2=A0	if (copy_to_user(cstat, &cs, sizeof(struct cachestat)))
