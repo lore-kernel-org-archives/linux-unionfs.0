@@ -1,67 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.238
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795222011;
-	b=jUivfVOn8WzXH3ZaM4J8tpsJR9fu/eaftr/oeNndD+3+90QWbBSoitzICVRk14vw7Ba8
-	 +0OtoyyKiDwMjYHugGQth/Y9xQGjODzIx6Vn/lDXtkhBr5V1mQmKskZ71bN40uiEtVELT
-	 A1h0Y9boLmZmGQSu82x6KuzXwen8SqXQlkS4YSjbtjRn1UMl9y2/ezOryrYhKcWpF900J
-	 cG2UoqdrhwAA8dOHLAqzkDNLjlAMXyKzeBP8Jxlzaa8JjuCVYX2gDUecyvJHLvaOubIX1
-	 4hsXMz/a7NtqsU2p3K2upyVgDSISOO9V5naYjIGyuYuhEhwvgPO0cdMcppdCIYGT3DA==
+	t=1795224213;
+	b=TRJp35emlJKOkP+FSIMe6Ag8L6hByc+WH1Ipnwg1JI+1HdCa3gEBn2vDFmEn7L60CsDJ
+	 uwZwfTG6g5gzXeJ5RJIPpowdRNYbCjvqsDB/3aiW64g9RzuSJjPhUKygcqNk7Shn7Yvx2
+	 oqql1LAQFCPhf542t8mdN2YMt5nwwSsRaEWQXrNdNzXER3U9KWNOhBQG+Z3OYk28hyIxq
+	 9SNGs2V5q9TQRBJuK5Io1LHFLBIHwkXlOGuuj8LdoY9yqjGRsZreZMddxQO2yps+cwsoy
+	 D3phVlfY8YX1NkgDn7fOwwOVnXFrrfr0sT3WxixWCpfXYfMAOi+PfBEufg9QO9r1i4Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795222011;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=kbRdxhX3HS305PksV3ePykfNTOcdvrwcAY3kxlJ7V08=;
-	b=JEvXCxXssND/yiOLeUhWOCy1GvHWs6/a8YTFUHdWU1CmoqeQaleW0ex9Y6bIuT+kxLNq
-	 K3YOpV404PmTQyoZVRWv94Z6xZGJVDYOjqvadT1iysr/bZWUf+78UznZ1RotGIQJOCH3K
-	 kyCWvZyGDwlQjxDydS3cdiVWysUzb+LqHvS91UL6J/FOW89qK7Co3VCL127yNPBC/DBNW
-	 CWSEfKiaP7x0R+sY2fmWVP5V5KmPIZNUTSeRDB/R4qU4+3Ifmt/k1HQrZj49GBAW1Z/He
-	 wZsJ9aVOyd42Mn1ku00eYz7lE7ccR/J5JgLg+8Z+K5X26cXb/tQ6U0fYwsqAm3aqouA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795224213;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer:From:To:Cc:Subject:References:In-Reply-To;
+	bh=C/s9wcJ+8gC3Nb5xrepSAAC9C96LJN04eXTPT7Jkc7c=;
+	b=N5udtVoXXjQPVwz4a8p7XfrLVYQ2niP1Pd5dRMYAG1dj0bKVSMABe9M/gSSFvqzf0EQx
+	 YZUcbFjKAc0RrLmlGfeYKaYNFC6+bws6Lxi3JP1kZAj4i4dW6es77u2IMC68ocOOGOjHE
+	 kyU04NIltMO8OtdDio/pjCR034sWGKI6crGNuF5r2HYAKY8a3Be5Zr+q3+5JzO1R9V1Q2
+	 eOVWnIRlrKmGzqze89AofRsij5jGIG6j9k1z1VlUGePNu82DPblujU6ybjOP8tvrOvboZ
+	 juGugoTfIihdxmFNVaw6bDmjqumgiJ989Y7e3VhLsBdr3KZ0iRbU8lHcrexLv5pEMNQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LQTiYdsK;
-	arc=none smtp.remote-ip=91.218.175.238
-Received: from mta0.migadu.com (out-238.mta0.migadu.com [91.218.175.238])
+	dmarc=pass header.from=paul-moore.com;
+	spf=pass smtp.mailfrom=paul-moore.com;
+	dkim=pass header.d=paul-moore.com header.i=@paul-moore.com header.a=rsa-sha256 header.s=google header.b=TjfjEOc0;
+	arc=none smtp.remote-ip=209.85.219.41
+Received: from mail-qv1-f41.google.com (mail-qv1-f41.google.com [209.85.219.41])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D810606A6BA
-	for <linux-unionfs@vger.kernel.org>; Sat, 21 Nov 2026 00:46:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0D810606A6BA
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97466606A6AC
+	for <linux-unionfs@vger.kernel.org>; Sat, 21 Nov 2026 01:23:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 97466606A6AC
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LQTiYdsK
-X-Envelope-To: linux-unionfs@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=CBLd40Hx75p0dVjcIlXScTHjtjsT7X+6jtrCCJI4bIU=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795222006; v=1; x=1795826806;
- b=LQTiYdsKue0X9kFaAX0RxSiEbE4J0NNupJTGgrT1IWfesxBJ3Fkz1HAZ6NyuqY4wdZZnFggo
- oNTnDd11yAXBUpHCbuzb1soIHi2cAzvl3jkc1g7wz0eyLLBS61x95znxW3UXiabscXEdhljlSLc
- 9SVLg1ge1TCioRpI2Jl9+31k=
-X-Envelope-To: linux-unionfs@vger.kernel.org
-Received: by mta10.migadu.com with ESMTPS id 034ee6cccfff47a1;
-	Sat, 21 Nov 2026 00:46:46 +0000
-X-Mizu-Trace-ID: 034ee6cccfff47a1
-X-Migadu-Flow: FLOW_OUT
-From: Ihor Solodrai <ihor.solodrai@linux.dev>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Giuseppe Scrivano <giuseppe@scrivano.org>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Jiri Olsa <jolsa@kernel.org>,
-	bpf@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org
-Subject: [PATCH vfs v1] selftests/bpf: Match overlayfs open error in uprobe_multi_test
-Date: Fri, 20 Nov 2026 17:46:38 -0700
-Message-ID: <20261121004638.2973704-1-ihor.solodrai@linux.dev>
-X-Mailer: git-send-email 2.56.1
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.a=rsa-sha256 header.s=google header.b=TjfjEOc0
+Received: by mail-qv1-f41.google.com with SMTP id 6a1803df08f44-921342fae7eso16354176d6.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 20 Nov 2026 17:23:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1795224209; x=1795829009; darn=vger.kernel.org;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=C/s9wcJ+8gC3Nb5xrepSAAC9C96LJN04eXTPT7Jkc7c=;
+        b=TjfjEOc0aofEpvFrY7KXYL11LNUhWl2DuCcRBIpqPGojBhPT7K/iBi8R6H+e+xS5+U
+         57JpMW+1HxZDQx9vcDxyE0znqBVsyOswu+Nra4t6TUITj3wR6bWHE/jeo2co37BZxlIP
+         1BXoCxCjAMAHG25xHYIYt6r0mV97y3xmE+8jHSGQZtj2vGWciLZvIh/5WYMSV6DlC8XO
+         fom8Ib+tTQ6nUOrPGhtqzAebhHP0ViJt/NmIUhcveERdwSJJ8JDC3m4qDyCsJLHJs0lD
+         N6kNDNnWFpe/3P5/pieXrSxcxTjb/5fVQg+xguXEo8mdMDKIymt3Fz9bW7rmvNR2Zh8X
+         7x5Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795224209; x=1795829009;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=C/s9wcJ+8gC3Nb5xrepSAAC9C96LJN04eXTPT7Jkc7c=;
+        b=iygF7TNRC75E6fVQ5O4AhE5bWlpNZYYcTA8K41hQVIe8BPTj460e3ogF6ql+sP5rHg
+         sbuRJwJsUXZuvEZZIaVZp0/kCaRNOyshm0AW7Uo9H+FV08SHa90jcMzbjnAReRa+NdED
+         UwYYTHMY8vyyxM2HaVKz/awATxqJsiYec1Ih6fdO+JJDKhfEID3cTGm72kMfLTRz+Skk
+         A0Z0t6zX+gfspDaB6KsxIZ2In8DPkPwBzgw5LRwva6F0pCAxXcJCmZAte6g5kF+k2lbx
+         4+TLXSCuA3+RrCDAUke4X3OIw5hXUuQhikuPvmPPJGQmUY49HwSLXt+CIt0Ss5nNESbA
+         DrtQ==
+X-Forwarded-Encrypted: i=1; AL+hErE5vDlUAa8BhdF56XeN/ouyAblbIb1hwZ0SLCRBNyhiRnlaN+ooEJ0rtbReiQgF669WEvzJM0SNb0uJMpZn@vger.kernel.org
+X-Gm-Message-State: APuU4Z975yYH/3RxzrFkZTrz24oTleI7XeJjdQwUl01ZSzHRKKedhoHJ
+	VNE2Cp43gy6sYc9mPi13YrvIarSmHCRMSNw4VqJhHHBScwyes4qI0cyIJG4kmZOJqJaXUKUl5zo
+	PA9s=
+X-Gm-Gg: AZFdTZcuz++8xkPEMlO7c+N8sYNzpIF+w+zbiRJletfjRWZ/TJzjlx+G/vgvcjWnQef
+	AAcJkRrfvLl73rZ4IvHIj/QXWDtbDcyv38h3Rhegt/8v6XKNaGhMtVCssinBduQv8xXiTR3UaS8
+	XqxOnzFU+gMX8Dr2K6xxGSZingHw9VWuxq63Av3121ZXmcsneWM/QmFRKW66fJSR8yhKTO0Rs/s
+	DHj7EPeu0HpyUStdAZP/KBgYUvM5bP03C5LChSYfBsAiDziGh+xyOFNoIJb/aycZD/leqaqC0oI
+	6MtndorNaynvbJSiJhHPD4abdVLGv/hWPlrSquyrEmssSBUMGYkq2mMB0R/d32gS/sihciSG6Zh
+	DuanuSfA02pZ3lgtwTyBLzpbhRT3chDOU9Mn68T2mvBywLfdmZ5nLaJYi10YD+HG/nFh6D62vti
+	bvGUMy62kpEqlj+iXBR7EILjKiTXCWLx3rgwhSfaVJ/Jzc27OoVFN+xFJv+kXpbGN4Yw94u8tRW
+	Xh8q+sMUAUUQdMwyxu7v9aLcW2x8tMaSVHHvq25/Bsx5DlJOh7Cin21TfSJPH3QDAienjuUuTzu
+	3anqX2F0HBasawBMnfYC+mPnLurPtLM5fQT/uXqvP/nESG1t/WgHx/de5iNrdXymVdbnb1XuLwG
+	8p9Zqs5iZKK8bDxD9h0hnMa9Nz47kyw==
+X-Received: by 2002:a05:6214:29e8:b0:91b:8b2b:5a0 with SMTP id 6a1803df08f44-92134a59f89mr82088546d6.23.1795224209503;
+        Fri, 20 Nov 2026 17:23:29 -0800 (PST)
+Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-921347a0b6bsm40207456d6.1.2026.11.20.17.23.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Nov 2026 17:23:28 -0800 (PST)
+Date: Fri, 20 Nov 2026 20:23:28 -0500
+Message-ID: <7695c09e696343176f9d1e1c3a3f4105@paul-moore.com>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -70,106 +91,64 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0 
+Content-Type: text/plain; charset=UTF-8 
+Content-Transfer-Encoding: 8bit 
+X-Mailer: pstg-pwork:20261120_1711/pstg-lib:20261120_1707/pstg-pwork:20261120_1711
+From: Paul Moore <paul@paul-moore.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: James Morris <jmorris@namei.org>, "Serge E . Hallyn" <serge@hallyn.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, Stephen Smalley <stephen.smalley.work@gmail.com>, Vivek Goyal <vgoyal@redhat.com>, Christian Brauner <brauner@kernel.org>, Chris Mason <mason@kernel.org>, Josef Bacik <josef@toxicpanda.com>, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH] lsm: put the copy up creds when an LSM hook fails
+References: <20261120073717.1588080-1-amir73il@gmail.com>
+In-Reply-To: <20261120073717.1588080-1-amir73il@gmail.com>
 
-The attach_api_fails_ovl_no_data subtest expects BPF_LINK_CREATE to
-return -ENOENT. Overlayfs commit 0d5e729c515f ("ovl: return EIO if the
-lowerdata is missing") maps the lookup error to -EIO when a metacopy
-file exists but its backing data is missing. This fails the assertion
-in aarch64 linux-next CI with "actual -5 != expected -2".
+On Nov 20, 2026 sashiko-bot@kernel.org wrote:
+> 
+> security_inode_copy_up() leaks a struct cred when one LSM allocates new
+> creds for an overlayfs copy up and a later LSM then denies the copy up.
+> One such pair is SELinux and a BPF LSM program that denies
+> inode_copy_up. Enabling both LSMs and loading the program requires
+> root. After that, each denied copy up leaks one struct cred, no matter
+> which user triggers it.
+> 
+> The hook calls each enabled LSM in turn. SELinux or Smack allocates the
+> creds and returns them through a pointer argument of the hook. A later
+> LSM can still return an error, and the hook then returns that error with
+> the creds still allocated. Its kernel-doc does not say that the caller
+> owns them on error, and the only caller, overlayfs, does not put them.
+> 
+> Reproduced with SELinux and such a BPF LSM program: 36000 failed opens
+> and chmods by an unprivileged user on an overlayfs mount left 36000
+> struct cred objects allocated, which kmemleak reported.
+> 
+> Fix this by putting the creds in security_inode_copy_up() when the hook
+> fails, so the caller gets either creds that it owns or none.
+> 
+> Fixes: d8ad8b496184 ("security, overlayfs: provide copy up security hook for unioned files")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chris Mason <mason@kernel.org>
+> [amir: put the creds in security_inode_copy_up() instead of in overlayfs]
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> Hi Paul,
+> 
+> Apologies for missed the LSM list and maintainers in first posting [1].
+> Resending with proper Cc list.
+> 
+> I think this LSM hook was introduced with confusing contact for chained
+> LSMs and this change makes the hook contract more sane in this case.
+> 
+> Thanks,
+> Amir.
+> 
+> [1] https://lore.kernel.org/r/20261104082128.3573690-1-amir73il@gmail.com/
+> 
+>  security/security.c | 14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
 
-Check that the overlay entry exists with O_PATH, then attach the
-uprobe before opening the file for reading so the attach still
-exercises lazy lookup. Compare the attach error with the error
-reported by open() on the same file.
+Thanks Amir, Chris - this looks good to me, I'm going to merge this into
+lsm/stable-7.4 and I'll send it up to Linus after it has had a few days
+in linux-next.
 
-Fixes: d21b93ab6068 ("selftests/bpf: add uprobe_multi test on overlayfs without data")
-Signed-off-by: Ihor Solodrai <ihor.solodrai@linux.dev>
-
----
-
-Caught by BPF CI on linux-next:
-https://github.com/kernel-patches/bpf/actions/runs/44811929601/job/136556160720
-
----
- .../bpf/prog_tests/uprobe_multi_test.c        | 29 ++++++++++++++-----
- 1 file changed, 22 insertions(+), 7 deletions(-)
-
-diff --git a/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c b/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
-index 907d8c6d5ec9..e0ebe578943b 100644
---- a/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
-+++ b/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
-@@ -588,6 +588,7 @@ enum ovl_no_data_stage {
- struct ovl_no_data_result {
- 	enum ovl_no_data_stage stage;
- 	int err;
-+	int open_err;
- };
- 
- /*
-@@ -628,20 +629,33 @@ static void ovl_no_data_child(int prog_fd, const char *dir, int wfd)
- 		     strlen("/missing"), 0))
- 		goto out_errno;
- 
--	res.stage = OVL_NO_DATA_MOUNT;
- 	snprintf(data, sizeof(data), "lowerdir=%s/lower::%s/data", dir, dir);
- 	snprintf(path, sizeof(path), "%s/merged", dir);
--	if (mount("overlay", path, "overlay", 0, data))
-+	if (mount("overlay", path, "overlay", 0, data)) {
-+		res.stage = OVL_NO_DATA_MOUNT;
- 		goto out_errno;
-+	}
- 
--	res.stage = OVL_NO_DATA_ATTACH;
- 	snprintf(path, sizeof(path), "%s/merged/f", dir);
-+	/* Check that the overlay entry exists without resolving its lowerdata. */
-+	fd = open(path, O_PATH);
-+	if (fd < 0)
-+		goto out_errno;
-+	close(fd);
-+
-+	res.stage = OVL_NO_DATA_ATTACH;
- 	opts.uprobe_multi.path = path;
- 	opts.uprobe_multi.offsets = &offset;
- 	opts.uprobe_multi.cnt = 1;
- 	res.err = bpf_link_create(prog_fd, 0, BPF_TRACE_UPROBE_MULTI, &opts);
- 	if (res.err >= 0)
- 		close(res.err);
-+
-+	fd = open(path, O_RDONLY);
-+	if (fd < 0)
-+		res.open_err = -errno;
-+	else
-+		close(fd);
- 	goto out;
- 
- out_errno:
-@@ -653,9 +667,8 @@ static void ovl_no_data_child(int prog_fd, const char *dir, int wfd)
- }
- 
- /*
-- * The data of a metacopy file in an overlayfs data-only layer is looked up
-- * lazily. If it can't be found attaching must fail with the error from the
-- * lookup.
-+ * Opening a metacopy file and attaching a uprobe both resolve its lowerdata
-+ * lazily. Attaching must report the same lookup error as open().
-  */
- static void test_attach_api_fails_ovl_no_data(void)
- {
-@@ -701,7 +714,9 @@ static void test_attach_api_fails_ovl_no_data(void)
- 	}
- 	if (!ASSERT_EQ(res.stage, OVL_NO_DATA_ATTACH, "setup"))
- 		goto cleanup_pipe;
--	ASSERT_EQ(res.err, -ENOENT, "link_create");
-+	if (!ASSERT_TRUE(res.open_err == -ENOENT || res.open_err == -EIO, "open_errno"))
-+		goto cleanup_pipe;
-+	ASSERT_EQ(res.err, res.open_err, "link_create");
- 
- cleanup_pipe:
- 	if (pipefd[0] >= 0)
-
-base-commit: d21b93ab6068a832855d5d9d31c4b02c91245227
--- 
-2.56.1
-
+--
+paul-moore.com
