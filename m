@@ -1,54 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.238
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795189455;
-	b=NoAXFcFDoM0X47DYGsdTf05b1SferWjBCbI4ktXsjQvyWRTVd/wJ6gx128m/k/DBgr/I
-	 LmGzQh3Ej+gxddHZ5ghIlmVh487fLmFH7S6peKMmoqCq5qkBMR1tF8nVeD1sLiVxtMVBF
-	 bLCG9hS/rwp+Q+dU7/W65M0LSBEs6KGgX7KQ/05Eql0Sgw8tFScUwWa0LEGuf7r4QqkEp
-	 CdAffTwX/eCKWlUChfktdxzqz7vGZsN66StsLpBBz1cNX9yqA1pIgWD+evm3XKVbZxker
-	 JncB8uxzPdK8Mne/tD17w9AnHqwwTUfvFHoqSm8HGjl4oREjWuVXws79/7Wr+rKimeg==
+	t=1795222011;
+	b=jUivfVOn8WzXH3ZaM4J8tpsJR9fu/eaftr/oeNndD+3+90QWbBSoitzICVRk14vw7Ba8
+	 +0OtoyyKiDwMjYHugGQth/Y9xQGjODzIx6Vn/lDXtkhBr5V1mQmKskZ71bN40uiEtVELT
+	 A1h0Y9boLmZmGQSu82x6KuzXwen8SqXQlkS4YSjbtjRn1UMl9y2/ezOryrYhKcWpF900J
+	 cG2UoqdrhwAA8dOHLAqzkDNLjlAMXyKzeBP8Jxlzaa8JjuCVYX2gDUecyvJHLvaOubIX1
+	 4hsXMz/a7NtqsU2p3K2upyVgDSISOO9V5naYjIGyuYuhEhwvgPO0cdMcppdCIYGT3DA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795189455;
-	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To:User-Agent;
-	bh=MpAFJKoRLBHWua5zVfwBOUWeo6j4cvTXzjQs1AqjA18=;
-	b=QBQU3ZgAS0wmjuFY+vBYZQCSv/ELGhrP6J4lrzLcFskSQ4/d586e1AMwRKplM+XVpEWI
-	 P3xM6dbFoViMcZKQMqZF30v8pKcq7hgAE5FFDvLvt33oZirNiNL7AGQN/vYmVwTPmiqEX
-	 koaJBJm6VkI3gP/luKBC9GPfTnMSQuPolkNqk7dMS8Blx++8wivND8QxhbSpNI0+lZeYq
-	 thf7bsx0P71tIQ9PKeOHqPY9+sUdPJwLOqS33Um1mXGv1xOtu6PTYZ6Nrdsp89rkc6Uiq
-	 xR73LxEnFmQQY7jmURRWryNGBgrugAwiO5Oqr5SgPhaiaaehFGg5jsuc3hVeBAseQnA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795222011;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=kbRdxhX3HS305PksV3ePykfNTOcdvrwcAY3kxlJ7V08=;
+	b=JEvXCxXssND/yiOLeUhWOCy1GvHWs6/a8YTFUHdWU1CmoqeQaleW0ex9Y6bIuT+kxLNq
+	 K3YOpV404PmTQyoZVRWv94Z6xZGJVDYOjqvadT1iysr/bZWUf+78UznZ1RotGIQJOCH3K
+	 kyCWvZyGDwlQjxDydS3cdiVWysUzb+LqHvS91UL6J/FOW89qK7Co3VCL127yNPBC/DBNW
+	 CWSEfKiaP7x0R+sY2fmWVP5V5KmPIZNUTSeRDB/R4qU4+3Ifmt/k1HQrZj49GBAW1Z/He
+	 wZsJ9aVOyd42Mn1ku00eYz7lE7ccR/J5JgLg+8Z+K5X26cXb/tQ6U0fYwsqAm3aqouA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lst.de;
-	spf=pass smtp.mailfrom=lst.de;
-	arc=none smtp.remote-ip=213.95.11.211
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LQTiYdsK;
+	arc=none smtp.remote-ip=91.218.175.238
+Received: from mta0.migadu.com (out-238.mta0.migadu.com [91.218.175.238])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C82E606A325;
-	Fri, 20 Nov 2026 15:44:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8C82E606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id A190E68AFE; Fri, 20 Nov 2026 16:44:09 +0100 (CET)
-Date: Fri, 20 Nov 2026 16:44:09 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: Jan Kara <jack@suse.cz>
-Cc: Christian Brauner <brauner@kernel.org>, Christoph Hellwig <hch@lst.de>,
-	Shakeel Butt <shakeel.butt@linux.dev>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Jens Axboe <axboe@kernel.dk>, linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, io-uring@vger.kernel.org,
-	linux-block@vger.kernel.org, linux-nvme@lists.infradead.org,
-	linux-scsi@vger.kernel.org, target-devel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
-	linux-nfs@vger.kernel.org, stable@vger.kernel.org,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>,
-	Boqun Feng <boqun@kernel.org>, Waiman Long <longman@redhat.com>
-Subject: Re: [PATCH 07/12] zloop: take freeze protection when recording
- write pointers
-Message-ID: <20261120154409.GD28611@lst.de>
-References: <20261114-work-fs-frozen_writes-v1-0-f5ae61c898b1@kernel.org> <20261114-work-fs-frozen_writes-v1-7-f5ae61c898b1@kernel.org> <20261116064820.GB2964@lst.de> <20261116-biegen-flaute-flanke-cebddae97444@brauner> <t73376p7ip4bvetjbqijzugvglhi2rdxsqt62l3uuqtmt3tqgk@2rlkkdy33hwk>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D810606A6BA
+	for <linux-unionfs@vger.kernel.org>; Sat, 21 Nov 2026 00:46:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0D810606A6BA
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LQTiYdsK
+X-Envelope-To: linux-unionfs@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=CBLd40Hx75p0dVjcIlXScTHjtjsT7X+6jtrCCJI4bIU=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1795222006; v=1; x=1795826806;
+ b=LQTiYdsKue0X9kFaAX0RxSiEbE4J0NNupJTGgrT1IWfesxBJ3Fkz1HAZ6NyuqY4wdZZnFggo
+ oNTnDd11yAXBUpHCbuzb1soIHi2cAzvl3jkc1g7wz0eyLLBS61x95znxW3UXiabscXEdhljlSLc
+ 9SVLg1ge1TCioRpI2Jl9+31k=
+X-Envelope-To: linux-unionfs@vger.kernel.org
+Received: by mta10.migadu.com with ESMTPS id 034ee6cccfff47a1;
+	Sat, 21 Nov 2026 00:46:46 +0000
+X-Mizu-Trace-ID: 034ee6cccfff47a1
+X-Migadu-Flow: FLOW_OUT
+From: Ihor Solodrai <ihor.solodrai@linux.dev>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Giuseppe Scrivano <giuseppe@scrivano.org>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Jiri Olsa <jolsa@kernel.org>,
+	bpf@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH vfs v1] selftests/bpf: Match overlayfs open error in uprobe_multi_test
+Date: Fri, 20 Nov 2026 17:46:38 -0700
+Message-ID: <20261121004638.2973704-1-ihor.solodrai@linux.dev>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -58,32 +71,105 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <t73376p7ip4bvetjbqijzugvglhi2rdxsqt62l3uuqtmt3tqgk@2rlkkdy33hwk>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 16, 2026 at 12:57:09PM +0100, Jan Kara wrote:
-> On Mon 16-11-26 10:41:49, Christian Brauner wrote:
-> > Fwiw, the check can't go into __vfs_setxattr(), __vfs_setxattr_noperm()
-> > or __vfs_removexattr(). cap_inode_killpriv(), IMA and EVM call those
-> > from ->write_iter() via file_remove_privs() and kiocb_start_write()
-> > hides the freeze protection from lockdep for aio and io_uring. I have
-> > not bothered to figure out why. Maybe you already know? In any case,
-> > until that's fixed we can't place it there which means this doesn't
-> > catch IMA/EVM at which point this patch becomes pointless.
-> 
-> It's because of AIO and io_uring - if you don't hide the protection from
-> lockdep, it will complain about it when returning to userspace while IO is
-> still in flight (and thus protection is held). Sadly lockdep does not
-> support releasing resources by anybody else than the process which acquired
-> it so we fool it in this way...
+The attach_api_fails_ovl_no_data subtest expects BPF_LINK_CREATE to
+return -ENOENT. Overlayfs commit 0d5e729c515f ("ovl: return EIO if the
+lowerdata is missing") maps the lookup error to -EIO when a metacopy
+file exists but its backing data is missing. This fails the assertion
+in aarch64 linux-next CI with "actual -5 != expected -2".
 
-Can we try to escalate this to the lockdep folks instead of piling hacks
-deeper and deeper?
-> 
-> 								Honza
-> -- 
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
----end quoted text---
+Check that the overlay entry exists with O_PATH, then attach the
+uprobe before opening the file for reading so the attach still
+exercises lazy lookup. Compare the attach error with the error
+reported by open() on the same file.
+
+Fixes: d21b93ab6068 ("selftests/bpf: add uprobe_multi test on overlayfs without data")
+Signed-off-by: Ihor Solodrai <ihor.solodrai@linux.dev>
+
+---
+
+Caught by BPF CI on linux-next:
+https://github.com/kernel-patches/bpf/actions/runs/44811929601/job/136556160720
+
+---
+ .../bpf/prog_tests/uprobe_multi_test.c        | 29 ++++++++++++++-----
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c b/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
+index 907d8c6d5ec9..e0ebe578943b 100644
+--- a/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
++++ b/tools/testing/selftests/bpf/prog_tests/uprobe_multi_test.c
+@@ -588,6 +588,7 @@ enum ovl_no_data_stage {
+ struct ovl_no_data_result {
+ 	enum ovl_no_data_stage stage;
+ 	int err;
++	int open_err;
+ };
+ 
+ /*
+@@ -628,20 +629,33 @@ static void ovl_no_data_child(int prog_fd, const char *dir, int wfd)
+ 		     strlen("/missing"), 0))
+ 		goto out_errno;
+ 
+-	res.stage = OVL_NO_DATA_MOUNT;
+ 	snprintf(data, sizeof(data), "lowerdir=%s/lower::%s/data", dir, dir);
+ 	snprintf(path, sizeof(path), "%s/merged", dir);
+-	if (mount("overlay", path, "overlay", 0, data))
++	if (mount("overlay", path, "overlay", 0, data)) {
++		res.stage = OVL_NO_DATA_MOUNT;
+ 		goto out_errno;
++	}
+ 
+-	res.stage = OVL_NO_DATA_ATTACH;
+ 	snprintf(path, sizeof(path), "%s/merged/f", dir);
++	/* Check that the overlay entry exists without resolving its lowerdata. */
++	fd = open(path, O_PATH);
++	if (fd < 0)
++		goto out_errno;
++	close(fd);
++
++	res.stage = OVL_NO_DATA_ATTACH;
+ 	opts.uprobe_multi.path = path;
+ 	opts.uprobe_multi.offsets = &offset;
+ 	opts.uprobe_multi.cnt = 1;
+ 	res.err = bpf_link_create(prog_fd, 0, BPF_TRACE_UPROBE_MULTI, &opts);
+ 	if (res.err >= 0)
+ 		close(res.err);
++
++	fd = open(path, O_RDONLY);
++	if (fd < 0)
++		res.open_err = -errno;
++	else
++		close(fd);
+ 	goto out;
+ 
+ out_errno:
+@@ -653,9 +667,8 @@ static void ovl_no_data_child(int prog_fd, const char *dir, int wfd)
+ }
+ 
+ /*
+- * The data of a metacopy file in an overlayfs data-only layer is looked up
+- * lazily. If it can't be found attaching must fail with the error from the
+- * lookup.
++ * Opening a metacopy file and attaching a uprobe both resolve its lowerdata
++ * lazily. Attaching must report the same lookup error as open().
+  */
+ static void test_attach_api_fails_ovl_no_data(void)
+ {
+@@ -701,7 +714,9 @@ static void test_attach_api_fails_ovl_no_data(void)
+ 	}
+ 	if (!ASSERT_EQ(res.stage, OVL_NO_DATA_ATTACH, "setup"))
+ 		goto cleanup_pipe;
+-	ASSERT_EQ(res.err, -ENOENT, "link_create");
++	if (!ASSERT_TRUE(res.open_err == -ENOENT || res.open_err == -EIO, "open_errno"))
++		goto cleanup_pipe;
++	ASSERT_EQ(res.err, res.open_err, "link_create");
+ 
+ cleanup_pipe:
+ 	if (pipefd[0] >= 0)
+
+base-commit: d21b93ab6068a832855d5d9d31c4b02c91245227
+-- 
+2.56.1
+
