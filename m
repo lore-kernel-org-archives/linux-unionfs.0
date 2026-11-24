@@ -1,55 +1,110 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795523387;
-	b=oMeqNL4aeb80gvStMmDXsUJfSiNn2kjwLgS2al5lMKgw8pF5GKk691nLbJZASo+WM8qm
-	 ssg5SiDpg0qw7WV2+uQbsY1LSVAfj8acR4rP+F3HRlgW3LphTKzde1PlgeZT4VHeobHjq
-	 PAaQB1GASF5oYZ19Hw88Q7NRxgYTHZ4NMXejjY8wXomaE+sewsYrRzvs6nxMml/ecVvqL
-	 VfGEZ6zMeMpnzdwiIiLyugSYITtbUoIxKAo0+MBjzQ8hWcs9qFtJmaffLWYWFSSq/lQxP
-	 ZSzheGQDBYvKxMMb9c7jKmezyMbFGFS4FD13uBh4EZC567HiQCMUfHcV+17Vb/q/2kQ==
+	t=1795539968;
+	b=EvdsyOZIz98ohkRW3LB76L8eNVL0UZjIvTe5CFqih0Vc9PZrp+Ka7A7lGSXQU+CCh+bj
+	 oM0o0zxw31MLfUm8MGGd/gUr9ECW3vWpqoOwdkOJHs9XO+NnkbOnCJ5figdeir2n7tG6g
+	 lmoStfzmee3gaKvmmrVaqPMK7h999HUKtYqCkJetGrZUPxFilQThhXT3tmKaCcepZgCfK
+	 4wmMnVOi4PHQKwlmD25QpksfaMLGNggH9BtXHKDuof+EC0TDUuYmEpxZRTpwkR+m3/n70
+	 eXpZJ2aRafIs3KxSGKo70pyzR4vRfSE/yRKhHSzkJ6uf+xZvD9kDXB+IoxqGCGEn57Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795523387;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=OrbL0iN+2LRiOGCmygo1O7FbkWbQaLnpAeE9v9sRdrc=;
-	b=OwdcNq/NNVKtqkcdgOd6h2GzSaLaE4v1VTBMTmmEeU9zBOgFykReGEozYuB2IO9WdkBB
-	 zf6F7ob9wgFAw1yL+AMiNYn/CeVcPC4ebU/xRGEo51N6oBPB4iMK3RIDmaZy9grfOsbx1
-	 rozJtPmSsgv6nJX7PV4AbifEwR9JPFU3TArADJ0/x9y3nHkPA9XS8DwxwGqDOwVElDpR7
-	 CnawZHm2yP+UuWdUieN6kYKd4J3KO7OAPJaxaylM7zVAavQfIqehEGZUys1J4/TsUEBzu
-	 djQhPc1namnT0VI5xjkkc61yXaI0xXMd7o1v4b21ICtxt5hw+TKCTl7l5gRAAX5V0vg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795539968;
+	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
+	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spamd-Result:X-Rspamd-Server:X-Rspamd-Action:
+	 X-Spam-Flag:X-Spam-Score:X-Spam-Level:X-Rspamd-Queue-Id;
+	bh=3H/OahWV+3RChA14ZDJSZnina6/d+GytEJVi+69LbEU=;
+	b=eIqNJkxpLCxoxAX71GVFXTE4+UExMRNJRzmDRaGD4HvpXBCh1LFVSsoWUC22fIhGcqFF
+	 xxAmpVLEOzhjXEzXkldRPeTHUTrCvlzaETPXQYKYpN3aEBm2eyIuegrmSeoFAFek7MCMF
+	 g0pMdm9WoCgxIXFV4nPgDsgBTYEnL1Du7vx7FpixMCrg1b/9TZ4N9FpkpP5wRGQA8w5gx
+	 zCifb2HvvGxBwxKO96uRpEa2ggsu8DVp6F5mQS1NIj9VkjHUBxiCjVh4MkCbn5OBuxELm
+	 VrUBmmlzK32qSwJ0oUwn0z3jzwa7NQFv47nMiejFyqyVGdlLVECJZgkf/i4CP95a98g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IxZJskA5;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=suse.cz;
+	spf=pass smtp.mailfrom=suse.cz;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=GUHb7dR8;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=jl13DaVU;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=FyD4ctRM;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=5hH8EiLM;
+	arc=none smtp.remote-ip=195.135.223.130
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3B6606A31E;
-	Tue, 24 Nov 2026 12:29:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3836D606A31E;
+	Tue, 24 Nov 2026 17:06:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3836D606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IxZJskA5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 565B61F000CA;
-	Tue, 24 Nov 2026 12:29:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795523387;
-	bh=OrbL0iN+2LRiOGCmygo1O7FbkWbQaLnpAeE9v9sRdrc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=IxZJskA5+QcoNa9vavbtj/dqyS1cZ89P7oWPE90T1efUvTTbud13NNz5r1P8J/56Q
-	 4V5jOasHxYCW8dwMLGGIKhxrZSEUs0F4qQ6NSFVKIX/LgxzW7VZR4vj1fJbq6FezrV
-	 KEBFQwn6GIhLX91kXC+AfoxsnAc7miovuV3cb4YwbgqW206cWKX5n8HAa1KIbi23aR
-	 gXAqbisky9oMuq96n5jVZHxfDEyAdpb5yjwRNUSGYRgY2ZRBLF8IKSpLMGbjIePSXR
-	 f8yBHGrqK0SryzTG9p0dVWNmIykllfVN91XyoPoerXhUkLQXapTP209mCcOpyhxZR2
-	 yveOQUs6qf/gQ==
-Date: Tue, 24 Nov 2026 13:29:41 +0100
-From: Carlos Maiolino <cem@kernel.org>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=GUHb7dR8;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=jl13DaVU;
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=FyD4ctRM;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=5hH8EiLM
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 17CAC21EA6;
+	Tue, 24 Nov 2026 17:06:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1795539966; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=3H/OahWV+3RChA14ZDJSZnina6/d+GytEJVi+69LbEU=;
+	b=GUHb7dR8DJcZCqltWabaoCMras6AdDniYmZhte7Kv3mosa4KVlVWDPqtEmx8cG2tjgpNi3
+	+nwFoigcsIzkC33vA/WNyrwkyv6KwVopZqq8CMB1yV6p0kPwe+Gj6ICS3WWDTiN8yLvhBi
+	BG/zx73fiaVH4cThpt5CkeqGjXBTrbM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1795539966;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=3H/OahWV+3RChA14ZDJSZnina6/d+GytEJVi+69LbEU=;
+	b=jl13DaVUtIuXwE8gkzhwqa+lmoyR8acxkuwi++RjMoBOZqSmaf20AgDdIwkNkXlcfCfkus
+	2C5aS1H0ceKbxbDQ==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=FyD4ctRM;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=5hH8EiLM
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1795539964; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=3H/OahWV+3RChA14ZDJSZnina6/d+GytEJVi+69LbEU=;
+	b=FyD4ctRMa6vURRKaq+lEiQnTTsufczdXTOD+TgEpAd4Ugmc8TISjBPDkWxxZ22VzwGwWDq
+	3OCxg/v0esF87RkH+wNknxFIroaJeOdBR7Vj7kuEAyh2kmFdB31hts7+jFCcfkuCdPvj/9
+	b8qCwFiimMRe+FT8q3nCtENsWLgmAEA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1795539964;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=3H/OahWV+3RChA14ZDJSZnina6/d+GytEJVi+69LbEU=;
+	b=5hH8EiLMLcRIlXipgzw7UImf8yYu80scHY0CPwrmyI4gmq48c/V1RAsb2+qt4WKZ4uo4Y6
+	AdtQZNL4sjXkH0Ag==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id DE6B11339F;
+	Tue, 24 Nov 2026 17:06:03 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id cAOALfvDBWulUQAAD6G6ig
+	(envelope-from <jack@suse.cz>); Tue, 24 Nov 2026 17:06:03 +0000
+Received: by quack.suse.cz (Postfix, from userid 1000)
+	id 6BA2127A34; Tue, 24 Nov 2026 18:06:03 +0100 (CET)
+Date: Tue, 24 Nov 2026 18:06:03 +0100
+From: Jan Kara <jack@suse.cz>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Christian Brauner <brauner@kernel.org>, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, 
 	Chris Mason <mason@kernel.org>, Christoph Hellwig <hch@lst.de>, Theodore Ts'o <tytso@mit.edu>, 
-	Alexander Mikhalitsyn <alex@amutable.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	stable@vger.kernel.org
+	Carlos Maiolino <cem@kernel.org>, Alexander Mikhalitsyn <alex@amutable.com>, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, stable@vger.kernel.org
 Subject: Re: [PATCH v2] xattr: enforce the name and size limits for in-kernel
  callers
-Message-ID: <awWBG4zMDTAk2Q4n@cronus.toxiclabs.cc>
+Message-ID: <p3k36hsnj5ucuzbu7e2x6mtlr6rku3j4ec2ighu4td6tbllbzd@5zfm6yvgttsi>
 References: <20261123113513.1910906-1-amir73il@gmail.com>
  <20261123165807.1939942-1-amir73il@gmail.com>
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -64,8 +119,42 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20261123165807.1939942-1-amir73il@gmail.com>
+X-Spamd-Result: default: False [-13.01 / 50.00];
+	SUSE_INTERNAL_BYPASS(-9.00)[];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	RCVD_COUNT_THREE(0.00)[3];
+	FREEMAIL_TO(0.00)[gmail.com];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[13];
+	MIME_TRACE(0.00)[0:+];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RCVD_TLS_LAST(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MISSING_XM_UA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:email,suse.cz:dkim,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.com:email]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -13.01
+X-Spam-Level: 
+X-Rspamd-Queue-Id: 17CAC21EA6
 
-On Mon, Nov 23, 2026 at 05:58:07PM +0100, Amir Goldstein wrote:
+On Mon 23-11-26 17:58:07, Amir Goldstein wrote:
 > The xattr system calls refuse a name longer than XATTR_NAME_MAX and a
 > value larger than XATTR_SIZE_MAX, but the VFS helpers do not. An
 > in-kernel caller may pass a name or a size that it got from another
@@ -76,6 +165,13 @@ On Mon, Nov 23, 2026 at 05:58:07PM +0100, Amir Goldstein wrote:
 > 
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+
+Looks sensible. Feel free to add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
 > ---
 > 
 > Changes since v1:
@@ -106,14 +202,6 @@ On Mon, Nov 23, 2026 at 05:58:07PM +0100, Amir Goldstein wrote:
 > +	return 0;
 > +}
 > +
-
-I'd use a more specific naming like xattr_check_name_len() to avoid
-confusion, but not that I'm passionate about it :)
-
-If we are trying to prevent invalid names from in-kernel callers,
-shouldn't this also protect against a zero len?
-
-
 >  /*
 >   * Look for any handler that deals with the specified namespace.
 >   */
@@ -184,3 +272,6 @@ shouldn't this also protect against a zero len?
 > -- 
 > 2.56.1
 > 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
