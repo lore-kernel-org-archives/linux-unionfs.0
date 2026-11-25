@@ -1,98 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.199
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795546686;
-	b=EvLT/WGSmR7vb3HF3zj/z4xorWTbmRS9YQ5oeGXXQnvAq8wDjbZ0JIwPdU8xrd07nHYT
-	 5XZb9MXngjSHW/xr8bJLR5KMTWzxvnRQgBrdUaXjPPXwvdhg0QRAMsc2dXf23BFOI6BK4
-	 vRviyOC1MfmmPv8u2pZ5136X0Gg94zaVl+fRiy/TycmfF9Qc0K7Mz+RIBWB/n+0ITadm9
-	 9eh0H0ONcuK7lEKxpCxZjsb1gexByjVcsYSytfnSGhG9KpTS6YTS1ngn4SKpa2KPYt8uk
-	 Cd0MILAtB66YatPYpMwIM0l85KAX/1JBmnWrTx2ZGN/usxO9uYj5mRrg/zHe94VVqHQ==
+	t=1795573770;
+	b=MRt6A0dmZOxzKicMX3Yz1CKOHrEXf2w4TLsGlsXeQLzI6E3JaNLP0mXSo9H3Q9lz4iti
+	 1sDm5xeJjN9a0kXzp+cly8P/PfBoVXQbW8AT53DgAbnUsq2SU6X9s8xTe2XBCLaoqkrDg
+	 DWifT5qQA4Y7ZEcbCEBj0LEaOdnSvaoBVh/rCAgf/HHKEmeRt6+Z5A4eBpJE3nhIFyw8H
+	 5Exnc9OylmmSme7fRBtB1RcQQDCV3Op/YXNeBuwvDm95LOtf2rgFCGEqG4lGIiqPAASrX
+	 Ts+PvBSOEeDj9rdM0jGFxHAuvwgo4RHZFCEU3NCzRMpGq/FC3xt6/utC2HFiO+InwEg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795546686;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
-	 Received:Received:Received:Received:Message-ID:Subject:From:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date:
-	 MIME-Version:User-Agent:X-TM-AS-GCONF:X-Proofpoint-Reinject:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
-	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=uqq04Dy6isK/nibhKSp5arYzUNNXHVOftTNvu6kl/OA=;
-	b=WJ73aw6ylyPK4X6DHB2I2qVG+h9pZIYMOar+jqAU8y1Cg0lTfxh2wqlPygLCGB6+lcCk
-	 OQ1x04U/UElsV56PRIh3Ml40OrC+xhJbuyvbPdear3HJWMMZ4O368sahmSl/3u64vwz/2
-	 safvhhmFKqLFwMY6QaLFJqctjJpaDKhGGpEAm/ecZzXt3V+Kr3YSY0Ga6RDPM2cIWlhnM
-	 bNk756dTN028PFe4+emmk7ih0iVX9e8OrT8U/r9J4tbwBfumw6NolYmGY5ZsyI5J8JsR3
-	 GKPjkPhwc1UBPRh7KwiBDUgULLIUcWU+6nN2mF12aZ0cFx1z77yFxPwa+YVfvx1uhMQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795573770;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:In-Reply-To:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=e7Cl89+R1Vj7SXxz2atxPq7wxZKUNKR/lRW9u+O9qks=;
+	b=m+NWkY4LK0OonAI4qkuQ2HpqrMufyinu/Oi5CPUH6tapol58bOVOkI6JZw1vqo3RRlAX
+	 4xZQEKXxfbfx76oy881uyl4X76PzpBAUYyvxzD3rr5wSanXg6dWtOPHsrY5PMPHXvj27t
+	 R8okn2PyDaZFzKC8T3NQ5ehnecRf2IzP1dV1MfPV2DoLnS10dQEsLreXR0wRGGRdg2Zd5
+	 Hv9kT6hUjOwJ1UQzEjhPN0uyMDBIdt2RHOZBNoEz8FoC53d/7Jzm8Xt9JalzbWssVYs/I
+	 QgW1oKThI024+1TUZKZAbUcF8B7G20s8Ty7OmUbkcZM0DMHsLG+PCLeHgJeddczR8eA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.ibm.com;
-	spf=pass smtp.mailfrom=linux.ibm.com;
-	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=HfV3u0oY;
-	arc=none smtp.remote-ip=148.163.158.5
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.167.199
+Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF6E606A321;
-	Tue, 24 Nov 2026 18:58:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3FF6E606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=HfV3u0oY
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AOIYld43227618;
-	Tue, 24 Nov 2026 18:57:46 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=uqq04D
-	y6isK/nibhKSp5arYzUNNXHVOftTNvu6kl/OA=; b=HfV3u0oYsHK/2oysOj7z7w
-	d/1edf/+i3BrSGx8kohgNwUJx3hS97CxKYZaqldB7DXk17NXBgKCtupb6asdpLnN
-	W0BsbYY11JMsYv652cyBGcYMiF7aEsPYRQD+d82CbP1F3A/0FXkKSF0ri1aagOnA
-	A6xBx9jHsZ3K2XH6prPoF/46EGIXu2JrhJd0iOVHc+tYh9HstEQDMfgFch0P+de4
-	wGHTEcPdW4l5t4OhWn8iHXkIK9K19nBzIK/tM1vzVKhPXL/ISXCDSXRrFwJ1WNu9
-	dLATIKrkr8gfkFcFePD/gsW/08nd+XuGFGz+kN2589qmZgiREA/zZdXYKd2ojFtw
-	==
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4j34g18taa-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Tue, 24 Nov 2026 18:57:46 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AOIZW7J3101401;
-	Tue, 24 Nov 2026 18:57:45 GMT
-Received: from smtprelay03.wdc07v.mail.ibm.com ([172.16.1.70])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4j3p0vkvhn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 24 Nov 2026 18:57:45 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
-	by smtprelay03.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6AOIurgx31195846
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 24 Nov 2026 18:56:54 GMT
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id EA14D58056;
-	Tue, 24 Nov 2026 18:57:44 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2C1A558052;
-	Tue, 24 Nov 2026 18:57:44 +0000 (GMT)
-Received: from li-43857255-d5e6-4659-90f1-fc5cee4750ad.ibm.com (unknown [9.61.4.47])
-	by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 24 Nov 2026 18:57:44 +0000 (GMT)
-Message-ID: <d22a4eafc73dcb6d2c80862f422fe69d54e79f4b.camel@linux.ibm.com>
-Subject: Re: [PATCH v2 06/13] ima: handle errors from resolving the real
- inode
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein
- <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org
-Cc: Chris Down <chris@chrisdown.name>, Miklos Szeredi
- <mszeredi@redhat.com>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bpf@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-        linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-mm@kvack.org
-In-Reply-To: <20261116-work-ovl-d_real-v2-6-90564c4ae347@kernel.org>
-References: <20261116-work-ovl-d_real-v2-0-90564c4ae347@kernel.org>
-	 <20261116-work-ovl-d_real-v2-6-90564c4ae347@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 24 Nov 2026 13:57:43 -0500
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ED11606A326
+	for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 02:29:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5ED11606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-57289376805so5115340b6e.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Nov 2026 18:29:30 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795573769; x=1796178569;
+        h=content-type:to:from:subject:message-id:in-reply-to:date
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=e7Cl89+R1Vj7SXxz2atxPq7wxZKUNKR/lRW9u+O9qks=;
+        b=NcG8l5i2yrPMnE6N+ZhgpwXF/buNfUGffvh1aaw7cXxwty+ZkKULHHf0EvvocSjpCO
+         GBdK5fsNocsPPlLeDoUHBkIWztnpAYL1U90JDTuh146oDmMOryUtDqDybWLjV9ivBctx
+         YPp71+zWwuS77abbAwP5hW8T91yvSuaLSv4wKa1yJmkFpv/Su0WxT8RLP2k6fdjZpole
+         J5J8pZtSl7FoLaoVwS4D8BtCwwCUfT1HKhMS8UKsaptLMuNLa8rNaPAlRhqch+sHUCuJ
+         dRqk/zEwDnZp/DZhZKqRoNyalkUh3W+HyBWiwLa3sd+TNix/xi8UdUPJN7pOvwgXXEqO
+         e/2Q==
+X-Forwarded-Encrypted: i=1; AL+hErF8QRRyaGU8y6UIA0Id33hAdez8j0ZCkGhCHQ1FRIyOTbnZwWrMEOvoAWVgKKNbhs2MLQH+pG7C/ohiq1E5@vger.kernel.org
+X-Gm-Message-State: APuU4Z/a/oUQaJN9lgUurDbWotMVTFklIbfSanzeJ0mIy0upgTOYbhFT
+	asFKMMvHt1hZgTNP+q3+wRPZk7Rzirndz8bnVlk1c4RosT6xWCXN0ZMDYz8guwE5BCDWB3jcxpr
+	mBXOBeoYNmvvpMDWi6KCF2xxbKmIScbmM73ptMQhPcb1yb6Ka+fSkJuJ7R+8=
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -102,68 +58,203 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Evolution 3.58.3 (3.58.3-2.fc43) 
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-ORIG-GUID: yZjGn-DEeq1kE4tVMh88FNtfLffg03sv
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDA3MyBTYWx0ZWRfX61M3IaFKEsaH
- 7mS6MNfRj/IINRdNIeW6tGSQh3Ue5NbtgMDCNRXnLJ5OBU41aPp0+wD1i+vutgxz/3h/j9mJs5G
- Kea5URj1fxQhihtFOZid/BAAI03/vXQ=
-X-Proofpoint-GUID: NedgcETWwMWTjELFHod-RGSG4ukHSub7
-X-Authority-Analysis: v=2.4 cv=c8M+0h9l c=1 sm=1 tr=0 ts=6b05de2a cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=RzCfie-kr_QcCd8fBx8p:22 a=VwQbUJbxAAAA:8
- a=VnNF1IyMAAAA:8 a=lMkFumaAjUwUa6GXabIA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDA3MyBTYWx0ZWRfXyr1nQkXtkjai
- DyvG50RFNvMZx7HXm6G4R2VhVPWuhpDl0ODZObKFI/5i9UjVKCRWDNEtYSBwO5tR18KcDHXxbjS
- WeC8RQlng8HO9axVheyKPB/GnxVt127Z7IbLPYelZK9I9G09/Q+VnYJPoDLQyl80iQTsQJHRbGF
- JYrcAG4FYcRLeWBrTy81y2EXqZ+jT9zu5ZQoHnG7iLDSE9L980eeEWLawlLzTDPqHXA1Mhbw1Qm
- 1QQqDxnUDyJNXMssDkwH/MD6ocinO5NE4vU258iOrRj0CCJnu4XKi8oB0UnO5s/y7Q3J9o5+N/e
- nE/aH7AaB4PGybrLyST/CIMwLQaOOiFWe9FGTSvm/Mt4NRQNNfD+pATTeprrWDUCjG4UPWnCTov
- sSb3/51afK0h8df7UmmItmgeHTWtIxX4F9NjEBaq9M0GN6z8AU0TqTfCCEdB1UFWgkp2t+BOj0Q
- oCK32Ok7gkRButWmKQw==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-24_05,2026-11-23_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 clxscore=1011 malwarescore=0 suspectscore=0 bulkscore=0
- priorityscore=1501 phishscore=0 adultscore=0 spamscore=0 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611240073
+X-Received: by 2002:a05:6808:4f46:b0:55c:6ea:3e3f with SMTP id
+ 5614622812f47-57a0b449e33mr17983150b6e.28.1795573769302; Tue, 24 Nov 2026
+ 18:29:29 -0800 (PST)
+Date: Tue, 24 Nov 2026 18:29:29 -0800
+In-Reply-To: <6a8e6f78.dbb3a75c.7844.0033.GAE@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6b064809.e1ffc79a.44bf.0003.GAE@google.com>
+Subject: Re: [syzbot] [overlayfs?] possible deadlock in ima_path_truncate
+From: syzbot <syzbot+ecf337bf2c6f75c1ddd8@syzkaller.appspotmail.com>
+To: a.hindborg@kernel.org, amir73il@gmail.com, leitao@debian.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 2026-11-16 at 10:44 +0100, Christian Brauner wrote:
-> d_real() is about to be able to fail for D_REAL_DATA. So switch IMA
-> from d_real_inode() to d_real_data_inode() and deal with the error.
->=20
-> Currently, if overlayfs fails to resolve the data of a file it hands
-> back the overlayfs inode. process_measurement() then sees
-> real_inode =3D=3D inode, skips the detection of changes in the backing fi=
-le
-> and returns the cached verdict. That's the wrong default. With
-> metacopy and verity this isn't limited to files nobody opened yet
-> either. A metadata-only copy-up of an open file makes overlayfs validate
-> the verity digest of the data again on the next D_REAL_DATA lookup and
-> that can fail.
->=20
-> So if the inode hosting the data can't be resolved in
-> process_measurement() we can't tell whether the data changed. Treat it
-> like a change and clear IMA_DONE_MASK and measured_pcrs so the file is
-> evaluated again. The metadata check for EVM stays independent of that.
->=20
-> This is a no-op until d_real() can actually fail.
->=20
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+syzbot has found a reproducer for the following issue on:
 
-The patch, itself, looks fine, but I'm not able to reproduce the error.
+HEAD commit:    8d7fe9885c62 Merge tag 'hid-for-linus-2026112301' of git:/..
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+console output: https://syzkaller.appspot.com/x/log.txt?x=12615bbe580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=462e918ed4cc6d73
+dashboard link: https://syzkaller.appspot.com/bug?extid=ecf337bf2c6f75c1ddd8
+compiler:       Debian clang version 22.1.8 (1~deb13u5), Debian LLD 22.1.8
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=112be823580000
 
-The existing IMA overlay tests are working with and without this patch set.=
-  The
-tests check:
-* test 1: checks file signature is copied
-* test 2: checks backing file signature is copied up to overlay
-* test 3: detects modified backing file
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+ecf337bf2c6f75c1ddd8@syzkaller.appspotmail.com
 
-Reviewed-by: Mimi Zohar <zohar@linux.ibm.com>
+======================================================
+WARNING: possible circular locking dependency detected
+syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor272/5659 is trying to acquire lock:
+ffff88801359bed0 (&ima_iint_mutex_key[depth]){+.+.}-{4:4}, at: ima_reset_action_flags security/integrity/ima/ima_main.c:709 [inline]
+ffff88801359bed0 (&ima_iint_mutex_key[depth]){+.+.}-{4:4}, at: ima_path_truncate+0xd3/0x190 security/integrity/ima/ima_main.c:718
 
-Mimi
+but task is already holding lock:
+ffff888051144478 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x41/0x90 fs/namespace.c:531
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (sb_writers#4){.+.+}-{0:0}:
+       percpu_down_read_internal include/linux/percpu-rwsem.h:53 [inline]
+       percpu_down_read_freezable include/linux/percpu-rwsem.h:83 [inline]
+       __sb_start_write include/linux/fs/super.h:19 [inline]
+       sb_start_write+0x48/0x1c0 include/linux/fs/super.h:125
+       mnt_want_write+0x41/0x90 fs/namespace.c:531
+       ovl_xattr_set+0x15c/0x5e0 fs/overlayfs/xattrs.c:61
+       __vfs_setxattr+0x442/0x480 fs/xattr.c:223
+       __vfs_setxattr_noperm+0x12a/0x660 fs/xattr.c:257
+       vfs_setxattr+0x151/0x370 fs/xattr.c:344
+       cachefiles_preset_object_xattr+0x142/0x3e0 fs/cachefiles/xattr.c:58
+       cachefiles_create_tmpfile+0x3e7/0x790 fs/cachefiles/namei.c:455
+       cachefiles_create_file+0x78/0x140 fs/cachefiles/namei.c:487
+       cachefiles_look_up_object+0x38c/0x7b0 fs/cachefiles/namei.c:622
+       cachefiles_lookup_cookie+0x374/0x750 fs/cachefiles/interface.c:125
+       fscache_perform_lookup fs/netfs/fscache_cookie.c:518 [inline]
+       fscache_cookie_state_machine fs/netfs/fscache_cookie.c:729 [inline]
+       fscache_cookie_worker+0xa77/0x1170 fs/netfs/fscache_cookie.c:835
+       process_one_work kernel/workqueue.c:3495 [inline]
+       process_scheduled_works+0xc3d/0x1630 kernel/workqueue.c:3578
+       worker_thread+0xa47/0xfb0 kernel/workqueue.c:3659
+       kthread+0x38b/0x480 kernel/kthread.c:436
+       ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+       ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+-> #2 (&ovl_i_mutex_key[depth]){+.+.}-{4:4}:
+       down_write+0x91/0x200 kernel/locking/rwsem.c:1631
+       inode_lock include/linux/fs.h:1027 [inline]
+       ovl_write_iter+0x1fb/0x3b0 fs/overlayfs/file.c:358
+       vfs_iocb_iter_write+0x245/0x5e0 fs/read_write.c:930
+       __cachefiles_write+0x6c9/0xbd0 fs/cachefiles/io.c:355
+       netfs_issue_write fs/netfs/write_issue.c:290 [inline]
+       netfs_advance_write+0x328/0x4b0 fs/netfs/write_issue.c:331
+       netfs_write_folio fs/netfs/write_issue.c:510 [inline]
+       netfs_writepages+0x12d3/0x22b0 fs/netfs/write_issue.c:600
+       do_writepages+0x338/0x560 mm/page-writeback.c:2562
+       filemap_writeback mm/filemap.c:386 [inline]
+       filemap_fdatawrite_range mm/filemap.c:411 [inline]
+       filemap_fdatawrite+0x1e9/0x2f0 mm/filemap.c:417
+       v9fs_vfs_setattr_dotl+0x4dc/0xab0 fs/9p/vfs_inode_dotl.c:585
+       notify_change+0xbba/0xea0 fs/attr.c:556
+       do_truncate+0x1c2/0x250 fs/open.c:68
+       handle_truncate fs/namei.c:4306 [inline]
+       do_open fs/namei.c:4855 [inline]
+       path_openat+0x18a6/0x20f0 fs/namei.c:5016
+       do_file_open+0x23e/0x4a0 fs/namei.c:5045
+       do_sys_openat2+0x115/0x200 fs/open.c:1443
+       do_sys_open fs/open.c:1449 [inline]
+       __do_sys_openat fs/open.c:1465 [inline]
+       __se_sys_openat fs/open.c:1460 [inline]
+       __x64_sys_openat+0x138/0x170 fs/open.c:1460
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #1 (&sb->s_type->i_mutex_key#25){++++}-{4:4}:
+       down_read_interruptible+0x4b/0x3b0 kernel/locking/rwsem.c:1584
+       netfs_start_io_read+0x25/0x180 fs/netfs/locking.c:67
+       netfs_buffered_read_iter+0xd6/0x160 fs/netfs/buffered_read.c:940
+       __kernel_read+0x4ca/0x960 fs/read_write.c:512
+       integrity_kernel_read+0x89/0xd0 security/integrity/iint.c:28
+       ima_calc_file_hash_tfm security/integrity/ima/ima_crypto.c:222 [inline]
+       ima_calc_file_hash+0x451/0x890 security/integrity/ima/ima_crypto.c:280
+       ima_collect_measurement+0x51b/0xa00 security/integrity/ima/ima_api.c:300
+       process_measurement+0x1272/0x1c10 security/integrity/ima/ima_main.c:425
+       ima_file_check+0xdc/0x130 security/integrity/ima/ima_main.c:686
+       security_file_post_open+0xb3/0x260 security/security.c:2777
+       do_open fs/namei.c:4853 [inline]
+       path_openat+0x1748/0x20f0 fs/namei.c:5016
+       do_file_open+0x23e/0x4a0 fs/namei.c:5045
+       do_sys_openat2+0x115/0x200 fs/open.c:1443
+       do_sys_open fs/open.c:1449 [inline]
+       __do_sys_openat fs/open.c:1465 [inline]
+       __se_sys_openat fs/open.c:1460 [inline]
+       __x64_sys_openat+0x138/0x170 fs/open.c:1460
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #0 (&ima_iint_mutex_key[depth]){+.+.}-{4:4}:
+       check_prev_add kernel/locking/lockdep.c:3209 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3328 [inline]
+       validate_chain kernel/locking/lockdep.c:3952 [inline]
+       __lock_acquire+0x164c/0x2de0 kernel/locking/lockdep.c:5288
+       lock_acquire+0x115/0x350 kernel/locking/lockdep.c:5942
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x197/0x15a0 kernel/locking/mutex.c:821
+       ima_reset_action_flags security/integrity/ima/ima_main.c:709 [inline]
+       ima_path_truncate+0xd3/0x190 security/integrity/ima/ima_main.c:718
+       security_path_truncate+0x1d0/0x310 security/security.c:1578
+       vfs_truncate+0x46e/0x540 fs/open.c:116
+       ksys_truncate+0xf3/0x1c0 fs/open.c:142
+       __do_sys_truncate fs/open.c:154 [inline]
+       __se_sys_truncate fs/open.c:152 [inline]
+       __x64_sys_truncate+0x5b/0x70 fs/open.c:152
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+other info that might help us debug this:
+
+Chain exists of:
+  &ima_iint_mutex_key[depth] --> &ovl_i_mutex_key[depth] --> sb_writers#4
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  rlock(sb_writers#4);
+                               lock(&ovl_i_mutex_key[depth]);
+                               lock(sb_writers#4);
+  lock(&ima_iint_mutex_key[depth]);
+
+ *** DEADLOCK ***
+
+locks held by syz-executor272/5659: 1, on CPU#0:
+ #0: ffff888051144478 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x41/0x90 fs/namespace.c:531
+
+stack backtrace:
+CPU: 0 UID: 0 PID: 5659 Comm: syz-executor272 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ print_circular_bug+0x2e2/0x300 kernel/locking/lockdep.c:2087
+ check_noncircular+0x12f/0x150 kernel/locking/lockdep.c:2219
+ check_prev_add kernel/locking/lockdep.c:3209 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3328 [inline]
+ validate_chain kernel/locking/lockdep.c:3952 [inline]
+ __lock_acquire+0x164c/0x2de0 kernel/locking/lockdep.c:5288
+ lock_acquire+0x115/0x350 kernel/locking/lockdep.c:5942
+ __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+ __mutex_lock+0x197/0x15a0 kernel/locking/mutex.c:821
+ ima_reset_action_flags security/integrity/ima/ima_main.c:709 [inline]
+ ima_path_truncate+0xd3/0x190 security/integrity/ima/ima_main.c:718
+ security_path_truncate+0x1d0/0x310 security/security.c:1578
+ vfs_truncate+0x46e/0x540 fs/open.c:116
+ ksys_truncate+0xf3/0x1c0 fs/open.c:142
+ __do_sys_truncate fs/open.c:154 [inline]
+ __se_sys_truncate fs/open.c:152 [inline]
+ __x64_sys_truncate+0x5b/0x70 fs/open.c:152
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f0e2c62c7c7
+Code: 44 00 00 31 ff e8 89 f7 ff ff 48 8b 2d f2 81 2a 00 85 c0 79 93 eb d5 48 8d 7c 1d 00 eb 99 0f 1f 44 00 00 b8 4c 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 01 c3 48 c7 c2 d0 ff ff ff f7 d8 64 89 02 b8
+RSP: 002b:00007ffe754e2898 EFLAGS: 00000246 ORIG_RAX: 000000000000004c
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f0e2c62c7c7
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: 00007f0e2c69ea92
+RBP: 00007ffe754e2940 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0e2c69eab0
+R13: 00007ffe754e28c0 R14: 00007ffe754e2980 R15: 00007f0e2c69e8cf
+ </TASK>
+CacheFiles: File cache on CacheFiles unregistering
+netfs: Withdrawing cache "CacheFiles" (6 objs)
