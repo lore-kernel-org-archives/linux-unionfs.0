@@ -1,97 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795596187;
-	b=AeeSRZZdeu2rVf0oz75c+QCcPmw7JZSjldYDh3KyCxfO1eSD+7lKjutN96RHWYtrgga7
-	 +2orNjIBviVsLzexIdBeacWopXdeeqJbIFFP22VFmpOJOL5+iuk/nN4EqbkfY+B9dtLvu
-	 bLxVOViEFEJd+ILwDiRiNxEvtiZjbtojA6bAxUGhGJfiovFjb4Tstfig5OCxeJxJ9/COj
-	 GKHGWUeFatqrMb2HWNDOo36703oNJeaohZUrWwhwtG1QOyjRcJ/jgzNxDce7RazcMAD1l
-	 9e4wnw7B+I8CRo/frAyfBFJLLmUfNhkDyTNEiavhEnVWCdCj4dFmlGJwILZB/07cRfA==
+	t=1795610652;
+	b=oNs2A4z4EXc4aEVCq9cy5h+AQ5EwfpOPGAAh8iK5QxLeOfB7KJa1XFvUd3AQlkS31epH
+	 unfjnzueOApEyjc7BqJilYZEZyGzJpxTfx8H3O0wiv7GUZ9JCNtrUdq9v61zED+bgRdNw
+	 6s0212rv9XNTgKsz76wb4AESyJAHFYAJ74uVTcgjBDIQKS0wg2O2T5fG1ALg3jiaz51KJ
+	 zpjXLrV4YEygBR8FPcfHT8N4sL1ICvytcrRQu3TM8s6PZ3xTe25zfkqeYXw1lVOKO5ren
+	 +cPBB63iROLbbt4RbeE9ULFN1LQCmS/GHsuGXcHYfsSs7pwsMESxgfi9LtIR9N5brhQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795596187;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795610652;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=hUNPEXc2yaJDfkZm6JnwWfLvwUjJNXbmItS1SRelE8w=;
-	b=AXytAWvtwmpu+qst1Dh0mAMYGDQ+Z24TGXX4s8uUnQdsr24VZhfexfBK7strnYt/bGUR
-	 XEqP5EFgPUM0HM/erk73Sgr59eWQG0g4KaVPwXQA8OAr95bjLStQg5WKuAzg8qfCv/ZF6
-	 zNNWK3U/PyO4w3ac5NtNrsjqk8pKo+wAO6l23gDKEiWtm4vpTk1D8yQaoEG3Ebqz6b9sB
-	 vRI6gYDu226TWpe+8WD6kex7INdhz+8fmoQqGVh8Ndb/42f4S8MDeNfJruO8k/0+FqdFP
-	 80ILo76P/JJnFgZ3g6KqfifLB3E9Ocqy9CXYF7CLRyO93YeQcuS7N+4xYvYb7Z7T4lQ==
+	 Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:Content-Transfer-Encoding:User-Agent:MIME-Version;
+	bh=n3kRI1t8FC4sBJ1KlH6nbApPr67WWAzYu4YOF8wU9ro=;
+	b=zds8qG3uP9H5Thb889mccqe6IOMzXBY9a8JCSP3qVjL66JePgVL6sKTcIOSRRH9uGpA7
+	 RIGxaiMnLaQOPXgciQoP3LpluOVbyQLzks/6QTtX2nbR19rLkguvUZGaJ6VJ02CRhqLEG
+	 iiN7y3768WZbQFp35RUwBFlJ3zBC/RGBY9STg8YIQk2WfjOJIWfj5A7lWKtEM8YpMNA4F
+	 Rn65YoXGXIo/ukevx3erOE3dQhHI9PLJ1exSRqsa4fYbxkvJfzpbQrltZqH2mnRWpKYSn
+	 cRmtW56eyIrI18Ar1gbCqfFctloAIJGA6pxCKiiUmLFzJZcwwAk4h8trhG5HWsIAIag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=oDRZFmm+;
-	arc=none smtp.remote-ip=209.85.218.50
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+	dmarc=none header.from=amutable.com;
+	spf=pass smtp.mailfrom=amutable.com;
+	dkim=pass header.d=amutable-com.20260707.gappssmtp.com header.i=@amutable-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=JcoUc7GM;
+	arc=none smtp.remote-ip=209.85.221.53
+Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9C88606A321
-	for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 08:43:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A9C88606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7920C606A329
+	for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 12:44:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7920C606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amutable.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amutable.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=oDRZFmm+
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-c51a14bd405so113946566b.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 00:43:06 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=amutable-com.20260707.gappssmtp.com header.i=@amutable-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=JcoUc7GM
+Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-492f0a1b685so3966477f8f.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 04:44:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795596185; x=1796200985; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=hUNPEXc2yaJDfkZm6JnwWfLvwUjJNXbmItS1SRelE8w=;
-        b=oDRZFmm+IGlYMxKZqISBi94orPylDlrScg0llpeDu3frBG1BRuMNrEaW3d7q4R5XeV
-         +GepH2ninPqJisJcxCv9qWp6zjM4W5yTvk5I+knedG5PVUGffb1pnUq2IP3sSSs2XPpO
-         09m59erlsswq7qRFcDX327zOTLzDPiFAgefTnHF4E3sAhH7b21mBABL1eJYmNdBgQplJ
-         KxLFFQJX24klvDEGzIcyzLdRClKlJ48e3gpQJ3RG4CqYLYJnQKco5ejSUXYbI00qaawD
-         hL+/9vmnqJURyoHI3NyQBgH0YiRI1Yn9+qR2F5Fzyu/FjtGNLsMjuO/zQR0QuNF62Fg0
-         W/ww==
+        d=amutable-com.20260707.gappssmtp.com; s=20260707; t=1795610650; x=1796215450; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:content-type
+         :references:in-reply-to:date:cc:to:from:subject:message-id:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=n3kRI1t8FC4sBJ1KlH6nbApPr67WWAzYu4YOF8wU9ro=;
+        b=JcoUc7GMiAh0LkpV1E480w7GXCIAW/e8cF7hpO69S4aq0dcYx4tjFtoWiYr/DAm4+r
+         yQ/2E0q/ZEtANpcmhRiWttvENm2b4bj22INjO2Cx/R+/hBXaXVuDkjlb15+GWRRpJToA
+         gOt2R0IR6kS/Ao9M36XuCAmR5ct6HS3dYddtARbxeWS1JjHEBmwNCLXhc2QkvjRgk2lT
+         AJJAOIWWGoD+UkNdRCPXyT74UpyGH73ouJzCAPdkF/Lr70PZiakzkApmnO3aBQ+SwCeG
+         0TuQ+Y4k0z+qEetWXaTlu1C1y6AjZth3CoXXov75D3SM0G7QrDYTrkbxN01Y+ILgo/HG
+         90Nw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795596185; x=1796200985;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1795610650; x=1796215450;
+        h=mime-version:user-agent:content-transfer-encoding:content-type
+         :references:in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=hUNPEXc2yaJDfkZm6JnwWfLvwUjJNXbmItS1SRelE8w=;
-        b=N5QtFDg7pnI56+PMHwQ47Dni4Wo3w4zZmCTeWei48ZNjOrh4AvnHbj9wY54ZV0R4UQ
-         anQqW/JMAtR0VANXSFQ3Cuf56xyFgLWFO99ZiIsKwH/UsBZxGgc57d/RsvWadRNqZSHH
-         dYKvbqLRf8eYdyGURlBPjceainxFxPlNA6kZ5l+2UvZjRkjbH8IPeMD1ueRgyBBSXv8X
-         ejsGP9ZfKAgP6tvd7iPtxTdKi+7gLPctfXH9de3j0I0Ctv8FpAFK6ocwQL0rzpJxyFMD
-         uvQ9DBTF/3eNDqyl7wEzbCGp+bsVgdeYFXrQMgZZpWhJLUBqsnzJCC7ByzxfjLmvlT3a
-         6TqQ==
-X-Forwarded-Encrypted: i=1; AL+hErF3UTN4/eqxfqpO9gzWdEzBkZ+ru/vOVKwPeG1telmoa7pLqkb1nO5mRjmNJH1jDBMQRiqMRLd6umKRNqHb@vger.kernel.org
-X-Gm-Message-State: APuU4Z/Z2wxdv/iA9iIu5AJgM53asAFizwq2dEiBqNedKHuoE+YnQkjR
-	HoRc1PElv2G++xlbBWHoMrOTHXievM4jeCG2Jn7+Szx6K9gz4yC96wdM
-X-Gm-Gg: AZFdTZcXV8aU+gPykGgwHv3tDAG/rZamWvecFddalHM3MjvlpE+wRWCYUW61OfxiDGi
-	OlM5Jg1G4R3IMaWeKmVmRcvel6WnuEfeCBnZa40XhLuKanQGkHGnYUtKzYazeEJRRwb2uiLWonu
-	pE8215gLKkNuQX8KD6tn3si+34D5QiAPJLUbvhe7BJY+etI7qru4Fg9USdISXt40gGUGKSFnaqK
-	AwUE3nJosBIaf+fFdi2JmCJXCzpH2/oVfSf/I5afffgLAx58p29M5zLPBmB1QUtZu0jdGxt7NQX
-	f2rU4a963/YXuds/6D5Vk9A738RZJ+ZwQyU6sJMvtYrsiv995nhqpMVWfkJmbqCEI2ugxAldK9r
-	9tS04TK5hil2VJ0U99tVMRI1nrfca2BKyPxOVQYuSrZPxDkivG3bLwo6gFNnt3xv5laHpjfOQYs
-	VeqzGyyZkPPL7lo163oJgQGKFNlO4cwkkwcXPSgdiXM/umD93Hzp/ifsgrSQPXbldi+08HqpafS
-	c8hGg2vJQodGMucZ/xbfd8e7ndmLME4K7SNFRKuvo79rs82UK/Vpv8nyxjxqTcmEvm9WM1qk6vQ
-	xpXx/vYbjuh7ONtaID1zG1HGU811dJJiUYRPjhfqJLer62SEbOZ2viDkWFs8n3YkSrYvGVnUvd+
-	Oc3rKVwTB1QIg
-X-Received: by 2002:a17:906:b009:b0:c29:4fcb:2886 with SMTP id a640c23a62f3a-c513ab47ff7mr994909866b.39.1795596184766;
-        Wed, 25 Nov 2026 00:43:04 -0800 (PST)
-Received: from localhost (178-84-201-199.dynamic.upc.nl. [178.84.201.199])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afdf022sm606367166b.67.2026.11.25.00.43.04
+        bh=n3kRI1t8FC4sBJ1KlH6nbApPr67WWAzYu4YOF8wU9ro=;
+        b=AOsp14IsRXaJJjET1IPdc1aFRKK02yty3K2NcVga3qyHmSjdxa/k0jw7sYXRKPqPk/
+         QutUazYVObdttKk/P03iZSYV3kwtcHz4GrTrgVdTZm75SlY+zNCFTHtE2JPPVZZWPM3W
+         XQVd1ADz9vUZJG9MU5h7QvHQDER7hi2G/Ux78WroPm0OFhXbDV6ZO1vc6sSgKQXp9Fts
+         2U2nAbv9rHXS9UFP4qos0mYR90jy01Wzw8MOP2LCILGvNvyf2KTSz2y1dvUG9V8sd0KR
+         pNP4y/B43ZJTpWxi1JZ39IN67yVht2NZX1/Frm7/aqMEVlG8NQQgs5P+mvcFfQLLAYKB
+         7VKg==
+X-Forwarded-Encrypted: i=1; AL+hErEkn43Gz99Euh7GfC+zCRVI0N4jBJWsnktoglH4I5kS8GvXiowDaTH6mcRXHkZYUslcPVSQIXx8x4KlX2BW@vger.kernel.org
+X-Gm-Message-State: APuU4Z/0tZZ0CHl/nHq2SRACJiVpJVsyrFbFNKImKib+bwKtTCMkN2XD
+	hcfYppOTPPEzhcF7zj/qZUz/D/23YNyleOTXT76XNL+vMOG9Lpj8aJxZVXemUW55NPB1
+X-Gm-Gg: AZFdTZfnpQvN4FNrzLot0RKIB+vuogu4+WS8SDzwhdHUIx3VUnH2ItEOeq5hi8y5FXx
+	BYhqSAMCQJy5imLlBL67RJpykjBmTp/Z0Q21/vCRHU5BIWZ+vQNXD32tzk3H1ia2pTAQe6/CyYD
+	zCuMYYw+vXbt9oiO+4rpixlARWGE+kJy3iRDuEVE6Ocaj0vn1fY0RRdgYnNvx3zikOBMeDTwOmd
+	J9cBi2Xvi03swBE3OdutfmN+1gE0tcb0PqbP43HWh/mCzIDY31JVzRLkewEv4z5DD1AvKe3tYer
+	TDyEtKWF5Pture0oIjEDjx3W1dnYahPiAFFa7OsBHaVlwZoW33w5ZPN2OA0gbqLuBpKQa5Fa3XL
+	Z9CIQW2o8NQ3MMAjGpBba1ktjUvDAuE/Y+ftmoFFdtY5HvcSZ8mGFklF9J2apMGIqj+4uvH3OUJ
+	nC2Yle9N1RE1+665m5ofXl9D2MW2L2cJVbc/eFO0SLSL0Gr9gw19ulSq8yvFryl5uLJCIjNN3Uq
+	4anHDFKd1bozyayv2GRVL2ctAKTMim4URmJ1IiOYKpSkRXb2BAZLL1lK+WRfa0VdDBvjZ3MnU3G
+	noZLXsrI+hcoxNa5BA4ZQCpWnGyHxG2cPDlV8OoOyWu8KwGA7zwEg+ZkeBqY3WuTMuYYO2i/TLa
+	g52UwdqataFFDAw9hTsMdq5MUbaMhI8LoSsotDlUHbY3n5xthGYYa9Ck=
+X-Received: by 2002:a5d:584f:0:b0:4b9:8ac3:f5fa with SMTP id ffacd0b85a97d-4b98ac3f6d5mr4714062f8f.48.1795610649431;
+        Wed, 25 Nov 2026 04:44:09 -0800 (PST)
+Received: from ?IPv6:2003:cf:572c:2800:c235:97b:8b16:8928? (p200300cf572c2800c235097b8b168928.dip0.t-ipconnect.de. [2003:cf:572c:2800:c235:97b:8b16:8928])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab6a67fe75sm38964871f8f.24.2026.11.25.04.44.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 00:43:04 -0800 (PST)
-Date: Wed, 25 Nov 2026 09:43:03 +0100
-From: Amir Goldstein <amir73il@gmail.com>
-To: syzbot <syzbot+ecf337bf2c6f75c1ddd8@syzkaller.appspotmail.com>
-Cc: a.hindborg@kernel.org, leitao@debian.org, linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com,
-	zohar@linux.ibm.com, ngocthang2710.1999@gmail.com,
-	roberto.sassu@huawei.com
-Subject: Re: [syzbot] [overlayfs?] possible deadlock in ima_path_truncate
-Message-ID: <awafl-xj-fpufqI7@gmail.com>
-References: <6a8e6f78.dbb3a75c.7844.0033.GAE@google.com>
- <6b064809.e1ffc79a.44bf.0003.GAE@google.com>
+        Wed, 25 Nov 2026 04:44:08 -0800 (PST)
+Message-ID: <e6c23984f7b47f9dcfffd6de2f6fdf75d07a14fe.camel@amutable.com>
+Subject: Re: [PATCH v2 01/13] ovl: don't warn when the lazy lowerdata lookup
+ fails in ovl_d_real()
+From: Alexander Mikhalitsyn <alex@amutable.com>
+To: Christian Brauner <brauner@kernel.org>, Amir Goldstein
+ <amir73il@gmail.com>, 	linux-fsdevel@vger.kernel.org
+Cc: Chris Down <chris@chrisdown.name>, Miklos Szeredi <mszeredi@redhat.com>,
+ 	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+ bpf@vger.kernel.org, 	linux-trace-kernel@vger.kernel.org,
+ linux-integrity@vger.kernel.org, 	linux-security-module@vger.kernel.org,
+ linux-mm@kvack.org, 	stable@vger.kernel.org, Sashiko
+ <sashiko-bot@kernel.org>
+Date: Wed, 25 Nov 2026 13:44:07 +0100
+In-Reply-To: <20261116-work-ovl-d_real-v2-1-90564c4ae347@kernel.org>
+References: <20261116-work-ovl-d_real-v2-0-90564c4ae347@kernel.org>
+	 <20261116-work-ovl-d_real-v2-1-90564c4ae347@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -101,201 +108,101 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6b064809.e1ffc79a.44bf.0003.GAE@google.com>
 
-On Tue, Nov 24, 2026 at 06:29:29PM -0800, syzbot wrote:
-> syzbot has found a reproducer for the following issue on:
-> 
-> HEAD commit:    8d7fe9885c62 Merge tag 'hid-for-linus-2026112301' of git:/..
-> git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> console output: https://syzkaller.appspot.com/x/log.txt?x=12615bbe580000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=462e918ed4cc6d73
-> dashboard link: https://syzkaller.appspot.com/bug?extid=ecf337bf2c6f75c1ddd8
-> compiler:       Debian clang version 22.1.8 (1~deb13u5), Debian LLD 22.1.8
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=112be823580000
-> 
-> IMPORTANT: if you fix the issue, please add the following tag to the commit:
-> Reported-by: syzbot+ecf337bf2c6f75c1ddd8@syzkaller.appspotmail.com
-> 
+On Mon, 2026-11-16 at 10:43 +0100, Christian Brauner wrote:
+> ovl_d_real() looks up the data of a metacopy file in a data-only
+> layer
+> itself if nothing has done that yet. If that lookup fails it WARN()s
+> and
+> returns the overlayfs dentry.
+>=20
+> Commit 42dd69ae1af4 ("ovl: implement lazy lookup of lowerdata in
+> data-only layers") assumed that the file would be read before
+> trace_uprobe places a uprobe on it so the data would be there
+> already.
+>=20
+> But nothing actually guarantees that. trace_uprobe takes the path
+> from
+> kern_path() and calls d_real_inode() on it when the event is created
+> and
+> again when it is enabled. So a uprobe on a metacopy file whose
+> redirect
+> points at nothing warns twice:
+>=20
+> =C2=A0 ovl_d_real(/f, 0): real dentry not found
+> =C2=A0 WARNING: fs/overlayfs/super.c:79 at ovl_d_real+0xc9/0x210, CPU#2:
+> sh/279
+> =C2=A0 Call Trace:
+> =C2=A0=C2=A0 <TASK>
+> =C2=A0=C2=A0 __trace_uprobe_create+0x1869/0x25b0
+> =C2=A0=C2=A0 trace_probe_create+0xcc/0xe0
+> =C2=A0=C2=A0 dyn_event_create+0x46/0x70
+> =C2=A0=C2=A0 create_or_delete_trace_uprobe+0x3c/0x70
+> =C2=A0=C2=A0 trace_parse_run_command+0x1a6/0x320
+> =C2=A0=C2=A0 vfs_write+0x1cd/0xfa0
+> =C2=A0=C2=A0 ksys_write+0x116/0x250
+> =C2=A0=C2=A0 do_syscall_64+0x10e/0x5e0
+> =C2=A0=C2=A0 entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> =C2=A0=C2=A0 </TASK>
+>=20
+> bpf's uprobe_multi does the same.
+>=20
+> A failed lookup isn't a bug though. The data can be missing, its
+> verity
+> digest can be wrong or a signal can interrupt the wait for the inode
+> lock. ovl_open() simply fails in that case and
+> ovl_maybe_lookup_lowerdata() already warns ratelimited about failed
+> lookups. So return the overlayfs dentry without warning. That's what
+> the
+> WARN() path returned anyway.
+>=20
+> Fixes: 42dd69ae1af4 ("ovl: implement lazy lookup of lowerdata in
+> data-only layers")
+> Cc: stable@vger.kernel.org=C2=A0# v6.5+
+> Reported-by: Sashiko <sashiko-bot@kernel.org>
+> Closes: https://lore.kernel.org/all/sashiko-outbox-214581@kernel.org
+> Reported-by: Chris Down <chris@chrisdown.name>
+> Closes:
+> https://lore.kernel.org/all/20261114120557.4bc1eb6e57218cdc@chrisdown.nam=
+e
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
+Reviewed-by: Alexander Mikhalitsyn <alex@amutable.com>
 
-#syz dup: possible deadlock in vfs_iocb_iter_write
-
-This looks like the same lockdep false positive as syzbot+deb8af81d91415fabac1,
-fixed by "ima: key iint mutex lockdep class per filesystem type":
-https://lore.kernel.org/r/20261123111452.237422-1-ngocthang2710.1999@gmail.com/
-
-
-> ======================================================
-> WARNING: possible circular locking dependency detected
-> syzkaller #0 Not tainted
-> ------------------------------------------------------
-> syz-executor272/5659 is trying to acquire lock:
-> ffff88801359bed0 (&ima_iint_mutex_key[depth]){+.+.}-{4:4}, at: ima_reset_action_flags security/integrity/ima/ima_main.c:709 [inline]
-> ffff88801359bed0 (&ima_iint_mutex_key[depth]){+.+.}-{4:4}, at: ima_path_truncate+0xd3/0x190 security/integrity/ima/ima_main.c:718
-> 
-> but task is already holding lock:
-> ffff888051144478 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x41/0x90 fs/namespace.c:531
-> 
-> which lock already depends on the new lock.
-> 
-> 
-> the existing dependency chain (in reverse order) is:
-> 
-> -> #3 (sb_writers#4){.+.+}-{0:0}:
->        percpu_down_read_internal include/linux/percpu-rwsem.h:53 [inline]
->        percpu_down_read_freezable include/linux/percpu-rwsem.h:83 [inline]
->        __sb_start_write include/linux/fs/super.h:19 [inline]
->        sb_start_write+0x48/0x1c0 include/linux/fs/super.h:125
->        mnt_want_write+0x41/0x90 fs/namespace.c:531
->        ovl_xattr_set+0x15c/0x5e0 fs/overlayfs/xattrs.c:61
->        __vfs_setxattr+0x442/0x480 fs/xattr.c:223
->        __vfs_setxattr_noperm+0x12a/0x660 fs/xattr.c:257
->        vfs_setxattr+0x151/0x370 fs/xattr.c:344
->        cachefiles_preset_object_xattr+0x142/0x3e0 fs/cachefiles/xattr.c:58
->        cachefiles_create_tmpfile+0x3e7/0x790 fs/cachefiles/namei.c:455
->        cachefiles_create_file+0x78/0x140 fs/cachefiles/namei.c:487
->        cachefiles_look_up_object+0x38c/0x7b0 fs/cachefiles/namei.c:622
->        cachefiles_lookup_cookie+0x374/0x750 fs/cachefiles/interface.c:125
->        fscache_perform_lookup fs/netfs/fscache_cookie.c:518 [inline]
->        fscache_cookie_state_machine fs/netfs/fscache_cookie.c:729 [inline]
->        fscache_cookie_worker+0xa77/0x1170 fs/netfs/fscache_cookie.c:835
->        process_one_work kernel/workqueue.c:3495 [inline]
->        process_scheduled_works+0xc3d/0x1630 kernel/workqueue.c:3578
->        worker_thread+0xa47/0xfb0 kernel/workqueue.c:3659
->        kthread+0x38b/0x480 kernel/kthread.c:436
->        ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
->        ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
-> 
-> -> #2 (&ovl_i_mutex_key[depth]){+.+.}-{4:4}:
->        down_write+0x91/0x200 kernel/locking/rwsem.c:1631
->        inode_lock include/linux/fs.h:1027 [inline]
->        ovl_write_iter+0x1fb/0x3b0 fs/overlayfs/file.c:358
->        vfs_iocb_iter_write+0x245/0x5e0 fs/read_write.c:930
->        __cachefiles_write+0x6c9/0xbd0 fs/cachefiles/io.c:355
->        netfs_issue_write fs/netfs/write_issue.c:290 [inline]
->        netfs_advance_write+0x328/0x4b0 fs/netfs/write_issue.c:331
->        netfs_write_folio fs/netfs/write_issue.c:510 [inline]
->        netfs_writepages+0x12d3/0x22b0 fs/netfs/write_issue.c:600
->        do_writepages+0x338/0x560 mm/page-writeback.c:2562
->        filemap_writeback mm/filemap.c:386 [inline]
->        filemap_fdatawrite_range mm/filemap.c:411 [inline]
->        filemap_fdatawrite+0x1e9/0x2f0 mm/filemap.c:417
->        v9fs_vfs_setattr_dotl+0x4dc/0xab0 fs/9p/vfs_inode_dotl.c:585
->        notify_change+0xbba/0xea0 fs/attr.c:556
->        do_truncate+0x1c2/0x250 fs/open.c:68
->        handle_truncate fs/namei.c:4306 [inline]
->        do_open fs/namei.c:4855 [inline]
->        path_openat+0x18a6/0x20f0 fs/namei.c:5016
->        do_file_open+0x23e/0x4a0 fs/namei.c:5045
->        do_sys_openat2+0x115/0x200 fs/open.c:1443
->        do_sys_open fs/open.c:1449 [inline]
->        __do_sys_openat fs/open.c:1465 [inline]
->        __se_sys_openat fs/open.c:1460 [inline]
->        __x64_sys_openat+0x138/0x170 fs/open.c:1460
->        do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
->        do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
->        entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> 
-> -> #1 (&sb->s_type->i_mutex_key#25){++++}-{4:4}:
->        down_read_interruptible+0x4b/0x3b0 kernel/locking/rwsem.c:1584
->        netfs_start_io_read+0x25/0x180 fs/netfs/locking.c:67
->        netfs_buffered_read_iter+0xd6/0x160 fs/netfs/buffered_read.c:940
->        __kernel_read+0x4ca/0x960 fs/read_write.c:512
->        integrity_kernel_read+0x89/0xd0 security/integrity/iint.c:28
->        ima_calc_file_hash_tfm security/integrity/ima/ima_crypto.c:222 [inline]
->        ima_calc_file_hash+0x451/0x890 security/integrity/ima/ima_crypto.c:280
->        ima_collect_measurement+0x51b/0xa00 security/integrity/ima/ima_api.c:300
->        process_measurement+0x1272/0x1c10 security/integrity/ima/ima_main.c:425
->        ima_file_check+0xdc/0x130 security/integrity/ima/ima_main.c:686
->        security_file_post_open+0xb3/0x260 security/security.c:2777
->        do_open fs/namei.c:4853 [inline]
->        path_openat+0x1748/0x20f0 fs/namei.c:5016
->        do_file_open+0x23e/0x4a0 fs/namei.c:5045
->        do_sys_openat2+0x115/0x200 fs/open.c:1443
->        do_sys_open fs/open.c:1449 [inline]
->        __do_sys_openat fs/open.c:1465 [inline]
->        __se_sys_openat fs/open.c:1460 [inline]
->        __x64_sys_openat+0x138/0x170 fs/open.c:1460
->        do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
->        do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
->        entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> 
-> -> #0 (&ima_iint_mutex_key[depth]){+.+.}-{4:4}:
->        check_prev_add kernel/locking/lockdep.c:3209 [inline]
->        check_prevs_add kernel/locking/lockdep.c:3328 [inline]
->        validate_chain kernel/locking/lockdep.c:3952 [inline]
->        __lock_acquire+0x164c/0x2de0 kernel/locking/lockdep.c:5288
->        lock_acquire+0x115/0x350 kernel/locking/lockdep.c:5942
->        __mutex_lock_common kernel/locking/mutex.c:646 [inline]
->        __mutex_lock+0x197/0x15a0 kernel/locking/mutex.c:821
->        ima_reset_action_flags security/integrity/ima/ima_main.c:709 [inline]
->        ima_path_truncate+0xd3/0x190 security/integrity/ima/ima_main.c:718
->        security_path_truncate+0x1d0/0x310 security/security.c:1578
->        vfs_truncate+0x46e/0x540 fs/open.c:116
->        ksys_truncate+0xf3/0x1c0 fs/open.c:142
->        __do_sys_truncate fs/open.c:154 [inline]
->        __se_sys_truncate fs/open.c:152 [inline]
->        __x64_sys_truncate+0x5b/0x70 fs/open.c:152
->        do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
->        do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
->        entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> 
-> other info that might help us debug this:
-> 
-> Chain exists of:
->   &ima_iint_mutex_key[depth] --> &ovl_i_mutex_key[depth] --> sb_writers#4
-> 
->  Possible unsafe locking scenario:
-> 
->        CPU0                    CPU1
->        ----                    ----
->   rlock(sb_writers#4);
->                                lock(&ovl_i_mutex_key[depth]);
->                                lock(sb_writers#4);
->   lock(&ima_iint_mutex_key[depth]);
-> 
->  *** DEADLOCK ***
-> 
-> locks held by syz-executor272/5659: 1, on CPU#0:
->  #0: ffff888051144478 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x41/0x90 fs/namespace.c:531
-> 
-> stack backtrace:
-> CPU: 0 UID: 0 PID: 5659 Comm: syz-executor272 Not tainted syzkaller #0 PREEMPT(full) 
-> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-> Call Trace:
->  <TASK>
->  dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
->  print_circular_bug+0x2e2/0x300 kernel/locking/lockdep.c:2087
->  check_noncircular+0x12f/0x150 kernel/locking/lockdep.c:2219
->  check_prev_add kernel/locking/lockdep.c:3209 [inline]
->  check_prevs_add kernel/locking/lockdep.c:3328 [inline]
->  validate_chain kernel/locking/lockdep.c:3952 [inline]
->  __lock_acquire+0x164c/0x2de0 kernel/locking/lockdep.c:5288
->  lock_acquire+0x115/0x350 kernel/locking/lockdep.c:5942
->  __mutex_lock_common kernel/locking/mutex.c:646 [inline]
->  __mutex_lock+0x197/0x15a0 kernel/locking/mutex.c:821
->  ima_reset_action_flags security/integrity/ima/ima_main.c:709 [inline]
->  ima_path_truncate+0xd3/0x190 security/integrity/ima/ima_main.c:718
->  security_path_truncate+0x1d0/0x310 security/security.c:1578
->  vfs_truncate+0x46e/0x540 fs/open.c:116
->  ksys_truncate+0xf3/0x1c0 fs/open.c:142
->  __do_sys_truncate fs/open.c:154 [inline]
->  __se_sys_truncate fs/open.c:152 [inline]
->  __x64_sys_truncate+0x5b/0x70 fs/open.c:152
->  do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
->  do_syscall_64+0x171/0x540 arch/x86/entry/syscall_64.c:89
->  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> RIP: 0033:0x7f0e2c62c7c7
-> Code: 44 00 00 31 ff e8 89 f7 ff ff 48 8b 2d f2 81 2a 00 85 c0 79 93 eb d5 48 8d 7c 1d 00 eb 99 0f 1f 44 00 00 b8 4c 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 01 c3 48 c7 c2 d0 ff ff ff f7 d8 64 89 02 b8
-> RSP: 002b:00007ffe754e2898 EFLAGS: 00000246 ORIG_RAX: 000000000000004c
-> RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f0e2c62c7c7
-> RDX: 0000000000000001 RSI: 0000000000000000 RDI: 00007f0e2c69ea92
-> RBP: 00007ffe754e2940 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0e2c69eab0
-> R13: 00007ffe754e28c0 R14: 00007ffe754e2980 R15: 00007f0e2c69e8cf
->  </TASK>
-> CacheFiles: File cache on CacheFiles unregistering
-> netfs: Withdrawing cache "CacheFiles" (6 objs)
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+> ---
+> =C2=A0fs/overlayfs/super.c | 10 ++++------
+> =C2=A01 file changed, 4 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 08695a99f4f93..1985b553a47b7 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -58,15 +58,13 @@ static struct dentry *ovl_d_real(struct dentry
+> *dentry, enum d_real_type type)
+> =C2=A0
+> =C2=A0	/*
+> =C2=A0	 * Best effort lazy lookup of lowerdata for D_REAL_DATA case
+> to return
+> -	 * the real lowerdata dentry.=C2=A0 The only current caller of
+> d_real() with
+> -	 * D_REAL_DATA is d_real_inode() from trace_uprobe and this
+> caller is
+> -	 * likely going to be followed reading from the file, before
+> placing
+> -	 * uprobes on offset within the file, so lowerdata should be
+> available
+> -	 * when setting the uprobe.
+> +	 * the real lowerdata dentry. Callers may ask for files that
+> were never
+> +	 * opened, e.g. for uprobes or O_PATH files, so the lookup
+> can fail
+> +	 * here. Return the overlayfs dentry then.
+> =C2=A0	 */
+> =C2=A0	err =3D ovl_verify_lowerdata(dentry);
+> =C2=A0	if (err)
+> -		goto bug;
+> +		return dentry;
+> =C2=A0	lower =3D ovl_dentry_lowerdata(dentry);
+> =C2=A0	if (!lower)
+> =C2=A0		goto bug;
