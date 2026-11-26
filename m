@@ -1,105 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.217
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795611198;
-	b=lGMxkYL0uROI86jPeimHV0AgonNCLOjsxB/cLvH2yIKlvEIJ7NkP+tThaQsb/l5R7J+3
-	 o34xIIEtV/NnEXNOqxk3AVO1KbgtyR3ZDRCuxG6uxBL5A8iP//wxpaa/GXooNP08ohGvk
-	 GHu+GORnRVdksAQk+scZQGHnXhGIUV9W0tzZz+ofdH4cayFO4k4WNQf54L4gSV/qBx1cS
-	 B0haR2DlJhHU6y+hHUDph2zkNIGLhMVMsT11dTWySFc+whA7RnfK6rj5h35ZV1d0uZKKA
-	 nZoWVGhCC2ZrfeplaIAzEf9RHl00v4nrPE0YXXsavDKFG6BTopBK3wkntJVIpv7bm6g==
+	t=1795699673;
+	b=1gKlcKlbH+JCJk2jPi4oXQQ3zb72vdBHvr8psUp/tGDYO25Nf+wE5e6xnpQei98GklmV
+	 VTWW2d04yxpT0uEAAWHZsz4JM6MNyCGw8t22TNF+M2iojjfHkXC+ziaRbtK7q+4SpPUno
+	 f8BDhpfn5qjW62FrK12Vu1yebWnbQmplbaXxa28zMi0l5DZ23cH/x2xX0gofxSDtO8pVj
+	 NtQ7MBQUe2kY6npZIIp9zTU94BT3n899/zWU7HfmLFhy4Kly0Zlcce5yL3yLZ/oV/7eyJ
+	 aaUxYU5nTsi7nalNsL3QnqDGJcqoMeEshwfoO8EWoBBDYqBLCXd5IqhOky1PhTEKzuQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795611198;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Content-Transfer-Encoding:User-Agent:MIME-Version;
-	bh=wb5N99RF+uLplURkem29zNIHwOiV4iL5+6TcWsB08Yc=;
-	b=sLmAasx6y8DD+VTEiLqgyZTDZEqmLat0eiKEvVigAjzE7e7QUrxe9Amfhb+IiDPmID7Q
-	 HiXyCr3MdYwZoeeTo5mA60FCUJxMeL3vxfErszxzKH6cZxO0EfKl3wCwGIxQ6Rt0X9Ilb
-	 4ba2HGLX/FtJhjbA+00Qlv60oJAikSK4AzLkmRrmOE9j7tbz/i5ip3gZO5MqwhWqAXnNM
-	 Qsjz77MTmT7keyuy1dnLSnA4KtP3QxWmX9MeFV3hGO09cbklz8i9a3XjA9j3KKHIgiydS
-	 SSOS22mNN+rpTjttWv5pfO9FZQFC4aRgRZdTDvELhIpS5LhZrPSJXbqZjgPl7pgWhSg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795699673;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:Subject:To:CC:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
+	bh=gzzgXOgo3+SNm0ByCjOvIm/1n5ybZt8er0jBZ3680yc=;
+	b=eXdF9XV9OPiJgW1PhtOjNpnxNGH5pNtLUQ4L0OufmplxHKc9h38LgojsIOCyoVJrUqMM
+	 GIIdCdRnm/yT/p7Aw55oTMSpvio+Wt+Bbcg+GOwvmwjQ/jAJEhPJzbLHmJmTs4y/l+CmP
+	 9OcST+yVfgLhlxUYST7ttrqTpb5U51UVCvuilm9TXBUdkYprBVhJdJj1tMbOjKGCFaOeP
+	 ZMMok8in4HNHOwNtevIkjBgaNiUnUOy6FIzv6twHy/JHbyZA1LCF9L1n/9cb8SUBTqT87
+	 oMyv1sY9278/6EybPKiu+FiLE+DXcrIO6+c1nfYUoQ0K/YYRkOkY+s9IqPRvOsZ4WRw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=amutable.com;
-	spf=pass smtp.mailfrom=amutable.com;
-	dkim=pass header.d=amutable-com.20260707.gappssmtp.com header.i=@amutable-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=QOXEZ5Pu;
-	arc=none smtp.remote-ip=209.85.128.47
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=11fuKA0Q;
+	arc=none smtp.remote-ip=113.46.200.217
+Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48367606A691
-	for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 12:53:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 48367606A691
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amutable.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amutable.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EDEA606A31C;
+	Thu, 26 Nov 2026 13:27:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9EDEA606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amutable-com.20260707.gappssmtp.com header.i=@amutable-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=QOXEZ5Pu
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-4bb666304fdso59426585e9.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 25 Nov 2026 04:53:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amutable-com.20260707.gappssmtp.com; s=20260707; t=1795611197; x=1796215997; darn=vger.kernel.org;
-        h=mime-version:user-agent:content-transfer-encoding:content-type
-         :references:in-reply-to:date:cc:to:from:subject:message-id:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=wb5N99RF+uLplURkem29zNIHwOiV4iL5+6TcWsB08Yc=;
-        b=QOXEZ5Pu/EPca6q7kzgJRCmLrmsoVFR/ZRe4q5d58yeOdbJoHTuz9y0u/Nmk0CktwI
-         CoxL971qgH9IAeYEJL9OV04KK9hoZrCZxCXphCDmaMaCEIiYAFkXm9z/Jipc+urQTX/j
-         Fk8I31Tuids+3mCeGda6Q/7DCnEHSLo9OC+CFzZ1uqDLrPjUm6OialCUSj83o9zL6oVG
-         iksZBRXktSiMRqpVyhlcQqbeKVyrA1zYnXNdKX3aSHnLNR56AH4l3EmMwrecUL/g6kYv
-         65m48YXn1HMJU4OXkynxAivRZrQT+c7z3fBFxX7gT5o5ijKHn00slucTC0ZtqVCasBEY
-         yyiA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795611197; x=1796215997;
-        h=mime-version:user-agent:content-transfer-encoding:content-type
-         :references:in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=wb5N99RF+uLplURkem29zNIHwOiV4iL5+6TcWsB08Yc=;
-        b=tI204xCdkrg+RZ+YTd2bnan7uUXLuazNpMGDWsRmJOOdZh9fzclXQAFl8rKMUNGinx
-         5F12z4uC+UDbfKAfaeFP39KWp3BR1mLZxyAgHCzjVm59qGCukJ6McUpnL5JRdbcc9xr7
-         BQyjFf30q7ZJqBxyeeVlbmkrDOf4RvSGheZPf9tWGwBoauP8CVzfEyXzlyayZoYm0S59
-         5AS2TcKGEzv/0SEb2J2PcVatD5v9PJlkt3KOEyKieeTQi6Wk4yFt5013XOWKpC4ABgB9
-         g1DTc/Kpr8h9ebSxonFl6TamcWyfK9MqJ6lpnwiI5x/pAr/9f3FadGwoHwGHHBOrM604
-         BvhQ==
-X-Forwarded-Encrypted: i=1; AL+hErHs/nkfV4qnC/6p12sXSTy25py1D6t0emrKO4HPkS887NIFWeI5hw6OCGl1c6KRibuko13Mw3Bf5xF1AFlW@vger.kernel.org
-X-Gm-Message-State: APuU4Z8+5DTYZ4JhFhegKgk/qG6VKTFwhVxJB+RLjKEORYrbkhmV8cN5
-	UiSLbyajeaJTaKNDbGTFR3pCq5GJLgZzUT4ei7TdSUusJpt5/pl8SyOfRWIivRkA2QR0iJ96QlI
-	LvS9D9NLA
-X-Gm-Gg: AZFdTZfzQjM1Tno0VjCGDtfGSawYOvwYGivJl7wh7Et3kpgCVT8N6B+Dr0wDElLNV1P
-	Sb3epmWl96PcdbTW1DSdoWCP4gRJoa/GgN6URSfif6ZC1ZbrUOWhYk7YQ3k+AX3FyPeIY60QIgF
-	hJm/DTMtXBUgROebj5Ygc2CnRf8s+yvC73uTFJqtPHFSlA34/XAcBytcdpDdXb4z3cYsyuI5zv+
-	tFlt+5a45X3YneBhw60+M20arkpNEfOzB6oddfHwt0gnSR2PRJSMfe9H7W+l0ME2GPfNKcZZf7u
-	HPyPrRNgo4SdsgNtAeYuFI1ehfJpueLlO1M7F9W2vCiGuslgmOOdOpO9e6hSmKW+usp028Jqch6
-	tfuyYkR7lrhE7yF5ZcS/fU2N3G0scC/nnBy1DktlbGRY4A2iqhyYiVh/AW8FOSyC29T4t0uZ+Z7
-	UeMEv3qQqBVe1fayKwZm0p5ekWWkaVR2CjdEVjmCCu3TYTv9d8SvMIHhyVZeVD9HAty5FPqhg0J
-	vuNOdzcjCp0PLgRy0xQur3PxdxReoA1IvyGMwV6TOw4nNm24vV84NMmHHKDViuJgLDMpvQWuluY
-	dCZZqLUlEV6L2nGq8+vgNQhc0xTcoNwHIZklTgr6QVz86DhbbXNADrJNmfJ1Cy+rltapa8DrTxl
-	d0wNP7qA/9I/UPShk7CCiT0WzEIeZ8GgTW9EEX+z/hsmmT//DBXpzWuPDw15PZQBNofBslf4zpS
-	o=
-X-Received: by 2002:a05:600c:b8a:b0:4a0:20b4:ba93 with SMTP id 5b1f17b1804b1-4bb88818156mr356853675e9.16.1795611196651;
-        Wed, 25 Nov 2026 04:53:16 -0800 (PST)
-Received: from ?IPv6:2003:cf:572c:2800:c235:97b:8b16:8928? (p200300cf572c2800c235097b8b168928.dip0.t-ipconnect.de. [2003:cf:572c:2800:c235:97b:8b16:8928])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb853b2437sm736573735e9.13.2026.11.25.04.53.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 04:53:16 -0800 (PST)
-Message-ID: <45510e886330ade6013838f94cd84c688b263aa8.camel@amutable.com>
-Subject: Re: [PATCH v2 08/13] ipe: handle errors from resolving the real
- inode
-From: Alexander Mikhalitsyn <alex@amutable.com>
-To: Christian Brauner <brauner@kernel.org>, Amir Goldstein
- <amir73il@gmail.com>, 	linux-fsdevel@vger.kernel.org
-Cc: Chris Down <chris@chrisdown.name>, Miklos Szeredi <mszeredi@redhat.com>,
- 	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- bpf@vger.kernel.org, 	linux-trace-kernel@vger.kernel.org,
- linux-integrity@vger.kernel.org, 	linux-security-module@vger.kernel.org,
- linux-mm@kvack.org, Fan Wu	 <wufan@kernel.org>
-Date: Wed, 25 Nov 2026 13:53:15 +0100
-In-Reply-To: <20261116-work-ovl-d_real-v2-8-90564c4ae347@kernel.org>
-References: <20261116-work-ovl-d_real-v2-0-90564c4ae347@kernel.org>
-	 <20261116-work-ovl-d_real-v2-8-90564c4ae347@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=11fuKA0Q
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=gzzgXOgo3+SNm0ByCjOvIm/1n5ybZt8er0jBZ3680yc=;
+	b=11fuKA0QNmqBcJC+Z7+EDBDEdopqwlPjiHPaNdUAff+L4Rfg5ecopOB7c41g4dYkKVWnsOz+7
+	diR70qy0hMLD9NrzKzTwcexrrEJpSqnu718+skXXx/Va432+IohJ+HmaImsfXw3HGXjPhG8bwg/
+	N0Q+ahJUMGyTnAubGLSqDU0=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4jZy4b4NSrzcZxn;
+	Thu, 26 Nov 2026 21:26:39 +0800 (CST)
+Received: from whupemk100010.china.huawei.com (unknown [7.152.184.41])
+	by mail.maildlp.com (Postfix) with ESMTPS id 2EF9B4058C;
+	Thu, 26 Nov 2026 21:27:47 +0800 (CST)
+Received: from [10.67.110.140] (10.67.110.140) by
+ whupemk100010.china.huawei.com (7.152.184.41) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.56; Thu, 26 Nov 2026 21:27:38 +0800
+Message-ID: <2e7397bb-14fa-4d29-bfb5-620495a40245@huawei.com>
+Date: Thu, 26 Nov 2026 21:27:37 +0800
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Post: <mailto:linux-unionfs@vger.kernel.org>
@@ -109,63 +62,93 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-unionfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH -next -v4 01/17] fs: pass struct path to notify_change()
+To: Al Viro <viro@zeniv.linux.org.uk>
+CC: <mic@digikod.net>, <gnoack@google.com>, <paul@paul-moore.com>,
+	<brauner@kernel.org>, <jack@suse.cz>, <amir73il@gmail.com>,
+	<andrii@kernel.org>, <apparmor@lists.ubuntu.com>, <ast@kernel.org>,
+	<axboe@kernel.dk>, <bpf@vger.kernel.org>, <casey@schaufler-ca.com>,
+	<cel@kernel.org>, <cem@kernel.org>, <chenxiaosong@chenxiaosong.com>,
+	<code@tyhicks.com>, <corbet@lwn.net>, <Dai.Ngo@oracle.com>,
+	<dakr@kernel.org>, <daniel@iogearbox.net>, <dhowells@redhat.com>,
+	<dlemoal@kernel.org>, <dmitry.kasatkin@gmail.com>,
+	<driver-core@lists.linux.dev>, <dsterba@suse.com>,
+	<ecryptfs@vger.kernel.org>, <eddyz87@gmail.com>, <emil@etsalapatis.com>,
+	<eric.snowberg@oracle.com>, <exfat@lists.linux.dev>,
+	<georgia.garcia@canonical.com>, <gregkh@linuxfoundation.org>, <hch@lst.de>,
+	<hirofumi@mail.parknet.co.jp>, <hyc.lee@gmail.com>,
+	<ihor.solodrai@linux.dev>, <jlayton@kernel.org>, <jmorris@namei.org>,
+	<johan@kernel.org>, <john.fastabend@gmail.com>,
+	<john.johansen@canonical.com>, <jolsa@kernel.org>, <kpsingh@kernel.org>,
+	<linkinjeon@kernel.org>, <linux-api@vger.kernel.org>,
+	<linux-block@vger.kernel.org>, <linux-btrfs@vger.kernel.org>,
+	<linux-cifs@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>, <linux-integrity@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+	<linux-nfs@vger.kernel.org>, <linux-security-module@vger.kernel.org>,
+	<linux-trace-kernel@vger.kernel.org>, <linux-unionfs@vger.kernel.org>,
+	<linux-xfs@vger.kernel.org>, <liubaolin12138@163.com>,
+	<martin.lau@linux.dev>, <mason@kernel.org>, <mathieu.desnoyers@efficios.com>,
+	<matt@bobrowski.net>, <memxor@gmail.com>, <mhiramat@kernel.org>,
+	<miklos@szeredi.hu>, <neil@brown.name>, <netfs@lists.linux.dev>,
+	<ntfs@lists.linux.dev>, <okorniev@redhat.com>, <omosnacek@gmail.com>,
+	<penguin-kernel@i-love.sakura.ne.jp>, <rafael@kernel.org>,
+	<rdunlap@infradead.org>, <roberto.sassu@huawei.com>, <rostedt@goodmis.org>,
+	<selinux@vger.kernel.org>, <senozhatsky@chromium.org>, <serge@hallyn.com>,
+	<sj1557.seo@samsung.com>, <skhan@linuxfoundation.org>, <song@kernel.org>,
+	<stephen.smalley.work@gmail.com>, <takedakn@nttdata.co.jp>, <tom@talpey.com>,
+	<yonghong.song@linux.dev>, <yuezhang.mo@sony.com>, <zohar@linux.ibm.com>,
+	<utilityemal77@gmail.com>, <lujialin4@huawei.com>
+References: <20261117150542.1169451-1-caixinchen1@huawei.com>
+ <20261117150542.1169451-2-caixinchen1@huawei.com>
+ <20261117183059.GP989762@ZenIV>
+ <32b8d9c9-27d2-4da9-8618-ccfc44dee7a3@huawei.com>
+ <20261119052339.GT989762@ZenIV>
+Content-Language: en-US
+From: Cai Xinchen <caixinchen1@huawei.com>
+In-Reply-To: <20261119052339.GT989762@ZenIV>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ whupemk100010.china.huawei.com (7.152.184.41)
 
-On Mon, 2026-11-16 at 10:44 +0100, Christian Brauner wrote:
-> d_real() is about to be able to fail for D_REAL_DATA. So switch
-> ipe_build_eval_ctx() from d_real_inode() to d_real_data_inode() and
-> deal
-> with the error.
->=20
-> Currently, if overlayfs fails to resolve the data of a file it hands
-> back the overlayfs inode and IPE evaluates the policy against that.
-> The
-> overlayfs inode has neither a block device nor any fs-verity state so
-> none of the properties of the file hosting the data are visible.
->=20
-> Instead, leave the block device and inode state of the evaluation
-> context unset if the data can't be resolved so the file is evaluated
-> without any dm-verity or fs-verity state. IOW, IPE reaches the same
-> verdict as today but without looking at the overlayfs inode.
->=20
-> This is a no-op until d_real() can actually fail.
->=20
-> Suggested-by: Fan Wu <wufan@kernel.org>
-> Link:
-> https://lore.kernel.org/all/4e9a39ac-9ad5-49d8-b0c4-09e665504609@kernel.o=
-rg
-> Acked-by: Fan Wu <wufan@kernel.org>
+oh, I get it.
 
-Reviewed-by: Alexander Mikhalitsyn <alex@amutable.com>
+I think it would be better to use a new function, such as 
+notify_change_internal，
+to bypass this upperpath check, while retaining the inode check.
 
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
-> ---
-> =C2=A0security/ipe/eval.c | 13 ++++++++++---
-> =C2=A01 file changed, 10 insertions(+), 3 deletions(-)
->=20
-> diff --git a/security/ipe/eval.c b/security/ipe/eval.c
-> index 4a7be96c84f03..a2366eb9a47b3 100644
-> --- a/security/ipe/eval.c
-> +++ b/security/ipe/eval.c
-> @@ -102,9 +102,16 @@ void ipe_build_eval_ctx(struct ipe_eval_ctx
-> *ctx,
-> =C2=A0
-> =C2=A0	if (file) {
-> =C2=A0		build_ipe_sb_ctx(ctx, file);
-> -		ino =3D d_real_inode(file->f_path.dentry);
-> -		build_ipe_bdev_ctx(ctx, ino);
-> -		build_ipe_inode_ctx(ctx, ino);
-> +		/*
-> +		 * If the real data inode cannot be resolved, leave
-> the bdev
-> +		 * and inode fields unset so the file is evaluated
-> without
-> +		 * dm-verity/fs-verity state.
-> +		 */
-> +		ino =3D d_real_data_inode(file->f_path.dentry);
-> +		if (!IS_ERR(ino)) {
-> +			build_ipe_bdev_ctx(ctx, ino);
-> +			build_ipe_inode_ctx(ctx, ino);
-> +		}
-> =C2=A0	}
-> =C2=A0}
-> =C2=A0
+ovl_do_notify_change
+->notify_change_internal(...)
+     ->do_notify_change(..., true)
+          ->security_inode_setattr
+              if (!internal)
+                  security_path_setattr
+
+But this leads me to possibly needing to split the inode LSM hooks and 
+the path
+LSM hooks.
+
+On 11/19/2026 1:23 PM, Al Viro wrote:
+> On Wed, Nov 18, 2026 at 05:13:31PM +0800, Cai Xinchen wrote:
+>> On whether we want the mount references at all: they are not for NTFS.
+>> The path-based LSM hooks need them - Landlock's check walks the hierarchy
+>> up from the object with path->mnt->mnt_root and follow_up(), for every
+>> layer, and the idmap we pass has to be the one of the mount the path was
+>> checked in.
+> Then it won't be happy with overlayfs ones:
+>          upper_mnt = clone_private_mount(upperpath);
+> ...
+>          upper_layer->mnt = upper_mnt;
+> in ovl_get_upper(),
+>                  err = ovl_get_upper(sb, ofs, &layers[0], &ctx->upper);
+> in ovl_fill_super_creds()
+> combined with
+> static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+> {
+>          return ofs->layers[0].mnt;
+> }
+>
+> mean that the mount you get won't be attached to anything.  How (un)happy
+> would landlock be with that?
